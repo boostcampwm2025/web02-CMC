@@ -22,18 +22,23 @@
 <table>
   <tr>
     <td align="center">
+      <b>Danny</b><br/>
       <img src="https://github.com/HoonDongKang.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     <td align="center">
+      <b>Ricky</b><br/>
       <img src="https://github.com/rhxfkg.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     <td align="center">
+      <b>Steve</b><br/>
       <img src="https://github.com/U-S-jun.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     <td align="center">
+      <b>Liger</b><br/>
       <img src="https://github.com/JuJangGwon.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     <td align="center">
+      <b>Rookie</b><br/>
       <img src="https://github.com/jjjjjinseo.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     </td>
