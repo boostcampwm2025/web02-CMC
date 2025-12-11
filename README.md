@@ -38,7 +38,7 @@
       <img src="https://github.com/JuJangGwon.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     <td align="center">
-      <b>Rookie</b><br/>
+      <b>Leo</b><br/>
       <img src="https://github.com/jjjjjinseo.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
     </td>
     </td>
