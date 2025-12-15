@@ -20,5 +20,9 @@
     "battle-platform"
   ],
   "author": "CMC Team",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
 }
