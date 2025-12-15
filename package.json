@@ -1,0 +1,24 @@
+{
+  "name": "cmc-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Code Monitoring Center - Code Review Battle Platform",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "prepare": "husky"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "keywords": [
+    "monorepo",
+    "code-review",
+    "battle-platform"
+  ],
+  "author": "CMC Team",
+  "license": "ISC"
+}
