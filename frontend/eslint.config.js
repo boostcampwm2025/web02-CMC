@@ -20,6 +20,10 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2023,
       globals: globals.browser,
+      parserOptions: {
+        project: ['./tsconfig.app.json', './tsconfig.node.json'],
+        tsconfigRootDir: import.meta.dirname
+      }
     },
     rules: {
       'prettier/prettier': 'error',
