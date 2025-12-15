@@ -1,10 +1,10 @@
 {
   "frontend/src/**/*.{ts,tsx}": [
-    "eslint --fix",
+    "cd frontend && eslint --fix",
     "prettier --write"
   ],
   "backend/src/**/*.ts": [
-    "eslint --fix",
+    "cd backend && eslint --fix",
     "prettier --write"
   ]
 }
