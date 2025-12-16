@@ -1,5 +1,5 @@
-import { BattlesService } from './battles.service'
-import type { CreateBattleRequest } from './types'
+import { BattlesService } from './service/battles.service'
+import type { BattleCreateQueryDto } from './dto/battle-create-query.dto'
 
 describe('BattlesService', () => {
   let service: BattlesService
@@ -8,14 +8,14 @@ describe('BattlesService', () => {
     service = new BattlesService()
   })
 
-  const basePayload: CreateBattleRequest = {
+  const basePayload: BattleCreateQueryDto = {
     authorId: 'user-1',
     title: '배틀 제목',
     description: '배틀 설명',
     aCode: 'code-a',
     bCode: 'code-b',
     language: 'typescript',
-    type: '리팩토링',
+    type: 'PUBLIC',
     category: '성능',
     playTime: 10,
   }
@@ -24,7 +24,6 @@ describe('BattlesService', () => {
     const battle = service.create(basePayload)
 
     expect(battle.id).toBeDefined()
-    expect(battle.isPublic).toBe(true)
     expect(battle.password).toBeUndefined()
     expect(battle.participantCount).toBe(1)
     expect(battle.initialState).toEqual({
@@ -38,10 +37,10 @@ describe('BattlesService', () => {
   it('비밀번호가 있으면 비공개 배틀을 생성한다', () => {
     const battle = service.create({
       ...basePayload,
+      type: 'PRIVATE',
       password: 'secret',
     })
 
-    expect(battle.isPublic).toBe(false)
     expect(battle.password).toBe('secret')
   })
 })
