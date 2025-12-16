@@ -1,6 +1,37 @@
+import { useState } from 'react';
 import BattleHeader from './components/BattleHeader';
+import CodeSection from './components/CodeSection';
+
+const MOCK_CODE = {
+  A: `function removeDuplicates(arr) {
+  return [...new Set(arr)];
+}
+
+// 사용 예시
+const numbers = [1, 2, 2, 3, 4, 4, 5];
+console.log(removeDuplicates(numbers));`,
+  B: `function removeDuplicates(arr) {
+  const result = [];
+  const seen = {};
+  
+  for (let i = 0; i < arr.length; i++) {
+    if (!seen[arr[i]]) {
+      seen[arr[i]] = true;
+      result.push(arr[i]);
+    }
+  }
+  
+  return result;
+}
+
+// 사용 예시
+const numbers = [1, 2, 2, 3, 4, 4, 5];
+console.log(removeDuplicates(numbers));`
+};
 
 export default function BattlePage() {
+  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+
   return (
     <div className="text-white">
       <BattleHeader
@@ -12,8 +43,14 @@ export default function BattlePage() {
         teamBCounts={1}
         teamNoneCounts={0}
       />
-      <main className="flex">
-        <section>code</section>
+      <main className="flex gap-4 p-4">
+        <CodeSection
+          onViewChange={setViewMode}
+          currentView={viewMode}
+          language="javascript"
+          codeA={MOCK_CODE.A}
+          codeB={MOCK_CODE.B}
+        />
         <aside>
           <section>chatting</section>
           <section>이의제의 input</section>
