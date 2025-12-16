@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import BattleHeader from './components/BattleHeader';
 import CodeSection from './components/CodeSection';
+import ChatSection from './components/ChatSection';
 
 const MOCK_CODE = {
   A: `function removeDuplicates(arr) {
@@ -33,17 +34,19 @@ export default function BattlePage() {
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
 
   return (
-    <div className="text-white">
-      <BattleHeader
-        title="배열에서 중복 제거하기"
-        description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
-        status="A팀 이의 제기 중"
-        timer="0:02"
-        teamACounts={1}
-        teamBCounts={1}
-        teamNoneCounts={0}
-      />
-      <main className="flex gap-4 p-4">
+    <div className="text-white flex flex-col items-center">
+      <div className="w-[1800px]">
+        <BattleHeader
+          title="배열에서 중복 제거하기"
+          description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
+          status="A팀 이의 제기 중"
+          timer="0:02"
+          teamACounts={1}
+          teamBCounts={1}
+          teamNoneCounts={0}
+        />
+      </div>
+      <main className="flex gap-4 py-4 w-[1800px]">
         <CodeSection
           onViewChange={setViewMode}
           currentView={viewMode}
@@ -51,13 +54,13 @@ export default function BattlePage() {
           codeA={MOCK_CODE.A}
           codeB={MOCK_CODE.B}
         />
-        <aside>
-          <section>chatting</section>
+        <aside className="flex flex-col gap-4">
+          <ChatSection />
           <section>이의제의 input</section>
           <section>투표</section>
         </aside>
       </main>
-      <section>이의제기 & 반박 타임라인</section>
+      <section className="w-[1800px]">이의제기 & 반박 타임라인</section>
     </div>
   );
 }

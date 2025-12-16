@@ -14,7 +14,7 @@ export default function CodeSection({ onViewChange, currentView, codeA, codeB, l
   const [currentTab, setCurrentTab] = useState<'A' | 'B'>('A');
 
   return (
-    <section className="flex-1 flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden">
+    <section className="w-[1194px] flex-1 flex flex-col bg-[#1E1E2F]  rounded-lg overflow-hidden">
       <CodeHeader
         onViewChange={onViewChange}
         currentView={currentView}

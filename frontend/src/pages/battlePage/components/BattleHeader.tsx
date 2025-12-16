@@ -20,7 +20,7 @@ export default function BattleHeader({
   teamNoneCounts
 }: BattleHeaderProps) {
   return (
-    <header className="bg-[#1E1E2F] w-full px-8 py-6">
+    <header className="bg-[#1E1E2F] px-8 py-6 rounded-lg mb-2">
       <div className="flex justify-between">
         <div>
           <h1 className="text-[20px] text-left font-bold mb-2">{title}</h1>
