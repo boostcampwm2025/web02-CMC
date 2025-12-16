@@ -1,6 +1,6 @@
 import { BattlesService } from './battles.service'
 import { Battle } from '../types/battles.types'
-import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -9,7 +9,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   description: 'description',
   aCode: 'a',
   bCode: 'b',
-  language: BATTLE_LANGUAGE.TS,
+  language: 'TS',
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
   playTime: BATTLE_PLAYTIME.TEN_MIN,

@@ -1,5 +1,5 @@
 import { Battle } from '../types/battles.types'
-import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
 
 export const MOCK_BATTLES: Battle[] = [
   {
@@ -9,7 +9,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Remove duplicates from array',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.TS,
+    language: 'TS',
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
@@ -29,7 +29,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Which is better?',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.TS,
+    language: 'TS',
     type: BATTLE_TYPE.PRIVATE,
     category: BATTLE_CATEGORY.IMPLEMENT,
     playTime: BATTLE_PLAYTIME.THIRTY_MIN,
@@ -50,7 +50,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'for vs while performance',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.JS,
+    language: 'JS',
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.REFACTORING,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
@@ -70,7 +70,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Clean if-else patterns',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.TS,
+    language: 'TS',
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
@@ -90,7 +90,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Password protected battle',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.TS,
+    language: 'TS',
     type: BATTLE_TYPE.PRIVATE,
     category: BATTLE_CATEGORY.ETC,
     playTime: BATTLE_PLAYTIME.THIRTY_MIN,
@@ -111,7 +111,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Private algorithm challenge',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.PYTHON,
+    language: 'PYTHON',
     type: BATTLE_TYPE.PRIVATE,
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
@@ -132,7 +132,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Should be treated as closed',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.JS,
+    language: 'JS',
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.REFACTORING,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
@@ -152,7 +152,7 @@ export const MOCK_BATTLES: Battle[] = [
     description: 'Paradigm discussion',
     aCode: '...',
     bCode: '...',
-    language: BATTLE_LANGUAGE.TS,
+    language: 'TS',
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.IMPLEMENT,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
