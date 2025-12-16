@@ -1,10 +1,10 @@
 {
-  "frontend/src/**/*.{ts,tsx}": [
-    "pnpm exec eslint --fix",
+  "backend/src/**/*.ts": [
+    "pnpm exec eslint --fix --config backend/eslint.config.mjs",
     "pnpm exec prettier --write"
   ],
-  "backend/src/**/*.ts": [
-    "pnpm exec eslint --fix",
+  "frontend/src/**/*.{ts,tsx}": [
+    "pnpm exec eslint --fix --config frontend/eslint.config.mjs",
     "pnpm exec prettier --write"
   ]
 }
