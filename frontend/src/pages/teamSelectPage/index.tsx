@@ -1,4 +1,5 @@
 import TeamButton from './components/TeamButton';
+import BattleIcon from '@public/icon/battle.svg?react';
 
 const MOCK_DATA = {
   title: '퀵 소트 알고리즘 구현',
@@ -12,13 +13,16 @@ const MOCK_DATA = {
 
 export default function TeamSelectPage() {
   return (
-    <main>
-      <h1>진영을 선택해주세요</h1>
-      <div>
-        <p>{MOCK_DATA.title}</p>
-        <p>{MOCK_DATA.description}</p>
+    <main className="text-white">
+      <div className="flex w-fit mx-auto ">
+        <BattleIcon className="w-[48px] h-[48px] text-[#FF6900]" />
+        <h1 className="ml-2 text-[16px]  my-auto">진영을 선택해주세요</h1>
       </div>
-      <div className="flex gap-4 text-white">
+      <div className="w-[768px] h-[113px] bg-[#1E1E2F] border-[1px] border-[#2D2D3F] rounded-lg mx-auto text-center py-6 mt-6 mb-10">
+        <p className="font-bold text-[20px]">{MOCK_DATA.title}</p>
+        <p className="mt-2 text-[#99A1AF] text-[16px]">{MOCK_DATA.description}</p>
+      </div>
+      <div className="w-fit mx-auto flex gap-4 text-white">
         <TeamButton
           team="A"
           title="구현 A지지"
@@ -40,8 +44,6 @@ export default function TeamSelectPage() {
           code={MOCK_DATA.bcode}
           description="구현 B가 더 우수하다고 생각한다면 이 진영을 선택하세요."
         />
-        <button> 중립</button>
-        <button> B팀</button>
       </div>
       <button>돌아가기</button>
     </main>
