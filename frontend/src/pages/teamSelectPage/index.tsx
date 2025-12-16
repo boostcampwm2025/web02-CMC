@@ -23,7 +23,7 @@ export default function TeamSelectPage() {
           <p className="font-bold text-[20px]">{MOCK_DATA.title}</p>
           <p className="mt-2 text-[#99A1AF] text-[16px]">{MOCK_DATA.description}</p>
         </div>
-        <div className="w-fit mx-auto my-4 flex gap-4 text-white">
+        <div className="w-fit mx-auto my-4 flex gap-8 text-white">
           <TeamButton
             team="A"
             language={MOCK_DATA.launguage}
