@@ -4,6 +4,7 @@ import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
+import ObjectionInput from './components/objection/ObjectionInput';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 
@@ -50,7 +51,7 @@ export default function BattlePage() {
           />
           <aside className="flex flex-col gap-4">
             <ChatSection aTeamMemebers={102} team={selectedTeam} />
-            <section>이의제의 input</section>
+            <ObjectionInput />
             <section>투표</section>
           </aside>
         </div>
