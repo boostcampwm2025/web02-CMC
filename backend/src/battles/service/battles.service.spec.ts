@@ -1,4 +1,4 @@
-import { BattleService } from './battles.service'
+import { BattlesService } from './battles.service'
 import { Battle } from '../types/battles.types'
 import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
 
@@ -24,11 +24,11 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   ...overrides,
 })
 
-describe('BattleService', () => {
-  let service: BattleService
+describe('', () => {
+  let service: BattlesService
 
   beforeEach(() => {
-    service = new BattleService()
+    service = new BattlesService()
   })
 
   describe('getOpenBattles', () => {

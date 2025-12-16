@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { BattleController } from './battles.controller'
-import { BattleService } from '../service/battles.service'
+import { BattlesController } from './battles.controller'
+import { BattlesService } from '../service/battles.service'
 import { BattleResponseDto } from '../dto/battle-response.dto'
 import { BattlesRequestQueryDto } from '../dto/battle-request-query.dto'
 
 describe('BattlesController', () => {
-  let controller: BattleController
-  let service: jest.Mocked<BattleService>
+  let controller: BattlesController
+  let service: jest.Mocked<BattlesService>
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [BattleController],
+      controllers: [BattlesController],
       providers: [
         {
-          provide: BattleService,
+          provide: BattlesService,
           useValue: {
             getOpenBattles: jest.fn(),
             getClosedBattles: jest.fn(),
@@ -22,8 +22,8 @@ describe('BattlesController', () => {
       ],
     }).compile()
 
-    controller = module.get(BattleController)
-    service = module.get(BattleService)
+    controller = module.get(BattlesController)
+    service = module.get(BattlesService)
   })
 
   afterEach(() => {
