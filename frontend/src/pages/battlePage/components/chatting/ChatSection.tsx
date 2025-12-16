@@ -1,5 +1,6 @@
 import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
+import ObjectionMessage from './ObjectionMessage';
 import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
@@ -12,7 +13,7 @@ interface Message {
   team: 'A' | 'B' | 'none';
   content: string;
   timestamp: string;
-  isObjection?: boolean;
+  type?: 'normal' | 'objection' | 'rebuttal';
 }
 
 const MOCK_TEAM_MESSAGES: Message[] = [
@@ -21,28 +22,32 @@ const MOCK_TEAM_MESSAGES: Message[] = [
     user: 'CodeMaster',
     team: 'A',
     content: '구현스가 Set을 사용해서 더 간결하네요',
-    timestamp: '2025-12-16 21:30:00'
+    timestamp: '2025-12-16 21:30:00',
+    type: 'normal'
   },
   {
     id: 2,
     user: 'JSLover',
     team: 'A',
     content: 'Set 사용이 훨씬 직관적인 것 같은데요',
-    timestamp: '2025-12-16 21:31:00'
+    timestamp: '2025-12-16 21:31:00',
+    type: 'normal'
   },
   {
     id: 3,
     user: 'You',
     team: 'A',
     content: '코드가 구려요',
-    timestamp: '2025-12-16 21:32:00'
+    timestamp: '2025-12-16 21:32:00',
+    type: 'objection'
   },
   {
     id: 4,
     user: 'You',
     team: 'A',
     content: '별론데요',
-    timestamp: '2025-12-16 21:32:30'
+    timestamp: '2025-12-16 21:32:30',
+    type: 'normal'
   }
 ];
 
@@ -52,21 +57,24 @@ const MOCK_ALL_MESSAGES: Message[] = [
     user: 'PlayerB',
     team: 'B',
     content: 'B팀도 나쁘지 않은데요?',
-    timestamp: '2025-12-16 21:30:30'
+    timestamp: '2025-12-16 21:30:30',
+    type: 'objection'
   },
   {
     id: 2,
     user: 'CodeMaster',
     team: 'A',
     content: 'A팀이 더 나은 것 같습니다',
-    timestamp: '2025-12-16 21:31:00'
+    timestamp: '2025-12-16 21:31:00',
+    type: 'rebuttal'
   },
   {
     id: 3,
     user: 'Observer',
     team: 'none',
     content: '둘 다 장단점이 있네요',
-    timestamp: '2025-12-16 21:31:30'
+    timestamp: '2025-12-16 21:31:30',
+    type: 'normal'
   }
 ];
 
@@ -98,7 +106,8 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
       user: 'You',
       team: team,
       content,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      type: 'normal'
     };
 
     if (activeTab === 'team') {
@@ -134,16 +143,26 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
       </div>
 
       <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
-        {currentMessages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            user={message.user}
-            team={message.team}
-            content={message.content}
-            timestamp={message.timestamp}
-            showTeamBadge={activeTab === 'all'}
-          />
-        ))}
+        {currentMessages.map((message) =>
+          message.type === 'objection' || message.type === 'rebuttal' ? (
+            <ObjectionMessage
+              key={message.id}
+              team={message.team}
+              content={message.content}
+              timestamp={message.timestamp}
+              type={message.type}
+            />
+          ) : (
+            <ChatMessage
+              key={message.id}
+              user={message.user}
+              team={message.team}
+              content={message.content}
+              timestamp={message.timestamp}
+              showTeamBadge={activeTab === 'all'}
+            />
+          )
+        )}
       </div>
       <ChatInput onSend={handleSendMessage} />
     </section>

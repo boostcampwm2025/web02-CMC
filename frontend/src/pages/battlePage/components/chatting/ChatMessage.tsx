@@ -6,6 +6,7 @@ interface ChatMessageProps {
   content: string;
   timestamp: string;
   showTeamBadge?: boolean;
+  type?: 'normal' | 'objection' | 'rebuttal';
 }
 
 const TEAM_NICKNAME_COLORS = {
@@ -42,7 +43,7 @@ export default function ChatMessage({ user, team, content, timestamp, showTeamBa
         <span className="text-[11px] text-[#666]">{getTimeAgo(timestamp)}</span>
       </div>
       <div className={`flex items-center gap-2 ${isYou ? 'flex-row-reverse' : ''}`}>
-        <div className={`${isYou ? 'bg-[#6B3410]' : 'bg-[#2D2D3F]'} rounded-lg px-3 py-2 max-w-[280px]`}>
+        <div className={`${isYou ? 'bg-[#6B3410]' : 'bg-[#2D2D3F]'}  rounded-lg px-3 py-2 max-w-[280px]`}>
           <p className="text-[13px] text-white">{content}</p>
         </div>
       </div>
