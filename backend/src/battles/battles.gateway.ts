@@ -1,11 +1,19 @@
 import { Logger } from '@nestjs/common'
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer } from '@nestjs/websockets'
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets'
 import { BattlesService } from './battles.service'
 import { JoinBattleDto } from './dto/join-battle.dto'
 import { Socket, Server } from 'socket.io'
 
 @WebSocketGateway()
-export class BattlesGateway {
+export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server
 
