@@ -2,6 +2,7 @@ import { useState } from 'react';
 import BattleHeader from './components/BattleHeader';
 import CodeSection from './components/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
+import TimelineSection from './components/timeline/TimelineSection';
 
 const MOCK_CODE = {
   A: `function removeDuplicates(arr) {
@@ -46,21 +47,23 @@ export default function BattlePage() {
           teamNoneCounts={0}
         />
       </div>
-      <main className="flex gap-4 py-4 w-[1800px]">
-        <CodeSection
-          onViewChange={setViewMode}
-          currentView={viewMode}
-          language="javascript"
-          codeA={MOCK_CODE.A}
-          codeB={MOCK_CODE.B}
-        />
-        <aside className="flex flex-col gap-4">
-          <ChatSection aTeamMemebers={102} />
-          <section>이의제의 input</section>
-          <section>투표</section>
-        </aside>
+      <main className="w-[1800px]">
+        <div className="flex gap-4 py-4">
+          <CodeSection
+            onViewChange={setViewMode}
+            currentView={viewMode}
+            language="javascript"
+            codeA={MOCK_CODE.A}
+            codeB={MOCK_CODE.B}
+          />
+          <aside className="flex flex-col gap-4">
+            <ChatSection aTeamMemebers={102} />
+            <section>이의제의 input</section>
+            <section>투표</section>
+          </aside>
+        </div>
+        <TimelineSection />
       </main>
-      <section className="w-[1800px]">이의제기 & 반박 타임라인</section>
     </div>
   );
 }
