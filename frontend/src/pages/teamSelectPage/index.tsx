@@ -26,27 +26,19 @@ export default function TeamSelectPage() {
         <div className="w-fit mx-auto my-4 flex gap-4 text-white">
           <TeamButton
             team="A"
-            title="구현 A지지"
             language={MOCK_DATA.launguage}
             code={MOCK_DATA.acode}
             description="구현 A가 더 우수하다고 생각한다면 이 진영을 선택하세요."
           />
-          <TeamButton
-            team="NONE"
-            title="구현 A지지"
-            language={MOCK_DATA.launguage}
-            code={MOCK_DATA.acode}
-            description="구현 A가 더 우수하다고 생각한다면 이 진영을 선택하세요."
-          />
+          <TeamButton team="NONE" />
           <TeamButton
             team="B"
-            title="구현 B지지"
             language={MOCK_DATA.launguage}
             code={MOCK_DATA.bcode}
             description="구현 B가 더 우수하다고 생각한다면 이 진영을 선택하세요."
           />
         </div>
-        <button className="w-[115px] h-[51px] mt-8 border-[#2D2D3F] bg-[#1E1E2F] rounded-lg text-[16px] text-[#D1D5DC]">
+        <button className="w-[115px] h-[51px] mt-8 mx-auto border border-[#2D2D3F] bg-[#1E1E2F] rounded-lg text-[16px] text-[#D1D5DC] block">
           돌아가기
         </button>
       </div>
