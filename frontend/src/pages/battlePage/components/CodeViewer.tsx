@@ -29,7 +29,7 @@ export default function CodeViewer({ team, language, code }: CodeViewerProps) {
         <span className="text-[14px] text-white">{language}</span>
         <span className={`text-[16px] font-bold ${styles.text}`}>구현 {team}</span>
       </div>
-      <div className="p-4">
+      <div className="p-4 min-h-[380px]">
         <pre className="text-[13px] text-[#E0E0E0] font-mono leading-relaxed">
           {lines.map((line, index) => (
             <div key={index} className="flex">
