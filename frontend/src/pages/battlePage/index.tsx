@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import BattleHeader from './components/BattleHeader';
 import CodeSection from './components/CodeSection';
-import ChatSection from './components/ChatSection';
+import ChatSection from './components/chatting/ChatSection';
 
 const MOCK_CODE = {
   A: `function removeDuplicates(arr) {
@@ -55,7 +55,7 @@ export default function BattlePage() {
           codeB={MOCK_CODE.B}
         />
         <aside className="flex flex-col gap-4">
-          <ChatSection />
+          <ChatSection aTeamMemebers={102} />
           <section>이의제의 input</section>
           <section>투표</section>
         </aside>
