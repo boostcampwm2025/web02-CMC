@@ -51,7 +51,16 @@ export class BattlesService {
     return BattleResponseDto.of(battles)
   }
 
+  getClosedBattles(limit: number, offset: number): BattleResponseDto[] {
+    const battles = this.battles.filter(battle => this.isPublicAndClosed(battle)).slice(offset, offset + limit)
+    return BattleResponseDto.of(battles)
+  }
+
   private isPublicAndOpen(battle: Battle): boolean {
     return battle.isPublic && battle.status === BATTLE_STATUS.OPEN
+  }
+
+  private isPublicAndClosed(battle: Battle): boolean {
+    return battle.isPublic && battle.status === BATTLE_STATUS.CLOSED
   }
 }

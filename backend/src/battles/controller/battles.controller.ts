@@ -18,4 +18,9 @@ export class BattlesController {
   getOpenBattles(@Query() query: BattlesRequestQueryDto): BattleResponseDto[] {
     return this.battlesService.getOpenBattles(query.limit, query.offset)
   }
+
+  @Get('closed')
+  getClosedBattles(@Query() query: BattlesRequestQueryDto): BattleResponseDto[] {
+    return this.battleService.getClosedBattles(query.limit, query.offset)
+  }
 }
