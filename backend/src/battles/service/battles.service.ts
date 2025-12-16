@@ -47,20 +47,32 @@ export class BattlesService {
   }
 
   getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles.filter(battle => this.isPublicAndOpen(battle)).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+    const now = new Date()
+
+    const battles = this.battles
+      .filter(battle => this.isPublicAndOpen(battle, now))
+      .slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) //최신 순
+
     return BattleResponseDto.of(battles)
   }
 
   getClosedBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles.filter(battle => this.isPublicAndClosed(battle)).slice(offset, offset + limit)
+    const now = new Date()
+
+    const battles = this.battles
+      .filter(battle => this.isPublicAndClosed(battle, now))
+      .slice(offset, offset + limit)
+      .sort((a, b) => b.expiresAt.getTime() - a.expiresAt.getTime()) // 최신 종료 순
+
     return BattleResponseDto.of(battles)
   }
 
-  private isPublicAndOpen(battle: Battle): boolean {
-    return battle.isPublic && battle.status === BATTLE_STATUS.OPEN
+  private isPublicAndOpen(battle: Battle, now: Date): boolean {
+    return battle.isPublic && battle.expiresAt >= now
   }
 
-  private isPublicAndClosed(battle: Battle): boolean {
-    return battle.isPublic && battle.status === BATTLE_STATUS.CLOSED
+  private isPublicAndClosed(battle: Battle, now: Date): boolean {
+    return battle.isPublic && battle.expiresAt < now
   }
 }
