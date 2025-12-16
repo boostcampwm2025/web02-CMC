@@ -3,6 +3,8 @@ import { v7 as uuidv7 } from 'uuid'
 import { BATTLE_PHASE, BATTLE_STATUS } from '../const/battles.const'
 import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
 import { Battle, BattleStatus } from '../types/battles.types'
+import { MOCK_BATTLES } from '../mock/battles.mock'
+import { BattleResponseDto } from '../dto/battle-response.dto'
 
 @Injectable()
 export class BattlesService {
@@ -42,5 +44,14 @@ export class BattlesService {
     this.battles.push(battle)
 
     return battle
+  }
+
+  getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
+    const battles = this.battles.filter(battle => this.isPublicAndOpen(battle)).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+    return BattleResponseDto.of(battles)
+  }
+
+  private isPublicAndOpen(battle: Battle): boolean {
+    return battle.isPublic && battle.status === BATTLE_STATUS.OPEN
   }
 }

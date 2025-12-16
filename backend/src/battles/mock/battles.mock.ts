@@ -1,5 +1,5 @@
 import { Battle } from '../types/battles.types'
-import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_STATUS } from '../const/battles.const'
 
 export const MOCK_BATTLES: Battle[] = [
   {
@@ -18,6 +18,7 @@ export const MOCK_BATTLES: Battle[] = [
 
     isPublic: true,
 
+    status: BATTLE_STATUS.OPEN,
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 1000 * 60 * 10),
   },
@@ -38,6 +39,7 @@ export const MOCK_BATTLES: Battle[] = [
     isPublic: false,
     password: '123456!',
 
+    status: BATTLE_STATUS.OPEN,
     createdAt: new Date(Date.now() - 1000 * 60 * 60),
     expiresAt: new Date(Date.now() - 1000 * 60 * 30),
   },

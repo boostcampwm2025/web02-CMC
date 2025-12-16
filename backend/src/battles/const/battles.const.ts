@@ -36,6 +36,11 @@ export enum BATTLE_PLAYTIME {
   THIRTY_MIN = 30,
 }
 
+export enum BATTLE_STATUS {
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}
+
 export enum TEAM {
   A = 'A',
   B = 'B',

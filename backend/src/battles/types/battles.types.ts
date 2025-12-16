@@ -1,4 +1,4 @@
-import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_STATUS } from '../const/battles.const'
 
 export type BattleStatus = 'PENDING' | 'IN_PROGRESS' | 'FINISHED'
 
