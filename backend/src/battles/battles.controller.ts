@@ -8,9 +8,9 @@ export class BattlesController {
 
   @Get(':id/result')
   @HttpCode(200)
-  async getBattleResult(@Param('id') battleId: string): Promise<BattleResultResponseDto> {
+  getBattleResult(@Param('id') battleId: string): BattleResultResponseDto {
     try {
-      return await this.battlesService.getBattleResult(battleId)
+      return this.battlesService.getBattleResult(battleId)
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error

@@ -4,7 +4,7 @@ import { mockBattleResults } from '../mock/battleResults.mock'
 
 @Injectable()
 export class BattlesService {
-  async getBattleResult(battleId: string): Promise<BattleResultResponseDto> {
+  getBattleResult(battleId: string): BattleResultResponseDto {
     // 1. 목데이터에서 배틀 조회
     const battle = mockBattleResults[battleId]
     if (!battle) {
@@ -21,6 +21,7 @@ export class BattlesService {
 
     return {
       ...battle,
+      status: 'CLOSED' as const,
       mvp: mvp || battle.mvp,
     }
   }
