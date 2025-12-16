@@ -93,7 +93,7 @@ export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectio
         </span>
       </div>
 
-      <div ref={chatContainerRef} className=" h-[422px] px-4 py-2 overflow-y-auto">
+      <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
         {message.map((message) => (
           <ChatMessage
             key={message.id}
