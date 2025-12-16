@@ -1,24 +1,25 @@
-import { BATTLE_STATUS } from '../const/battles.const'
+import { BattleViewStatus } from '../types/battles.types'
 import { Battle } from '../types/battles.types'
 
 export class BattleResponseDto {
-  id: number
+  id: string
   title: string
   description: string
-  status: BATTLE_STATUS
+  status: BattleViewStatus
   createdAt: Date
   expiresAt: Date
   clientCount: number
 
   static fromEntity(battle: Battle): BattleResponseDto {
     const res = new BattleResponseDto()
+    const expiresAt = new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
 
     res.id = battle.id
     res.title = battle.title
     res.description = battle.description
-    res.status = battle.status
+    res.status = battle.status === 'FINISHED' ? 'CLOSED' : 'OPEN'
     res.createdAt = battle.createdAt
-    res.expiresAt = battle.expiresAt
+    res.expiresAt = expiresAt
     res.clientCount = 0 // TODO: 웹소켓 연동 시 교체
 
     return res

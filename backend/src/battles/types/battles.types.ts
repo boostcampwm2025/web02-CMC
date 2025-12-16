@@ -1,7 +1,7 @@
-import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_STATUS } from '../const/battles.const'
+import { BATTLE_LANGUAGE, BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
 
+export type BattleViewStatus = 'OPEN' | 'CLOSED'
 export type BattleStatus = 'PENDING' | 'IN_PROGRESS' | 'FINISHED'
-
 export type BattlePhase = 'WAITING_FOR_START' | 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH'
 
 export interface Battle {

@@ -5,10 +5,11 @@ import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
 import { Battle, BattleStatus } from '../types/battles.types'
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { BattleResponseDto } from '../dto/battle-response.dto'
+import { BATTLE_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService {
-  private readonly battles: Battle[] = []
+  private battles: Battle[] = []
 
   private generateId(): string {
     return uuidv7()
@@ -46,33 +47,39 @@ export class BattlesService {
     return battle
   }
 
+  setBattlesForTest(battles: Battle[]) {
+    this.battles = battles
+  }
+
+  //실시간 배틀 목록 조회
   getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
-    const now = new Date()
-
     const battles = this.battles
-      .filter(battle => this.isPublicAndOpen(battle, now))
-      .slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+      .filter(battle => this.isPublicAndOpen(battle))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) //최신 순
+      .slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
 
     return BattleResponseDto.of(battles)
   }
 
+  //지난 배틀 조회
   getClosedBattles(limit: number, offset: number): BattleResponseDto[] {
-    const now = new Date()
-
     const battles = this.battles
-      .filter(battle => this.isPublicAndClosed(battle, now))
-      .slice(offset, offset + limit)
-      .sort((a, b) => b.expiresAt.getTime() - a.expiresAt.getTime()) // 최신 종료 순
+      .filter(battle => this.isPublicAndClosed(battle))
+      .sort((a, b) => this.getExpiredTime(b).getTime() - this.getExpiredTime(a).getTime())
+      .slice(offset, offset + limit) //최신 종료 순
 
     return BattleResponseDto.of(battles)
   }
 
-  private isPublicAndOpen(battle: Battle, now: Date): boolean {
-    return battle.isPublic && battle.expiresAt >= now
+  private isPublicAndOpen(battle: Battle): boolean {
+    return battle.type === BATTLE_TYPE.PUBLIC && (battle.status === 'PENDING' || battle.status === 'IN_PROGRESS')
   }
 
-  private isPublicAndClosed(battle: Battle, now: Date): boolean {
-    return battle.isPublic && battle.expiresAt < now
+  private isPublicAndClosed(battle: Battle): boolean {
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'FINISHED'
+  }
+
+  private getExpiredTime(battle: Battle): Date {
+    return new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
   }
 }
