@@ -3,6 +3,8 @@ import ChatMessage from './ChatMessage';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
+import { useState } from 'react';
+
 interface Message {
   id: number;
   user: string;
@@ -45,9 +47,33 @@ const MOCK_MESSAGES: Message[] = [
 
 interface ChatSectionProps {
   aTeamMemebers: number;
+  onSendMessage?: (content: string) => void;
 }
 
-export default function ChatSection({ aTeamMemebers }: ChatSectionProps) {
+export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectionProps) {
+  const [message, setMessage] = useState<Message[]>(MOCK_MESSAGES);
+
+  const handleSendMessage = (content: string) => {
+    const newMessage: Message = {
+      id: message.length + 1,
+      user: 'You',
+      team: 'A',
+      content,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
+    };
+    // 낙관적 업데이트: 로컬 상태에 즉시 추가
+    setMessage((prev) => [...prev, newMessage]);
+
+    // 부모 컴포넌트로 메시지 전송 (서버 전송용)
+    if (onSendMessage) {
+      onSendMessage(content);
+    }
+  };
+
+  /*Todo 채팅 소켓 구동 이벤트로직 필요.
+    setMessage()
+  */
+
   return (
     <section className="w-[500px] flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#2D2D3F]">
@@ -63,7 +89,7 @@ export default function ChatSection({ aTeamMemebers }: ChatSectionProps) {
       </div>
 
       <div className=" h-[422px] px-4 py-2">
-        {MOCK_MESSAGES.map((message) => (
+        {message.map((message) => (
           <ChatMessage
             key={message.id}
             user={message.user}
@@ -73,7 +99,7 @@ export default function ChatSection({ aTeamMemebers }: ChatSectionProps) {
           />
         ))}
       </div>
-      <ChatInput />
+      <ChatInput onSend={handleSendMessage} />
     </section>
   );
 }
