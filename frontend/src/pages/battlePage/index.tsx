@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import BattleHeader from './components/BattleHeader';
-import CodeSection from './components/CodeSection';
+import BattleHeader from './components/header/BattleHeader';
+import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import TimelineSection from './components/timeline/TimelineSection';
 
