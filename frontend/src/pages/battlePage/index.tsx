@@ -5,6 +5,7 @@ import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import ObjectionInput from './components/objection/ObjectionInput';
+import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 
@@ -17,6 +18,36 @@ export default function BattlePage() {
   const { state } = useLocation();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+  const [objections, setObjections] = useState<Objection[]>([]);
+
+  const handleVote = (objectionId: number) => {
+    setObjections((prev) =>
+      prev.map((obj) => {
+        if (obj.id === objectionId) {
+          return { ...obj, hasVoted: true, votes: obj.votes + 1 };
+        } else if (obj.hasVoted) {
+          return { ...obj, hasVoted: false, votes: obj.votes - 1 };
+        }
+        return obj;
+      })
+    );
+    // @ Todo 소켓으로 투표 정보 전송 로직 추가 필요
+  };
+
+  const handleObjectionSubmit = (content: string) => {
+    const newObjection: Objection = {
+      id: Date.now(),
+      user: 'You',
+      team: 'A', // @ Todo 실제 팀 정보로 대체 필요
+      content,
+      votes: 0,
+      totalVotes: objections.length + 1,
+      hasVoted: false
+    };
+
+    setObjections((prev) => [...prev, newObjection]);
+    // @ Todo 소켓으로 이의제기 정보 전송 로직 추가 필요
+  };
 
   const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
 
@@ -51,8 +82,8 @@ export default function BattlePage() {
           />
           <aside className="flex flex-col gap-4">
             <ChatSection aTeamMemebers={102} team={selectedTeam} />
-            <ObjectionInput />
-            <section>투표</section>
+            <ObjectionInput onSubmit={handleObjectionSubmit} />
+            <ObjectionVote objections={objections} onVote={handleVote} />
           </aside>
         </div>
         <TimelineSection />

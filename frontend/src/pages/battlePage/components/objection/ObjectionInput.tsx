@@ -3,13 +3,15 @@ import { useState } from 'react';
 
 interface ObjectionInputProps {
   disabled?: boolean;
+  onSubmit?: (content: string) => void;
 }
 
-export default function ObjectionInput({ disabled = false }: ObjectionInputProps) {
+export default function ObjectionInput({ disabled = false, onSubmit }: ObjectionInputProps) {
   const [inputValue, setInputValue] = useState('');
 
   const handleSubmit = () => {
     if (inputValue.trim() && !disabled) {
+      onSubmit?.(inputValue);
       setInputValue('');
     }
   };
