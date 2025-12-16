@@ -1,5 +1,6 @@
 import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
+import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
@@ -48,10 +49,12 @@ const MOCK_MESSAGES: Message[] = [
 interface ChatSectionProps {
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
+  team: 'A' | 'B';
 }
 
-export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectionProps) {
+export default function ChatSection({ aTeamMemebers, onSendMessage, team }: ChatSectionProps) {
   const [message, setMessage] = useState<Message[]>(MOCK_MESSAGES);
+  const [activeTab, setActiveTab] = useState<'team' | 'all'>('team');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,16 +84,19 @@ export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectio
 
   return (
     <section className="w-[500px] flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2D2D3F]">
-        <div className="flex items-center gap-2">
-          <MessageIcon />
-          <h3 className="text-[14px] font-medium text-white">A팀 라운지</h3>
-          <span className="px-2 py-0.5 bg-[#51A2FF] rounded text-[11px] font-medium text-white">A팀</span>
+      <div className="px-4 pt-3 pb-2 border-b border-[#2D2D3F]">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MessageIcon />
+            <h3 className="text-[14px] font-medium text-white">라운지</h3>
+          </div>
+          <span className="text-[12px] text-[#99A1AF] flex items-center gap-1">
+            <PeoplesIcons />
+            {aTeamMemebers}
+          </span>
         </div>
-        <span className="text-[12px] text-[#99A1AF] flex items-center gap-1">
-          <PeoplesIcons />
-          {aTeamMemebers}
-        </span>
+
+        <ChatTabs activeTab={activeTab} onTabChange={setActiveTab} team={team} />
       </div>
 
       <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
