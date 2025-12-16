@@ -19,18 +19,14 @@ export class BattlesService {
     // 3. MVP 재계산 (검증용)
     const mvp = this.calculateMVP(battle.timeline)
 
-    return {
-      ...battle,
-      status: 'CLOSED' as const,
-      mvp: mvp || battle.mvp,
-    }
+    return BattleResultResponseDto.fromEntity(battle, mvp)
   }
 
   private calculateMVP(timeline: TimelineItemDto[]): MvpDto | null {
     if (timeline.length === 0) return null
 
     // 사용자별 누적 upvotes 집계
-    const userVotes = new Map<string, { nickname: string; team: string; votes: number }>()
+    const userVotes = new Map<string, { nickname: string; team: 'A' | 'B'; votes: number }>()
 
     timeline.forEach(item => {
       const current = userVotes.get(item.author.id) || {
@@ -51,7 +47,7 @@ export class BattlesService {
     return {
       userId,
       nickname: data.nickname,
-      team: data.team as 'A' | 'B',
+      team: data.team,
       totalVotes: data.votes,
     }
   }

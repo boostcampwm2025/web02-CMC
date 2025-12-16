@@ -1,3 +1,5 @@
+import { BattleResultMock } from '../../mock/battleResults.mock'
+
 export class VoteResultDto {
   votes: number
   percentage: number
@@ -66,4 +68,25 @@ export class BattleResultResponseDto {
   voteTimeline: VoteTimelineDto[]
   timeline: TimelineItemDto[]
   mvp: MvpDto
+
+  static fromEntity(battle: BattleResultMock, calculatedMvp: MvpDto | null): BattleResultResponseDto {
+    const dto = new BattleResultResponseDto()
+    dto.battleId = battle.battleId
+    dto.title = battle.title
+    dto.description = battle.description
+    dto.status = 'CLOSED'
+    dto.language = battle.language
+    dto.category = battle.category
+    dto.playTime = battle.playTime
+    dto.createdAt = battle.createdAt
+    dto.finishedAt = battle.finishedAt
+    dto.codeA = battle.codeA
+    dto.codeB = battle.codeB
+    dto.result = battle.result
+    dto.metrics = battle.metrics
+    dto.voteTimeline = battle.voteTimeline
+    dto.timeline = battle.timeline
+    dto.mvp = calculatedMvp || battle.mvp
+    return dto
+  }
 }
