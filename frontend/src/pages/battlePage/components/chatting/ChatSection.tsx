@@ -3,7 +3,7 @@ import ChatMessage from './ChatMessage';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface Message {
   id: number;
@@ -52,6 +52,13 @@ interface ChatSectionProps {
 
 export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectionProps) {
   const [message, setMessage] = useState<Message[]>(MOCK_MESSAGES);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [message]);
 
   const handleSendMessage = (content: string) => {
     const newMessage: Message = {
@@ -61,10 +68,8 @@ export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectio
       content,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
-    // 낙관적 업데이트: 로컬 상태에 즉시 추가
     setMessage((prev) => [...prev, newMessage]);
 
-    // 부모 컴포넌트로 메시지 전송 (서버 전송용)
     if (onSendMessage) {
       onSendMessage(content);
     }
@@ -88,7 +93,7 @@ export default function ChatSection({ aTeamMemebers, onSendMessage }: ChatSectio
         </span>
       </div>
 
-      <div className=" h-[422px] px-4 py-2">
+      <div ref={chatContainerRef} className=" h-[422px] px-4 py-2 overflow-y-auto">
         {message.map((message) => (
           <ChatMessage
             key={message.id}
