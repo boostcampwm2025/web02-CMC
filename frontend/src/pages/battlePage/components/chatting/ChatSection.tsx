@@ -4,7 +4,7 @@ import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 interface Message {
   id: number;
@@ -15,7 +15,7 @@ interface Message {
   isObjection?: boolean;
 }
 
-const MOCK_MESSAGES: Message[] = [
+const MOCK_TEAM_MESSAGES: Message[] = [
   {
     id: 1,
     user: 'CodeMaster',
@@ -46,6 +46,30 @@ const MOCK_MESSAGES: Message[] = [
   }
 ];
 
+const MOCK_ALL_MESSAGES: Message[] = [
+  {
+    id: 1,
+    user: 'PlayerB',
+    team: 'B',
+    content: 'B팀도 나쁘지 않은데요?',
+    timestamp: '2025-12-16 21:30:30'
+  },
+  {
+    id: 2,
+    user: 'CodeMaster',
+    team: 'A',
+    content: 'A팀이 더 나은 것 같습니다',
+    timestamp: '2025-12-16 21:31:00'
+  },
+  {
+    id: 3,
+    user: 'Observer',
+    team: 'none',
+    content: '둘 다 장단점이 있네요',
+    timestamp: '2025-12-16 21:31:30'
+  }
+];
+
 interface ChatSectionProps {
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
@@ -53,25 +77,35 @@ interface ChatSectionProps {
 }
 
 export default function ChatSection({ aTeamMemebers, onSendMessage, team }: ChatSectionProps) {
-  const [message, setMessage] = useState<Message[]>(MOCK_MESSAGES);
+  const [teamMessages, setTeamMessages] = useState<Message[]>(MOCK_TEAM_MESSAGES);
+  const [allMessages, setAllMessages] = useState<Message[]>(MOCK_ALL_MESSAGES);
   const [activeTab, setActiveTab] = useState<'team' | 'all'>('team');
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentMessages = useMemo(() => {
+    return activeTab === 'team' ? teamMessages : allMessages;
+  }, [activeTab, teamMessages, allMessages]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [message]);
+  }, [currentMessages]);
 
   const handleSendMessage = (content: string) => {
     const newMessage: Message = {
-      id: message.length + 1,
+      id: currentMessages.length + 1,
       user: 'You',
-      team: 'A',
+      team: team,
       content,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19)
     };
-    setMessage((prev) => [...prev, newMessage]);
+
+    if (activeTab === 'team') {
+      setTeamMessages((prev) => [...prev, newMessage]);
+    } else {
+      setAllMessages((prev) => [...prev, newMessage]);
+    }
 
     if (onSendMessage) {
       onSendMessage(content);
@@ -79,7 +113,7 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
   };
 
   /*Todo 채팅 소켓 구동 이벤트로직 필요.
-    setMessage()
+    setTeamMessages() / setAllMessages()
   */
 
   return (
@@ -100,13 +134,14 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
       </div>
 
       <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
-        {message.map((message) => (
+        {currentMessages.map((message) => (
           <ChatMessage
             key={message.id}
             user={message.user}
             team={message.team}
             content={message.content}
             timestamp={message.timestamp}
+            showTeamBadge={activeTab === 'all'}
           />
         ))}
       </div>
