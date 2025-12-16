@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { v7 as uuidv7 } from 'uuid'
-import { BATTLE_PHASE, BATTLE_STATUS } from '../../const/battles.const'
+import { BATTLE_PHASE, BATTLE_STATUS } from '../const/battles.const'
 import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
 import { Battle, BattleStatus } from '../types/battles.types'
 
