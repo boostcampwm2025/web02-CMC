@@ -1,6 +1,6 @@
-import EyeIcon from '@public/icon/eye.svg?react';
-import Sheild from '@public/icon/shield.svg?react';
-import Scale from '@public/icon/scale.svg?react';
+import EyeIcon from '@/assets/icon/eye.svg?react';
+import Sheild from '@/assets/icon/shield.svg?react';
+import Scale from '@/assets/icon/scale.svg?react';
 
 interface TeamButtonProps {
   team: 'A' | 'B' | 'NONE';
@@ -37,7 +37,7 @@ export default function TeamButton({ team, title, language, code, description }:
   const teamLabel = team === 'NONE' ? '중립' : `${team}팀`;
 
   return (
-    <button className={`border-[2px] rounded-md bg-[#1E1E2F] min-h-[437px] w-[18rem] ${styles.button}`}>
+    <button className={`border-[0.1px] rounded-md bg-[#1E1E2F] min-h-[437px] w-[18rem] ${styles.button}`}>
       <Icon className={`rounded-full w-[96px] h-[96px] px-6 py-6 mx-auto ${styles.icon}`} />
       <p className="my-4">{teamLabel}</p>
       <p className={`text-[16px] my-4 ${styles.title}`}>{title}</p>
