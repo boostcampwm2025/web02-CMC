@@ -72,11 +72,11 @@ export class BattlesService {
   }
 
   private isPublicAndOpen(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && (battle.status === 'PENDING' || battle.status === 'IN_PROGRESS')
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'OPEN'
   }
 
   private isPublicAndClosed(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'FINISHED'
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'CLOSED'
   }
 
   private getExpiredTime(battle: Battle): Date {

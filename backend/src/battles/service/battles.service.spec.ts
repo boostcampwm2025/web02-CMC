@@ -13,7 +13,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
   playTime: BATTLE_PLAYTIME.TEN_MIN,
-  status: 'PENDING',
+  status: 'OPEN',
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   initialState: {
@@ -32,22 +32,19 @@ describe('', () => {
   })
 
   describe('getOpenBattles', () => {
-    it('PUBLIC 이면서 PENDING 또는 IN_PROGRESS 상태인 배틀만 반환한다', () => {
+    it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'PENDING' }),
-        createBattle({ status: 'IN_PROGRESS' }),
-        createBattle({ status: 'FINISHED' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'IN_PROGRESS' }),
+        createBattle({ status: 'OPEN' }),
+        createBattle({ status: 'CLOSED' }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'OPEN' }),
       ]
 
       service.setBattlesForTest(battles)
 
       const result = service.getOpenBattles(10, 0)
 
-      expect(result).toHaveLength(2)
-      result.forEach(battle => {
-        expect(battle.status).toBe('OPEN')
-      })
+      expect(result).toHaveLength(1)
+      expect(result[0].status).toBe('OPEN')
     })
 
     it('배틀 생성 시간 기준 최신순으로 정렬된다', () => {
@@ -80,9 +77,9 @@ describe('', () => {
   describe('getClosedBattles', () => {
     it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'FINISHED' }),
-        createBattle({ status: 'IN_PROGRESS' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'FINISHED' }),
+        createBattle({ status: 'CLOSED' }),
+        createBattle({ status: 'OPEN' }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'CLOSED' }),
       ]
 
       service.setBattlesForTest(battles)
@@ -97,12 +94,12 @@ describe('', () => {
       const shorter = createBattle({
         id: 'short',
         playTime: BATTLE_PLAYTIME.FIVE_MIN,
-        status: 'FINISHED',
+        status: 'CLOSED',
       })
       const longer = createBattle({
         id: 'long',
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
-        status: 'FINISHED',
+        status: 'CLOSED',
       })
 
       service.setBattlesForTest([shorter, longer])

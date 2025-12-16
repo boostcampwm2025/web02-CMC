@@ -13,7 +13,7 @@ export const MOCK_BATTLES: Battle[] = [
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
-    status: 'IN_PROGRESS',
+    status: 'OPEN',
     createdAt: new Date(),
     updatedAt: new Date(),
     initialState: {
@@ -34,7 +34,7 @@ export const MOCK_BATTLES: Battle[] = [
     category: BATTLE_CATEGORY.IMPLEMENT,
     playTime: BATTLE_PLAYTIME.THIRTY_MIN,
     password: '123456!',
-    status: 'PENDING',
+    status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 60),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60),
     initialState: {
@@ -54,7 +54,7 @@ export const MOCK_BATTLES: Battle[] = [
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.REFACTORING,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
-    status: 'FINISHED',
+    status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 60),
     updatedAt: new Date(Date.now() - 1000 * 60 * 30),
     initialState: {
@@ -74,7 +74,7 @@ export const MOCK_BATTLES: Battle[] = [
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
-    status: 'FINISHED',
+    status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 120),
     updatedAt: new Date(Date.now() - 1000 * 60 * 90),
     initialState: {
@@ -95,7 +95,7 @@ export const MOCK_BATTLES: Battle[] = [
     category: BATTLE_CATEGORY.ETC,
     playTime: BATTLE_PLAYTIME.THIRTY_MIN,
     password: 'secret!',
-    status: 'PENDING',
+    status: 'OPEN',
     createdAt: new Date(Date.now() - 1000 * 60 * 10),
     updatedAt: new Date(Date.now() - 1000 * 60 * 10),
     initialState: {
@@ -116,7 +116,7 @@ export const MOCK_BATTLES: Battle[] = [
     category: BATTLE_CATEGORY.ALGORITHM,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
     password: 'hidden123',
-    status: 'FINISHED',
+    status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 200),
     updatedAt: new Date(Date.now() - 1000 * 60 * 180),
     initialState: {
@@ -136,7 +136,7 @@ export const MOCK_BATTLES: Battle[] = [
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.REFACTORING,
     playTime: BATTLE_PLAYTIME.FIVE_MIN,
-    status: 'FINISHED',
+    status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 40),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5),
     initialState: {
@@ -156,7 +156,7 @@ export const MOCK_BATTLES: Battle[] = [
     type: BATTLE_TYPE.PUBLIC,
     category: BATTLE_CATEGORY.IMPLEMENT,
     playTime: BATTLE_PLAYTIME.TEN_MIN,
-    status: 'IN_PROGRESS',
+    status: 'OPEN',
     createdAt: new Date(Date.now() - 1000 * 60 * 1),
     updatedAt: new Date(Date.now() - 1000 * 60 * 1),
     initialState: {
