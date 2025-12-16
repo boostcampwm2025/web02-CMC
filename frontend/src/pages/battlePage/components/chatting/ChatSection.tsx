@@ -81,13 +81,13 @@ const MOCK_ALL_MESSAGES: Message[] = [
 interface ChatSectionProps {
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
-  team: 'A' | 'B';
+  team: 'A' | 'B' | 'none';
 }
 
 export default function ChatSection({ aTeamMemebers, onSendMessage, team }: ChatSectionProps) {
   const [teamMessages, setTeamMessages] = useState<Message[]>(MOCK_TEAM_MESSAGES);
   const [allMessages, setAllMessages] = useState<Message[]>(MOCK_ALL_MESSAGES);
-  const [activeTab, setActiveTab] = useState<'team' | 'all'>('team');
+  const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'none' ? 'all' : 'team');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const currentMessages = useMemo(() => {

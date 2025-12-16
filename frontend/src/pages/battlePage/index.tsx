@@ -49,7 +49,7 @@ export default function BattlePage() {
             codeB={battleInfo.bCode}
           />
           <aside className="flex flex-col gap-4">
-            <ChatSection aTeamMemebers={102} team="A" />
+            <ChatSection aTeamMemebers={102} team="none" />
             <section>이의제의 input</section>
             <section>투표</section>
           </aside>
