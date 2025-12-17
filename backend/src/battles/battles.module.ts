@@ -5,6 +5,5 @@ import { BattlesService } from './service/battles.service'
 @Module({
   controllers: [BattlesController],
   providers: [BattlesService],
-  exports: [BattlesService],
 })
 export class BattlesModule {}
