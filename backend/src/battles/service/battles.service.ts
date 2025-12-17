@@ -1,18 +1,19 @@
 import { v7 as uuidv7 } from 'uuid'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 
-import { Battle } from '../types/battles.types'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
+import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { BattleResponseDto } from '../dto/battle-response.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
-import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TYPE } from '../const/battles.const'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
 import { BattleJoinRequestDto } from '../dto/battle-join-request.dto'
 
 @Injectable()
 export class BattlesService {
   private battles: Battle[] = []
+  private activeBattles: Map<string, ActiveBattleState> = new Map()
 
   private generateId(): string {
     return uuidv7()
@@ -20,9 +21,10 @@ export class BattlesService {
 
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
+    const battleId = this.generateId()
 
     const battle: Battle = {
-      id: this.generateId(),
+      id: battleId,
       authorId: payload.authorId,
       title: payload.title.trim(),
       description: payload.description.trim(),
@@ -45,6 +47,7 @@ export class BattlesService {
     }
 
     this.battles.push(battle)
+    this.initBattleState(battleId)
 
     return battle
   }
@@ -88,8 +91,8 @@ export class BattlesService {
     return BattleResultResponseDto.fromEntity(battle, mvp)
   }
 
-  joinBattle(battleJoinRequestDto: BattleJoinRequestDto) {
-    const { battleId, password } = battleJoinRequestDto
+  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
+    const { battleId, password, team } = battleJoinRequestDto
 
     if (!battleId) {
       throw new BadRequestException('Battle ID가 필요합니다.')
@@ -112,13 +115,15 @@ export class BattlesService {
       throw new BadRequestException('이미 종료된 배틀입니다.')
     }
 
-    // TODO: Redis에 해당 배틀에 참여한 클라이언트 저장
-    // await this.redisService.addParticipant(battleId, { clientId, team })
+    this.addParticipant(battleId, clientId, team)
 
-    // TODO: Redis에서 현재 배틀 진행 현황을 조회
     const battleState = this.getBattleState(battleId)
 
-    return { battleState }
+    return { battleState, team }
+  }
+
+  setBattlesForTest(battles: Battle[]) {
+    this.battles = battles
   }
 
   private calculateMVP(timeline: TimelineItem[]): Mvp | null {
@@ -151,6 +156,53 @@ export class BattlesService {
     }
   }
 
+  private initBattleState(battleId: string): void {
+    if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
+    if (this.activeBattles.has(battleId)) return
+
+    const activeBattleState: ActiveBattleState = {
+      battleId,
+      all: {
+        roomId: this.getBattleRoomId(battleId),
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+      teamA: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.A),
+        users: [],
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+      teamB: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.B),
+        users: [],
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+    }
+
+    this.activeBattles.set(battleId, activeBattleState)
+  }
+
+  private addParticipant(battleId: string, clinetId: string, team: string): void {
+    if (!battleId || !clinetId || !team) throw new BadRequestException('잘못된 요청입니다.')
+    const battleState = this.activeBattles.get(battleId)
+
+    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+
+    const { teamA, teamB } = battleState
+
+    const myTeam = team === BATTLE_TEAM.A ? teamA : teamB
+    myTeam.users.push(clinetId)
+  }
+
+  getBattleRoomId(battleId: string, team?: BattleTeam): string {
+    return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  }
+
   private isPublicAndOpen(battle: Battle): boolean {
     return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.OPEN
   }
@@ -164,67 +216,9 @@ export class BattlesService {
   }
 
   private getBattleState(battleId: string) {
-    // Redis에서 실시간 데이터 조회
-    // const votes = await this.redisService.getVotes(battleId)
-    // const attacks = await this.redisService.getAttacks(battleId)
-    // const defenses = await this.redisService.getDefenses(battleId)
-    // const chats = await this.redisService.getChats(battleId)
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
-    // // DB에서 배틀 기본 정보
-    // const battle = await this.prisma.battle.findUnique({
-    //   where: { id: battleId },
-    // })
-
-    return {
-      battleId,
-      votes: [{ aTeam: 40, bTeam: 60 }],
-      attacks: [
-        {
-          id: 'attack-1',
-          attacker: 'A',
-          authorId: '1',
-          content: '구현 A의 Set 사용이 더 효율적입니다. O(1) 시간 복잡도를 보장합니다.',
-          likes: 15,
-        },
-        {
-          id: 'attack-2',
-          attacker: 'B',
-          authorId: '2',
-          content: '구현 B는 filter를 사용해 가독성이 더 좋습니다.',
-          likes: 10,
-        },
-      ],
-      defenses: [
-        {
-          id: 'defense-1',
-          attackId: 'attack-1',
-          defenser: 'B',
-          authorId: '3',
-          content: 'Set은 순서를 보장하지 않습니다. 구현 B의 filter 방식이 더 안전합니다.',
-          likes: 12,
-        },
-        {
-          id: 'defense-2',
-          attackId: 'attack-2',
-          defenser: 'A',
-          authorId: '4',
-          content: 'filter는 O(n) 복잡도입니다. 대용량 데이터에서 Set이 압도적으로 빠릅니다.',
-          likes: 18,
-        },
-        {
-          id: 'defense-3',
-          attackId: 'attack-1', // attack-1에 대한 또 다른 반박
-          defenser: 'B',
-          authorId: '5',
-          content: 'Set의 메모리 사용량도 고려해야 합니다. 작은 배열에서는 오히려 비효율적입니다.',
-          likes: 8,
-        },
-      ],
-      chats: [
-        { authorId: '1', content: 'hi' },
-        { authorId: '2', content: 'hi2' },
-        { authorId: '3', content: 'hi3' },
-      ],
-    }
+    return battleState
   }
 }

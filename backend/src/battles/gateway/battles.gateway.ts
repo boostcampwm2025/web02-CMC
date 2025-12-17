@@ -12,6 +12,7 @@ import {
 } from '@nestjs/websockets'
 import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battle-join-request.dto'
+import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -35,9 +36,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   handleDisconnect(client: Socket) {
-    // if (client.data.battleId) {
-    //   this.leaveBattle(client)
-    // }
     this.logger.log(`[소켓 연결 해제] - ${client.id}`)
 
     client.disconnect()
@@ -47,17 +45,19 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId } = battleJoinRequestDto
-      // const result = await this.battlesService.joinBattle(joinBattleDto, client.id, client.data.user.id)
-      const battleState = this.battlesService.joinBattle(battleJoinRequestDto)
+      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto, client.id)
 
-      await client.join(`battle:${battleId}`)
+      const res = BattleJoinResponseDto.of(battleState, team)
+      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+      const battleTeamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      // client.data.battleId = battleId
-      // client.data.team = team
+      await client.join(battleRoomId)
+      await client.join(battleTeamRoom)
 
-      client.emit('battle:joined', battleState)
+      client.emit('battle:joined', { ...res })
 
-      client.to(`battle:${battleId}`).emit('battle:joined', { ...battleState, participantId: client.id })
+      client.to(battleRoomId).emit('battle:joined', { ...res, participantId: client.id })
+      client.to(battleTeamRoom).emit('battle:joined', { ...res, participantId: client.id })
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:join:error', {
