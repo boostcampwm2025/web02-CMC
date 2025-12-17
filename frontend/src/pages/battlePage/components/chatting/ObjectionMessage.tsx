@@ -1,4 +1,4 @@
-import { getTimeAgo } from '@/utils/getTimeAgo';
+import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import ShieldIcon from '@/assets/icon/shield.svg?react';
 

@@ -1,4 +1,4 @@
-import { getTimeAgo } from '@/utils/getTimeAgo';
+import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 
 interface ChatMessageProps {
   user: string;
