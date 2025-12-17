@@ -1,4 +1,5 @@
 import BattleIcon from '@/assets/icon/battle.svg?react';
+import DownArrowIcon from '@/assets/icon/downArrow.svg?react';
 import TimelineCard from './TimelineCard';
 
 interface TimelineItem {
@@ -34,7 +35,7 @@ const MOCK_TIMELINE: TimelineItem[] = [
 
 export default function TimelineSection() {
   return (
-    <section className="w-[1194px] mt-4">
+    <section className="w-[1193px] mt-2">
       <div className="bg-[#1E1E2F] rounded-lg p-6">
         <div className="flex items-center gap-2 mb-2">
           <BattleIcon className="text-[#AD46FF]" />
@@ -44,10 +45,13 @@ export default function TimelineSection() {
           각 진영의 주장과 반박을 시간순으로 확인하고 투표하세요
         </h3>
         <div className="space-y-4">
-          {MOCK_TIMELINE.map((item, index) => (
+          {MOCK_TIMELINE.map((item) => (
             <div key={item.id} className="relative">
-              {index < MOCK_TIMELINE.length - 1 && (
-                <div className="absolute left-[15px] top-[60px] w-[2px] h-[calc(100%+16px)] bg-[#2D2D3F]" />
+              {item.type === '반박' && (
+                <div className="flex gap-2 items-center my-4 ml-17">
+                  <DownArrowIcon className="w-[32px] h-[32px] bg-[#59168B] fill-[#C27AFF] rounded-full px-1 py-1" />
+                  <p className="text-[14px] text-[#C27AFF]">반박</p>
+                </div>
               )}
               <TimelineCard
                 user={item.user}
