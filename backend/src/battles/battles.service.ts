@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { BattleResultResponseDto, TimelineItemDto, MvpDto } from './dto/battleResult.dto'
+import { BattleResultResponseDto } from './dto/battleResult.dto'
+import { TimelineItem, Mvp } from './types/battleResult.types'
 import { mockBattleResults } from '../mock/battleResults.mock'
 
 @Injectable()
@@ -22,7 +23,7 @@ export class BattlesService {
     return BattleResultResponseDto.fromEntity(battle, mvp)
   }
 
-  private calculateMVP(timeline: TimelineItemDto[]): MvpDto | null {
+  private calculateMVP(timeline: TimelineItem[]): Mvp | null {
     if (timeline.length === 0) return null
 
     // 사용자별 누적 upvotes 집계

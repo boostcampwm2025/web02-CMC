@@ -1,53 +1,5 @@
 import { BattleResultMock } from '../../mock/battleResults.mock'
-
-export class VoteResultDto {
-  votes: number
-  percentage: number
-}
-
-export class BattleResultDto {
-  winner: 'A' | 'B' | 'DRAW'
-  teamA: VoteResultDto
-  teamB: VoteResultDto
-  neutral: VoteResultDto
-}
-
-export class MetricsDto {
-  totalParticipants: number
-  totalViews: number
-  strategiesCount: number
-}
-
-export class VoteTimelineDto {
-  turn: number
-  teamAVotes: number
-  teamBVotes: number
-  neutralVotes: number
-  timestamp: string
-}
-
-export class TimelineAuthorDto {
-  id: string
-  nickname: string
-}
-
-export class TimelineItemDto {
-  id: string
-  type: 'ATTACK' | 'DEFENSE'
-  author: TimelineAuthorDto
-  team: 'A' | 'B'
-  content: string
-  turn: number
-  upvotes: number
-  createdAt: string
-}
-
-export class MvpDto {
-  userId: string
-  nickname: string
-  team: 'A' | 'B'
-  totalVotes: number
-}
+import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
 
 export class BattleResultResponseDto {
   battleId: string
@@ -63,13 +15,13 @@ export class BattleResultResponseDto {
   codeA: string
   codeB: string
 
-  result: BattleResultDto
-  metrics: MetricsDto
-  voteTimeline: VoteTimelineDto[]
-  timeline: TimelineItemDto[]
-  mvp: MvpDto
+  result: BattleResult
+  metrics: Metrics
+  voteTimeline: VoteTimeline[]
+  timeline: TimelineItem[]
+  mvp: Mvp
 
-  static fromEntity(battle: BattleResultMock, calculatedMvp: MvpDto | null): BattleResultResponseDto {
+  static fromEntity(battle: BattleResultMock, calculatedMvp: Mvp | null): BattleResultResponseDto {
     const dto = new BattleResultResponseDto()
     dto.battleId = battle.battleId
     dto.title = battle.title
