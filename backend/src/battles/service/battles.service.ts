@@ -51,6 +51,7 @@ export class BattlesService {
     this.battles = battles
   }
 
+  //Todo: 정렬 기준 재설정
   //실시간 배틀 목록 조회
   getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
     const battles = this.battles
