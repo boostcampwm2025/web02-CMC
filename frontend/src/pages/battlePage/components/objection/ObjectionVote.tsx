@@ -14,11 +14,19 @@ interface Objection {
 interface ObjectionVoteProps {
   objections: Objection[];
   onVote: (objectionId: number) => void;
+  phase: 'objection' | 'rebuttal';
 }
 
 export { type Objection };
 
-export default function ObjectionVote({ objections, onVote }: ObjectionVoteProps) {
+export default function ObjectionVote({ objections, onVote, phase }: ObjectionVoteProps) {
+  const isObjection = phase === 'objection';
+  const headerText = isObjection ? '제출된 이의제기 목록' : '제출된 반론 목록';
+  const infoText = isObjection
+    ? '이의제기가 실시간으로 추가되며, 바로 투표 가능합니다!'
+    : '반론이 실시간으로 추가되며, 바로 투표 가능합니다!';
+  const summaryText = isObjection ? '이의제기' : '반론';
+
   if (objections.length === 0) {
     return null;
   }
@@ -28,12 +36,12 @@ export default function ObjectionVote({ objections, onVote }: ObjectionVoteProps
       <div className="bg-gradient-to-r from-[#59168B] to-[#1C398E] p-4">
         <div className="flex items-center gap-2 mb-2">
           <ScaleIcon className="w-[20px] h-[20px]" />
-          <h3 className="text-[14px] font-medium text-white">제출된 이의제기 목록</h3>
+          <h3 className="text-[14px] font-medium text-white">{headerText}</h3>
         </div>
 
         <div className="text-[11px] text-white flex items-center gap-1">
           <span className="inline-block w-1 h-1 rounded-full bg-white"></span>
-          이의제기가 실시간으로 추가되며, 바로 투표 가능합니다!
+          {infoText}
         </div>
       </div>
 
@@ -55,7 +63,9 @@ export default function ObjectionVote({ objections, onVote }: ObjectionVoteProps
       </div>
       <div className="py-4 bg-gradient-to-r from-[#1C398E] to-[#59168B] border-t border-[#2D2D3F] flex items-center justify-center gap-2 text-[13px]">
         <span className="text-[#FFB800]">⚡</span>
-        <span className="text-white font-medium">총 {objections.length}개의 이의제기</span>
+        <span className="text-white font-medium">
+          총 {objections.length}개의 {summaryText}
+        </span>
         <span className="text-[#99A1AF]">/ 투표 완료</span>
       </div>
     </section>

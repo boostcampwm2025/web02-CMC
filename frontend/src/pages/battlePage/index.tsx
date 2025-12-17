@@ -13,12 +13,16 @@ type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
 };
 
+type TurnPhase = 'objection' | 'rebuttal';
+
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentPhase, setCurrentPhase] = useState<TurnPhase>('rebuttal');
 
   const getTotalVotes = () => {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
@@ -69,9 +73,9 @@ export default function BattlePage() {
     <div className="text-white flex flex-col items-center">
       <div className="w-[1800px]">
         <BattleHeader
-          title={battleInfo.title}
-          description={battleInfo.description}
-          status="A팀 의견 공유 중"
+          title="배열에서 중복 제거하기"
+          description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
+          status={currentPhase === 'objection' ? 'A팀 이의 제기 중' : 'B팀 반론 중'}
           timer="0:02"
           teamACounts={1}
           teamBCounts={1}
@@ -91,9 +95,9 @@ export default function BattlePage() {
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102} team={selectedTeam} />
-            <ObjectionInput onSubmit={handleObjectionSubmit} />
-            <ObjectionVote objections={objections} onVote={handleVote} />
+            <ChatSection aTeamMemebers={102}  team={selectedTeam}/>
+            <ObjectionInput onSubmit={handleObjectionSubmit} phase={currentPhase} />
+            <ObjectionVote objections={objections} onVote={handleVote} phase={currentPhase} />
           </aside>
         </div>
       </main>
