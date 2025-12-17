@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { BattlesController } from './battles.controller'
 import { BattlesService } from '../service/battles.service'
 import { BattleResponseDto } from '../dto/battle-response.dto'
-import { BattlesRequestQueryDto } from '../dto/battle-request-query.dto'
+import { BattleListRequestQueryDto } from '../dto/battle-list-request-query.dto'
 
 describe('BattlesController', () => {
   let controller: BattlesController
@@ -32,7 +32,7 @@ describe('BattlesController', () => {
 
   describe('getOpenBattles', () => {
     it('query.limit/offset을 getOpenBattles로 전달하고 결과를  반환한다', () => {
-      const query: BattlesRequestQueryDto = {
+      const query: BattleListRequestQueryDto = {
         limit: 10,
         offset: 0,
       }
@@ -50,7 +50,7 @@ describe('BattlesController', () => {
 
   describe('getClosedBattles', () => {
     it('query.limit/offset을 getClosedBattles로 전달하고 결과를 반환한다', () => {
-      const query: BattlesRequestQueryDto = {
+      const query: BattleListRequestQueryDto = {
         limit: 5,
         offset: 20,
       }
