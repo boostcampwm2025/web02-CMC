@@ -68,6 +68,8 @@ export default function BattlePage() {
     userId: 'abc',
     team: selectedTeam
   });
+  //@Todo 턴 변경 정보 이벤트 구독 소켓 로직 추가 필요
+  //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
 
   return (
     <div className="text-white flex flex-col items-center">
