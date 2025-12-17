@@ -17,6 +17,7 @@ export type BattleDiscussionType = (typeof BATTLE_DISCUSSION_TYPE)[keyof typeof 
 export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY]
 export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
 export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
+export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
 
 export interface Battle {
   id: string
@@ -54,6 +55,8 @@ export interface BattleDiscussion {
   type: BattleDiscussionType
   content: string
   upvotes: number
+  votes: string[]
+  status: BattleDiscussionStatus
 }
 
 export interface BattleDefense extends BattleDiscussion {
