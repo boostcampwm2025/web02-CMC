@@ -55,23 +55,33 @@ export class BattlesService {
 
   //Todo: 정렬 기준 재설정
   //실시간 배틀 목록 조회
-  getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles
-      .filter(battle => this.isPublicAndOpen(battle))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) //최신 순
-      .slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+  getOpenBattles(limit: number, offset: number) {
+    const filtered = this.battles.filter(battle => this.isPublicAndOpen(battle))
+    const battles = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
 
-    return BattleResponseDto.of(battles)
+    return {
+      battles: BattleResponseDto.of(battles),
+      meta: {
+        offset,
+        limit,
+        total: filtered.length,
+      },
+    }
   }
 
   //지난 배틀 조회
-  getClosedBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles
-      .filter(battle => this.isPublicAndClosed(battle))
-      .sort((a, b) => this.getExpiredTime(b).getTime() - this.getExpiredTime(a).getTime())
-      .slice(offset, offset + limit) //최신 종료 순
+  getClosedBattles(limit: number, offset: number) {
+    const filtered = this.battles.filter(battle => this.isPublicAndClosed(battle))
+    const battles = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(offset, offset + limit)
 
-    return BattleResponseDto.of(battles)
+    return {
+      battles: BattleResponseDto.of(battles),
+      meta: {
+        offset,
+        limit,
+        total: filtered.length,
+      },
+    }
   }
 
   getBattleResult(battleId: string): BattleResultResponseDto {
