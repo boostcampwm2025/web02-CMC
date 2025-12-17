@@ -1,4 +1,4 @@
-import { BattleResultMock } from '../../mock/battleResults.mock'
+import { BattleResultMock } from '../mock/battleResults.mock'
 import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
 
 export class BattleResultResponseDto {

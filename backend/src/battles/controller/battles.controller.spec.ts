@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import { BattlesController } from './battles.controller'
-import { BattlesService } from './battles.service'
+import { BattlesService } from '../service/battles.service'
 
 describe('BattlesController', () => {
   let controller: BattlesController

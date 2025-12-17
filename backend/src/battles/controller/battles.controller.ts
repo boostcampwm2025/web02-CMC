@@ -1,6 +1,6 @@
 import { Controller, Get, Param, HttpCode, InternalServerErrorException, HttpException } from '@nestjs/common'
-import { BattlesService } from './battles.service'
-import { BattleResultResponseDto } from './dto/battleResult.dto'
+import { BattlesService } from '../service/battles.service'
+import { BattleResultResponseDto } from '../dto/battleResult.dto'
 
 @Controller('battles')
 export class BattlesController {

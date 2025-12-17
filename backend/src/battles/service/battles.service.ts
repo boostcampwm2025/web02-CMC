@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { BattleResultResponseDto } from './dto/battleResult.dto'
-import { TimelineItem, Mvp } from './types/battleResult.types'
+import { BattleResultResponseDto } from '../dto/battleResult.dto'
+import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { mockBattleResults } from '../mock/battleResults.mock'
 
 @Injectable()
