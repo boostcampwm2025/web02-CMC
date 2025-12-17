@@ -35,6 +35,7 @@ export default function BattlePage() {
     openModal: openTeamChangeModal,
     closeModal: closeTeamChangeModal
   } = useModal();
+
   const handleVote = (objectionId: number) => {
     setObjections((prev) => {
       const updated = prev.map((obj) => {
@@ -77,6 +78,11 @@ export default function BattlePage() {
   });
   //@Todo 턴 변경 정보 이벤트 구독 소켓 로직 추가 필요
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
+  const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
+    console.log(team);
+    // @ Todo 팀 변경 로직 추가 필요
+    closeTeamChangeModal();
+  };
 
   return (
     <div className="text-white flex flex-col items-center">
@@ -124,6 +130,7 @@ export default function BattlePage() {
           bTeamCounts={8}
           noneTeamCounts={2}
           remainingTime={30}
+          handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
         />
       )}
