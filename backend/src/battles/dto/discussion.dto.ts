@@ -2,7 +2,11 @@ import { IsString, IsNotEmpty, IsEnum } from 'class-validator'
 import { BATTLE_TEAM } from '../const/battles.const'
 import type { BattleTeam } from '../types/battles.types'
 
-export class DiscussionCreateDto {
+export class AttackRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  battleId!: string
+
   @IsString()
   @IsNotEmpty()
   authorId!: string
@@ -15,7 +19,11 @@ export class DiscussionCreateDto {
   team!: BattleTeam
 }
 
-export class DefenseCreateDto {
+export class DefenseRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  battleId!: string
+
   @IsString()
   @IsNotEmpty()
   authorId!: string
@@ -32,7 +40,32 @@ export class DefenseCreateDto {
   team!: BattleTeam
 }
 
-export class DiscussionVoteDto {
+export class AttackVoteRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  battleId!: string
+
+  @IsString()
+  @IsNotEmpty()
+  discussionId!: string
+
+  @IsString()
+  @IsNotEmpty()
+  userId!: string
+
+  @IsEnum(BATTLE_TEAM)
+  team!: BattleTeam
+}
+
+export class DefenseVoteRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  battleId!: string
+
+  @IsString()
+  @IsNotEmpty()
+  discussionId!: string
+
   @IsString()
   @IsNotEmpty()
   userId!: string

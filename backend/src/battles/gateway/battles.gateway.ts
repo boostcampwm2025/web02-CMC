@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Logger } from '@nestjs/common'
 import { Socket, Server } from 'socket.io'
 
@@ -13,6 +15,7 @@ import {
 import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
+import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -61,6 +64,74 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:join:error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
+  @SubscribeMessage('Battle:Attack')
+  handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const { battleId, authorId, content, team } = dto
+      const attack = this.battlesService.handleAttack(battleId, { authorId, content, team })
+      const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
+
+      this.server.to(teamRoom).emit('Battle:NewAttack', attack)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('Battle:Attack:Error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
+  @SubscribeMessage('Battle:Defense')
+  handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const { battleId, authorId, attackId, content, team } = dto
+      const defense = this.battlesService.handleDefense(battleId, { authorId, attackId, content, team })
+      const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
+
+      this.server.to(teamRoom).emit('Battle:NewDefense', defense)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('Battle:Defense:Error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
+  @SubscribeMessage('Battle:AttackVote')
+  handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const { battleId, discussionId, userId, team } = dto
+      const attack = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
+      const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
+
+      this.server.to(teamRoom).emit('Battle:AttackVoteUpdate', attack)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('Battle:AttackVote:Error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
+  @SubscribeMessage('Battle:DefenseVote')
+  handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
+    try {
+      const { battleId, discussionId, userId, team } = dto
+      const defense = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
+      const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
+
+      this.server.to(teamRoom).emit('Battle:DefenseVoteUpdate', defense)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('Battle:DefenseVote:Error', {
           message: error.message,
         })
       }
