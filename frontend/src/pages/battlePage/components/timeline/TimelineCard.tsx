@@ -48,7 +48,7 @@ export default function TimelineCard({ user, team, type, content, voteCount }: T
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div
-            className={`w-[36px] h-[20px] ${teamColors.badge} rounded-sm flex items-center justify-center text-white font-bold text-[12px]`}
+            className={`w-[36px] h-[20px] ${teamColors.badge} rounded-sm flex items-center justify-center text-white font-bold text-[12px] mb-2`}
           >
             {team}팀
           </div>
