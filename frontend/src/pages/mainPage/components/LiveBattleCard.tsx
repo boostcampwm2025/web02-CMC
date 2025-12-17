@@ -1,87 +1,57 @@
 import { Link } from 'react-router-dom';
-import { type BattleCardItem, CATEGORY_COLORS } from '../types';
-
-import CrownIcon from '@/assets/icon/crown.svg?react';
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../types/battle';
 import PeopleIcon from '@/assets/icon/people.svg?react';
 import ClockIcon from '@/assets/icon/clock.svg?react';
-
-const CATEGORY_LABELS: Record<string, string> = {
-  algorithm: 'algorithm',
-  refactoring: 'refactoring',
-  implementation: 'implementation',
-  etc: 'etc'
-};
+import IconBox from './IconBox';
 
 export default function LiveBattleCard({ item }: { item: BattleCardItem }) {
-  const categoryConfig = CATEGORY_COLORS[item.category];
-  const IconComponent = categoryConfig.icon === 'trophy' ? TrophyIcon : CrownIcon;
+  const { color, background, icon: Icon } = BATTLE_CATEGORY_CONFIG[item.category];
 
   return (
-    <Link to="/team-select" className="block h-full">
-      <div
-        className="
-        cursor-pointer
-        hover:opacity-90
-        transition-opacity"
-      >
-        {/* 상단 카테고리 색상 바 */}
-        <div className="w-full h-1 neon-bar" style={{ backgroundColor: categoryConfig.primary }}></div>
+    <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
+      {/* 상단 바 */}
+      <div className="h-1 w-full" style={{ backgroundColor: color }} />
 
-        {/* 내용 영역 */}
-        <div className="p-6">
-          {/* 상단 섹션 */}
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: categoryConfig.background }}
-              >
-                <IconComponent />
-              </div>
+      {/* 본문 */}
+      <div className="p-6 flex flex-col gap-6">
+        {/* 상단 정보 */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <IconBox bgColor={background}>
+              <Icon className="w-6 h-6" style={{ color }} />
+            </IconBox>
 
-              {/* 텍스트 */}
-              <div className="flex flex-col gap-1 text-left">
-                <span className="text-white text-[14px] leading-5">TOURNAMENT</span>
-                <span className="text-[#99A1AF] text-[12px] leading-4 uppercase">
-                  {CATEGORY_LABELS[item.category] || item.category}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 문제 설명 섹션 */}
-          <div className="flex flex-col text-left">
-            <h3 className="text-white text-base font-normal mb-4">{item.title}</h3>
-            <p className="text-sm  text-gray-400">{item.description}</p>
-          </div>
-
-          {/* 하단 섹션 + Live now 버튼 */}
-          <div className="pt-4 border-t border-[#1E2939]">
-            {/* 왼쪽쪽 */}
-            <div className="flex items-center justify-between">
-              {/* 참여자 수 + 시간 */}
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <PeopleIcon width={16} height={16} />
-                  <span className="text-sm text-gray-400">{item.clientCount}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <ClockIcon width={16} height={16} />
-                  <span className="text-sm text-gray-400">{item.timeLabel}</span>
-                </div>
-              </div>
-
-              <button
-                className="bg-orange-500 rounded-xl px-4 py-1.5 text-white text-base font-normal  hover:bg-orange-600 transition-colors"
-                type="button"
-              >
-                LIVE NOW →
-              </button>
+            <div className="flex flex-col text-left">
+              <span className="text-white text-sm">TOURNAMENT</span>
+              <span className="text-gray-400 text-xs uppercase">{item.category}</span>
             </div>
           </div>
         </div>
+
+        {/* 제목 / 설명 */}
+        <div className="flex flex-col gap-3 text-left">
+          <h3 className="text-white text-base font-normal">{item.title}</h3>
+          <p className="text-sm text-gray-400">{item.description}</p>
+        </div>
+
+        {/* 하단 영역 */}
+        <div className="mt-auto flex items-center justify-between">
+          <div className="flex items-center gap-3 text-gray-400 text-sm">
+            <div className="flex items-center gap-1">
+              <PeopleIcon className="w-4 h-4" />
+              <span>{item.clientCount}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <ClockIcon className="w-4 h-4" />
+              <span>{item.timeLabel}</span>
+            </div>
+          </div>
+
+          <Link to="/team-select" className="rounded-xl bg-orange-500 px-4 py-1.5 text-sm">
+            LIVE NOW →
+          </Link>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }

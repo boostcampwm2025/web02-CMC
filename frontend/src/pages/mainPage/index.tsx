@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard, BattleCategoryCard } from './components/index';
-import type { BattleCardItem } from './types';
-import BattleWhiteIcon from '@/assets/icon/battle-white.svg?react';
+import type { BattleCardItem } from './types/battle';
+import BattleIcon from '@/assets/icon/battle.svg?react';
 
 const BATTLE_CATEGORIES = [
   {
@@ -26,44 +26,44 @@ const LIVE_BATTLES: BattleCardItem[] = [
     id: 'live-1',
     title: 'Promise vs Async/Await',
     description: '비동기 처리 로직, 가독성과 에러 핸들링 측면에서 어떤 방식이 더 좋을까요?',
-    status: 'LIVE',
+    status: 'OPEN',
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 6 * 60 * 1000 + 58 * 1000),
     clientCount: 128,
-    category: 'implementation',
+    category: 'IMPLEMENTATION',
     timeLabel: '6:58'
   },
   {
     id: 'live-2',
     title: 'for문 vs Array.map',
     description: '대규모 데이터 처리 시 성능과 가독성, 어느 쪽을 선택하시나요?',
-    status: 'LIVE',
+    status: 'OPEN',
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 3 * 60 * 1000 + 21 * 1000),
     clientCount: 94,
-    category: 'algorithm',
+    category: 'ALGORITHM',
     timeLabel: '3:21'
   },
   {
     id: 'live-3',
     title: '중복 로직 제거 리팩토링',
     description: '공통 유틸 함수로 분리하는 것이 항상 최선일까요?',
-    status: 'LIVE',
+    status: 'OPEN',
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 1 * 60 * 1000 + 12 * 1000),
     clientCount: 76,
-    category: 'refactoring',
+    category: 'REFACTORING',
     timeLabel: '1:12'
   },
   {
     id: 'live-4',
     title: '환경 변수 관리 방식',
     description: 'dotenv vs 런타임 주입, 실무에서는 어떤 접근이 좋을까요?',
-    status: 'LIVE',
+    status: 'OPEN',
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 47 * 1000),
     clientCount: 52,
-    category: 'etc',
+    category: 'ETC',
     timeLabel: '0:47'
   }
 ];
@@ -86,7 +86,7 @@ export default function MainPage() {
             to="/battle/create"
           >
             <div className="flex items-center gap-1 ">
-              <BattleWhiteIcon className="w-5 h-5" />
+              <BattleIcon className="w-5 h-5" style={{ color: 'white' }} />
               <p> 새 배틀 생성</p>
             </div>
           </Link>
@@ -103,9 +103,9 @@ export default function MainPage() {
       {/* info */}
       <section>
         <div className="mt-6 grid grid-cols-3 gap-6">
-          <StatCard label="진행된 배틀" value="1,234" />
-          <StatCard label="실시간 배틀" value="42" />
-          <StatCard label="참여 개발자" value="8,567" />
+          <StatCard type="TOTAL_BATTLES" value="1,234" />
+          <StatCard type="LIVE_BATTLES" value="42" />
+          <StatCard type="TOTAL_USERS" value="8,567" />
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-6">
@@ -125,8 +125,8 @@ export default function MainPage() {
 
           <span className="text-sm text-gray-400">{LIVE_BATTLES.length}개 진행중</span>
         </div>
-        <div className=" flex gap-4 overflow-x-auto pb-2">
-          {LIVE_BATTLES.map((b) => (
+        <div className="grid grid-cols-3 gap-4">
+          {LIVE_BATTLES.slice(0, 3).map((b) => (
             <LiveBattleCard key={b.id} item={b} />
           ))}
         </div>
