@@ -80,8 +80,11 @@ export default function MainPage() {
             배틀 참여
           </Link>
         </div>
+      </section>
 
-        <div className="mt-8 grid grid-cols-3 gap-4">
+      {/* info */}
+      <section>
+        <div className="mt-6 grid grid-cols-3 gap-6">
           <StatCard label="진행된 배틀" value="1,234" />
           <StatCard label="실시간 배틀" value="42" />
           <StatCard label="참여 개발자" value="8,567" />
