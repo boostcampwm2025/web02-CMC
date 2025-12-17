@@ -1,5 +1,5 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import { ActiveBattleState, BattleChat, BattleDefense, BattleDiscussion } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion } from '../types/battles.types'
 
 export class BattleJoinResponseDto {
   battleId: string
@@ -42,5 +42,25 @@ export class BattleJoinResponseDto {
 
   static of(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     return BattleJoinResponseDto.fromEntity(payload, team)
+  }
+}
+
+export class BattleJoinInfoResponseDto {
+  title: string
+  description: string
+  aCode: string
+  bCode: string
+
+  static fromEntity(battle: Battle): BattleJoinInfoResponseDto {
+    const res = new BattleJoinInfoResponseDto()
+    res.title = battle.title
+    res.description = battle.description
+    res.aCode = battle.aCode
+    res.bCode = battle.bCode
+    return res
+  }
+
+  static of(battle: Battle): BattleJoinInfoResponseDto {
+    return BattleJoinInfoResponseDto.fromEntity(battle)
   }
 }

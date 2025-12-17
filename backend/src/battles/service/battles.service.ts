@@ -1,14 +1,15 @@
 import { v7 as uuidv7 } from 'uuid'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 
+import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
-import { mockBattleResults } from '../mock/battleResults.mock'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
-import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
-import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
+import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
+import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService {
@@ -91,29 +92,32 @@ export class BattlesService {
     return BattleResultResponseDto.fromEntity(battle, mvp)
   }
 
-  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
-    const { battleId, password, team } = battleJoinRequestDto
-
-    if (!battleId) {
-      throw new BadRequestException('Battle ID가 필요합니다.')
-    }
+  joinBattleInfo(battleId: string): BattleJoinInfoResponseDto {
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
     const battle = this.battles.find(battle => battle.id === battleId)
 
-    if (!battle) {
-      throw new NotFoundException('존재하지 않는 배틀입니다.')
-    }
+    if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
+
+    return BattleJoinInfoResponseDto.of(battle)
+  }
+
+  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
+    const { battleId, password, team } = battleJoinRequestDto
+
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
+
+    const battle = this.battles.find(battle => battle.id === battleId)
+
+    if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
 
     if (battle.type === BATTLE_TYPE.PRIVATE && battle.password) {
       const isValid = battle.password === password
-      if (!isValid) {
-        throw new UnauthorizedException('잘못된 비밀번호입니다.')
-      }
+
+      if (!isValid) throw new UnauthorizedException('잘못된 비밀번호입니다.')
     }
 
-    if (battle.status === BATTLE_STATUS.CLOSED) {
-      throw new BadRequestException('이미 종료된 배틀입니다.')
-    }
+    if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
     this.addParticipant(battleId, clientId, team)
 
