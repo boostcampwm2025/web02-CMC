@@ -16,6 +16,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'OPEN',
     createdAt: new Date(),
     updatedAt: new Date(),
+    participantCount: 0,
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',
@@ -37,6 +38,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 60),
     updatedAt: new Date(Date.now() - 1000 * 60 * 60),
+    participantCount: 0,
     initialState: {
       round: 1,
       phase: 'WAITING_FOR_START',
@@ -57,6 +59,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 60),
     updatedAt: new Date(Date.now() - 1000 * 60 * 30),
+    participantCount: 0,
     initialState: {
       round: 3,
       phase: 'TEAM_B_ATTACK',
@@ -77,6 +80,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 120),
     updatedAt: new Date(Date.now() - 1000 * 60 * 90),
+    participantCount: 0,
     initialState: {
       round: 5,
       phase: 'TEAM_A_ATTACK',
@@ -98,6 +102,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'OPEN',
     createdAt: new Date(Date.now() - 1000 * 60 * 10),
     updatedAt: new Date(Date.now() - 1000 * 60 * 10),
+    participantCount: 0,
     initialState: {
       round: 1,
       phase: 'WAITING_FOR_START',
@@ -119,6 +124,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 200),
     updatedAt: new Date(Date.now() - 1000 * 60 * 180),
+    participantCount: 0,
     initialState: {
       round: 2,
       phase: 'TEAM_A_ATTACK',
@@ -139,6 +145,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'CLOSED',
     createdAt: new Date(Date.now() - 1000 * 60 * 40),
     updatedAt: new Date(Date.now() - 1000 * 60 * 5),
+    participantCount: 0,
     initialState: {
       round: 2,
       phase: 'TEAM_B_ATTACK',
@@ -159,6 +166,7 @@ export const MOCK_BATTLES: Battle[] = [
     status: 'OPEN',
     createdAt: new Date(Date.now() - 1000 * 60 * 1),
     updatedAt: new Date(Date.now() - 1000 * 60 * 1),
+    participantCount: 0,
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',

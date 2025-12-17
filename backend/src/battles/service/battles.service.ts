@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { v7 as uuidv7 } from 'uuid'
-import { BATTLE_PHASE, BATTLE_STATUS } from '../const/battles.const'
+import { BATTLE_PHASE } from '../const/battles.const'
 import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
 import { Battle, BattleStatus } from '../types/battles.types'
-import { MOCK_BATTLES } from '../mock/battles.mock'
 import { BattleResponseDto } from '../dto/battle-response.dto'
 import { BATTLE_TYPE } from '../const/battles.const'
 
@@ -17,7 +16,7 @@ export class BattlesService {
 
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
-    const status: BattleStatus = BATTLE_STATUS.PENDING
+    const status: BattleStatus = 'OPEN'
 
     const battle: Battle = {
       id: this.generateId(),
@@ -26,9 +25,9 @@ export class BattlesService {
       description: payload.description.trim(),
       aCode: payload.aCode,
       bCode: payload.bCode,
-      language: payload.language.trim(),
+      language: payload.language,
       type: payload.type,
-      category: payload.category.trim(),
+      category: payload.category,
       playTime: payload.playTime,
       password: payload.type === 'PUBLIC' ? undefined : payload.password?.trim(),
       status,

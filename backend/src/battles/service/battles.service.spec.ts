@@ -16,6 +16,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   status: 'OPEN',
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
+  participantCount: 0,
   initialState: {
     round: 1,
     phase: 'WAITING_FOR_START',
