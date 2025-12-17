@@ -1,4 +1,6 @@
 import { Logger } from '@nestjs/common'
+import { Socket, Server } from 'socket.io'
+
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -8,9 +10,8 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets'
-import { BattlesService } from './battles.service'
-import { JoinBattleDto } from './dto/join-battle.dto'
-import { Socket, Server } from 'socket.io'
+import { BattlesService } from '../service/battles.service'
+import { BattleJoinRequestDto } from '../dto/battle-join-request.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -43,11 +44,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   @SubscribeMessage('battle:join')
-  async joinBattle(@MessageBody() joinBattleDto: JoinBattleDto, @ConnectedSocket() client: Socket) {
+  async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: Socket) {
     try {
-      const { battleId } = joinBattleDto
+      const { battleId } = battleJoinRequestDto
       // const result = await this.battlesService.joinBattle(joinBattleDto, client.id, client.data.user.id)
-      const battleState = this.battlesService.joinBattle(joinBattleDto)
+      const battleState = this.battlesService.joinBattle(battleJoinRequestDto)
 
       await client.join(`battle:${battleId}`)
 

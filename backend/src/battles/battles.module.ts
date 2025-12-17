@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { BattlesController } from './controller/battles.controller'
-import { BattlesGateway } from './battles.gateway'
+import { BattlesGateway } from './gateway/battles.gateway'
 import { BattlesService } from './service/battles.service'
 
 @Module({
