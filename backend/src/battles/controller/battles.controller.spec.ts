@@ -1,0 +1,68 @@
+import { Test, TestingModule } from '@nestjs/testing'
+import { BattlesController } from './battles.controller'
+import { BattlesService } from '../service/battles.service'
+import { BattleResponseDto } from '../dto/battle-response.dto'
+import { BattleListRequestQueryDto } from '../dto/battle-list-request-query.dto'
+
+describe('BattlesController', () => {
+  let controller: BattlesController
+  let service: jest.Mocked<BattlesService>
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [BattlesController],
+      providers: [
+        {
+          provide: BattlesService,
+          useValue: {
+            getOpenBattles: jest.fn(),
+            getClosedBattles: jest.fn(),
+          },
+        },
+      ],
+    }).compile()
+
+    controller = module.get(BattlesController)
+    service = module.get(BattlesService)
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  describe('getOpenBattles', () => {
+    it('query.limit/offset을 getOpenBattles로 전달하고 결과를  반환한다', () => {
+      const query: BattleListRequestQueryDto = {
+        limit: 10,
+        offset: 0,
+      }
+
+      const mockResult: BattleResponseDto[] = []
+
+      const spy = jest.spyOn(service, 'getOpenBattles').mockReturnValue(mockResult)
+
+      const result = controller.getOpenBattles(query)
+
+      expect(spy).toHaveBeenCalledWith(10, 0)
+      expect(result).toBe(mockResult)
+    })
+  })
+
+  describe('getClosedBattles', () => {
+    it('query.limit/offset을 getClosedBattles로 전달하고 결과를 반환한다', () => {
+      const query: BattleListRequestQueryDto = {
+        limit: 5,
+        offset: 20,
+      }
+
+      const mockResult: BattleResponseDto[] = []
+
+      const spy = jest.spyOn(service, 'getClosedBattles').mockReturnValue(mockResult)
+
+      const result = controller.getClosedBattles(query)
+
+      expect(spy).toHaveBeenCalledWith(5, 20)
+      expect(result).toBe(mockResult)
+    })
+  })
+})
