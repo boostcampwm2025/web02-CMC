@@ -25,16 +25,13 @@ export default function BattlePage() {
   const [objections, setObjections] = useState<Objection[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentPhase, setCurrentPhase] = useState<TurnPhase>('rebuttal');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentTeam, setCurrentTeam] = useState<'A' | 'B' | 'NONE'>('A');
+  const { isOpen: isTeamChangeModalOpen, closeModal: closeTeamChangeModal } = useModal(false);
 
   const getTotalVotes = () => {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
   };
-
-  const {
-    isOpen: isTeamChangeModalOpen,
-    openModal: openTeamChangeModal,
-    closeModal: closeTeamChangeModal
-  } = useModal();
 
   const handleVote = (objectionId: number) => {
     setObjections((prev) => {
@@ -100,29 +97,22 @@ export default function BattlePage() {
       <main className="w-[1800px]">
         <div className="flex gap-2 py-4">
           <div className="flex-1">
-             <CodeSection
-            onViewChange={setViewMode}
-            currentView={viewMode}
-            language="javascript"
-            codeA={battleInfo.aCode}
-            codeB={battleInfo.bCode}
-          />
+            <CodeSection
+              onViewChange={setViewMode}
+              currentView={viewMode}
+              language="javascript"
+              codeA={battleInfo.aCode}
+              codeB={battleInfo.bCode}
+            />
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102}  team={selectedTeam}/>
+            <ChatSection aTeamMemebers={102} team={currentTeam} />
             <ObjectionInput onSubmit={handleObjectionSubmit} phase={currentPhase} />
             <ObjectionVote objections={objections} onVote={handleVote} phase={currentPhase} />
           </aside>
         </div>
       </main>
-
-      <button
-        onClick={openTeamChangeModal}
-        className="fixed bottom-4 right-4 px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
-      >
-        팀 변경 모달 열기
-      </button>
 
       {isTeamChangeModalOpen && (
         <TeamChangeModal
@@ -130,6 +120,7 @@ export default function BattlePage() {
           bTeamCounts={8}
           noneTeamCounts={2}
           remainingTime={30}
+          currentTeam={currentTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
         />

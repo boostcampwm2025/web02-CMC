@@ -5,6 +5,7 @@ import TimerIcon from '@/assets/icon/timer.svg?react';
 interface TeamChangeModalProps {
   aTeamCounts: number;
   bTeamCounts: number;
+  currentTeam : 'A' | 'B' | 'NONE'; 
   remainingTime: number;
   noneTeamCounts: number;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
@@ -16,6 +17,7 @@ export default function TeamChangeModal({
   bTeamCounts,
   noneTeamCounts,
   remainingTime,
+  currentTeam,
   handleTeamChange,
   onClose
 }: TeamChangeModalProps) {
@@ -44,8 +46,9 @@ export default function TeamChangeModal({
           <button
             type="button"
             onClick={() => handleClick('A')}
-            className="w-[200px] h-[150px] rounded-lg border border-[#155DFC] bg-[#1C398E] hover:bg-[#155DFC] flex flex-col justify-center items-center gap-2 transition-colors"
+            className="w-[200px] h-[150px] rounded-lg border border-[#155DFC] bg-[#1C398E] hover:bg-[#155DFC] flex flex-col justify-center items-center gap-2 transition-colors relative"
           >
+            {currentTeam === 'A' && <span className="absolute top-2 right-2 text-[#155DFC] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">A팀</span>
             <span>{aTeamCounts}명</span>
           </button>
@@ -54,14 +57,16 @@ export default function TeamChangeModal({
             onClick={() => handleClick('NONE')}
             className="w-[200px] h-[150px] rounded-lg border border-[#6A7282] bg-[#364153] hover:bg-[#6A7282] flex flex-col justify-center items-center gap-2 transition-colors"
           >
+            {currentTeam === 'NONE' && <span className="absolute top-2 right-2 text-[#6A7282] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">중립</span>
             <span>{noneTeamCounts}명</span>
           </button>
           <button
             type="button"
             onClick={() => handleClick('B')}
-            className="w-[200px] h-[150px] rounded-lg border border-[#FB2C36] bg-[#82181A] hover:bg-[#FB2C36] flex flex-col justify-center items-center gap-2 transition-colors"
+            className="w-[200px] h-[150px] rounded-lg border border-[#FB2C36] bg-[#82181A] hover:bg-[#FB2C36] flex flex-col justify-center items-center gap-2 transition-colors relative"
           >
+            {currentTeam === 'B' && <span className="absolute top-2 right-2 text-[#FB2C36] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">B팀</span>
             <span>{bTeamCounts}명</span>
           </button>
