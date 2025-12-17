@@ -22,6 +22,11 @@ export const BATTLE_TYPE = {
   PRIVATE: 'PRIVATE',
 } as const
 
+export const BATTLE_DISCUSSION_TYPE = {
+  ATTACK: 'ATTACK',
+  DEFENSE: 'DEFENSE',
+} as const
+
 export const BATTLE_TEAM = {
   A: 'A',
   B: 'B',
