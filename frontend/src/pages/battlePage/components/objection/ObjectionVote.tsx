@@ -19,6 +19,10 @@ interface ObjectionVoteProps {
 export { type Objection };
 
 export default function ObjectionVote({ objections, onVote }: ObjectionVoteProps) {
+  if (objections.length === 0) {
+    return null;
+  }
+
   return (
     <section className="w-full bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="bg-gradient-to-r from-[#59168B] to-[#1C398E] p-4">

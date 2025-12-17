@@ -20,17 +20,24 @@ export default function BattlePage() {
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
 
+  const getTotalVotes = () => {
+    return objections.reduce((sum, obj) => sum + obj.votes, 0);
+  };
+
   const handleVote = (objectionId: number) => {
-    setObjections((prev) =>
-      prev.map((obj) => {
+    setObjections((prev) => {
+      const updated = prev.map((obj) => {
         if (obj.id === objectionId) {
           return { ...obj, hasVoted: true, votes: obj.votes + 1 };
         } else if (obj.hasVoted) {
           return { ...obj, hasVoted: false, votes: obj.votes - 1 };
         }
         return obj;
-      })
-    );
+      });
+
+      const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
+      return updated.map((obj) => ({ ...obj, totalVotes }));
+    });
     // @ Todo 소켓으로 투표 정보 전송 로직 추가 필요
   };
 
@@ -41,7 +48,7 @@ export default function BattlePage() {
       team: 'A', // @ Todo 실제 팀 정보로 대체 필요
       content,
       votes: 0,
-      totalVotes: objections.length + 1,
+      totalVotes: getTotalVotes(),
       hasVoted: false
     };
 
