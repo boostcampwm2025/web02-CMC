@@ -1,6 +1,7 @@
 import { v7 as uuidv7 } from 'uuid'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 
+import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
@@ -14,8 +15,16 @@ import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 
 @Injectable()
 export class BattlesService {
-  private battles: Battle[] = []
+  private battles: Battle[] = [...MOCK_BATTLES]
   private activeBattles: Map<string, ActiveBattleState> = new Map()
+
+  constructor() {
+    this.battles.forEach(battle => {
+      if (battle.status === 'OPEN') {
+        this.initBattleState(battle.id)
+      }
+    })
+  }
 
   private generateId(): string {
     return uuidv7()

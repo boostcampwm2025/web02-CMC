@@ -3,6 +3,7 @@ import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import TimelineSection from './components/timeline/TimelineSection';
+import { useBattleSocket } from './hooks/useBattleSocket';
 
 const MOCK_CODE = {
   A: `function removeDuplicates(arr) {
@@ -32,6 +33,12 @@ console.log(removeDuplicates(numbers));`
 };
 
 export default function BattlePage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { socket, battleData, isConnected } = useBattleSocket({
+    battleId: '1',
+    userId: 'abc',
+    team: 'A'
+  });
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
 
   return (
