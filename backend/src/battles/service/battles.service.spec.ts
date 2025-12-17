@@ -1,7 +1,7 @@
 import { NotFoundException, BadRequestException } from '@nestjs/common'
-import { BattlesService } from './battles.service'
 import { Battle } from '../types/battles.types'
-import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BattlesService } from './battles.service'
+import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE } from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -10,17 +10,17 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   description: 'description',
   aCode: 'a',
   bCode: 'b',
-  language: 'TS',
+  language: BATTLE_LANGUAGE.TS,
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
   playTime: BATTLE_PLAYTIME.TEN_MIN,
-  status: 'OPEN',
+  status: BATTLE_STATUS.OPEN,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   participantCount: 0,
   initialState: {
     round: 1,
-    phase: 'WAITING_FOR_START',
+    phase: BATTLE_PHASE.WAITING_FOR_START,
     timeRemainingSeconds: 600,
   },
   ...overrides,
@@ -36,9 +36,9 @@ describe('BattlesService', () => {
   describe('getOpenBattles', () => {
     it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'OPEN' }),
-        createBattle({ status: 'CLOSED' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'OPEN' }),
+        createBattle({ status: BATTLE_STATUS.OPEN }),
+        createBattle({ status: BATTLE_STATUS.CLOSED }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.OPEN }),
       ]
 
       service.setBattlesForTest(battles)
@@ -46,7 +46,7 @@ describe('BattlesService', () => {
       const result = service.getOpenBattles(10, 0)
 
       expect(result).toHaveLength(1)
-      expect(result[0].status).toBe('OPEN')
+      expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
 
     it('배틀 생성 시간 기준 최신순으로 정렬된다', () => {
@@ -79,9 +79,9 @@ describe('BattlesService', () => {
   describe('getClosedBattles', () => {
     it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'CLOSED' }),
-        createBattle({ status: 'OPEN' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'CLOSED' }),
+        createBattle({ status: BATTLE_STATUS.CLOSED }),
+        createBattle({ status: BATTLE_STATUS.OPEN }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
       ]
 
       service.setBattlesForTest(battles)
@@ -89,19 +89,19 @@ describe('BattlesService', () => {
       const result = service.getClosedBattles(10, 0)
 
       expect(result).toHaveLength(1)
-      expect(result[0].status).toBe('CLOSED')
+      expect(result[0].status).toBe(BATTLE_STATUS.CLOSED)
     })
 
     it('배틀 종료 시각 기준 최신 종료 순으로 정렬된다', () => {
       const shorter = createBattle({
         id: 'short',
         playTime: BATTLE_PLAYTIME.FIVE_MIN,
-        status: 'CLOSED',
+        status: BATTLE_STATUS.CLOSED,
       })
       const longer = createBattle({
         id: 'long',
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
-        status: 'CLOSED',
+        status: BATTLE_STATUS.CLOSED,
       })
 
       service.setBattlesForTest([shorter, longer])

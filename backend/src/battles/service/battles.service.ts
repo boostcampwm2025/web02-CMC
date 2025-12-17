@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { v7 as uuidv7 } from 'uuid'
-import { BattleResultResponseDto } from '../dto/battleResult.dto'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
+
+import { Battle } from '../types/battles.types'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { mockBattleResults } from '../mock/battleResults.mock'
-import { BATTLE_PHASE, BATTLE_TYPE } from '../const/battles.const'
-import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
-import { Battle, BattleStatus } from '../types/battles.types'
 import { BattleResponseDto } from '../dto/battle-response.dto'
+import { BattleResultResponseDto } from '../dto/battleResult.dto'
+import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService {
@@ -18,7 +19,6 @@ export class BattlesService {
 
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
-    const status: BattleStatus = 'OPEN'
 
     const battle: Battle = {
       id: this.generateId(),
@@ -31,8 +31,8 @@ export class BattlesService {
       type: payload.type,
       category: payload.category,
       playTime: payload.playTime,
-      password: payload.type === 'PUBLIC' ? undefined : payload.password?.trim(),
-      status,
+      password: payload.type === BATTLE_TYPE.PRIVATE ? undefined : payload.password?.trim(),
+      status: BATTLE_STATUS.OPEN,
       createdAt: now,
       updatedAt: now,
       participantCount: 1,
@@ -81,7 +81,7 @@ export class BattlesService {
     }
 
     // 2. 배틀 상태 검증
-    if (battle.status !== 'CLOSED') {
+    if (battle.status !== BATTLE_STATUS.CLOSED) {
       throw new BadRequestException('배틀이 아직 진행 중입니다.')
     }
 
@@ -122,11 +122,11 @@ export class BattlesService {
   }
 
   private isPublicAndOpen(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'OPEN'
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.OPEN
   }
 
   private isPublicAndClosed(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'CLOSED'
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.CLOSED
   }
 
   private getExpiredTime(battle: Battle): Date {

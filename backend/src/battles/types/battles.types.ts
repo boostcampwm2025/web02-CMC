@@ -1,9 +1,12 @@
-import { BattleType, BattleCategory, BattlePlayTime } from '../const/battles.const'
+import { BATTLE_CATEGORY, BATTLE_LANGUAGE, BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_TYPE, BATTLE_STATUS, BATTLE_TEAM } from '../const/battles.const'
 
-export type BattleStatus = 'OPEN' | 'CLOSED'
-export type BattlePhase = 'WAITING_FOR_START' | 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH'
-export type BattleLanguage = 'TS' | 'JS' | 'PYTHON'
-export type Team = 'A' | 'B' | 'NONE'
+export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
+export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
+export type BattleStatus = (typeof BATTLE_STATUS)[keyof typeof BATTLE_STATUS]
+export type BattleType = (typeof BATTLE_TYPE)[keyof typeof BATTLE_TYPE]
+export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY]
+export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
+export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
 
 export interface Battle {
   id: string
@@ -20,12 +23,13 @@ export interface Battle {
 
   password?: string
   status: BattleStatus
-  createdAt: Date
-  updatedAt: Date
   participantCount: number
   initialState: {
     round: number
     phase: BattlePhase
     timeRemainingSeconds: number
   }
+
+  createdAt: Date
+  updatedAt: Date
 }
