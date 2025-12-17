@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
@@ -33,13 +34,15 @@ console.log(removeDuplicates(numbers));`
 };
 
 export default function BattlePage() {
+  const { id } = useParams<{ id: string }>();
+  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { socket, battleData, isConnected } = useBattleSocket({
-    battleId: '1',
+    battleId: id || '1',
     userId: 'abc',
     team: 'A'
   });
-  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
 
   return (
     <div className="text-white flex flex-col items-center">
