@@ -72,21 +72,23 @@ export default function BattlePage() {
         />
       </div>
       <main className="w-[1800px]">
-        <div className="flex gap-4 py-4">
-          <CodeSection
+        <div className="flex gap-2 py-4">
+          <div className="flex-1">
+             <CodeSection
             onViewChange={setViewMode}
             currentView={viewMode}
             language="javascript"
             codeA={battleInfo.aCode}
             codeB={battleInfo.bCode}
           />
-          <aside className="flex flex-col gap-4">
+            <TimelineSection />
+          </div>
+          <aside className="flex flex-col gap-4 w-[590px]">
             <ChatSection aTeamMemebers={102} team={selectedTeam} />
             <ObjectionInput onSubmit={handleObjectionSubmit} />
             <ObjectionVote objections={objections} onVote={handleVote} />
           </aside>
         </div>
-        <TimelineSection />
       </main>
     </div>
   );

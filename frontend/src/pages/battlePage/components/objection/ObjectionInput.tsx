@@ -23,7 +23,7 @@ export default function ObjectionInput({ disabled = false, onSubmit }: Objection
   };
 
   return (
-    <section className="w-[500px] bg-[#1E1E2F] rounded-lg overflow-hidden">
+    <section className="w-full bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="p-4 flex gap-1">
         <input
           type="text"

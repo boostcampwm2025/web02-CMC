@@ -20,7 +20,7 @@ export { type Objection };
 
 export default function ObjectionVote({ objections, onVote }: ObjectionVoteProps) {
   return (
-    <section className="w-[500px] bg-[#1E1E2F] rounded-lg overflow-hidden">
+    <section className="w-full bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="bg-gradient-to-r from-[#59168B] to-[#1C398E] p-4">
         <div className="flex items-center gap-2 mb-2">
           <ScaleIcon className="w-[20px] h-[20px]" />
