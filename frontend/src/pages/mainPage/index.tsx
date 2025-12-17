@@ -1,28 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard, BattleCategoryCard } from './components/index';
-import type { BattleCardItem } from './types/battle';
+import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
-
 import { getOpenBattles, getClosedBattles } from './api/getBattleList';
 
-const BATTLE_CATEGORIES = [
-  {
-    key: 'algorithm',
-    title: '⚡ 알고리즘 배틀',
-    description: '성능과 효율성을 겨루는 알고리즘 대결'
-  },
-  {
-    key: 'refactoring',
-    title: '🎨 리팩토링 배틀',
-    description: '클린 코드 vs 실용성의 대결'
-  },
-  {
-    key: 'implementation',
-    title: '💡 구현 배틀',
-    description: '같은 기능, 다른 접근법의 대결'
-  }
-];
+export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
 export default function MainPage() {
   const [openBattles, setOpenBattles] = useState<BattleCardItem[]>([]);
@@ -88,7 +71,7 @@ export default function MainPage() {
         </div>
 
         <div className="mt-6 grid grid-cols-3 gap-6">
-          {BATTLE_CATEGORIES.map((c) => (
+          {BATTLE_CATEGORIES.slice(0, 3).map((c) => (
             <BattleCategoryCard key={c.key} title={c.title} description={c.description} />
           ))}
         </div>
