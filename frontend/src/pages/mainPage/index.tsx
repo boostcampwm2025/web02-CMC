@@ -4,6 +4,7 @@ import { StatCard, LiveBattleCard, BattleCategoryCard } from './components/index
 import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import { getOpenBattles, getClosedBattles } from './api/getBattleList';
+import PastBattleCard from './components/PastBattleCard';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
@@ -110,7 +111,7 @@ export default function MainPage() {
         </div>
         <div className="grid  grid-cols-3 gap-4">
           {closedBattles.map((b) => (
-            <LiveBattleCard key={b.id} item={b} />
+            <PastBattleCard key={b.id} item={b} />
           ))}
         </div>
 
