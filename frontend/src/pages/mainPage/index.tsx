@@ -1,7 +1,25 @@
 import { Link } from 'react-router-dom';
-import { StatCard, LiveBattleCard } from './components/index';
+import { StatCard, LiveBattleCard, BattleCategoryCard } from './components/index';
 import type { BattleCardItem } from './types';
 import BattleWhiteIcon from '@/assets/icon/battle-white.svg?react';
+
+const BATTLE_CATEGORIES = [
+  {
+    key: 'algorithm',
+    title: '⚡ 알고리즘 배틀',
+    description: '성능과 효율성을 겨루는 알고리즘 대결'
+  },
+  {
+    key: 'refactoring',
+    title: '🎨 리팩토링 배틀',
+    description: '클린 코드 vs 실용성의 대결'
+  },
+  {
+    key: 'implementation',
+    title: '💡 구현 배틀',
+    description: '같은 기능, 다른 접근법의 대결'
+  }
+];
 
 const LIVE_BATTLES: BattleCardItem[] = [
   {
@@ -88,6 +106,12 @@ export default function MainPage() {
           <StatCard label="진행된 배틀" value="1,234" />
           <StatCard label="실시간 배틀" value="42" />
           <StatCard label="참여 개발자" value="8,567" />
+        </div>
+
+        <div className="mt-6 grid grid-cols-3 gap-6">
+          {BATTLE_CATEGORIES.map((c) => (
+            <BattleCategoryCard key={c.key} title={c.title} description={c.description} />
+          ))}
         </div>
       </section>
 
