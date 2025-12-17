@@ -8,6 +8,8 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import useModal from '@/commons/hooks/useModal';
+import TeamChangeModal from './components/modals/TeamChangeModal';
 
 type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
@@ -28,6 +30,11 @@ export default function BattlePage() {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
   };
 
+  const {
+    isOpen: isTeamChangeModalOpen,
+    openModal: openTeamChangeModal,
+    closeModal: closeTeamChangeModal
+  } = useModal();
   const handleVote = (objectionId: number) => {
     setObjections((prev) => {
       const updated = prev.map((obj) => {
@@ -103,6 +110,23 @@ export default function BattlePage() {
           </aside>
         </div>
       </main>
+
+      <button
+        onClick={openTeamChangeModal}
+        className="fixed bottom-4 right-4 px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
+      >
+        팀 변경 모달 열기
+      </button>
+
+      {isTeamChangeModalOpen && (
+        <TeamChangeModal
+          aTeamCounts={10}
+          bTeamCounts={8}
+          noneTeamCounts={2}
+          remainingTime={30}
+          onClose={closeTeamChangeModal}
+        />
+      )}
     </div>
   );
 }
