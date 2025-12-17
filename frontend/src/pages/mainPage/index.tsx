@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard } from './components/index';
 import type { BattleCardItem } from './types';
+import BattleWhiteIcon from '@/assets/icon/battle-white.svg?react';
 
 const LIVE_BATTLES: BattleCardItem[] = [
   {
@@ -53,15 +54,29 @@ export default function MainPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 space-y-12">
       {/* Header */}
-      <section className="rounded-2xl bg-[#1a1a2e] p-8">
-        <h1 className="text-3xl font-bold text-white">코드 리뷰 배틀 아레나</h1>
-        <p className="mt-2 text-gray-300">실시간 투표로 더 나은 코드를 선택하세요</p>
+      <section className="flex  flex-col gap-4 items-center">
+        <div className="flex gap-6">
+          <img src="logo.svg" alt="코문철 로고" className="w-16 h-16" />
+          <h1 className=" text-white text-6xl font-extrabold">코문철</h1>
+        </div>
+
+        <p className=" text-gray-400">두 가지 코드 구현 중 어떤 게 더 나은지 실시간 투표로 결정하세요</p>
 
         <div className="mt-6 flex gap-3">
-          <Link className="rounded-xl bg-orange-500 px-5 py-3 text-white" to="/battle/create">
-            새 배틀 생성
+          <Link
+            className="flex items-center rounded-xl px-5 py-3  bg-orange-500 shadow-[0_4px_6px_-4px_rgba(255,105,0,0.3),0_10px_15px_-3px_rgba(255,105,0,0.3)] hover:shadow-[0_0_25px_rgba(255,105,0,0.7)] transition-all duration-200"
+            to="/battle/create"
+          >
+            <div className="flex items-center gap-1 ">
+              <BattleWhiteIcon className="w-5 h-5" />
+              <p> 새 배틀 생성</p>
+            </div>
           </Link>
-          <Link className="rounded-xl border px-5 py-3 text-white" to="/team-select">
+
+          <Link
+            to="/team-select"
+            className="flex items-center rounded-xl px-5 py-3  bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A] transition-colors duration-200"
+          >
             배틀 참여
           </Link>
         </div>
