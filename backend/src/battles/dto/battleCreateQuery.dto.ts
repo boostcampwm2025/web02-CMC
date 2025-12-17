@@ -1,7 +1,6 @@
 import { Type } from 'class-transformer'
-import { IsIn, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator'
-import type { BattleLanguage } from '../types/battles.types'
-import type { BattleCategory, BattlePlayTime } from '../const/battles.const'
+import { IsIn, IsNotEmpty, IsNumber, IsString, Min, ValidateIf } from 'class-validator'
+import type { BattleLanguage, BattleCategory, BattlePlayTime, BattleType } from '../types/battles.types'
 
 export class BattleCreateQueryDto {
   @IsString()
@@ -30,7 +29,8 @@ export class BattleCreateQueryDto {
 
   @IsString()
   @IsIn(['PUBLIC', 'PRIVATE'])
-  type!: 'PUBLIC' | 'PRIVATE'
+  @IsNotEmpty()
+  type!: BattleType
 
   @IsString()
   @IsNotEmpty()
@@ -41,7 +41,7 @@ export class BattleCreateQueryDto {
   @Min(1)
   playTime!: BattlePlayTime
 
-  // @ValidateIf(o => o.type === 'PRIVATE')
+  @ValidateIf((o: BattleCreateQueryDto) => o.type === 'PRIVATE')
   @IsString()
   @IsNotEmpty()
   password?: string

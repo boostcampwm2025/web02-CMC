@@ -6,17 +6,32 @@ export const BATTLE_PHASE = {
   TEAM_SWITCH: 'TEAM_SWITCH',
 } as const
 
-export enum BATTLE_LANGUAGE {
-  TS = 'TS',
-  JS = 'JS',
-  PYTHON = 'PYTHON',
+export const BATTLE_STATUS = {
+  OPEN: 'OPEN',
+  CLOSED: 'CLOSED',
 }
+
+export const BATTLE_LANGUAGE = {
+  TS: 'TS',
+  JS: 'JS',
+  PYTHON: 'PYTHON',
+} as const
 
 export const BATTLE_TYPE = {
   PUBLIC: 'PUBLIC',
   PRIVATE: 'PRIVATE',
 } as const
-export type BattleType = (typeof BATTLE_TYPE)[keyof typeof BATTLE_TYPE]
+
+export const BATTLE_DISCUSSION_TYPE = {
+  ATTACK: 'ATTACK',
+  DEFENSE: 'DEFENSE',
+} as const
+
+export const BATTLE_TEAM = {
+  A: 'A',
+  B: 'B',
+  NONE: 'NONE',
+} as const
 
 export const BATTLE_CATEGORY = {
   ALGORITHM: 'ALGORITHM',
@@ -24,11 +39,9 @@ export const BATTLE_CATEGORY = {
   IMPLEMENT: 'IMPLEMENT',
   ETC: 'ETC',
 } as const
-export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY]
 
 export const BATTLE_PLAYTIME = {
   FIVE_MIN: 5,
   TEN_MIN: 10,
   THIRTY_MIN: 30,
 } as const
-export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]

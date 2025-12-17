@@ -1,7 +1,7 @@
-import { NotFoundException, BadRequestException } from '@nestjs/common'
-import { BattlesService } from './battles.service'
+import { NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 import { Battle } from '../types/battles.types'
-import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME } from '../const/battles.const'
+import { BattlesService } from './battles.service'
+import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -10,17 +10,17 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   description: 'description',
   aCode: 'a',
   bCode: 'b',
-  language: 'TS',
+  language: BATTLE_LANGUAGE.TS,
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
   playTime: BATTLE_PLAYTIME.TEN_MIN,
-  status: 'OPEN',
+  status: BATTLE_STATUS.OPEN,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
   participantCount: 0,
   initialState: {
     round: 1,
-    phase: 'WAITING_FOR_START',
+    phase: BATTLE_PHASE.WAITING_FOR_START,
     timeRemainingSeconds: 600,
   },
   ...overrides,
@@ -33,12 +33,205 @@ describe('BattlesService', () => {
     service = new BattlesService()
   })
 
+  describe('initBattleState', () => {
+    it('battleId가 없으면 BadRequestException을 던진다', () => {
+      expect(() => service['initBattleState']('')).toThrow(BadRequestException)
+    })
+
+    it('이미 초기화된 배틀이면 중복 생성하지 않는다', () => {
+      service['initBattleState']('battle-1')
+      service['initBattleState']('battle-1')
+
+      expect(service['activeBattles'].size).toBe(1)
+    })
+
+    it('배틀 상태를 올바르게 초기화한다', () => {
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(state.battleId).toBe('battle-1')
+      expect(state.all.roomId).toBe('battle:battle-1')
+      expect(state.teamA.roomId).toBe('battle:battle-1:A')
+      expect(state.teamB.roomId).toBe('battle:battle-1:B')
+      expect(state.teamA.users).toEqual([])
+      expect(state.teamB.users).toEqual([])
+    })
+  })
+
+  describe('addParticipant', () => {
+    beforeEach(() => {
+      service['initBattleState']('battle-1')
+    })
+
+    it('필수 파라미터가 없으면 BadRequestException을 던진다', () => {
+      expect(() => service['addParticipant']('', 'client-1', 'A')).toThrow(BadRequestException)
+      expect(() => service['addParticipant']('battle-1', '', 'A')).toThrow(BadRequestException)
+      expect(() => service['addParticipant']('battle-1', 'client-1', '')).toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
+      expect(() => service['addParticipant']('invalid-battle', 'client-1', 'A')).toThrow(NotFoundException)
+    })
+
+    it('A팀에 참가자를 추가한다', () => {
+      service['addParticipant']('battle-1', 'client-1', BATTLE_TEAM.A)
+
+      const state = service['activeBattles'].get('battle-1')!
+      expect(state.teamA.users).toContain('client-1')
+      expect(state.teamB.users).not.toContain('client-1')
+    })
+
+    it('B팀에 참가자를 추가한다', () => {
+      service['addParticipant']('battle-1', 'client-2', BATTLE_TEAM.B)
+
+      const state = service['activeBattles'].get('battle-1')!
+      expect(state.teamB.users).toContain('client-2')
+      expect(state.teamA.users).not.toContain('client-2')
+    })
+  })
+
+  describe('getBattleRoomId', () => {
+    it('팀이 없으면 배틀 전체 룸 ID를 반환한다', () => {
+      const roomId = service.getBattleRoomId('battle-1')
+      expect(roomId).toBe('battle:battle-1')
+    })
+
+    it('팀이 있으면 팀별 룸 ID를 반환한다', () => {
+      const roomIdA = service.getBattleRoomId('battle-1', BATTLE_TEAM.A)
+      const roomIdB = service.getBattleRoomId('battle-1', BATTLE_TEAM.B)
+
+      expect(roomIdA).toBe('battle:battle-1:A')
+      expect(roomIdB).toBe('battle:battle-1:B')
+    })
+  })
+
+  describe('joinBattleInfo', () => {
+    it('battleId가 없으면 BadRequestException을 던진다', () => {
+      expect(() => service.joinBattleInfo('')).toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
+      expect(() => service.joinBattleInfo('invalid-battle')).toThrow(NotFoundException)
+    })
+
+    it('배틀 정보를 반환한다', () => {
+      const battle = createBattle({ id: 'battle-1' })
+      service.setBattlesForTest([battle])
+
+      const result = service.joinBattleInfo('battle-1')
+
+      expect(result).toBeDefined()
+      expect(result.title).toBe(battle.title)
+      expect(result.description).toBe(battle.description)
+      expect(result.aCode).toBe(battle.aCode)
+      expect(result.bCode).toBe(battle.bCode)
+    })
+  })
+
+  describe('joinBattle', () => {
+    beforeEach(() => {
+      const publicBattle = createBattle({
+        id: 'public-battle',
+        type: BATTLE_TYPE.PUBLIC,
+        status: BATTLE_STATUS.OPEN,
+      })
+      const privateBattle = createBattle({
+        id: 'private-battle',
+        type: BATTLE_TYPE.PRIVATE,
+        password: '1234',
+        status: BATTLE_STATUS.OPEN,
+      })
+      const closedBattle = createBattle({
+        id: 'closed-battle',
+        status: BATTLE_STATUS.CLOSED,
+      })
+
+      service.setBattlesForTest([publicBattle, privateBattle, closedBattle])
+      service['initBattleState']('public-battle')
+      service['initBattleState']('private-battle')
+    })
+
+    it('battleId가 없으면 BadRequestException을 던진다', () => {
+      expect(() => service.joinBattle({ battleId: '', team: 'A', userId: '' }, 'client-1')).toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
+      expect(() =>
+        service.joinBattle(
+          {
+            battleId: 'invalid',
+            team: 'A',
+            userId: '',
+          },
+          'client-1',
+        ),
+      ).toThrow(NotFoundException)
+    })
+
+    it('비공개 배틀에 잘못된 비밀번호로 접근하면 UnauthorizedException을 던진다', () => {
+      expect(() =>
+        service.joinBattle(
+          {
+            battleId: 'private-battle',
+            password: 'wrong',
+            team: 'A',
+            userId: '',
+          },
+          'client-1',
+        ),
+      ).toThrow(UnauthorizedException)
+    })
+
+    it('비공개 배틀에 올바른 비밀번호로 입장한다', () => {
+      const result = service.joinBattle(
+        {
+          battleId: 'private-battle',
+          password: '1234',
+          team: 'A',
+          userId: '',
+        },
+        'client-1',
+      )
+
+      expect(result.team).toBe('A')
+      expect(result.battleState).toBeDefined()
+    })
+
+    it('종료된 배틀에 입장하려 하면 BadRequestException을 던진다', () => {
+      expect(() =>
+        service.joinBattle(
+          {
+            battleId: 'closed-battle',
+            team: 'A',
+            userId: '',
+          },
+          'client-1',
+        ),
+      ).toThrow(BadRequestException)
+    })
+
+    it('공개 배틀에 정상적으로 입장한다', () => {
+      const result = service.joinBattle(
+        {
+          battleId: 'public-battle',
+          team: 'A',
+          userId: '',
+        },
+        'client-1',
+      )
+
+      expect(result.team).toBe('A')
+      expect(result.battleState.teamA.users).toContain('client-1')
+    })
+  })
+
   describe('getOpenBattles', () => {
     it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'OPEN' }),
-        createBattle({ status: 'CLOSED' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'OPEN' }),
+        createBattle({ status: BATTLE_STATUS.OPEN }),
+        createBattle({ status: BATTLE_STATUS.CLOSED }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.OPEN }),
       ]
 
       service.setBattlesForTest(battles)
@@ -46,7 +239,7 @@ describe('BattlesService', () => {
       const result = service.getOpenBattles(10, 0)
 
       expect(result).toHaveLength(1)
-      expect(result[0].status).toBe('OPEN')
+      expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
 
     it('배틀 생성 시간 기준 최신순으로 정렬된다', () => {
@@ -79,9 +272,9 @@ describe('BattlesService', () => {
   describe('getClosedBattles', () => {
     it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
-        createBattle({ status: 'CLOSED' }),
-        createBattle({ status: 'OPEN' }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: 'CLOSED' }),
+        createBattle({ status: BATTLE_STATUS.CLOSED }),
+        createBattle({ status: BATTLE_STATUS.OPEN }),
+        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
       ]
 
       service.setBattlesForTest(battles)
@@ -89,19 +282,19 @@ describe('BattlesService', () => {
       const result = service.getClosedBattles(10, 0)
 
       expect(result).toHaveLength(1)
-      expect(result[0].status).toBe('CLOSED')
+      expect(result[0].status).toBe(BATTLE_STATUS.CLOSED)
     })
 
     it('배틀 종료 시각 기준 최신 종료 순으로 정렬된다', () => {
       const shorter = createBattle({
         id: 'short',
         playTime: BATTLE_PLAYTIME.FIVE_MIN,
-        status: 'CLOSED',
+        status: BATTLE_STATUS.CLOSED,
       })
       const longer = createBattle({
         id: 'long',
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
-        status: 'CLOSED',
+        status: BATTLE_STATUS.CLOSED,
       })
 
       service.setBattlesForTest([shorter, longer])

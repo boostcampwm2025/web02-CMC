@@ -1,16 +1,20 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { v7 as uuidv7 } from 'uuid'
-import { BattleResultResponseDto } from '../dto/battleResult.dto'
-import { TimelineItem, Mvp } from '../types/battleResult.types'
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
+
 import { mockBattleResults } from '../mock/battleResults.mock'
-import { BATTLE_PHASE, BATTLE_TYPE } from '../const/battles.const'
-import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
-import { Battle, BattleStatus } from '../types/battles.types'
-import { BattleResponseDto } from '../dto/battle-response.dto'
+import { TimelineItem, Mvp } from '../types/battleResult.types'
+import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
+import { BattleResponseDto } from '../dto/battleResponse.dto'
+import { BattleResultResponseDto } from '../dto/battleResult.dto'
+import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
+import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
+import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService {
   private battles: Battle[] = []
+  private activeBattles: Map<string, ActiveBattleState> = new Map()
 
   private generateId(): string {
     return uuidv7()
@@ -18,10 +22,10 @@ export class BattlesService {
 
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
-    const status: BattleStatus = 'OPEN'
+    const battleId = this.generateId()
 
     const battle: Battle = {
-      id: this.generateId(),
+      id: battleId,
       authorId: payload.authorId,
       title: payload.title.trim(),
       description: payload.description.trim(),
@@ -31,8 +35,8 @@ export class BattlesService {
       type: payload.type,
       category: payload.category,
       playTime: payload.playTime,
-      password: payload.type === 'PUBLIC' ? undefined : payload.password?.trim(),
-      status,
+      password: payload.type === BATTLE_TYPE.PRIVATE ? undefined : payload.password?.trim(),
+      status: BATTLE_STATUS.OPEN,
       createdAt: now,
       updatedAt: now,
       participantCount: 1,
@@ -44,12 +48,9 @@ export class BattlesService {
     }
 
     this.battles.push(battle)
+    this.initBattleState(battleId)
 
     return battle
-  }
-
-  setBattlesForTest(battles: Battle[]) {
-    this.battles = battles
   }
 
   //Todo: 정렬 기준 재설정
@@ -81,7 +82,7 @@ export class BattlesService {
     }
 
     // 2. 배틀 상태 검증
-    if (battle.status !== 'CLOSED') {
+    if (battle.status !== BATTLE_STATUS.CLOSED) {
       throw new BadRequestException('배틀이 아직 진행 중입니다.')
     }
 
@@ -89,6 +90,44 @@ export class BattlesService {
     const mvp = this.calculateMVP(battle.timeline)
 
     return BattleResultResponseDto.fromEntity(battle, mvp)
+  }
+
+  joinBattleInfo(battleId: string): BattleJoinInfoResponseDto {
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
+
+    const battle = this.battles.find(battle => battle.id === battleId)
+
+    if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
+
+    return BattleJoinInfoResponseDto.of(battle)
+  }
+
+  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
+    const { battleId, password, team } = battleJoinRequestDto
+
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
+
+    const battle = this.battles.find(battle => battle.id === battleId)
+
+    if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
+
+    if (battle.type === BATTLE_TYPE.PRIVATE && battle.password) {
+      const isValid = battle.password === password
+
+      if (!isValid) throw new UnauthorizedException('잘못된 비밀번호입니다.')
+    }
+
+    if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
+
+    this.addParticipant(battleId, clientId, team)
+
+    const battleState = this.getBattleState(battleId)
+
+    return { battleState, team }
+  }
+
+  setBattlesForTest(battles: Battle[]) {
+    this.battles = battles
   }
 
   private calculateMVP(timeline: TimelineItem[]): Mvp | null {
@@ -121,15 +160,69 @@ export class BattlesService {
     }
   }
 
+  private initBattleState(battleId: string): void {
+    if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
+    if (this.activeBattles.has(battleId)) return
+
+    const activeBattleState: ActiveBattleState = {
+      battleId,
+      all: {
+        roomId: this.getBattleRoomId(battleId),
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+      teamA: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.A),
+        users: [],
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+      teamB: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.B),
+        users: [],
+        chats: [],
+        attacks: [],
+        defenses: [],
+      },
+    }
+
+    this.activeBattles.set(battleId, activeBattleState)
+  }
+
+  private addParticipant(battleId: string, clinetId: string, team: string): void {
+    if (!battleId || !clinetId || !team) throw new BadRequestException('잘못된 요청입니다.')
+    const battleState = this.activeBattles.get(battleId)
+
+    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+
+    const { teamA, teamB } = battleState
+
+    const myTeam = team === BATTLE_TEAM.A ? teamA : teamB
+    myTeam.users.push(clinetId)
+  }
+
+  getBattleRoomId(battleId: string, team?: BattleTeam): string {
+    return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  }
+
   private isPublicAndOpen(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'OPEN'
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.OPEN
   }
 
   private isPublicAndClosed(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === 'CLOSED'
+    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.CLOSED
   }
 
   private getExpiredTime(battle: Battle): Date {
     return new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
+  }
+
+  private getBattleState(battleId: string) {
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+
+    return battleState
   }
 }
