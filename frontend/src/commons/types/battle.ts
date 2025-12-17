@@ -4,6 +4,13 @@ export interface BattleChat {
   content: string;
 }
 
+export interface BattleInfo {
+  title: string;
+  description: string;
+  aCode: string;
+  bCode: string;
+}
+
 // BattleDiscussion 타입
 export interface BattleDiscussion {
   discussionId: string;

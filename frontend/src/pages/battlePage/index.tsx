@@ -1,40 +1,15 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLoaderData } from 'react-router-dom';
+import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 
-const MOCK_CODE = {
-  A: `function removeDuplicates(arr) {
-  return [...new Set(arr)];
-}
-
-// 사용 예시
-const numbers = [1, 2, 2, 3, 4, 4, 5];
-console.log(removeDuplicates(numbers));`,
-  B: `function removeDuplicates(arr) {
-  const result = [];
-  const seen = {};
-  
-  for (let i = 0; i < arr.length; i++) {
-    if (!seen[arr[i]]) {
-      seen[arr[i]] = true;
-      result.push(arr[i]);
-    }
-  }
-  
-  return result;
-}
-
-// 사용 예시
-const numbers = [1, 2, 2, 3, 4, 4, 5];
-console.log(removeDuplicates(numbers));`
-};
-
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
+  const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -48,9 +23,9 @@ export default function BattlePage() {
     <div className="text-white flex flex-col items-center">
       <div className="w-[1800px]">
         <BattleHeader
-          title="배열에서 중복 제거하기"
-          description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
-          status="A팀 이의 제기 중"
+          title={battleInfo.title}
+          description={battleInfo.description}
+          status="A팀 의견 공유 중"
           timer="0:02"
           teamACounts={1}
           teamBCounts={1}
@@ -63,8 +38,8 @@ export default function BattlePage() {
             onViewChange={setViewMode}
             currentView={viewMode}
             language="javascript"
-            codeA={MOCK_CODE.A}
-            codeB={MOCK_CODE.B}
+            codeA={battleInfo.aCode}
+            codeB={battleInfo.bCode}
           />
           <aside className="flex flex-col gap-4">
             <ChatSection aTeamMemebers={102} />
