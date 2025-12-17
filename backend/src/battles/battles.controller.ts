@@ -1,4 +1,4 @@
-import { Controller, Get, Param, HttpCode, InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common'
+import { Controller, Get, Param, HttpCode, InternalServerErrorException, HttpException } from '@nestjs/common'
 import { BattlesService } from './battles.service'
 import { BattleResultResponseDto } from './dto/battleResult.dto'
 
@@ -12,7 +12,7 @@ export class BattlesController {
     try {
       return this.battlesService.getBattleResult(battleId)
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (error instanceof HttpException) {
         throw error
       }
       throw new InternalServerErrorException('배틀 결과 조회 중 오류가 발생했습니다.')
