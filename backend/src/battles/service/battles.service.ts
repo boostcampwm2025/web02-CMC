@@ -4,11 +4,11 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
 import { mockBattleResults } from '../mock/battleResults.mock'
-import { BattleResponseDto } from '../dto/battle-response.dto'
+import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
-import type { BattleCreateQueryDto } from '../dto/battle-create-query.dto'
+import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
-import { BattleJoinRequestDto } from '../dto/battle-join-request.dto'
+import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 
 @Injectable()
 export class BattlesService {

@@ -11,7 +11,7 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets'
 import { BattlesService } from '../service/battles.service'
-import { BattleJoinRequestDto } from '../dto/battle-join-request.dto'
+import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
 
 @WebSocketGateway()

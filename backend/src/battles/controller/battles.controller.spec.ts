@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import { BattlesController } from './battles.controller'
 import { BattlesService } from '../service/battles.service'
-import { BattleResponseDto } from '../dto/battle-response.dto'
-import { BattleListRequestQueryDto } from '../dto/battle-list-request-query.dto'
+import { BattleResponseDto } from '../dto/battleResponse.dto'
+import { BattleListRequestQueryDto } from '../dto/battleListRequestQuery.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 
 describe('BattlesController', () => {
