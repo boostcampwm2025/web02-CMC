@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import TeamButton from './components/TeamButton';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 
@@ -12,6 +13,8 @@ const MOCK_DATA = {
 };
 
 export default function TeamSelectPage() {
+  const navigate = useNavigate();
+
   return (
     <main className="text-white flex items-center justify-center min-h-screen">
       <div className="w-fit">
@@ -28,7 +31,10 @@ export default function TeamSelectPage() {
           <TeamButton team="NONE" />
           <TeamButton team="B" language={MOCK_DATA.launguage} code={MOCK_DATA.bcode} />
         </div>
-        <button className="w-[115px] h-[51px] mt-8 mx-auto border border-[#2D2D3F] bg-[#1E1E2F] rounded-lg text-[16px] text-[#D1D5DC] block">
+        <button
+          onClick={() => navigate('/')}
+          className="w-[115px] h-[51px] mt-8 mx-auto border border-[#2D2D3F] bg-[#1E1E2F] rounded-lg text-[16px] text-[#D1D5DC] block"
+        >
           돌아가기
         </button>
       </div>
