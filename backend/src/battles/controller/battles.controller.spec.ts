@@ -4,6 +4,7 @@ import { BattlesController } from './battles.controller'
 import { BattlesService } from '../service/battles.service'
 import { BattleResponseDto } from '../dto/battle-response.dto'
 import { BattleListRequestQueryDto } from '../dto/battle-list-request-query.dto'
+import { BattleResultResponseDto } from '../dto/battleResult.dto'
 
 describe('BattlesController', () => {
   let controller: BattlesController
@@ -18,6 +19,7 @@ describe('BattlesController', () => {
           useValue: {
             getOpenBattles: jest.fn(),
             getClosedBattles: jest.fn(),
+            getBattleResult: jest.fn(),
           },
         },
       ],
@@ -69,15 +71,32 @@ describe('BattlesController', () => {
 
   describe('GET /battles/:id/result', () => {
     it('배틀 결과를 200 상태코드와 함께 반환해야 함', () => {
+      const mockResult = {
+        battleId: 'battle-1',
+        status: 'CLOSED' as const,
+      }
+
+      jest.spyOn(service, 'getBattleResult').mockReturnValue(mockResult as BattleResultResponseDto)
+
       const result = controller.getBattleResult('battle-1')
       expect(result).toBeDefined()
       expect(result.battleId).toBe('battle-1')
     })
 
     it('존재하지 않는 배틀 조회 시 404 에러를 반환해야 함', () => {
+      jest.spyOn(service, 'getBattleResult').mockImplementation(() => {
+        throw new NotFoundException()
+      })
+
       expect(() => controller.getBattleResult('battle-999')).toThrow(NotFoundException)
     })
 
     it('진행 중인 배틀 조회 시 400 에러를 반환해야 함', () => {
+      jest.spyOn(service, 'getBattleResult').mockImplementation(() => {
+        throw new BadRequestException()
+      })
+
       expect(() => controller.getBattleResult('battle-open-1')).toThrow(BadRequestException)
+    })
+  })
 })
