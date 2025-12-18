@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLoaderData, useLocation } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
@@ -15,19 +15,31 @@ type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
 };
 
-type TurnPhase = 'objection' | 'rebuttal';
-
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
+  const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
+  const {
+    isOpen: isTeamChangeModalOpen,
+    openModal: openTeamChangeModal,
+    closeModal: closeTeamChangeModal
+  } = useModal(false);
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentPhase, setCurrentPhase] = useState<TurnPhase>('rebuttal');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentTeam, setCurrentTeam] = useState<'A' | 'B' | 'NONE'>('A');
-  const { isOpen: isTeamChangeModalOpen, closeModal: closeTeamChangeModal } = useModal(false);
+  const { socket, currentStage, battleProgress, isConnected } = useBattleSocket({
+    battleId: id || '1',
+    userId: 'abc',
+    team: selectedTeam
+  });
+
+  useEffect(() => {
+    if (battleProgress?.phase === 'TEAM_SWITCH') {
+      openTeamChangeModal();
+    }
+  }, [battleProgress?.phase, openTeamChangeModal]);
 
   const getTotalVotes = () => {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
@@ -51,10 +63,11 @@ export default function BattlePage() {
   };
 
   const handleObjectionSubmit = (content: string) => {
+    if (selectedTeam === 'NONE') return;
     const newObjection: Objection = {
       id: Date.now(),
       user: 'You',
-      team: 'A', // @ Todo 실제 팀 정보로 대체 필요
+      team: selectedTeam,
       content,
       votes: 0,
       totalVotes: getTotalVotes(),
@@ -65,15 +78,6 @@ export default function BattlePage() {
     // @ Todo 소켓으로 이의제기 정보 전송 로직 추가 필요
   };
 
-  const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, battleData, isConnected } = useBattleSocket({
-    battleId: id || '1',
-    userId: 'abc',
-    team: selectedTeam
-  });
-  //@Todo 턴 변경 정보 이벤트 구독 소켓 로직 추가 필요
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
   const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
     console.log(team);
@@ -87,7 +91,7 @@ export default function BattlePage() {
         <BattleHeader
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
-          status={currentPhase === 'objection' ? 'A팀 이의 제기 중' : 'B팀 반론 중'}
+          status={currentStage || 'END'}
           timer="0:02"
           teamACounts={1}
           teamBCounts={1}
@@ -107,9 +111,19 @@ export default function BattlePage() {
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102} team={currentTeam} />
-            <ObjectionInput onSubmit={handleObjectionSubmit} phase={currentPhase} />
-            <ObjectionVote objections={objections} onVote={handleVote} phase={currentPhase} />
+            <ChatSection aTeamMemebers={102} team={selectedTeam} />
+            <ObjectionInput
+              onSubmit={handleObjectionSubmit}
+              phase={battleProgress?.phase}
+              team={selectedTeam}
+              turnStatus={battleProgress?.turn?.status}
+            />
+            <ObjectionVote
+              objections={objections}
+              onVote={handleVote}
+              phase={battleProgress?.phase}
+              team={selectedTeam}
+            />
           </aside>
         </div>
       </main>
@@ -120,7 +134,7 @@ export default function BattlePage() {
           bTeamCounts={8}
           noneTeamCounts={2}
           remainingTime={30}
-          currentTeam={currentTeam}
+          currentTeam={selectedTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
         />
