@@ -15,19 +15,21 @@ type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
 };
 
-type TurnPhase = 'objection' | 'rebuttal';
-
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
+  const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentPhase, setCurrentPhase] = useState<TurnPhase>('rebuttal');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [currentTeam, setCurrentTeam] = useState<'A' | 'B' | 'NONE'>('A');
   const { isOpen: isTeamChangeModalOpen, closeModal: closeTeamChangeModal } = useModal(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { socket, battleData, battleProgress, isConnected } = useBattleSocket({
+    battleId: id || '1',
+    userId: 'abc',
+    team: selectedTeam
+  });
 
   const getTotalVotes = () => {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
@@ -65,14 +67,6 @@ export default function BattlePage() {
     // @ Todo 소켓으로 이의제기 정보 전송 로직 추가 필요
   };
 
-  const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, battleData, battleProgress, isConnected } = useBattleSocket({
-    battleId: id || '1',
-    userId: 'abc',
-    team: selectedTeam
-  });
   //@Todo 턴 변경 정보 이벤트 구독 소켓 로직 추가 필요
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
   const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
@@ -87,7 +81,7 @@ export default function BattlePage() {
         <BattleHeader
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
-          status={currentPhase === 'objection' ? 'A팀 이의 제기 중' : 'B팀 반론 중'}
+          status={battleProgress?.phase || 'OPINION_SHARE'}
           timer="0:02"
           teamACounts={1}
           teamBCounts={1}
@@ -107,9 +101,14 @@ export default function BattlePage() {
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102} team={currentTeam} />
-            <ObjectionInput onSubmit={handleObjectionSubmit} phase={currentPhase} />
-            <ObjectionVote objections={objections} onVote={handleVote} phase={currentPhase} />
+            <ChatSection aTeamMemebers={102} team={selectedTeam} />
+            <ObjectionInput onSubmit={handleObjectionSubmit} phase={battleProgress?.phase} team={selectedTeam} />
+            <ObjectionVote
+              objections={objections}
+              onVote={handleVote}
+              phase={battleProgress?.phase}
+              team={selectedTeam}
+            />
           </aside>
         </div>
       </main>
@@ -120,7 +119,7 @@ export default function BattlePage() {
           bTeamCounts={8}
           noneTeamCounts={2}
           remainingTime={30}
-          currentTeam={currentTeam}
+          currentTeam={selectedTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
         />

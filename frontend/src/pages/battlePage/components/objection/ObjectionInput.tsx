@@ -5,16 +5,18 @@ import { useState } from 'react';
 interface ObjectionInputProps {
   disabled?: boolean;
   onSubmit?: (content: string) => void;
-  phase: 'objection' | 'rebuttal';
+  phase?: 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH';
+  team?: 'A' | 'B' | 'NONE';
 }
 
-export default function ObjectionInput({ disabled = false, onSubmit, phase }: ObjectionInputProps) {
+export default function ObjectionInput({ disabled = false, onSubmit, phase, team }: ObjectionInputProps) {
   const [inputValue, setInputValue] = useState('');
 
-  const isObjection = phase === 'objection';
-  const placeholderText = isObjection ? '상대 진영에 이의제기...' : '상대 진영에 반론...';
-  const buttonText = isObjection ? '이의제기' : '반론';
-  const Icon = isObjection ? BattleIcon : ShieldIcon;
+  const isMyTeamAttacking = (team === 'A' && phase === 'TEAM_A_ATTACK') || (team === 'B' && phase === 'TEAM_B_ATTACK');
+
+  const placeholderText = isMyTeamAttacking ? '상대 진영에 이의제기...' : '상대 진영에 반론...';
+  const buttonText = isMyTeamAttacking ? '이의제기' : '반론';
+  const Icon = isMyTeamAttacking ? BattleIcon : ShieldIcon;
 
   const handleSubmit = () => {
     if (inputValue.trim() && !disabled) {
