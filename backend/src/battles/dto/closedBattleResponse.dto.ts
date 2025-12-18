@@ -39,7 +39,7 @@ export class ClosedBattleResponseDto {
   static fromMock(mock: any) {
     const dto = new ClosedBattleResponseDto()
 
-    dto.id = mock.id
+    dto.id = mock.battleId
     dto.title = mock.title
     dto.description = mock.description
     dto.category = mock.category
