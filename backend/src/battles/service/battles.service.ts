@@ -225,4 +225,25 @@ export class BattlesService {
 
     return battleState
   }
+
+  // TODO: 이의제기/반론 관련 메서드 - 다른 팀원이 구현 예정
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): any {
+    throw new Error('handleAttack: Not implemented yet')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleDefense(battleId: string, data: { authorId: string; attackId: string; content: string; team: BattleTeam }): any {
+    throw new Error('handleDefense: Not implemented yet')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): any {
+    throw new Error('handleAttackVote: Not implemented yet')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): any {
+    throw new Error('handleDefenseVote: Not implemented yet')
+  }
 }
