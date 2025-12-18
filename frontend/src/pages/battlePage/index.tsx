@@ -8,6 +8,7 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import { useBattleTimer } from './hooks/useBattleTimer';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
@@ -23,7 +24,6 @@ export default function BattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
-  const [remainingTime, setRemainingTime] = useState<number>(0);
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: openTeamChangeModal,
@@ -36,26 +36,9 @@ export default function BattlePage() {
     team: selectedTeam
   });
 
-  useEffect(() => {
-    if (!battleProgress?.expiredAt) return;
-
-    const updateRemainingTime = () => {
-      const now = Date.now();
-      const remaining = Math.max(0, battleProgress.expiredAt - now);
-      setRemainingTime(Math.floor(remaining / 1000));
-    };
-
-    updateRemainingTime();
-    const interval = setInterval(updateRemainingTime, 1000);
-
-    return () => clearInterval(interval);
-  }, [battleProgress?.expiredAt]);
-
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  };
+  const { formattedTime } = useBattleTimer({
+    expiredAt: battleProgress?.expiredAt
+  });
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
@@ -216,7 +199,7 @@ export default function BattlePage() {
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
           status={currentStage || 'END'}
-          timer={formatTime(remainingTime)}
+          timer={formattedTime}
           teamACounts={1}
           teamBCounts={1}
           teamNoneCounts={0}
