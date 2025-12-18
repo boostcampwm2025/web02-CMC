@@ -1,11 +1,13 @@
-import { Battle, BattleCategory, BattleStatus } from '../types/battles.types'
+import { Battle, BattleStatus } from '../types/battles.types'
 import { BattleResult } from '../types/battleResult.types'
+import { BattleResultMock } from '../mock/battleResults.mock'
 
 export class ClosedBattleResponseDto {
   id: string
   title: string
   description: string
-  category: BattleCategory
+  // category: BattleCategory
+  category: string
   status: BattleStatus
 
   createdAt: Date
@@ -30,13 +32,7 @@ export class ClosedBattleResponseDto {
   }
 
   //임시
-  /* eslint-disable
-  @typescript-eslint/no-explicit-any,
-  @typescript-eslint/no-unsafe-assignment,
-  @typescript-eslint/no-unsafe-member-access,
-  @typescript-eslint/no-unsafe-argument
-*/
-  static fromMock(mock: any) {
+  static fromMock(mock: BattleResultMock) {
     const dto = new ClosedBattleResponseDto()
 
     dto.id = mock.battleId
