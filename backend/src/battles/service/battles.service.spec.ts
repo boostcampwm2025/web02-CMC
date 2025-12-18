@@ -363,4 +363,79 @@ describe('BattlesService', () => {
       })
     })
   })
+
+  describe('appendChatMessage', () => {
+    beforeEach(() => {
+      service['initBattleState']('battle-1')
+    })
+
+    it('배틀이 없으면 NotFoundException을 던진다', () => {
+      expect(() =>
+        service.appendChatMessage(
+          {
+            battleId: 'invalid',
+            scope: 'TEAM',
+            team: BATTLE_TEAM.A,
+            text: 'hello',
+          },
+          'user-1',
+        ),
+      ).toThrow(NotFoundException)
+    })
+
+    it('진영 채팅 메시지를 해당 팀 채팅에만 추가한다', () => {
+      const result = service.appendChatMessage(
+        {
+          battleId: 'battle-1',
+          scope: 'TEAM',
+          team: BATTLE_TEAM.A,
+          text: 'hello',
+        },
+        'user-1',
+      )
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          scope: 'TEAM',
+          team: BATTLE_TEAM.A,
+          sender: 'user-1',
+          text: 'hello',
+          messageId: expect.any(String),
+        }),
+      )
+      expect(state.teamA.chats).toHaveLength(1)
+      expect(state.all.chats).toHaveLength(0)
+      expect(state.teamNone.chats).toHaveLength(0)
+    })
+
+    it('전체 채팅 메시지를 전체 채팅에 추가한다', () => {
+      const result = service.appendChatMessage(
+        {
+          battleId: 'battle-1',
+          scope: 'ALL',
+          text: 'hello all',
+        },
+        'user-1',
+      )
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          scope: 'ALL',
+          sender: 'user-1',
+          text: 'hello all',
+          messageId: expect.any(String),
+        }),
+      )
+      expect(state.all.chats).toHaveLength(1)
+      expect(state.teamA.chats).toHaveLength(0)
+      expect(state.teamB.chats).toHaveLength(0)
+      expect(state.teamNone.chats).toHaveLength(0)
+    })
+  })
 })
