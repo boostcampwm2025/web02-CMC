@@ -347,6 +347,53 @@ describe('BattlesService', () => {
     })
   })
 
+  describe('voteTeam / TEAM_SWITCH 적용', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      service.joinBattle(
+        {
+          battleId: 'battle-1',
+          team: BATTLE_TEAM.A,
+          userId: 'user-1',
+        },
+        'client-1',
+      )
+    })
+
+    it('TEAM_SWITCH가 아니면 팀 변경 투표가 거부된다', () => {
+      expect(() =>
+        service.voteTeam(
+          {
+            battleId: 'battle-1',
+            team: BATTLE_TEAM.B,
+          },
+          'client-1',
+        ),
+      ).toThrow(BadRequestException)
+    })
+
+    it('TEAM_SWITCH 종료 시 투표가 반영되어 팀이 변경된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+
+      service.voteTeam(
+        {
+          battleId: 'battle-1',
+          team: BATTLE_TEAM.B,
+        },
+        'client-1',
+      )
+
+      service['updatePhase']('battle-1')
+
+      expect(state.teamA.users).not.toContain('client-1')
+      expect(state.teamB.users).toContain('client-1')
+    })
+  })
+
   describe('getOpenBattles', () => {
     it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [

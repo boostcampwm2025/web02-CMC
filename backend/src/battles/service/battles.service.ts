@@ -7,6 +7,7 @@ import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
 import { ActiveBattleState, Battle, BattlePhase, BattleTeam, BattleDiscussion, BattleDefense, BattlePlayTime } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
+import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
@@ -231,6 +232,8 @@ export class BattlesService extends EventEmitter {
         attacks: [],
         defenses: [],
       },
+      participants: new Map(),
+      teamVotes: new Map(),
       phase: BATTLE_PHASE.OPINION_SHARE.name,
       round: 1,
       turn: null,
@@ -294,10 +297,32 @@ export class BattlesService extends EventEmitter {
 
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
-    const { teamA, teamB } = battleState
+    battleState.participants.set(clientId, team as BattleTeam)
+    this.rebuildTeamUsers(battleState)
+  }
 
-    const myTeam = team === BATTLE_TEAM.A ? teamA : teamB
-    myTeam.users.push(clientId)
+  private rebuildTeamUsers(state: ActiveBattleState) {
+    state.teamA.users = []
+    state.teamB.users = []
+
+    for (const [clientId, team] of state.participants.entries()) {
+      if (team === BATTLE_TEAM.A) state.teamA.users.push(clientId)
+      if (team === BATTLE_TEAM.B) state.teamB.users.push(clientId)
+    }
+  }
+
+  voteTeam(dto: BattleTeamVoteDto, clientId: string) {
+    const state = this.getBattleState(dto.battleId)
+
+    if (state.phase !== BATTLE_PHASE.TEAM_SWITCH.name) {
+      throw new BadRequestException('팀 변경 투표는 TEAM_SWITCH 페이즈에서만 가능합니다.')
+    }
+
+    if (!state.participants.has(clientId)) {
+      throw new BadRequestException('배틀 참가자만 팀 변경 투표를 할 수 있습니다.')
+    }
+
+    state.teamVotes.set(clientId, dto.team)
   }
 
   private updatePhase(battleId: string): void {
@@ -373,12 +398,41 @@ export class BattlesService extends EventEmitter {
         return this.updateTurn(state)
 
       case BATTLE_PHASE.TEAM_SWITCH.name: {
+        this.applyTeamVotes(state)
         const isNextRound = this.updateRound(state)
         return isNextRound ? BATTLE_PHASE.OPINION_SHARE : null
       }
 
       default:
         return null
+    }
+  }
+
+  private applyTeamVotes(state: ActiveBattleState) {
+    const changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }> = []
+
+    for (const [clientId, desiredTeam] of state.teamVotes.entries()) {
+      const currentTeam = state.participants.get(clientId)
+      if (!currentTeam) continue
+      if (currentTeam === desiredTeam) continue
+
+      state.participants.set(clientId, desiredTeam)
+      changes.push({ clientId, from: currentTeam, to: desiredTeam })
+    }
+
+    state.teamVotes.clear()
+    this.rebuildTeamUsers(state)
+
+    if (changes.length) {
+      this.emit('battle:team:update', {
+        battleId: state.battleId,
+        changes,
+        counts: {
+          teamA: state.teamA.users.length,
+          teamB: state.teamB.users.length,
+          none: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
+        },
+      })
     }
   }
 
