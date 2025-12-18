@@ -41,7 +41,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 1,
-      phase: 'WAITING_FOR_START',
+      phase: 'OPINION_SHARE',
       timeRemainingSeconds: 30 * 60,
     },
   },
@@ -105,7 +105,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 1,
-      phase: 'WAITING_FOR_START',
+      phase: 'OPINION_SHARE',
       timeRemainingSeconds: 30 * 60,
     },
   },

@@ -1,6 +1,5 @@
 import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException } from '@nestjs/common'
 import { BattlesService } from '../service/battles.service'
-import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'

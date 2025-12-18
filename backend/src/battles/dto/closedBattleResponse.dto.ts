@@ -24,7 +24,7 @@ export class ClosedBattleResponseDto {
     dto.category = battle.category
     dto.status = battle.status
     dto.createdAt = battle.createdAt
-    dto.expiresAt = new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
+    dto.expiresAt = new Date(battle.createdAt.getTime() + battle.playTime.time * 60 * 1000)
 
     dto.result = result
 

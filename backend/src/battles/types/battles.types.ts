@@ -7,16 +7,20 @@ import {
   BATTLE_STATUS,
   BATTLE_TEAM,
   BATTLE_DISCUSSION_TYPE,
+  BATTLE_TURN,
 } from '../const/battles.const'
 
+export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
 export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
 export type BattleStatus = (typeof BATTLE_STATUS)[keyof typeof BATTLE_STATUS]
 export type BattleType = (typeof BATTLE_TYPE)[keyof typeof BATTLE_TYPE]
 export type BattleDiscussionType = (typeof BATTLE_DISCUSSION_TYPE)[keyof typeof BATTLE_DISCUSSION_TYPE]
 export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY]
+export type BattlePlayTimeName = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]['name']
 export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
 export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
+export type BattleTurn = (typeof BATTLE_TURN)[keyof typeof BATTLE_TURN]['name']
 
 export interface Battle {
   id: string
@@ -36,7 +40,7 @@ export interface Battle {
   participantCount: number
   initialState: {
     round: number
-    phase: BattlePhase
+    phase: BattlePhaseName
     timeRemainingSeconds: number
   }
 
@@ -75,7 +79,17 @@ export interface BattleTeamData extends BattleData {
 
 export interface ActiveBattleState {
   battleId: string
+
   all: BattleData
   teamA: BattleTeamData
   teamB: BattleTeamData
+
+  round: number
+  phase: BattlePhaseName
+  turn: {
+    status: BattleTurn
+    count: number
+  } | null
+  startedAt: number
+  expiredAt: number
 }
