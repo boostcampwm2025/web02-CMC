@@ -8,27 +8,33 @@ export const STAT_CONFIG: Record<
   StatType,
   {
     label: string;
-    color: string;
-    background: string;
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    text: string;
+    bg: string;
+    bgSoft: string;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   }
 > = {
   TOTAL_BATTLES: {
     label: '진행된 배틀',
-    color: '#F97316',
-    background: 'rgba(249, 115, 22, 0.15)',
+    text: 'text-orange-400',
+    bg: 'bg-orange-400',
+    bgSoft: 'bg-orange-400/15',
     icon: TimeLineIcon
   },
+
   LIVE_BATTLES: {
     label: '실시간 배틀',
-    color: '#FFD600',
-    background: 'rgba(255, 214, 0, 0.15)',
+    text: 'text-yellow-400',
+    bg: 'bg-yellow-400',
+    bgSoft: 'bg-yellow-400/15',
     icon: PlusIcon
   },
+
   TOTAL_USERS: {
     label: '참여 개발자',
-    color: '#F97316',
-    background: 'rgba(249, 115, 22, 0.15)',
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-400',
+    bgSoft: 'bg-emerald-400/15',
     icon: BattleIcon
   }
 };

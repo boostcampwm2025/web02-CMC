@@ -5,20 +5,20 @@ import ClockIcon from '@/assets/icon/clock.svg?react';
 import IconBox from './IconBox';
 
 export default function LiveBattleCard({ item }: { item: BattleCardItem }) {
-  const { color, background, icon: Icon } = BATTLE_CATEGORY_CONFIG[item.category];
+  const { text, bg, bgSoft, icon: Icon } = BATTLE_CATEGORY_CONFIG[item.category];
 
   return (
     <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
       {/* 상단 바 */}
-      <div className="h-1 w-full" style={{ backgroundColor: color }} />
+      <div className={`h-1 w-full ${bg}`} />
 
       {/* 본문 */}
       <div className="p-6 flex flex-col gap-6">
         {/* 상단 정보 */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <IconBox bgColor={background}>
-              <Icon className="w-6 h-6" style={{ color }} />
+            <IconBox className={bgSoft}>
+              <Icon className={`w-6 h-6 ${text}`} />
             </IconBox>
 
             <div className="flex flex-col text-left">

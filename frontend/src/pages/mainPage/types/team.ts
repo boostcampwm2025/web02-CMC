@@ -1,26 +1,22 @@
 export type BattleTeam = 'A' | 'B' | 'DRAW';
 
-export const TEAM_STYLE: Record<
-  BattleTeam,
-  {
-    color: string;
-    background: string;
-    label: string;
-  }
-> = {
+export const TEAM_STYLE = {
   A: {
-    color: '#2B7FFF',
-    background: 'rgba(43, 127, 255, 0.15)',
-    label: 'A 승리'
+    label: 'A 승리',
+    text: 'text-blue-400',
+    bg: 'bg-blue-400',
+    bgSoft: 'bg-blue-400/10'
   },
   B: {
-    color: '#FB2C36',
-    background: 'rgba(251, 44, 54, 0.15)',
-    label: 'B 승리'
+    label: 'B 승리',
+    text: 'text-red-400',
+    bg: 'bg-red-400',
+    bgSoft: 'bg-red-400/10'
   },
   DRAW: {
-    color: '#9CA3AF',
-    background: 'rgba(156, 163, 175, 0.15)',
-    label: '무승부'
+    label: '무승부',
+    text: 'text-gray-400',
+    bg: 'bg-gray-400',
+    bgSoft: 'bg-gray-400/10'
   }
-};
+} as const;

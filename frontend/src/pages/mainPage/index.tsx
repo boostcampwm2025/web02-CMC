@@ -54,7 +54,7 @@ export default function MainPage() {
                 to="/battle/create"
               >
                 <div className="flex items-center gap-1 ">
-                  <BattleIcon className="w-5 h-5" style={{ color: 'white' }} />
+                  <BattleIcon className="w-5 h-5 text-white" />
                   <p> 새 배틀 생성</p>
                 </div>
               </Link>

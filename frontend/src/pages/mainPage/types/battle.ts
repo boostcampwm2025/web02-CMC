@@ -13,41 +13,49 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     key: BattleCategory;
     title: string;
     description: string;
-    color: string;
-    background: string;
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
+    text: string; // 아이콘 / 텍스트 컬러
+    bg: string; // 상단 바 / 강조 컬러
+    bgSoft: string; // IconBox 배경
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   }
 > = {
   ALGORITHM: {
     key: 'ALGORITHM',
     title: '⚡ 알고리즘 배틀',
     description: '성능과 효율성을 겨루는 알고리즘 대결',
-    color: '#FFD600',
-    background: 'rgba(255, 214, 0, 0.15)',
+    text: 'text-yellow-400',
+    bg: 'bg-yellow-400',
+    bgSoft: 'bg-yellow-400/15',
     icon: TrophyIcon
   },
+
   REFACTORING: {
     key: 'REFACTORING',
     title: '🎨 리팩토링 배틀',
     description: '클린 코드 vs 실용성의 대결',
-    color: '#28C76F',
-    background: 'rgba(40, 199, 111, 0.1)',
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-400',
+    bgSoft: 'bg-emerald-400/15',
     icon: BattleIcon
   },
+
   IMPLEMENTATION: {
     key: 'IMPLEMENTATION',
     title: '💡 구현 배틀',
     description: '같은 기능, 다른 접근법의 대결',
-    color: '#F97316',
-    background: 'rgba(249, 115, 22, 0.15)',
+    text: 'text-orange-400',
+    bg: 'bg-orange-400',
+    bgSoft: 'bg-orange-400/15',
     icon: CrownIcon
   },
+
   ETC: {
     key: 'ETC',
     title: '📦 기타 배틀',
     description: '기타 주제의 배틀',
-    color: '#6B7280',
-    background: 'rgba(155, 89, 182, 0.1)',
+    text: 'text-gray-400',
+    bg: 'bg-gray-400',
+    bgSoft: 'bg-gray-400/15',
     icon: BattleIcon
   }
 };
