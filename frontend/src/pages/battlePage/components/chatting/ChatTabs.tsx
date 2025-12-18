@@ -4,13 +4,13 @@ import WordIcon from '@/assets/icon/world.svg?react';
 interface ChatTabsProps {
   activeTab: 'team' | 'all';
   onTabChange: (tab: 'team' | 'all') => void;
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
 }
 
 export default function ChatTabs({ activeTab, onTabChange, team }: ChatTabsProps) {
   const teamColor = team === 'A' ? 'bg-blue-600' : team === 'B' ? 'bg-red-600' : 'bg-gray-600';
 
-  if (team === 'none') {
+  if (team === 'NONE') {
     return (
       <div className="flex-1 py-3 w-full text-[13px] font-medium rounded-t-lg bg-[#FF6900] text-white">
         <span className="flex items-center justify-center gap-1">

@@ -3,7 +3,7 @@ import BattleIcon from '@/assets/icon/battle.svg?react';
 import ShieldIcon from '@/assets/icon/shield.svg?react';
 
 interface ObjectionMessageProps {
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
   content: string;
   timestamp: string;
   type: 'objection' | 'rebuttal';

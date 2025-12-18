@@ -2,7 +2,7 @@ import { getTimeAgo } from '@/utils/getTimeAgo';
 
 interface ChatMessageProps {
   user: string;
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
   content: string;
   timestamp: string;
   showTeamBadge?: boolean;
@@ -12,19 +12,19 @@ interface ChatMessageProps {
 const TEAM_NICKNAME_COLORS = {
   A: 'text-[#51A2FF]',
   B: 'text-[#FF5A5F]',
-  none: 'text-[#99A1AF]'
+  NONE: 'text-[#99A1AF]'
 };
 
 const TEAM_BADGE_COLORS = {
   A: 'bg-[#51A2FF]',
   B: 'bg-[#FF5A5F]',
-  none: 'bg-[#99A1AF]'
+  NONE: 'bg-[#99A1AF]'
 };
 
 const TEAM_LABELS = {
   A: 'A팀',
   B: 'B팀',
-  none: '중립'
+  NONE: '중립'
 };
 
 export default function ChatMessage({ user, team, content, timestamp, showTeamBadge = false }: ChatMessageProps) {

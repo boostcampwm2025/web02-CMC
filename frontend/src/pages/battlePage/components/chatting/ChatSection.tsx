@@ -10,7 +10,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 interface Message {
   id: number;
   user: string;
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
   content: string;
   timestamp: string;
   type?: 'normal' | 'objection' | 'rebuttal';
@@ -71,7 +71,7 @@ const MOCK_ALL_MESSAGES: Message[] = [
   {
     id: 3,
     user: 'Observer',
-    team: 'none',
+    team: 'NONE',
     content: '둘 다 장단점이 있네요',
     timestamp: '2025-12-16 21:31:30',
     type: 'normal'
@@ -81,13 +81,13 @@ const MOCK_ALL_MESSAGES: Message[] = [
 interface ChatSectionProps {
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
 }
 
 export default function ChatSection({ aTeamMemebers, onSendMessage, team }: ChatSectionProps) {
   const [teamMessages, setTeamMessages] = useState<Message[]>(MOCK_TEAM_MESSAGES);
   const [allMessages, setAllMessages] = useState<Message[]>(MOCK_ALL_MESSAGES);
-  const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'none' ? 'all' : 'team');
+  const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'NONE' ? 'all' : 'team');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const currentMessages = useMemo(() => {
