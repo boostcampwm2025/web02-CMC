@@ -93,8 +93,8 @@ export default function MainPage() {
               <span className="text-sm text-gray-400">{openTotal}개 진행중</span>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {openBattles?.map((b, index) => (
-                <LiveBattleCard key={b.id} item={b} isHot={index === 0} />
+              {openBattles?.map((battleItem, index) => (
+                <LiveBattleCard key={battleItem.id} battleInform={battleItem} isHot={index === 0} />
               ))}
             </div>
           </section>

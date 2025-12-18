@@ -6,12 +6,13 @@ import IconBox from './IconBox';
 import Badge from '@/components/Badge';
 
 interface LiveBattleCardProps {
-  item: BattleCardItem;
+  battleInform: BattleCardItem;
   isHot?: boolean;
 }
 
-export default function LiveBattleCard({ item, isHot = false }: LiveBattleCardProps) {
-  const { text, bg, bgSoft, icon: Icon } = BATTLE_CATEGORY_CONFIG[item.category];
+export default function LiveBattleCard({ battleInform, isHot = false }: LiveBattleCardProps) {
+  const { category, title, description, timeLabel, clientCount, id } = battleInform;
+  const { text, bg, bgSoft, icon: Icon } = BATTLE_CATEGORY_CONFIG[category];
 
   return (
     <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
@@ -29,7 +30,7 @@ export default function LiveBattleCard({ item, isHot = false }: LiveBattleCardPr
 
             <div className="flex flex-col text-left">
               <span className="text-white text-sm">TOURNAMENT</span>
-              <span className="text-gray-400 text-xs uppercase">{item.category}</span>
+              <span className="text-gray-400 text-xs uppercase">{category}</span>
             </div>
           </div>
           {isHot && (
@@ -41,8 +42,8 @@ export default function LiveBattleCard({ item, isHot = false }: LiveBattleCardPr
 
         {/* 제목 / 설명 */}
         <div className="flex flex-col gap-3 text-left">
-          <h3 className="text-white text-base font-normal">{item.title}</h3>
-          <p className="text-sm text-gray-400">{item.description}</p>
+          <h3 className="text-white text-base font-normal">{title}</h3>
+          <p className="text-sm text-gray-400">{description}</p>
         </div>
 
         {/* 하단 영역 */}
@@ -50,15 +51,15 @@ export default function LiveBattleCard({ item, isHot = false }: LiveBattleCardPr
           <div className="flex items-center gap-3 text-gray-400 text-sm">
             <div className="flex items-center gap-1">
               <PeopleIcon className="w-4 h-4" />
-              <span>{item.clientCount}</span>
+              <span>{clientCount}</span>
             </div>
             <div className="flex items-center gap-1">
               <ClockIcon className="w-4 h-4" />
-              <span>{item.timeLabel}</span>
+              <span>{timeLabel}</span>
             </div>
           </div>
 
-          <Link to="/team-select" className="rounded-xl bg-orange-500 px-4 py-1.5 text-sm">
+          <Link to={`/battle/${id}/team-select`} className="rounded-xl bg-orange-500 px-4 py-1.5 text-sm">
             LIVE NOW →
           </Link>
         </div>
