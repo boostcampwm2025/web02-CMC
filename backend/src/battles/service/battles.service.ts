@@ -3,13 +3,13 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
-import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattleTeam, BattleDiscussion, BattleDefense } from '../types/battles.types'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
-import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService {
@@ -42,8 +42,8 @@ export class BattlesService {
       participantCount: 1,
       initialState: {
         round: 1,
-        phase: BATTLE_PHASE.WAITING_FOR_START,
-        timeRemainingSeconds: payload.playTime * 60,
+        phase: BATTLE_PHASE.OPINION_SHARE.name,
+        timeRemainingSeconds: payload.playTime.time * 60,
       },
     }
 
@@ -186,6 +186,11 @@ export class BattlesService {
         attacks: [],
         defenses: [],
       },
+      round: 1,
+      phase: BATTLE_PHASE.OPINION_SHARE.name,
+      turn: null,
+      startedAt: Date.now(),
+      expiredAt: Date.now() + BATTLE_PHASE.OPINION_SHARE.time,
     }
 
     this.activeBattles.set(battleId, activeBattleState)
@@ -216,7 +221,7 @@ export class BattlesService {
   }
 
   private getExpiredTime(battle: Battle): Date {
-    return new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
+    return new Date(battle.createdAt.getTime() + battle.playTime.time * 60 * 1000)
   }
 
   private getBattleState(battleId: string) {
@@ -226,15 +231,99 @@ export class BattlesService {
     return battleState
   }
 
-  // TODO: 이의제기/반론 관련 메서드 - 다른 팀원이 구현 예정
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): any {
-    throw new Error('handleAttack: Not implemented yet')
+  handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
+    const { authorId, content, team } = data
+
+    const battleState = this.getBattleState(battleId)
+
+    if (!this.canUserSubmitAttack(battleState, team)) {
+      throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
+    }
+
+    const attack: BattleDiscussion = {
+      discussionId: this.generateId(),
+      authorId,
+      type: BATTLE_DISCUSSION_TYPE.ATTACK,
+      content: content.trim(),
+      upvotes: 0,
+      votes: [],
+      status: 'PENDING',
+    }
+
+    if (team === BATTLE_TEAM.A) {
+      battleState.teamA.attacks.push(attack)
+    } else {
+      battleState.teamB.attacks.push(attack)
+    }
+
+    return attack
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleDefense(battleId: string, data: { authorId: string; attackId: string; content: string; team: BattleTeam }): any {
-    throw new Error('handleDefense: Not implemented yet')
+  handleDefense(battleId: string, data: { authorId: string; attackId: string; content: string; team: BattleTeam }): BattleDefense {
+    const { authorId, attackId, content, team } = data
+
+    const battleState = this.getBattleState(battleId)
+
+    if (!this.canUserSubmitDefense(battleState, team)) {
+      throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
+    }
+
+    const targetAttack = battleState.all.attacks.find(attack => attack.discussionId === attackId && attack.status === 'SELECTED')
+
+    if (!targetAttack) {
+      throw new NotFoundException('채택된 공격을 찾을 수 없습니다.')
+    }
+
+    const defense: BattleDefense = {
+      discussionId: this.generateId(),
+      authorId,
+      type: BATTLE_DISCUSSION_TYPE.DEFENSE,
+      attackId,
+      content: content.trim(),
+      upvotes: 0,
+      votes: [],
+      status: 'PENDING',
+    }
+
+    if (team === BATTLE_TEAM.A) {
+      battleState.teamA.defenses.push(defense)
+    } else {
+      battleState.teamB.defenses.push(defense)
+    }
+
+    return defense
+  }
+
+  private canUserSubmitAttack(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
+    const { phase, turn } = battleState
+
+    if (userTeam === BATTLE_TEAM.NONE) return false
+
+    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'A_ATTACK' && userTeam === BATTLE_TEAM.A) {
+      return true
+    }
+
+    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'B_ATTACK' && userTeam === BATTLE_TEAM.B) {
+      return true
+    }
+
+    return false
+  }
+
+  private canUserSubmitDefense(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
+    const { phase, turn } = battleState
+
+    if (userTeam === BATTLE_TEAM.NONE) return false
+
+    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'B_DEFENSE' && userTeam === BATTLE_TEAM.B) {
+      return true
+    }
+
+    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'A_DEFENSE' && userTeam === BATTLE_TEAM.A) {
+      return true
+    }
+
+    return false
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
