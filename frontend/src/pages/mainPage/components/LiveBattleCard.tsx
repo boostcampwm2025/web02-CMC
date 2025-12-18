@@ -3,7 +3,7 @@ import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../types/battle';
 import PeopleIcon from '@/assets/icon/people.svg?react';
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import IconBox from './IconBox';
-import Badge from '@/components/Badge';
+import Badge from '@/commons/components/Badge';
 
 interface LiveBattleCardProps {
   battleInform: BattleCardItem;

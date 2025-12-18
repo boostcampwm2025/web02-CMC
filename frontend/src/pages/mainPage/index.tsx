@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './components';
 import { type BattleCardItem, type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
-import Header from '@/components/Header';
+import Header from '@/commons/components/Header';
 
 import { getOpenBattles, getClosedBattles } from './api/getBattleList';
 
