@@ -10,4 +10,8 @@ export class DiscussionVoteResponseDto {
     dto.upvotes = discussion.upvotes
     return dto
   }
+
+  static of(discussion: BattleDiscussion): DiscussionVoteResponseDto {
+    return this.fromEntity(discussion)
+  }
 }

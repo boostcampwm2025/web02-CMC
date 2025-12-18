@@ -589,7 +589,7 @@ export class BattlesService extends EventEmitter {
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
 
-    return DiscussionVoteResponseDto.fromEntity(updated)
+    return DiscussionVoteResponseDto.of(updated)
   }
 
   handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
@@ -615,7 +615,19 @@ export class BattlesService extends EventEmitter {
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
 
-    return DiscussionVoteResponseDto.fromEntity(updated)
+    return DiscussionVoteResponseDto.of(updated)
+  }
+
+  //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
+  //battle:defensed
+  //battle:attacked
+  private pickTopVotedDiscussions(battleId: string): BattleDiscussion[] {
+    const battleState = this.getBattleState(battleId)
+    const attacks = battleState.all.attacks
+
+    const sorted = attacks.slice().sort((a, b) => b.upvotes - a.upvotes) //동률이면?
+
+    return sorted.slice(0, 1)
   }
 
   private canTeamVote(team: BattleTeam): boolean {

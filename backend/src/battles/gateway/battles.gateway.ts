@@ -109,34 +109,34 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:AttackVote')
+  @SubscribeMessage('battle:attackvote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
       const attack = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:AttackVoteUpdate', attack)
+      this.server.to(teamRoom).emit('battle:attackvote:update', attack)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:AttackVote:Error', {
+        client.emit('battle:attackvote:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('Battle:DefenseVote')
+  @SubscribeMessage('battle:defensevote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
       const defense = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:DefenseVoteUpdate', defense)
+      this.server.to(teamRoom).emit('battle:defensevote:update', defense)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:DefenseVote:Error', {
+        client.emit('battle:defensevote:error', {
           message: error.message,
         })
       }
