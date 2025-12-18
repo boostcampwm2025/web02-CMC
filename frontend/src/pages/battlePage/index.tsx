@@ -29,8 +29,7 @@ export default function BattlePage() {
     closeModal: closeTeamChangeModal
   } = useModal(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, currentStage, battleProgress, isConnected } = useBattleSocket({
+  const { socket, currentStage, battleProgress } = useBattleSocket({
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
@@ -41,6 +40,11 @@ export default function BattlePage() {
       openTeamChangeModal();
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
+
+  // 턴 변경 시 투표 리스트 초기화
+  useEffect(() => {
+    setObjections([]);
+  }, [battleProgress?.turn?.status, battleProgress?.phase]);
 
   // 투표 결과 업데이트 수신
   useEffect(() => {
