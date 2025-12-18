@@ -30,7 +30,7 @@ export class BattleJoinResponseDto {
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
     const { all, teamA, teamB, round, phase, turn, startedAt, expiredAt } = payload
-    const myTeam = team === BATTLE_TEAM.A ? teamA : teamB
+    const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
     res.battleId = payload.battleId
     res.counts = {

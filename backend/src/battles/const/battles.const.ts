@@ -67,3 +67,8 @@ export const BATTLE_PLAYTIME = {
   TEN_MIN: { name: 'TEN_MIN', time: 10, rounds: 2 },
   THIRTY_MIN: { name: 'THIRTY_MIN', time: 30, rounds: 6 },
 } as const
+
+export const BATTLE_CHAT_SCOPE = {
+  ALL: 'ALL',
+  TEAM: 'TEAM',
+} as const

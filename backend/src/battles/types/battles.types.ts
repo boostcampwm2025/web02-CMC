@@ -48,8 +48,10 @@ export interface Battle {
   updatedAt: Date
 }
 export interface BattleChat {
-  authorId: string
-  content: string
+  messageId: string
+  sender: string
+  text: string
+  createdAt: Date
 }
 
 export interface BattleDiscussion {
