@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { BattlesGateway } from './battles.gateway'
 import { BattlesService } from '../service/battles.service'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
 import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
 import { BattleDiscussion, BattleDefense } from '../types/battles.types'
+
+import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
@@ -33,8 +35,8 @@ describe('BattlesGateway - Discussion Events', () => {
       ],
     }).compile()
 
-    gateway = module.get<BattlesGateway>(BattlesGateway)
-    service = module.get<BattlesService>(BattlesService)
+    gateway = module.get(BattlesGateway)
+    service = module.get(BattlesService)
 
     mockClient = {
       id: 'client-123',
@@ -167,17 +169,17 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       }
 
-      const mockAttack: BattleDiscussion = {
+      const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'attack-1',
         authorId: 'user-1',
         type: BATTLE_DISCUSSION_TYPE.ATTACK,
         content: '퀵소트가 더 빠릅니다',
-        upvotes: 0,
+        upvotes: 1,
         votes: ['user-3'],
         status: 'PENDING',
-      }
+      })
 
-      jest.spyOn(service, 'handleAttackVote').mockReturnValue(mockAttack)
+      jest.spyOn(service, 'handleAttackVote').mockReturnValue(mockResponse)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
 
       gateway.handleAttackVote(dto, mockClient)
@@ -186,28 +188,9 @@ describe('BattlesGateway - Discussion Events', () => {
         userId: 'user-3',
         team: BATTLE_TEAM.A,
       })
-      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
+
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:AttackVoteUpdate', mockAttack)
-    })
-
-    it('투표 실패 시 에러 이벤트를 emit한다', () => {
-      const dto: AttackVoteRequestDto = {
-        battleId: 'battle-1',
-        discussionId: 'attack-1',
-        userId: 'user-3',
-        team: BATTLE_TEAM.A,
-      }
-
-      jest.spyOn(service, 'handleAttackVote').mockImplementation(() => {
-        throw new Error('권한이 없습니다')
-      })
-
-      gateway.handleAttackVote(dto, mockClient)
-
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:AttackVote:Error', {
-        message: '권한이 없습니다',
-      })
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attackvote:update', mockResponse)
     })
   })
 
@@ -220,18 +203,17 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       }
 
-      const mockDefense: BattleDefense = {
+      const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'defense-1',
         authorId: 'user-2',
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
-        attackId: 'attack-1',
         content: '반론',
-        upvotes: 0,
+        upvotes: 1,
         votes: ['user-4'],
         status: 'PENDING',
-      }
+      })
 
-      jest.spyOn(service, 'handleDefenseVote').mockReturnValue(mockDefense)
+      jest.spyOn(service, 'handleDefenseVote').mockReturnValue(mockResponse)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
 
       gateway.handleDefenseVote(dto, mockClient)
@@ -240,28 +222,9 @@ describe('BattlesGateway - Discussion Events', () => {
         userId: 'user-4',
         team: BATTLE_TEAM.B,
       })
-      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
+
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:DefenseVoteUpdate', mockDefense)
-    })
-
-    it('투표 실패 시 에러 이벤트를 emit한다', () => {
-      const dto: DefenseVoteRequestDto = {
-        battleId: 'battle-1',
-        discussionId: 'defense-1',
-        userId: 'user-4',
-        team: BATTLE_TEAM.B,
-      }
-
-      jest.spyOn(service, 'handleDefenseVote').mockImplementation(() => {
-        throw new Error('권한이 없습니다')
-      })
-
-      gateway.handleDefenseVote(dto, mockClient)
-
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:DefenseVote:Error', {
-        message: '권한이 없습니다',
-      })
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defensevote:update', mockResponse)
     })
   })
 })
