@@ -85,6 +85,9 @@ export interface ActiveBattleState {
   teamA: BattleTeamData
   teamB: BattleTeamData
 
+  participants: Map<string, BattleTeam>
+  teamVotes: Map<string, BattleTeam>
+
   round: number
   phase: BattlePhaseName
   turn: {

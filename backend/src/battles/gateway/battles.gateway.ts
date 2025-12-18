@@ -17,6 +17,8 @@ import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteR
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
+import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
+import type { BattleTeam } from '../types/battles.types'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 
 @WebSocketGateway()
@@ -185,6 +187,19 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
 
+    this.battlesService.on(
+      'battle:team:update',
+      (payload: {
+        battleId: string
+        changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
+        counts: { teamA: number; teamB: number; none: number }
+      }) => this.teamUpdate(payload),
+    )
+
+    // this.battlesService.on('battle:ended', payload => {
+    //   const { battleId } = payload
+    //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
+    // })
     this.battlesService.on('battle:closed', (payload: BattleClosedResponseDto) => this.closeBattle(payload))
   }
 
@@ -204,5 +219,38 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
         client.emit('battle:chat:error', { message: error.message })
       }
     }
+  }
+
+  @SubscribeMessage('battle:teamVote')
+  handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: Socket) {
+    try {
+      this.battlesService.voteTeam(dto, client.id)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('battle:teamVote:error', { message: error.message })
+      }
+    }
+  }
+
+  private teamUpdate(payload: {
+    battleId: string
+    changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
+    counts: { teamA: number; teamB: number; none: number }
+  }) {
+    const battleRoomId = this.battlesService.getBattleRoomId(payload.battleId)
+
+    for (const change of payload.changes) {
+      const socket = this.server.sockets.sockets.get(change.clientId)
+      if (!socket) continue
+
+      const fromRoom = this.battlesService.getBattleRoomId(payload.battleId, change.from)
+      const toRoom = this.battlesService.getBattleRoomId(payload.battleId, change.to)
+
+      void socket.leave(fromRoom)
+      void socket.join(toRoom)
+      socket.emit('battle:team:update', { battleId: payload.battleId, team: change.to })
+    }
+
+    this.server.to(battleRoomId).emit('battle:team:update', payload)
   }
 }
