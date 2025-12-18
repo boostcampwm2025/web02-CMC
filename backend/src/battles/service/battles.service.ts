@@ -593,7 +593,6 @@ export class BattlesService extends EventEmitter {
   }
 
   handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
-    //Todo: 턴 관리 pr 머지 후 턴 고려
     const { userId, team } = data
 
     if (!this.canTeamVote(team)) {
@@ -627,11 +626,11 @@ export class BattlesService extends EventEmitter {
     return votes.includes(userId)
   }
 
-  private applyVote(discussion: BattleDiscussion, userId: string): BattleDiscussion {
+  private applyVote<T extends { votes: string[]; upvotes: number }>(discussion: T, userId: string): T {
     return {
       ...discussion,
       votes: [...discussion.votes, userId],
-      upvotes: discussion.upvotes++,
+      upvotes: discussion.upvotes + 1,
     }
   }
 
