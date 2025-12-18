@@ -25,6 +25,7 @@ import {
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
+import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -397,11 +398,15 @@ export class BattlesService extends EventEmitter {
 
     switch (state.turn.status) {
       case BATTLE_TURN.A_ATTACK.name:
+        this.emitAttackedResult(state.battleId, BATTLE_TEAM.A)
+
         state.turn.status = BATTLE_TURN.B_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.B_DEFENSE.time
         return BATTLE_PHASE.TEAM_A_ATTACK
 
       case BATTLE_TURN.B_DEFENSE.name:
+        this.emitDefensedResult(state.battleId, BATTLE_TEAM.B)
+
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.A_ATTACK.name
           state.turn.count += 1
@@ -415,11 +420,15 @@ export class BattlesService extends EventEmitter {
         }
 
       case BATTLE_TURN.B_ATTACK.name:
+        this.emitAttackedResult(state.battleId, BATTLE_TEAM.B)
+
         state.turn.status = BATTLE_TURN.A_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.A_DEFENSE.time
         return BATTLE_PHASE.TEAM_B_ATTACK
 
       case BATTLE_TURN.A_DEFENSE.name:
+        this.emitDefensedResult(state.battleId, BATTLE_TEAM.A)
+
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.B_ATTACK.name
           state.turn.count += 1
@@ -472,10 +481,6 @@ export class BattlesService extends EventEmitter {
 
     return battleState
   }
-
-  /*=============
-  소켓 이벤트 핸들러
-  =============*/
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
     const { authorId, content, team } = data
@@ -569,17 +574,18 @@ export class BattlesService extends EventEmitter {
     //Todo: 턴 관리 pr 머지 후 턴 고려
     const { userId, team } = data
 
-    if (!this.canTeamVote(team)) {
+    if (team === BATTLE_TEAM.NONE) {
       throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
     }
-
     const battleState = this.getBattleState(battleId)
 
-    const discussions = battleState.all.attacks
+    const discussions = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
+
     const idx = discussions.findIndex(d => d.discussionId === discussionId)
     if (idx === -1) {
-      throw new NotFoundException('이의제기 항목이 없습니다.')
+      throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
     }
+
     const target = discussions[idx]
 
     if (this.hasAlreadyVoted(target.votes, userId)) {
@@ -595,17 +601,19 @@ export class BattlesService extends EventEmitter {
   handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
     const { userId, team } = data
 
-    if (!this.canTeamVote(team)) {
+    if (team === BATTLE_TEAM.NONE) {
       throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
     }
 
     const battleState = this.getBattleState(battleId)
 
-    const discussions = battleState.all.defenses
+    const discussions = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
+
     const idx = discussions.findIndex(d => d.discussionId === discussionId)
     if (idx === -1) {
-      throw new NotFoundException('이의제기 항목이 없습니다.')
+      throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
     }
+
     const target = discussions[idx]
 
     if (this.hasAlreadyVoted(target.votes, userId)) {
@@ -621,17 +629,36 @@ export class BattlesService extends EventEmitter {
   //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
   //battle:defensed
   //battle:attacked
-  private pickTopVotedDiscussions(battleId: string): BattleDiscussion[] {
+  private pickTopVotedAttackByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
     const battleState = this.getBattleState(battleId)
-    const attacks = battleState.all.attacks
+    const attacks = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
 
-    const sorted = attacks.slice().sort((a, b) => b.upvotes - a.upvotes) //동률이면?
+    if (attacks.length === 0) return null
 
-    return sorted.slice(0, 1)
+    return attacks.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
   }
 
-  private canTeamVote(team: BattleTeam): boolean {
-    return team === BATTLE_TEAM.A || team === BATTLE_TEAM.B
+  private pickTopVotedDefenseByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
+    const battleState = this.getBattleState(battleId)
+    const defenses = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
+
+    if (defenses.length === 0) return null
+
+    return defenses.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
+  }
+
+  private emitAttackedResult(battleId: string, team: BattleTeam) {
+    const top = this.pickTopVotedAttackByTeam(battleId, team)
+    if (!top) return
+
+    this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
+  }
+
+  private emitDefensedResult(battleId: string, team: BattleTeam) {
+    const top = this.pickTopVotedDefenseByTeam(battleId, team)
+    if (!top) return
+
+    this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
   }
 
   private hasAlreadyVoted(votes: readonly string[], userId: string): boolean {
