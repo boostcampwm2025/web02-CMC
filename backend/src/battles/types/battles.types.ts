@@ -23,7 +23,6 @@ export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
 export type BattleTurn = (typeof BATTLE_TURN)[keyof typeof BATTLE_TURN]['name']
 export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
 
-
 export interface Battle {
   id: string
   authorId: string

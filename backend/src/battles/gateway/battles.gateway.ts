@@ -139,6 +139,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
         client.emit('Battle:DefenseVote:Error', {
           message: error.message,
         })
+      }
+    }
+  }
+
   turnUpdate(payload: BattleTurnResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)

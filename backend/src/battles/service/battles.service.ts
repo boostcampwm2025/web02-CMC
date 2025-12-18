@@ -5,7 +5,7 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
-import { ActiveBattleState, Battle, BattlePhase, BattleTeam, BattleDiscussion, BattleDefense } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattlePhase, BattleTeam, BattleDiscussion, BattleDefense, BattlePlayTime } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
@@ -13,7 +13,16 @@ import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
-import { BATTLE_CHAT_SCOPE, BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TURN, BATTLE_TYPE, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
+import {
+  BATTLE_CHAT_SCOPE,
+  BATTLE_PHASE,
+  BATTLE_PLAYTIME,
+  BATTLE_STATUS,
+  BATTLE_TEAM,
+  BATTLE_TURN,
+  BATTLE_TYPE,
+  BATTLE_DISCUSSION_TYPE,
+} from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
 
 @Injectable()
@@ -38,7 +47,7 @@ export class BattlesService extends EventEmitter {
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
     const battleId = this.generateId()
-    const playTime = BATTLE_PLAYTIME[payload.playTime]
+    const playTime: BattlePlayTime = BATTLE_PLAYTIME[payload.playTime]
 
     const battle: Battle = {
       id: battleId,
@@ -59,7 +68,7 @@ export class BattlesService extends EventEmitter {
       initialState: {
         round: 1,
         phase: BATTLE_PHASE.OPINION_SHARE.name,
-        timeRemainingSeconds: payload.playTime.time * 60,
+        timeRemainingSeconds: playTime.time * 60,
       },
     }
 
@@ -552,13 +561,15 @@ export class BattlesService extends EventEmitter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): any {
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDiscussion {
     throw new Error('handleAttackVote: Not implemented yet')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): any {
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDefense {
     throw new Error('handleDefenseVote: Not implemented yet')
+  }
+
   private scheduleNextTick(battleId: string) {
     const battle = this.battles.find(battle => battle.id === battleId)
     if (battle?.status === BATTLE_STATUS.CLOSED) return
