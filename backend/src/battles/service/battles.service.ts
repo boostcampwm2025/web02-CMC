@@ -397,14 +397,15 @@ export class BattlesService extends EventEmitter {
     }
 
     switch (state.turn.status) {
-      case BATTLE_TURN.A_ATTACK.name:
+      case BATTLE_TURN.A_ATTACK.name: {
         this.emitAttackedResult(state.battleId, BATTLE_TEAM.A)
 
         state.turn.status = BATTLE_TURN.B_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.B_DEFENSE.time
         return BATTLE_PHASE.TEAM_A_ATTACK
+      }
 
-      case BATTLE_TURN.B_DEFENSE.name:
+      case BATTLE_TURN.B_DEFENSE.name: {
         this.emitDefensedResult(state.battleId, BATTLE_TEAM.B)
 
         if (state.turn.count < 2) {
@@ -418,15 +419,17 @@ export class BattlesService extends EventEmitter {
           state.expiredAt = now + BATTLE_TURN.B_ATTACK.time
           return BATTLE_PHASE.TEAM_B_ATTACK
         }
+      }
 
-      case BATTLE_TURN.B_ATTACK.name:
+      case BATTLE_TURN.B_ATTACK.name: {
         this.emitAttackedResult(state.battleId, BATTLE_TEAM.B)
 
         state.turn.status = BATTLE_TURN.A_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.A_DEFENSE.time
         return BATTLE_PHASE.TEAM_B_ATTACK
+      }
 
-      case BATTLE_TURN.A_DEFENSE.name:
+      case BATTLE_TURN.A_DEFENSE.name: {
         this.emitDefensedResult(state.battleId, BATTLE_TEAM.A)
 
         if (state.turn.count < 2) {
@@ -438,6 +441,7 @@ export class BattlesService extends EventEmitter {
           state.turn = null
           return BATTLE_PHASE.TEAM_SWITCH
         }
+      }
     }
   }
 
