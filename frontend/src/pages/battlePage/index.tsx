@@ -23,24 +23,50 @@ export default function BattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
+  const [remainingTime, setRemainingTime] = useState<number>(0);
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: openTeamChangeModal,
     closeModal: closeTeamChangeModal
   } = useModal(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, currentStage, battleProgress, isConnected } = useBattleSocket({
+  const { socket, currentStage, battleProgress } = useBattleSocket({
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
   });
 
   useEffect(() => {
+    if (!battleProgress?.expiredAt) return;
+
+    const updateRemainingTime = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, battleProgress.expiredAt - now);
+      setRemainingTime(Math.floor(remaining / 1000));
+    };
+
+    updateRemainingTime();
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [battleProgress?.expiredAt]);
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
       openTeamChangeModal();
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
+
+  // 턴 변경 시 투표 리스트 초기화
+  useEffect(() => {
+    setObjections([]);
+  }, [battleProgress?.turn?.status, battleProgress?.phase]);
 
   // 투표 결과 업데이트 수신
   useEffect(() => {
@@ -190,7 +216,7 @@ export default function BattlePage() {
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
           status={currentStage || 'END'}
-          timer="0:02"
+          timer={formatTime(remainingTime)}
           teamACounts={1}
           teamBCounts={1}
           teamNoneCounts={0}
