@@ -1,6 +1,5 @@
 import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException } from '@nestjs/common'
 import { BattlesService } from '../service/battles.service'
-import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
@@ -17,12 +16,12 @@ export class BattlesController {
   }
 
   @Get('open')
-  getOpenBattles(@Query() query: BattleListRequestQueryDto): BattleResponseDto[] {
+  getOpenBattles(@Query() query: BattleListRequestQueryDto) {
     return this.battlesService.getOpenBattles(query.limit, query.offset)
   }
 
   @Get('closed')
-  getClosedBattles(@Query() query: BattleListRequestQueryDto): BattleResponseDto[] {
+  getClosedBattles(@Query() query: BattleListRequestQueryDto) {
     return this.battlesService.getClosedBattles(query.limit, query.offset)
   }
 

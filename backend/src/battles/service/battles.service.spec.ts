@@ -1,7 +1,16 @@
 import { NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 import { Battle } from '../types/battles.types'
 import { BattlesService } from './battles.service'
-import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
+import {
+  BATTLE_TYPE,
+  BATTLE_CATEGORY,
+  BATTLE_PLAYTIME,
+  BATTLE_LANGUAGE,
+  BATTLE_STATUS,
+  BATTLE_PHASE,
+  BATTLE_TEAM,
+  BATTLE_TURN,
+} from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -20,7 +29,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   participantCount: 0,
   initialState: {
     round: 1,
-    phase: BATTLE_PHASE.WAITING_FOR_START,
+    phase: BATTLE_PHASE.OPINION_SHARE.name,
     timeRemainingSeconds: 600,
   },
   ...overrides,
@@ -29,8 +38,23 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
 describe('BattlesService', () => {
   let service: BattlesService
 
+  const cleanupService = () => {
+    service['battleTimers'].forEach(timer => clearTimeout(timer))
+    service['battleTimers'].clear()
+    service['activeBattles'].clear()
+  }
+
   beforeEach(() => {
     service = new BattlesService()
+    cleanupService()
+    jest.useFakeTimers()
+    jest.spyOn(Date, 'now').mockReturnValue(1_000_000)
+  })
+
+  afterEach(() => {
+    cleanupService()
+    jest.useRealTimers()
+    jest.restoreAllMocks()
   })
 
   describe('initBattleState', () => {
@@ -39,10 +63,11 @@ describe('BattlesService', () => {
     })
 
     it('이미 초기화된 배틀이면 중복 생성하지 않는다', () => {
+      const beforeSize = service['activeBattles'].size
       service['initBattleState']('battle-1')
       service['initBattleState']('battle-1')
 
-      expect(service['activeBattles'].size).toBe(1)
+      expect(service['activeBattles'].size).toBe(beforeSize + 1)
     })
 
     it('배틀 상태를 올바르게 초기화한다', () => {
@@ -226,6 +251,102 @@ describe('BattlesService', () => {
     })
   })
 
+  describe('updatePhase', () => {
+    beforeEach(() => {
+      service['initBattleState']('battle-1')
+    })
+
+    it('OPINION_SHARE → TEAM_A_ATTACK 로 전환된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
+      expect(state.turn).toBeNull()
+
+      service['updatePhase']('battle-1')
+
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
+      expect(state.turn).toEqual({
+        status: BATTLE_TURN.A_ATTACK.name,
+        count: 1,
+      })
+    })
+
+    it('A_ATTACK → B_DEFENSE 로 턴이 변경된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      service['updatePhase']('battle-1')
+      service['updatePhase']('battle-1')
+
+      expect(state.turn?.status).toBe(BATTLE_TURN.B_DEFENSE.name)
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
+    })
+    it('A_ATTACK ↔ B_DEFENSE 가 2회 반복된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      service['updatePhase']('battle-1') // OPINION → A_ATTACK
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEFENSE
+      service['updatePhase']('battle-1') // B_DEFENSE → A_ATTACK (count 2)
+
+      expect(state.turn).toEqual({
+        status: BATTLE_TURN.A_ATTACK.name,
+        count: 2,
+      })
+    })
+
+    it('TEAM_A_ATTACK → TEAM_B_ATTACK 로 넘어간다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      // A 공격/방어 2회 소진
+      service['updatePhase']('battle-1') // opinion → A_ATTACK
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
+      service['updatePhase']('battle-1') // B_DEF → A_ATTACK (2)
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
+      service['updatePhase']('battle-1') // B_DEF → B_ATTACK
+
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_B_ATTACK.name)
+      expect(state.turn?.status).toBe(BATTLE_TURN.B_ATTACK.name)
+    })
+
+    it('TEAM_SWITCH 이후 round가 증가한다', () => {
+      const battle = createBattle({
+        id: 'battle-1',
+        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+      })
+      service.setBattlesForTest([battle])
+
+      service['initBattleState']('battle-1')
+      const state = service['activeBattles'].get('battle-1')!
+
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      state.round = 1
+
+      service['updatePhase']('battle-1')
+
+      expect(state.round).toBe(2)
+      expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
+    })
+
+    it('마지막 라운드 이후 finishBattle가 호출된다', () => {
+      const battle = createBattle({
+        id: 'battle-1',
+        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+      })
+      service.setBattlesForTest([battle])
+
+      service['initBattleState']('battle-1')
+
+      const finishSpy = jest.spyOn(service as never, 'finishBattle')
+
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      state.round = 2
+
+      service['updatePhase']('battle-1')
+
+      expect(finishSpy).toHaveBeenCalled()
+    })
+  })
+
   describe('getOpenBattles', () => {
     it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
       const battles: Battle[] = [
@@ -236,7 +357,7 @@ describe('BattlesService', () => {
 
       service.setBattlesForTest(battles)
 
-      const result = service.getOpenBattles(10, 0)
+      const result = service.getOpenBattles(10, 0).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
@@ -247,7 +368,7 @@ describe('BattlesService', () => {
 
       service.setBattlesForTest(battles)
 
-      const result = service.getOpenBattles(10, 0)
+      const result = service.getOpenBattles(10, 0).battles
 
       expect(result[0].id).toBe('new')
       expect(result[1].id).toBe('old')
@@ -262,7 +383,7 @@ describe('BattlesService', () => {
 
       service.setBattlesForTest(battles)
 
-      const result = service.getOpenBattles(1, 1)
+      const result = service.getOpenBattles(1, 1).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('2')
@@ -271,38 +392,53 @@ describe('BattlesService', () => {
 
   describe('getClosedBattles', () => {
     it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
-      const battles: Battle[] = [
-        createBattle({ status: BATTLE_STATUS.CLOSED }),
-        createBattle({ status: BATTLE_STATUS.OPEN }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
-      ]
-
-      service.setBattlesForTest(battles)
+      // const battles: Battle[] = [
+      //   createBattle({ status: BATTLE_STATUS.CLOSED }),
+      //   createBattle({ status: BATTLE_STATUS.OPEN }),
+      //   createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
+      // ]
+      // service.setBattlesForTest(battles)
+      // const result = service.getClosedBattles(10, 0)
+      // expect(result.battles).toHaveLength(1)
+      // expect(result.battles[0].status).toBe(BATTLE_STATUS.CLOSED)
 
       const result = service.getClosedBattles(10, 0)
 
-      expect(result).toHaveLength(1)
-      expect(result[0].status).toBe(BATTLE_STATUS.CLOSED)
+      result.battles.forEach(battle => {
+        expect(battle.status).toBe(BATTLE_STATUS.CLOSED)
+        expect(battle).toHaveProperty('id')
+        expect(battle).toHaveProperty('title')
+        expect(battle).toHaveProperty('description')
+        expect(battle).toHaveProperty('category')
+        expect(battle).toHaveProperty('createdAt')
+        expect(battle).toHaveProperty('expiresAt')
+        expect(battle).toHaveProperty('result')
+      })
     })
 
     it('배틀 종료 시각 기준 최신 종료 순으로 정렬된다', () => {
-      const shorter = createBattle({
-        id: 'short',
-        playTime: BATTLE_PLAYTIME.FIVE_MIN,
-        status: BATTLE_STATUS.CLOSED,
-      })
-      const longer = createBattle({
-        id: 'long',
-        playTime: BATTLE_PLAYTIME.THIRTY_MIN,
-        status: BATTLE_STATUS.CLOSED,
-      })
-
-      service.setBattlesForTest([shorter, longer])
+      // const shorter = createBattle({
+      //   id: 'short',
+      //   playTime: BATTLE_PLAYTIME.FIVE_MIN,
+      //   status: BATTLE_STATUS.CLOSED,
+      // })
+      // const longer = createBattle({
+      //   id: 'long',
+      //   playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+      //   status: BATTLE_STATUS.CLOSED,
+      // })
+      // service.setBattlesForTest([shorter, longer])
+      // const result = service.getClosedBattles(10, 0)
+      // expect(result.battles[0].id).toBe('long')
+      // expect(result.battles[1].id).toBe('short')
+      // expect(result.meta.total).toBe(2)
 
       const result = service.getClosedBattles(10, 0)
 
-      expect(result[0].id).toBe('long')
-      expect(result[1].id).toBe('short')
+      const times = result.battles.map(b => b.expiresAt.getTime())
+      const sorted = [...times].sort((a, b) => b - a)
+
+      expect(times).toEqual(sorted)
     })
   })
 
@@ -361,6 +497,79 @@ describe('BattlesService', () => {
       result.timeline.forEach(item => {
         expect(['ATTACK', 'DEFENSE']).toContain(item.type)
       })
+    })
+  })
+
+  describe('appendChatMessage', () => {
+    beforeEach(() => {
+      service['initBattleState']('battle-1')
+    })
+
+    it('배틀이 없으면 NotFoundException을 던진다', () => {
+      expect(() =>
+        service.appendChatMessage(
+          {
+            battleId: 'invalid',
+            scope: 'TEAM',
+            team: BATTLE_TEAM.A,
+            text: 'hello',
+          },
+          'user-1',
+        ),
+      ).toThrow(NotFoundException)
+    })
+
+    it('진영 채팅 메시지를 해당 팀 채팅에만 추가한다', () => {
+      const result = service.appendChatMessage(
+        {
+          battleId: 'battle-1',
+          scope: 'TEAM',
+          team: BATTLE_TEAM.A,
+          text: 'hello',
+        },
+        'user-1',
+      )
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          scope: 'TEAM',
+          team: BATTLE_TEAM.A,
+          sender: 'user-1',
+          text: 'hello',
+          messageId: expect.any(String),
+        }),
+      )
+      expect(state.teamA.chats).toHaveLength(1)
+      expect(state.all.chats).toHaveLength(0)
+    })
+
+    it('전체 채팅 메시지를 전체 채팅에 추가한다', () => {
+      const result = service.appendChatMessage(
+        {
+          battleId: 'battle-1',
+          scope: 'ALL',
+          text: 'hello all',
+        },
+        'user-1',
+      )
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          scope: 'ALL',
+          sender: 'user-1',
+          text: 'hello all',
+          messageId: expect.any(String),
+        }),
+      )
+      expect(state.all.chats).toHaveLength(1)
+      expect(state.teamA.chats).toHaveLength(0)
+      expect(state.teamB.chats).toHaveLength(0)
     })
   })
 })

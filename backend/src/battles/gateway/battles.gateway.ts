@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-
-import { Logger } from '@nestjs/common'
+import { Logger, OnModuleInit } from '@nestjs/common'
 import { Socket, Server } from 'socket.io'
 
 import {
@@ -16,15 +14,22 @@ import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
+import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { BattleChatDto } from '../dto/battleChat.dto'
+import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
 
 @WebSocketGateway()
-export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   @WebSocketServer()
   server: Server
 
   private readonly logger = new Logger(BattlesGateway.name)
 
   constructor(private readonly battlesService: BattlesService) {}
+
+  onModuleInit() {
+    this.bindBattleEvents()
+  }
 
   handleConnection(client: Socket) {
     this.logger.log(`[소켓 연결] - ${client.id}`)
@@ -134,6 +139,54 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
         client.emit('Battle:DefenseVote:Error', {
           message: error.message,
         })
+  turnUpdate(payload: BattleTurnResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:turn:update', payload)
+  }
+
+  phaseUpdate(payload: BattlePhaseResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:phase:update', payload)
+  }
+
+  roundUpdate(payload: BattleRoundResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:round:update', payload)
+  }
+
+  private bindBattleEvents() {
+    this.battlesService.on('battle:phase:update', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
+
+    this.battlesService.on('battle:turn:update', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
+
+    this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
+
+    // this.battlesService.on('battle:ended', payload => {
+    //   const { battleId } = payload
+    //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
+    // })
+  }
+
+  @SubscribeMessage('battle:chat')
+  handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: Socket) {
+    try {
+      const senderId = client.id
+      const saved = this.battlesService.appendChatMessage(battleChatDto, senderId)
+      const roomId =
+        battleChatDto.scope === BATTLE_CHAT_SCOPE.ALL
+          ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
+          : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
+
+      this.server.to(roomId).emit('battle:chatUpdate', saved)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('battle:chat:error', { message: error.message })
       }
     }
   }
