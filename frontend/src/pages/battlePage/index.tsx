@@ -68,7 +68,7 @@ export default function BattlePage() {
   const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, battleData, isConnected } = useBattleSocket({
+  const { socket, battleData, battleProgress, isConnected } = useBattleSocket({
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
