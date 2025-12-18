@@ -5,8 +5,8 @@ import TimerIcon from '@/assets/icon/timer.svg?react';
 interface TeamChangeModalProps {
   aTeamCounts: number;
   bTeamCounts: number;
-  currentTeam : 'A' | 'B' | 'NONE'; 
-  remainingTime: number;
+  currentTeam: 'A' | 'B' | 'NONE';
+  remainingTime: string;
   noneTeamCounts: number;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   onClose: () => void;
@@ -40,7 +40,7 @@ export default function TeamChangeModal({
         <p className="text-[#99A1AF] text-[16px]">어느 팀을 지지하시나요?</p>
         <div className="text-[#FF8904] text-[24px] font-bold my-2 flex items-center">
           <TimerIcon className="w-[24px] h-[24px] mr-2" />
-          <span>0:{remainingTime}</span>
+          <span>{remainingTime}</span>
         </div>
         <div className="flex gap-4">
           <button
