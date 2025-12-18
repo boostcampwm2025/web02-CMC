@@ -5,6 +5,7 @@ import type { BattleJoinData, UseBattleSocketProps, BattleProgressState } from '
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
   const [battleProgress, setBattleProgressState] = useState<BattleProgressState | null>(null);
+  const [currentStage, setCurrentStage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
@@ -37,6 +38,9 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
         startedAt: data.startedAt,
         expiredAt: data.expiredAt
       });
+
+      // 초기 currentStage 설정
+      setCurrentStage(data.phase);
     });
 
     // Phase 변경 이벤트 구독
@@ -51,6 +55,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
             }
           : null
       );
+      setCurrentStage(data.phase);
     });
 
     // Turn 변경 이벤트 구독
@@ -65,6 +70,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
             }
           : null
       );
+      setCurrentStage(data.turn?.status || null);
     });
 
     // Round 변경 이벤트 구독
@@ -88,6 +94,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
     socket: socketRef.current,
     battleData,
     battleProgress,
+    currentStage,
     isConnected
   };
 }

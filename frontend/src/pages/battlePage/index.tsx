@@ -25,7 +25,7 @@ export default function BattlePage() {
   const { isOpen: isTeamChangeModalOpen, closeModal: closeTeamChangeModal } = useModal(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, battleData, battleProgress, isConnected } = useBattleSocket({
+  const { socket, currentStage, battleProgress, isConnected } = useBattleSocket({
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
@@ -81,7 +81,7 @@ export default function BattlePage() {
         <BattleHeader
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
-          status={battleProgress?.phase || 'OPINION_SHARE'}
+          status={currentStage || 'END'}
           timer="0:02"
           teamACounts={1}
           teamBCounts={1}
