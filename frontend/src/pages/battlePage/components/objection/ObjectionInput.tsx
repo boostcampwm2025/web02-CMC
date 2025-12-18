@@ -1,6 +1,5 @@
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
 import { useState } from 'react';
+import { isInputDisabled, getObjectionConfig } from '../../utils/battlePhase';
 
 interface ObjectionInputProps {
   disabled?: boolean;
@@ -12,14 +11,11 @@ interface ObjectionInputProps {
 export default function ObjectionInput({ disabled = false, onSubmit, phase, team }: ObjectionInputProps) {
   const [inputValue, setInputValue] = useState('');
 
-  const isMyTeamAttacking = (team === 'A' && phase === 'TEAM_A_ATTACK') || (team === 'B' && phase === 'TEAM_B_ATTACK');
-
-  const placeholderText = isMyTeamAttacking ? '상대 진영에 이의제기...' : '상대 진영에 반론...';
-  const buttonText = isMyTeamAttacking ? '이의제기' : '반론';
-  const Icon = isMyTeamAttacking ? BattleIcon : ShieldIcon;
+  const { placeholderText, buttonText, Icon } = getObjectionConfig(team || 'NONE', phase);
+  const disabled_input = isInputDisabled(phase, disabled);
 
   const handleSubmit = () => {
-    if (inputValue.trim() && !disabled) {
+    if (inputValue.trim() && !disabled_input) {
       onSubmit?.(inputValue);
       setInputValue('');
     }
@@ -40,12 +36,14 @@ export default function ObjectionInput({ disabled = false, onSubmit, phase, team
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder={placeholderText}
+          disabled={disabled_input}
           autoFocus
-          className="w-full bg-[#2D2D3F] border border-[#FF5A5F] rounded-md px-4 py-3 text-[13px] text-white placeholder-[#666] focus:outline-none focus:border-[#FF5A5F]"
+          className="w-full bg-[#2D2D3F] border border-[#FF5A5F] rounded-md px-4 py-3 text-[13px] text-white placeholder-[#666] focus:outline-none focus:border-[#FF5A5F] disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <button
           onClick={handleSubmit}
-          className="w-[140px] py-2 bg-[#4A5568] text-[15px] text-white rounded-md hover:bg-[#5A6578] transition-colors flex items-center justify-center gap-1"
+          disabled={disabled_input}
+          className="w-[140px] py-2 bg-[#4A5568] text-[15px] text-white rounded-md hover:bg-[#5A6578] transition-colors flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#4A5568]"
         >
           <Icon className="w-[22px] h-[22px]" />
           {buttonText}

@@ -1,5 +1,6 @@
 import ScaleIcon from '@/assets/icon/scale.svg?react';
 import ObjectionVoteItem from './ObjectionVoteItem';
+import { isMyTeamAttacking } from '../../utils/battlePhase';
 
 interface Objection {
   id: number;
@@ -21,13 +22,13 @@ interface ObjectionVoteProps {
 export { type Objection };
 
 export default function ObjectionVote({ objections, onVote, phase, team }: ObjectionVoteProps) {
-  const isMyTeamAttacking = (team === 'A' && phase === 'TEAM_A_ATTACK') || (team === 'B' && phase === 'TEAM_B_ATTACK');
+  const isAttacking = isMyTeamAttacking(team || 'NONE', phase);
 
-  const headerText = isMyTeamAttacking ? '제출된 이의제기 목록' : '제출된 반론 목록';
-  const infoText = isMyTeamAttacking
+  const headerText = isAttacking ? '제출된 이의제기 목록' : '제출된 반론 목록';
+  const infoText = isAttacking
     ? '이의제기가 실시간으로 추가되며, 바로 투표 가능합니다!'
     : '반론이 실시간으로 추가되며, 바로 투표 가능합니다!';
-  const summaryText = isMyTeamAttacking ? '이의제기' : '반론';
+  const summaryText = isAttacking ? '이의제기' : '반론';
 
   if (objections.length === 0) {
     return null;
