@@ -13,6 +13,8 @@ import {
 import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
+import { BattleChatDto } from '../dto/battleChat.dto'
+import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -63,6 +65,24 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
         client.emit('battle:join:error', {
           message: error.message,
         })
+      }
+    }
+  }
+
+  @SubscribeMessage('battle:chat')
+  handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: Socket) {
+    try {
+      const senderId = client.id
+      const saved = this.battlesService.appendChatMessage(battleChatDto, senderId)
+      const roomId =
+        battleChatDto.scope === BATTLE_CHAT_SCOPE.ALL
+          ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
+          : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
+
+      this.server.to(roomId).emit('battle:chatUpdate', saved)
+    } catch (error) {
+      if (error instanceof Error) {
+        client.emit('battle:chat:error', { message: error.message })
       }
     }
   }

@@ -45,3 +45,8 @@ export const BATTLE_PLAYTIME = {
   TEN_MIN: 10,
   THIRTY_MIN: 30,
 } as const
+
+export const BATTLE_CHAT_SCOPE = {
+  ALL: 'ALL',
+  TEAM: 'TEAM',
+} as const

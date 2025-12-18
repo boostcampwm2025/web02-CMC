@@ -10,7 +10,8 @@ import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
-import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { BATTLE_CHAT_SCOPE, BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { BattleChatDto } from '../dto/battleChat.dto'
 import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 
 @Injectable()
@@ -216,6 +217,38 @@ export class BattlesService {
     }
 
     this.activeBattles.set(battleId, activeBattleState)
+  }
+
+  appendChatMessage(dto: BattleChatDto, senderId: string) {
+    const { battleId, scope, team, text } = dto
+    if (!battleId || !scope) throw new BadRequestException('잘못된 요청입니다.')
+    if (!text.trim()) throw new BadRequestException('메시지가 비어 있습니다.')
+
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+
+    const chat = {
+      messageId: this.generateId(),
+      sender: senderId,
+      text: text.trim(),
+      createdAt: new Date(),
+    }
+
+    if (scope === BATTLE_CHAT_SCOPE.ALL) {
+      battleState.all.chats.push(chat)
+      return { battleId, scope, ...chat }
+    }
+
+    if (!team) throw new BadRequestException('진영 채팅은 team 값이 필요합니다.')
+
+    if (team !== BATTLE_TEAM.A && team !== BATTLE_TEAM.B) {
+      throw new BadRequestException('진영 채팅은 A/B 진영만 사용할 수 있습니다.')
+    }
+
+    const target = team === BATTLE_TEAM.A ? battleState.teamA : battleState.teamB
+    target.chats.push(chat)
+
+    return { battleId, scope, team, ...chat }
   }
 
   private addParticipant(battleId: string, clinetId: string, team: string): void {
