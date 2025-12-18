@@ -1,7 +1,16 @@
 import { NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
 import { Battle } from '../types/battles.types'
 import { BattlesService } from './battles.service'
-import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
+import {
+  BATTLE_TYPE,
+  BATTLE_CATEGORY,
+  BATTLE_PLAYTIME,
+  BATTLE_LANGUAGE,
+  BATTLE_STATUS,
+  BATTLE_PHASE,
+  BATTLE_TEAM,
+  BATTLE_TURN,
+} from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -20,7 +29,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   participantCount: 0,
   initialState: {
     round: 1,
-    phase: BATTLE_PHASE.WAITING_FOR_START,
+    phase: BATTLE_PHASE.OPINION_SHARE.name,
     timeRemainingSeconds: 600,
   },
   ...overrides,
@@ -31,6 +40,13 @@ describe('BattlesService', () => {
 
   beforeEach(() => {
     service = new BattlesService()
+    jest.useFakeTimers()
+    jest.spyOn(Date, 'now').mockReturnValue(1_000_000)
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+    jest.restoreAllMocks()
   })
 
   describe('initBattleState', () => {
@@ -223,6 +239,102 @@ describe('BattlesService', () => {
 
       expect(result.team).toBe('A')
       expect(result.battleState.teamA.users).toContain('client-1')
+    })
+  })
+
+  describe('updatePhase', () => {
+    beforeEach(() => {
+      service['initBattleState']('battle-1')
+    })
+
+    it('OPINION_SHARE → TEAM_A_ATTACK 로 전환된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
+      expect(state.turn).toBeNull()
+
+      service['updatePhase']('battle-1')
+
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
+      expect(state.turn).toEqual({
+        status: BATTLE_TURN.A_ATTACK.name,
+        count: 1,
+      })
+    })
+
+    it('A_ATTACK → B_DEFENSE 로 턴이 변경된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      service['updatePhase']('battle-1')
+      service['updatePhase']('battle-1')
+
+      expect(state.turn?.status).toBe(BATTLE_TURN.B_DEFENSE.name)
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
+    })
+    it('A_ATTACK ↔ B_DEFENSE 가 2회 반복된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      service['updatePhase']('battle-1') // OPINION → A_ATTACK
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEFENSE
+      service['updatePhase']('battle-1') // B_DEFENSE → A_ATTACK (count 2)
+
+      expect(state.turn).toEqual({
+        status: BATTLE_TURN.A_ATTACK.name,
+        count: 2,
+      })
+    })
+
+    it('TEAM_A_ATTACK → TEAM_B_ATTACK 로 넘어간다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+
+      // A 공격/방어 2회 소진
+      service['updatePhase']('battle-1') // opinion → A_ATTACK
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
+      service['updatePhase']('battle-1') // B_DEF → A_ATTACK (2)
+      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
+      service['updatePhase']('battle-1') // B_DEF → B_ATTACK
+
+      expect(state.phase).toBe(BATTLE_PHASE.TEAM_B_ATTACK.name)
+      expect(state.turn?.status).toBe(BATTLE_TURN.B_ATTACK.name)
+    })
+
+    it('TEAM_SWITCH 이후 round가 증가한다', () => {
+      const battle = createBattle({
+        id: 'battle-1',
+        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+      })
+      service.setBattlesForTest([battle])
+
+      service['initBattleState']('battle-1')
+      const state = service['activeBattles'].get('battle-1')!
+
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      state.round = 1
+
+      service['updatePhase']('battle-1')
+
+      expect(state.round).toBe(2)
+      expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
+    })
+
+    it('마지막 라운드 이후 finishBattle가 호출된다', () => {
+      const battle = createBattle({
+        id: 'battle-1',
+        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+      })
+      service.setBattlesForTest([battle])
+
+      service['initBattleState']('battle-1')
+
+      const finishSpy = jest.spyOn(service as any, 'finishBattle')
+
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      state.round = 2
+
+      service['updatePhase']('battle-1')
+
+      expect(finishSpy).toHaveBeenCalled()
     })
   })
 
