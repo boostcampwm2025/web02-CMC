@@ -8,6 +8,7 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 
@@ -46,6 +47,21 @@ export default function BattlePage() {
   };
 
   const handleVote = (objectionId: number) => {
+    if (!socket || selectedTeam === 'NONE') return;
+
+    const targetObjection = objections.find((obj) => obj.id === objectionId);
+    if (targetObjection?.hasVoted) return;
+
+    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
+    const eventName = isAttacking ? 'Battle:AttackVote' : 'Battle:DefenseVote';
+
+    socket.emit(eventName, {
+      battleId: id || '1',
+      discussionId: String(objectionId),
+      userId: 'abc', // TODO: 실제 userId로 교체 필요
+      team: selectedTeam
+    });
+
     setObjections((prev) => {
       const updated = prev.map((obj) => {
         if (obj.id === objectionId) {
@@ -59,11 +75,25 @@ export default function BattlePage() {
       const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
       return updated.map((obj) => ({ ...obj, totalVotes }));
     });
-    // @ Todo 소켓으로 투표 정보 전송 로직 추가 필요
   };
 
   const handleObjectionSubmit = (content: string) => {
-    if (selectedTeam === 'NONE') return;
+    if (selectedTeam === 'NONE' || !socket) return;
+
+    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
+    const canSubmit = !isInputDisabled(selectedTeam, battleProgress?.phase, battleProgress?.turn?.status);
+
+    if (!canSubmit) {
+      return;
+    }
+
+    socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
+      battleId: id || '1',
+      authorId: 'abc', // TODO: 실제 userId로 교체 필요
+      content,
+      team: selectedTeam
+    });
+
     const newObjection: Objection = {
       id: Date.now(),
       user: 'You',
@@ -75,7 +105,6 @@ export default function BattlePage() {
     };
 
     setObjections((prev) => [...prev, newObjection]);
-    // @ Todo 소켓으로 이의제기 정보 전송 로직 추가 필요
   };
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
