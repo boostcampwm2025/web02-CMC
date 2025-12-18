@@ -25,6 +25,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -327,6 +328,8 @@ export class BattlesService extends EventEmitter {
 
   private updatePhase(battleId: string): void {
     const state = this.getBattleState(battleId)
+    if (!state) return
+
     const battle = this.battles.find(battle => battle.id === battleId)
     if (battle?.status === BATTLE_STATUS.CLOSED) return
 
@@ -502,12 +505,16 @@ export class BattlesService extends EventEmitter {
   }
 
   private finishBattle(battle: Battle) {
-    //TODO 배틀 종료 처리
     const battleTimer = this.battleTimers.get(battle.id)
     clearTimeout(battleTimer)
     this.battleTimers.delete(battle.id)
+
     battle.status = BATTLE_STATUS.CLOSED
+
     this.activeBattles.delete(battle.id)
+    this.battles = this.battles.filter(b => b.id !== battle.id)
+
+    this.emit('battle:closed', BattleClosedResponseDto.of({ battleId: battle.id }))
   }
 
   private isPublicAndOpen(battle: Battle): boolean {
@@ -629,6 +636,7 @@ export class BattlesService extends EventEmitter {
     if (battle?.status === BATTLE_STATUS.CLOSED) return
 
     const state = this.getBattleState(battleId)
+    if (!state) return
 
     const prevTimer = this.battleTimers.get(battleId)
     if (prevTimer) clearTimeout(prevTimer)
