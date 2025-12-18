@@ -9,6 +9,7 @@ interface TeamButtonProps {
   language?: string;
   code?: string;
   description?: string;
+  onSelect?: (team: 'A' | 'B' | 'NONE') => void;
 }
 
 const TEAM_STYLES = {
@@ -54,7 +55,7 @@ const TEAM_CONTENT = {
   }
 };
 
-export default function TeamButton({ team, language, code, description }: TeamButtonProps) {
+export default function TeamButton({ team, language, code, description, onSelect }: TeamButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const styles = TEAM_STYLES[team];
   const content = TEAM_CONTENT[team];
@@ -67,6 +68,7 @@ export default function TeamButton({ team, language, code, description }: TeamBu
       onMouseLeave={() => setIsHovered(false)}
     >
       <button
+        onClick={() => onSelect?.(team)}
         className={`border-[0.1px] rounded-lg bg-[#1E1E2F] min-h-[437px] w-[18rem] ${styles.button} transition-transform duration-300 hover:scale-110`}
       >
         <Icon className={`rounded-full w-[96px] h-[96px] px-6 py-6 mx-auto ${styles.icon}`} />

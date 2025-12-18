@@ -3,7 +3,7 @@ import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
 import TeamSelectPage from './pages/teamSelectPage';
-import fetchBattleInfo from './pages/battlePage/apis/getBattleInfo';
+import fetchBattleInfo from './commons/apis/getBattleInfo';
 import './App.css';
 
 const router = createBrowserRouter([

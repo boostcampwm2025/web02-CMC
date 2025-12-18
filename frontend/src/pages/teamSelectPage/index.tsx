@@ -1,11 +1,16 @@
-import { useNavigate, useLoaderData } from 'react-router-dom';
+import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import TeamButton from './components/TeamButton';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
+
+  const handleTeamSelect = (team: 'A' | 'B' | 'NONE') => {
+    navigate(`/battle/${id}`, { state: { selectedTeam: team } });
+  };
 
   return (
     <main className="text-white flex items-center justify-center min-h-screen">
@@ -19,9 +24,9 @@ export default function TeamSelectPage() {
           <p className="mt-2 text-[#99A1AF] text-[16px]">{battleInfo.description}</p>
         </div>
         <div className="w-fit mx-auto my-4 flex gap-8 text-white">
-          <TeamButton team="A" language="javascript" code={battleInfo.aCode} />
-          <TeamButton team="NONE" />
-          <TeamButton team="B" language="javascript" code={battleInfo.bCode} />
+          <TeamButton team="A" language="javascript" code={battleInfo.aCode} onSelect={handleTeamSelect} />
+          <TeamButton team="NONE" onSelect={handleTeamSelect} />
+          <TeamButton team="B" language="javascript" code={battleInfo.bCode} onSelect={handleTeamSelect} />
         </div>
         <button
           onClick={() => navigate('/')}

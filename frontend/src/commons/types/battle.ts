@@ -46,6 +46,6 @@ export interface BattleJoinData {
 export interface UseBattleSocketProps {
   battleId: string;
   userId: string;
-  team: 'A' | 'B' | 'none';
+  team: 'A' | 'B' | 'NONE';
   password?: string;
 }
