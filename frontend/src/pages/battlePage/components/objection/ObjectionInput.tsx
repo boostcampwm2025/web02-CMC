@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { isInputDisabled, getObjectionConfig } from '../../utils/battlePhase';
+import type { TurnStatus } from '@/commons/types/battle';
 
 interface ObjectionInputProps {
   disabled?: boolean;
   onSubmit?: (content: string) => void;
   phase?: 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH';
   team?: 'A' | 'B' | 'NONE';
+  turnStatus?: TurnStatus | null;
 }
 
-export default function ObjectionInput({ disabled = false, onSubmit, phase, team }: ObjectionInputProps) {
+export default function ObjectionInput({ disabled = false, onSubmit, phase, team, turnStatus }: ObjectionInputProps) {
   const [inputValue, setInputValue] = useState('');
 
   const { placeholderText, buttonText, Icon } = getObjectionConfig(team || 'NONE', phase);
-  const disabled_input = isInputDisabled(phase, disabled);
+  const disabled_input = isInputDisabled(team || 'NONE', phase, turnStatus, disabled);
 
   const handleSubmit = () => {
     if (inputValue.trim() && !disabled_input) {

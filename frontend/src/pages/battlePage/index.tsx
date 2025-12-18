@@ -102,7 +102,12 @@ export default function BattlePage() {
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
             <ChatSection aTeamMemebers={102} team={selectedTeam} />
-            <ObjectionInput onSubmit={handleObjectionSubmit} phase={battleProgress?.phase} team={selectedTeam} />
+            <ObjectionInput
+              onSubmit={handleObjectionSubmit}
+              phase={battleProgress?.phase}
+              team={selectedTeam}
+              turnStatus={battleProgress?.turn?.status}
+            />
             <ObjectionVote
               objections={objections}
               onVote={handleVote}
