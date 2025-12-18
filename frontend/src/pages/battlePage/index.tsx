@@ -8,6 +8,8 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import useModal from '@/commons/hooks/useModal';
+import TeamChangeModal from './components/modals/TeamChangeModal';
 
 type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
@@ -23,6 +25,9 @@ export default function BattlePage() {
   const [objections, setObjections] = useState<Objection[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentPhase, setCurrentPhase] = useState<TurnPhase>('rebuttal');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [currentTeam, setCurrentTeam] = useState<'A' | 'B' | 'NONE'>('A');
+  const { isOpen: isTeamChangeModalOpen, closeModal: closeTeamChangeModal } = useModal(false);
 
   const getTotalVotes = () => {
     return objections.reduce((sum, obj) => sum + obj.votes, 0);
@@ -70,6 +75,11 @@ export default function BattlePage() {
   });
   //@Todo 턴 변경 정보 이벤트 구독 소켓 로직 추가 필요
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
+  const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
+    console.log(team);
+    // @ Todo 팀 변경 로직 추가 필요
+    closeTeamChangeModal();
+  };
 
   return (
     <div className="text-white flex flex-col items-center">
@@ -87,22 +97,34 @@ export default function BattlePage() {
       <main className="w-[1800px]">
         <div className="flex gap-2 py-4">
           <div className="flex-1">
-             <CodeSection
-            onViewChange={setViewMode}
-            currentView={viewMode}
-            language="javascript"
-            codeA={battleInfo.aCode}
-            codeB={battleInfo.bCode}
-          />
+            <CodeSection
+              onViewChange={setViewMode}
+              currentView={viewMode}
+              language="javascript"
+              codeA={battleInfo.aCode}
+              codeB={battleInfo.bCode}
+            />
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102}  team={selectedTeam}/>
+            <ChatSection aTeamMemebers={102} team={currentTeam} />
             <ObjectionInput onSubmit={handleObjectionSubmit} phase={currentPhase} />
             <ObjectionVote objections={objections} onVote={handleVote} phase={currentPhase} />
           </aside>
         </div>
       </main>
+
+      {isTeamChangeModalOpen && (
+        <TeamChangeModal
+          aTeamCounts={10}
+          bTeamCounts={8}
+          noneTeamCounts={2}
+          remainingTime={30}
+          currentTeam={currentTeam}
+          handleTeamChange={handleTeamChange}
+          onClose={closeTeamChangeModal}
+        />
+      )}
     </div>
   );
 }
