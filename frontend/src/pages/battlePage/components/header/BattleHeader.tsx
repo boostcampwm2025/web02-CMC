@@ -28,7 +28,7 @@ export default function BattleHeader({
           <p className="text-[#99A1AF] text-[14px]">{description}</p>
         </div>
         <div className="flex items-center gap-4">
-          <StatusCard turn={status} description={'주어진 시간 내에 코드의 문제점을 지적하세요'} timer={timer} />
+          <StatusCard turn={status} timer={timer} />
           <VoteStatus teamACounts={teamACounts} teamBCounts={teamBCounts} teamNoneCounts={teamNoneCounts} />
         </div>
       </div>

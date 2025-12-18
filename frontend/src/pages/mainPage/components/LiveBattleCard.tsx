@@ -12,7 +12,8 @@ interface LiveBattleCardProps {
 
 export default function LiveBattleCard({ battleInform, isHot = false }: LiveBattleCardProps) {
   const { category, title, description, timeLabel, clientCount, id } = battleInform;
-  const { text, bg, bgSoft, icon: Icon } = BATTLE_CATEGORY_CONFIG[category];
+  const config = BATTLE_CATEGORY_CONFIG[category] || BATTLE_CATEGORY_CONFIG.ETC;
+  const { text, bg, bgSoft, icon: Icon } = config;
 
   return (
     <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
