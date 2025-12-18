@@ -22,7 +22,12 @@ const router = createBrowserRouter([
   },
   {
     path: '/battle/:id/team-select/',
-    element: <TeamSelectPage />
+    element: <TeamSelectPage />,
+    loader: async ({ params }) => {
+      const data = await fetchBattleInfo(params.id!);
+      if (!data) throw new Response('Battle not found', { status: 404 });
+      return data;
+    }
   },
   {
     path: '/battle/create',
