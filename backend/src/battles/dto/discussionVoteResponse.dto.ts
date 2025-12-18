@@ -1,17 +1,29 @@
 import { BattleDiscussion } from '../types/battles.types'
 
 export class DiscussionVoteResponseDto {
-  discussionId: string
-  upvotes: number
+  battleId: string
+  attackId?: string
+  defenseId?: string
+  count: number
 
-  static fromEntity(discussion: BattleDiscussion): DiscussionVoteResponseDto {
+  static fromEntity(battleId: string, discussion: BattleDiscussion): DiscussionVoteResponseDto {
     const dto = new DiscussionVoteResponseDto()
-    dto.discussionId = discussion.discussionId
-    dto.upvotes = discussion.upvotes
+
+    dto.battleId = battleId
+    dto.count = discussion.upvotes
+
+    if (discussion.type === 'ATTACK') {
+      dto.attackId = discussion.discussionId
+    }
+
+    if (discussion.type === 'DEFENSE') {
+      dto.defenseId = discussion.discussionId
+    }
+
     return dto
   }
 
-  static of(discussion: BattleDiscussion): DiscussionVoteResponseDto {
-    return this.fromEntity(discussion)
+  static of(battleId: string, discussion: BattleDiscussion): DiscussionVoteResponseDto {
+    return this.fromEntity(battleId, discussion)
   }
 }

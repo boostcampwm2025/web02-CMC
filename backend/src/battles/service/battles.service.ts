@@ -589,7 +589,7 @@ export class BattlesService extends EventEmitter {
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
 
-    return DiscussionVoteResponseDto.of(updated)
+    return DiscussionVoteResponseDto.of(battleId, updated)
   }
 
   handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
@@ -615,7 +615,7 @@ export class BattlesService extends EventEmitter {
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
 
-    return DiscussionVoteResponseDto.of(updated)
+    return DiscussionVoteResponseDto.of(battleId, updated)
   }
 
   //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
