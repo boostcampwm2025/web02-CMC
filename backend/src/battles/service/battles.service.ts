@@ -10,6 +10,7 @@ import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
 import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 
 @Injectable()
 export class BattlesService {
@@ -55,23 +56,40 @@ export class BattlesService {
 
   //Todo: 정렬 기준 재설정
   //실시간 배틀 목록 조회
-  getOpenBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles
-      .filter(battle => this.isPublicAndOpen(battle))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) //최신 순
-      .slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+  getOpenBattles(limit: number, offset: number) {
+    const filtered = this.battles.filter(battle => this.isPublicAndOpen(battle))
+    const battles = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
 
-    return BattleResponseDto.of(battles)
+    return {
+      battles: BattleResponseDto.of(battles),
+      meta: {
+        offset,
+        limit,
+        total: filtered.length,
+      },
+    }
   }
 
   //지난 배틀 조회
-  getClosedBattles(limit: number, offset: number): BattleResponseDto[] {
-    const battles = this.battles
-      .filter(battle => this.isPublicAndClosed(battle))
-      .sort((a, b) => this.getExpiredTime(b).getTime() - this.getExpiredTime(a).getTime())
-      .slice(offset, offset + limit) //최신 종료 순
+  getClosedBattles(limit: number, offset: number) {
+    // const filtered = this.battles.filter(battle => this.isPublicAndClosed(battle))
+    // const battles = filtered
+    //   .sort((a, b) => b.createdAt.getTime() - a.expiresAt.getTime() )
+    //   .slice(offset, offset + limit)
 
-    return BattleResponseDto.of(battles)
+    const battles = Object.values(mockBattleResults)
+      .sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime())
+      .slice(offset, offset + limit)
+      .map(mock => ClosedBattleResponseDto.fromMock(mock))
+
+    return {
+      battles,
+      meta: {
+        offset,
+        limit,
+        total: battles.length,
+      },
+    }
   }
 
   getBattleResult(battleId: string): BattleResultResponseDto {
@@ -212,11 +230,8 @@ export class BattlesService {
   }
 
   private isPublicAndClosed(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.CLOSED
-  }
-
-  private getExpiredTime(battle: Battle): Date {
-    return new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
+    return battle.status === BATTLE_STATUS.CLOSED //임시로 public 조건 제거
+    // return battle.type === BATTLE_TYPE.PUBLIC &&  battle.status === BATTLE_STATUS.CLOSED
   }
 
   private getBattleState(battleId: string) {

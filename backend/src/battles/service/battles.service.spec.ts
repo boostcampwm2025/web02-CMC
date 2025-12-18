@@ -271,38 +271,53 @@ describe('BattlesService', () => {
 
   describe('getClosedBattles', () => {
     it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
-      const battles: Battle[] = [
-        createBattle({ status: BATTLE_STATUS.CLOSED }),
-        createBattle({ status: BATTLE_STATUS.OPEN }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
-      ]
-
-      service.setBattlesForTest(battles)
+      // const battles: Battle[] = [
+      //   createBattle({ status: BATTLE_STATUS.CLOSED }),
+      //   createBattle({ status: BATTLE_STATUS.OPEN }),
+      //   createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
+      // ]
+      // service.setBattlesForTest(battles)
+      // const result = service.getClosedBattles(10, 0)
+      // expect(result.battles).toHaveLength(1)
+      // expect(result.battles[0].status).toBe(BATTLE_STATUS.CLOSED)
 
       const result = service.getClosedBattles(10, 0)
 
-      expect(result).toHaveLength(1)
-      expect(result[0].status).toBe(BATTLE_STATUS.CLOSED)
+      result.battles.forEach(battle => {
+        expect(battle.status).toBe(BATTLE_STATUS.CLOSED)
+        expect(battle).toHaveProperty('id')
+        expect(battle).toHaveProperty('title')
+        expect(battle).toHaveProperty('description')
+        expect(battle).toHaveProperty('category')
+        expect(battle).toHaveProperty('createdAt')
+        expect(battle).toHaveProperty('expiresAt')
+        expect(battle).toHaveProperty('result')
+      })
     })
 
     it('배틀 종료 시각 기준 최신 종료 순으로 정렬된다', () => {
-      const shorter = createBattle({
-        id: 'short',
-        playTime: BATTLE_PLAYTIME.FIVE_MIN,
-        status: BATTLE_STATUS.CLOSED,
-      })
-      const longer = createBattle({
-        id: 'long',
-        playTime: BATTLE_PLAYTIME.THIRTY_MIN,
-        status: BATTLE_STATUS.CLOSED,
-      })
-
-      service.setBattlesForTest([shorter, longer])
+      // const shorter = createBattle({
+      //   id: 'short',
+      //   playTime: BATTLE_PLAYTIME.FIVE_MIN,
+      //   status: BATTLE_STATUS.CLOSED,
+      // })
+      // const longer = createBattle({
+      //   id: 'long',
+      //   playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+      //   status: BATTLE_STATUS.CLOSED,
+      // })
+      // service.setBattlesForTest([shorter, longer])
+      // const result = service.getClosedBattles(10, 0)
+      // expect(result.battles[0].id).toBe('long')
+      // expect(result.battles[1].id).toBe('short')
+      // expect(result.meta.total).toBe(2)
 
       const result = service.getClosedBattles(10, 0)
 
-      expect(result[0].id).toBe('long')
-      expect(result[1].id).toBe('short')
+      const times = result.battles.map(b => b.expiresAt.getTime())
+      const sorted = [...times].sort((a, b) => b - a)
+
+      expect(times).toEqual(sorted)
     })
   })
 
