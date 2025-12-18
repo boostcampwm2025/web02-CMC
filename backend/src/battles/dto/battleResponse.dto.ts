@@ -1,5 +1,4 @@
-import { BattleCategory } from '../const/battles.const'
-import { Battle, BattleStatus } from '../types/battles.types'
+import { Battle, BattleStatus, BattleCategory } from '../types/battles.types'
 
 export class BattleResponseDto {
   id: string

@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import { BattlesController } from './battles.controller'
 import { BattlesService } from '../service/battles.service'
-import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleListRequestQueryDto } from '../dto/battleListRequestQuery.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 
@@ -40,7 +39,14 @@ describe('BattlesController', () => {
         offset: 0,
       }
 
-      const mockResult: BattleResponseDto[] = []
+      const mockResult = {
+        battles: [],
+        meta: {
+          limit: 10,
+          offset: 0,
+          total: 0,
+        },
+      }
 
       const spy = jest.spyOn(service, 'getOpenBattles').mockReturnValue(mockResult)
 
@@ -58,7 +64,14 @@ describe('BattlesController', () => {
         offset: 20,
       }
 
-      const mockResult: BattleResponseDto[] = []
+      const mockResult = {
+        battles: [],
+        meta: {
+          limit: 5,
+          offset: 20,
+          total: 0,
+        },
+      }
 
       const spy = jest.spyOn(service, 'getClosedBattles').mockReturnValue(mockResult)
 

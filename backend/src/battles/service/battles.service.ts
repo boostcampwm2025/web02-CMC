@@ -3,13 +3,14 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
-import { ActiveBattleState, Battle, BattlePlayTime, BattleTeam } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattleTeam } from '../types/battles.types'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
-import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TYPE } from '../const/battles.const'
+import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 
 @Injectable()
 export class BattlesService {
@@ -71,22 +72,22 @@ export class BattlesService {
 
   //지난 배틀 조회
   getClosedBattles(limit: number, offset: number) {
-    const filtered = this.battles.filter(battle => this.isPublicAndClosed(battle))
-    const battles = filtered
-      .sort((a, b) => {
-        const aEndTime = a.createdAt.getTime() + this.playTimeToMs(a.playTime)
-        const bEndTime = b.createdAt.getTime() + this.playTimeToMs(b.playTime)
+    // const filtered = this.battles.filter(battle => this.isPublicAndClosed(battle))
+    // const battles = filtered
+    //   .sort((a, b) => b.createdAt.getTime() - a.expiresAt.getTime() )
+    //   .slice(offset, offset + limit)
 
-        return bEndTime - aEndTime
-      })
+    const battles = Object.values(mockBattleResults)
+      .sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime())
       .slice(offset, offset + limit)
+      .map(mock => ClosedBattleResponseDto.fromMock(mock))
 
     return {
-      battles: BattleResponseDto.of(battles),
+      battles,
       meta: {
         offset,
         limit,
-        total: filtered.length,
+        total: battles.length,
       },
     }
   }
@@ -229,7 +230,8 @@ export class BattlesService {
   }
 
   private isPublicAndClosed(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.CLOSED
+    return battle.status === BATTLE_STATUS.CLOSED //임시로 public 조건 제거
+    // return battle.type === BATTLE_TYPE.PUBLIC &&  battle.status === BATTLE_STATUS.CLOSED
   }
 
   private getBattleState(battleId: string) {
@@ -237,18 +239,5 @@ export class BattlesService {
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
     return battleState
-  }
-
-  private playTimeToMs(playTime: BattlePlayTime): number {
-    switch (playTime) {
-      case BATTLE_PLAYTIME.FIVE_MIN:
-        return 5 * 60 * 1000
-      case BATTLE_PLAYTIME.TEN_MIN:
-        return 10 * 60 * 1000
-      case BATTLE_PLAYTIME.THIRTY_MIN:
-        return 30 * 60 * 1000
-      default:
-        return 0
-    }
   }
 }
