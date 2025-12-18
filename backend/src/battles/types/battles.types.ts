@@ -21,6 +21,7 @@ export type BattlePlayTimeName = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PL
 export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
 export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
 export type BattleTurn = (typeof BATTLE_TURN)[keyof typeof BATTLE_TURN]['name']
+export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
 
 export interface Battle {
   id: string
@@ -60,11 +61,11 @@ export interface BattleDiscussion {
   type: BattleDiscussionType
   content: string
   upvotes: number
+  votes: string[]
+  status: BattleDiscussionStatus
 }
 
-export interface BattleDefense extends BattleDiscussion {
-  attackId: string
-}
+export type BattleDefense = BattleDiscussion
 
 export interface BattleData {
   roomId: string

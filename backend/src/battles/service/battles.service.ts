@@ -5,7 +5,7 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
-import { ActiveBattleState, Battle, BattlePhase, BattleTeam } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattlePhase, BattleTeam, BattleDiscussion, BattleDefense, BattlePlayTime } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
@@ -13,8 +13,17 @@ import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import type { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { ClosedBattleResponseDto } from '../dto/closedBattleResponse.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
+import {
+  BATTLE_CHAT_SCOPE,
+  BATTLE_PHASE,
+  BATTLE_PLAYTIME,
+  BATTLE_STATUS,
+  BATTLE_TEAM,
+  BATTLE_TURN,
+  BATTLE_TYPE,
+  BATTLE_DISCUSSION_TYPE,
+} from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
-import { BATTLE_CHAT_SCOPE, BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM, BATTLE_TURN, BATTLE_TYPE } from '../const/battles.const'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -38,7 +47,7 @@ export class BattlesService extends EventEmitter {
   create(payload: BattleCreateQueryDto): Battle {
     const now = new Date()
     const battleId = this.generateId()
-    const playTime = BATTLE_PLAYTIME[payload.playTime]
+    const playTime: BattlePlayTime = BATTLE_PLAYTIME[payload.playTime]
 
     const battle: Battle = {
       id: battleId,
@@ -222,7 +231,6 @@ export class BattlesService extends EventEmitter {
         attacks: [],
         defenses: [],
       },
-
       phase: BATTLE_PHASE.OPINION_SHARE.name,
       round: 1,
       turn: null,
@@ -462,6 +470,104 @@ export class BattlesService extends EventEmitter {
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
     return battleState
+  }
+
+  handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
+    const { authorId, content, team } = data
+
+    const battleState = this.getBattleState(battleId)
+
+    if (!this.canUserSubmitAttack(battleState, team)) {
+      throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
+    }
+
+    const attack: BattleDiscussion = {
+      discussionId: this.generateId(),
+      authorId,
+      type: BATTLE_DISCUSSION_TYPE.ATTACK,
+      content: content.trim(),
+      upvotes: 0,
+      votes: [],
+      status: 'PENDING',
+    }
+
+    if (team === BATTLE_TEAM.A) {
+      battleState.teamA.attacks.push(attack)
+    } else {
+      battleState.teamB.attacks.push(attack)
+    }
+
+    return attack
+  }
+
+  handleDefense(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDefense {
+    const { authorId, content, team } = data
+
+    const battleState = this.getBattleState(battleId)
+
+    if (!this.canUserSubmitDefense(battleState, team)) {
+      throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
+    }
+
+    const defense: BattleDefense = {
+      discussionId: this.generateId(),
+      authorId,
+      type: BATTLE_DISCUSSION_TYPE.DEFENSE,
+      content: content.trim(),
+      upvotes: 0,
+      votes: [],
+      status: 'PENDING',
+    }
+
+    if (team === BATTLE_TEAM.A) {
+      battleState.teamA.defenses.push(defense)
+    } else {
+      battleState.teamB.defenses.push(defense)
+    }
+
+    return defense
+  }
+
+  private canUserSubmitAttack(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
+    const { phase, turn } = battleState
+
+    if (userTeam === BATTLE_TEAM.NONE) return false
+
+    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'A_ATTACK' && userTeam === BATTLE_TEAM.A) {
+      return true
+    }
+
+    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'B_ATTACK' && userTeam === BATTLE_TEAM.B) {
+      return true
+    }
+
+    return false
+  }
+
+  private canUserSubmitDefense(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
+    const { phase, turn } = battleState
+
+    if (userTeam === BATTLE_TEAM.NONE) return false
+
+    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'B_DEFENSE' && userTeam === BATTLE_TEAM.B) {
+      return true
+    }
+
+    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'A_DEFENSE' && userTeam === BATTLE_TEAM.A) {
+      return true
+    }
+
+    return false
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDiscussion {
+    throw new Error('handleAttackVote: Not implemented yet')
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDefense {
+    throw new Error('handleDefenseVote: Not implemented yet')
   }
 
   private scheduleNextTick(battleId: string) {
