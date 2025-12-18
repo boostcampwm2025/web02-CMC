@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { StatCard, LiveBattleCard, BattleCategoryCard } from './components/index';
-import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
+import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './components';
+import { type BattleCardItem, type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
-import { getOpenBattles, getClosedBattles } from './api/getBattleList';
-import PastBattleCard from './components/PastBattleCard';
 import Header from '@/components/Header';
+
+import { getOpenBattles, getClosedBattles } from './api/getBattleList';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
 export default function MainPage() {
   const [openBattles, setOpenBattles] = useState<BattleCardItem[]>([]);
-  const [closedBattles, setClosedBattles] = useState<BattleCardItem[]>([]);
+  const [closedBattles, setClosedBattles] = useState<ClosedBattleItem[]>([]);
 
   const [openTotal, setOpenTotal] = useState(0);
   const [closedTotal, setClosedTotal] = useState(0);
@@ -36,14 +36,14 @@ export default function MainPage() {
   return (
     <div className="min-h-screen w-full">
       <Header />
+
       <main>
         <div className="mx-auto max-w-6xl px-6 py-10 space-y-12">
-          {/* Header */}
-
-          <section className="flex  flex-col gap-4 items-center">
+          {/* Hero */}
+          <section className="flex flex-col gap-4 items-center">
             <div className="flex gap-6">
               <img src="logo.svg" alt="코문철 로고" className="w-16 h-16" />
-              <h1 className=" text-white text-6xl font-extrabold">코문철</h1>
+              <h1 className="text-white text-6xl font-extrabold">코문철</h1>
             </div>
 
             <p className=" text-gray-400">두 가지 코드 구현 중 어떤 게 더 나은지 실시간 투표로 결정하세요</p>
@@ -61,19 +61,19 @@ export default function MainPage() {
 
               <Link
                 to="/team-select"
-                className="flex items-center rounded-xl px-5 py-3  bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A] transition-colors duration-200"
+                className="flex items-center rounded-xl px-5 py-3 bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A]"
               >
                 배틀 참여
               </Link>
             </div>
           </section>
 
-          {/* info */}
+          {/* Stats */}
           <section>
-            <div className="mt-6 grid grid-cols-3 gap-6">
-              <StatCard type="TOTAL_BATTLES" value="1,234" />
-              <StatCard type="LIVE_BATTLES" value="42" />
-              <StatCard type="TOTAL_USERS" value="8,567" />
+            <div className="grid grid-cols-3 gap-6">
+              <StatCard type="TOTAL_BATTLES" value={openTotal + closedTotal} />
+              <StatCard type="LIVE_BATTLES" value={openTotal} />
+              <StatCard type="TOTAL_USERS" value={8567} />
             </div>
 
             <div className="mt-6 grid grid-cols-3 gap-6">
@@ -82,13 +82,12 @@ export default function MainPage() {
               ))}
             </div>
           </section>
-
           {/* Live */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col text-left gap-3">
-                <span className="text-[#FF6900] text-sm uppercase tracking-wider">PLAY TO EARN GAMES</span>
-                <h2 className="text-3xl  font-bold text-white">실시간 배틀</h2>
+                <span className="text-orange-500 text-sm uppercase tracking-wider">PLAY TO EARN GAMES</span>
+                <h2 className="text-3xl  font-bold">실시간 배틀</h2>
               </div>
 
               <span className="text-sm text-gray-400">{openTotal}개 진행중</span>
@@ -98,31 +97,21 @@ export default function MainPage() {
                 <LiveBattleCard key={b.id} item={b} />
               ))}
             </div>
-
-            <button className="mt-4 w-full bg-[#1E1E2F] border border-[#2D2D3F] rounded-xl py-3 text-white text-[14px] hover:bg-[#2D2D3F] transition-colors">
-              더 많은 배틀 보기
-            </button>
           </section>
 
           {/* Past */}
           <section>
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col text-left gap-3">
-                <span className="text-[#FF6900] text-sm uppercase tracking-wider">PAST BATTLES</span>
-                <h2 className="text-3xl  font-bold text-white">지난 배틀 결과</h2>
+                <span className="text-orange-500 text-sm uppercase">PAST BATTLES</span>
+                <h2 className="text-3xl font-bold">지난 배틀 결과</h2>
               </div>
-
-              <span className="text-sm text-gray-400">{closedTotal}개 진행중</span>
             </div>
-            <div className="grid  grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {closedBattles.map((b) => (
                 <PastBattleCard key={b.id} item={b} />
               ))}
             </div>
-
-            <button className="mt-4 w-full bg-[#1E1E2F] border border-[#2D2D3F] rounded-xl py-3 text-white text-[14px] hover:bg-[#2D2D3F] transition-colors">
-              더 많은 지난 배틀 보기
-            </button>
           </section>
         </div>
       </main>

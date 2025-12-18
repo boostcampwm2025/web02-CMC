@@ -3,7 +3,7 @@ import IconBox from './IconBox';
 
 interface Props {
   type: StatType;
-  value: string;
+  value: number;
 }
 
 export default function StatCard({ type, value }: Props) {

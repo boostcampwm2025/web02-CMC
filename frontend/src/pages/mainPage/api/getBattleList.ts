@@ -1,4 +1,4 @@
-import type { BattleCardItem } from '../types/battle';
+import type { BattleCardItem, ClosedBattleItem } from '../types/battle';
 
 interface GetBattleListParams {
   offset: number;
@@ -7,6 +7,15 @@ interface GetBattleListParams {
 
 interface BattleListResponse {
   battles: BattleCardItem[];
+  meta: {
+    offset: number;
+    limit: number;
+    total: number;
+  };
+}
+
+interface BattleResultListResponse {
+  battles: ClosedBattleItem[];
   meta: {
     offset: number;
     limit: number;
@@ -24,7 +33,7 @@ export async function getOpenBattles({ offset, limit }: GetBattleListParams): Pr
   return res.json();
 }
 
-export async function getClosedBattles({ offset, limit }: GetBattleListParams): Promise<BattleListResponse> {
+export async function getClosedBattles({ offset, limit }: GetBattleListParams): Promise<BattleResultListResponse> {
   const res = await fetch(`/api/battles/closed?offset=${offset}&limit=${limit}`);
 
   if (!res.ok) {

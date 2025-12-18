@@ -64,9 +64,27 @@ export interface BattleCardItem {
   // 추가 필드 (카드 표시용)
   category: BattleCategory;
   timeLabel: string;
+}
 
-  // 과거 배틀용 필드
-  winner?: WinnerTeam;
-  aPct?: number;
-  bPct?: number;
+export interface VoteResult {
+  votes: number;
+  percentage: number;
+}
+
+export interface BattleResult {
+  winner: 'A' | 'B' | 'DRAW';
+  teamA: VoteResult;
+  teamB: VoteResult;
+  neutral: VoteResult;
+}
+
+export interface ClosedBattleItem {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  status: 'CLOSED';
+  createdAt: string;
+  expiresAt: string;
+  result: BattleResult;
 }
