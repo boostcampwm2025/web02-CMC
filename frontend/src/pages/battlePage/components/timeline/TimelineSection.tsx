@@ -34,7 +34,7 @@ const MOCK_TIMELINE: TimelineItem[] = [
 
 export default function TimelineSection() {
   return (
-    <section className="w-[1284px] mb-8">
+    <section className="w-[1194px] mt-4">
       <div className="bg-[#1E1E2F] rounded-lg p-6">
         <div className="flex items-center gap-2 mb-2">
           <BattleIcon className="text-[#AD46FF]" />

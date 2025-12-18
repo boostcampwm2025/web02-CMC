@@ -126,7 +126,7 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
   */
 
   return (
-    <section className="w-[500px] flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden">
+    <section className="w-full flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="px-4 pt-3 pb-2 border-b border-[#2D2D3F]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
