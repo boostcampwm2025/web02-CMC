@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
@@ -24,6 +24,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -472,6 +473,10 @@ export class BattlesService extends EventEmitter {
     return battleState
   }
 
+  /*=============
+  소켓 이벤트 핸들러
+  =============*/
+
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
     const { authorId, content, team } = data
 
@@ -560,14 +565,74 @@ export class BattlesService extends EventEmitter {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDiscussion {
-    throw new Error('handleAttackVote: Not implemented yet')
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+    //Todo: 턴 관리 pr 머지 후 턴 고려
+    const { userId, team } = data
+
+    if (!this.canTeamVote(team)) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+
+    const battleState = this.getBattleState(battleId)
+
+    const discussions = battleState.all.attacks
+    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    if (idx === -1) {
+      throw new NotFoundException('이의제기 항목이 없습니다.')
+    }
+    const target = discussions[idx]
+
+    if (this.hasAlreadyVoted(target.votes, userId)) {
+      throw new BadRequestException('이미 투표한 항목입니다.')
+    }
+
+    const updated = this.applyVote(target, userId)
+    discussions[idx] = updated
+
+    return DiscussionVoteResponseDto.fromEntity(updated)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDefense {
-    throw new Error('handleDefenseVote: Not implemented yet')
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+    //Todo: 턴 관리 pr 머지 후 턴 고려
+    const { userId, team } = data
+
+    if (!this.canTeamVote(team)) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+
+    const battleState = this.getBattleState(battleId)
+
+    const discussions = battleState.all.defenses
+    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    if (idx === -1) {
+      throw new NotFoundException('이의제기 항목이 없습니다.')
+    }
+    const target = discussions[idx]
+
+    if (this.hasAlreadyVoted(target.votes, userId)) {
+      throw new BadRequestException('이미 투표한 항목입니다.')
+    }
+
+    const updated = this.applyVote(target, userId)
+    discussions[idx] = updated
+
+    return DiscussionVoteResponseDto.fromEntity(updated)
+  }
+
+  private canTeamVote(team: BattleTeam): boolean {
+    return team === BATTLE_TEAM.A || team === BATTLE_TEAM.B
+  }
+
+  private hasAlreadyVoted(votes: readonly string[], userId: string): boolean {
+    return votes.includes(userId)
+  }
+
+  private applyVote(discussion: BattleDiscussion, userId: string): BattleDiscussion {
+    return {
+      ...discussion,
+      votes: [...discussion.votes, userId],
+      upvotes: discussion.upvotes++,
+    }
   }
 
   private scheduleNextTick(battleId: string) {
