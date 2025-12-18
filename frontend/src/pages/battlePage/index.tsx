@@ -240,7 +240,7 @@ export default function BattlePage() {
           aTeamCounts={10}
           bTeamCounts={8}
           noneTeamCounts={2}
-          remainingTime={30}
+          remainingTime={formattedTime}
           currentTeam={selectedTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
