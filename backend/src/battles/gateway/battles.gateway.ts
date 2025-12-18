@@ -180,6 +180,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:defensed', payload)
+  }
 
   closeBattle(payload: BattleClosedResponseDto) {
     const { battleId } = payload
