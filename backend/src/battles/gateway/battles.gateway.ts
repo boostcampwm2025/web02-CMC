@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { Logger } from '@nestjs/common'
 import { Socket, Server } from 'socket.io'
 
@@ -90,8 +90,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   @SubscribeMessage('Battle:Defense')
   handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: Socket) {
     try {
-      const { battleId, authorId, attackId, content, team } = dto
-      const defense = this.battlesService.handleDefense(battleId, { authorId, attackId, content, team })
+      const { battleId, authorId, content, team } = dto
+      const defense = this.battlesService.handleDefense(battleId, { authorId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('Battle:NewDefense', defense)

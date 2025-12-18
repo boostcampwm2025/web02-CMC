@@ -259,8 +259,8 @@ export class BattlesService {
     return attack
   }
 
-  handleDefense(battleId: string, data: { authorId: string; attackId: string; content: string; team: BattleTeam }): BattleDefense {
-    const { authorId, attackId, content, team } = data
+  handleDefense(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDefense {
+    const { authorId, content, team } = data
 
     const battleState = this.getBattleState(battleId)
 
@@ -268,17 +268,10 @@ export class BattlesService {
       throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
     }
 
-    const targetAttack = battleState.all.attacks.find(attack => attack.discussionId === attackId && attack.status === 'SELECTED')
-
-    if (!targetAttack) {
-      throw new NotFoundException('채택된 공격을 찾을 수 없습니다.')
-    }
-
     const defense: BattleDefense = {
       discussionId: this.generateId(),
       authorId,
       type: BATTLE_DISCUSSION_TYPE.DEFENSE,
-      attackId,
       content: content.trim(),
       upvotes: 0,
       votes: [],

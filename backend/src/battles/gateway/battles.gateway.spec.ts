@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
@@ -110,7 +110,6 @@ describe('BattlesGateway - Discussion Events', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
         authorId: 'user-2',
-        attackId: 'attack-1',
         content: '하지만 최악의 경우 O(n²)입니다',
         team: BATTLE_TEAM.B,
       }
@@ -119,7 +118,6 @@ describe('BattlesGateway - Discussion Events', () => {
         discussionId: 'defense-1',
         authorId: 'user-2',
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
-        attackId: 'attack-1',
         content: '하지만 최악의 경우 O(n²)입니다',
         upvotes: 0,
         votes: [],
@@ -133,7 +131,6 @@ describe('BattlesGateway - Discussion Events', () => {
 
       expect(service.handleDefense).toHaveBeenCalledWith('battle-1', {
         authorId: 'user-2',
-        attackId: 'attack-1',
         content: '하지만 최악의 경우 O(n²)입니다',
         team: BATTLE_TEAM.B,
       })
@@ -146,19 +143,18 @@ describe('BattlesGateway - Discussion Events', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
         authorId: 'user-2',
-        attackId: 'invalid',
         content: '반론',
         team: BATTLE_TEAM.B,
       }
 
       jest.spyOn(service, 'handleDefense').mockImplementation(() => {
-        throw new Error('존재하지 않는 공격입니다')
+        throw new Error('현재 반론을 등록할 수 없는 단계입니다.')
       })
 
       gateway.handleDefense(dto, mockClient)
 
       expect(mockClient.emit).toHaveBeenCalledWith('Battle:Defense:Error', {
-        message: '존재하지 않는 공격입니다',
+        message: '현재 반론을 등록할 수 없는 단계입니다.',
       })
     })
   })

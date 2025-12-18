@@ -30,10 +30,6 @@ export class DefenseRequestDto {
 
   @IsString()
   @IsNotEmpty()
-  attackId!: string
-
-  @IsString()
-  @IsNotEmpty()
   content!: string
 
   @IsEnum(BATTLE_TEAM)

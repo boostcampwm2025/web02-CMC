@@ -63,7 +63,6 @@ describe('DefenseRequestDto', () => {
     const value = {
       battleId: 'battle-456',
       authorId: 'user-456',
-      attackId: 'attack-1',
       content: '병합 정렬이 안정적입니다',
       team: 'B',
     }
@@ -74,19 +73,17 @@ describe('DefenseRequestDto', () => {
   })
 
   it('battleId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: '', authorId: 'user-1', attackId: 'attack-1', content: '내용', team: 'B' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: '', authorId: 'user-1', content: '내용', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
-  it('attackId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', attackId: '', content: '내용', team: 'B' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+  it('content가 빈 문자열이면 BadRequestException', async () => {
+    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
-  it('attackId가 없으면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '내용', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
+  it('team이 유효하지 않은 값이면 BadRequestException', async () => {
+    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '내용', team: 'INVALID' }, meta)).rejects.toThrow(
+      BadRequestException,
+    )
   })
 })
 

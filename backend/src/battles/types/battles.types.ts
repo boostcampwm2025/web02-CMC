@@ -63,9 +63,7 @@ export interface BattleDiscussion {
   status: BattleDiscussionStatus
 }
 
-export interface BattleDefense extends BattleDiscussion {
-  attackId: string
-}
+export type BattleDefense = BattleDiscussion
 
 export interface BattleData {
   roomId: string
