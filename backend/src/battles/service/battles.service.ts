@@ -187,12 +187,6 @@ export class BattlesService {
         attacks: [],
         defenses: [],
       },
-      teamNone: {
-        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.NONE),
-        chats: [],
-        attacks: [],
-        defenses: [],
-      },
     }
 
     this.activeBattles.set(battleId, activeBattleState)
@@ -220,7 +214,11 @@ export class BattlesService {
 
     if (!team) throw new BadRequestException('진영 채팅은 team 값이 필요합니다.')
 
-    const target = team === BATTLE_TEAM.A ? battleState.teamA : team === BATTLE_TEAM.B ? battleState.teamB : battleState.teamNone
+    if (team !== BATTLE_TEAM.A && team !== BATTLE_TEAM.B) {
+      throw new BadRequestException('진영 채팅은 A/B 진영만 사용할 수 있습니다.')
+    }
+
+    const target = team === BATTLE_TEAM.A ? battleState.teamA : battleState.teamB
     target.chats.push(chat)
 
     return { battleId, scope, team, ...chat }

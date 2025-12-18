@@ -12,7 +12,7 @@ export class BattleChatDto {
   scope!: typeof BATTLE_CHAT_SCOPE.ALL | typeof BATTLE_CHAT_SCOPE.TEAM
 
   @IsString()
-  @IsIn([BATTLE_TEAM.A, BATTLE_TEAM.B, BATTLE_TEAM.NONE])
+  @IsIn([BATTLE_TEAM.A, BATTLE_TEAM.B])
   @IsNotEmpty()
   team?: BattleTeam
 

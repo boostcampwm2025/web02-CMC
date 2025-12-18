@@ -408,7 +408,6 @@ describe('BattlesService', () => {
       )
       expect(state.teamA.chats).toHaveLength(1)
       expect(state.all.chats).toHaveLength(0)
-      expect(state.teamNone.chats).toHaveLength(0)
     })
 
     it('전체 채팅 메시지를 전체 채팅에 추가한다', () => {
@@ -435,7 +434,6 @@ describe('BattlesService', () => {
       expect(state.all.chats).toHaveLength(1)
       expect(state.teamA.chats).toHaveLength(0)
       expect(state.teamB.chats).toHaveLength(0)
-      expect(state.teamNone.chats).toHaveLength(0)
     })
   })
 })

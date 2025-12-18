@@ -78,5 +78,4 @@ export interface ActiveBattleState {
   all: BattleData
   teamA: BattleTeamData
   teamB: BattleTeamData
-  teamNone: BattleData
 }
