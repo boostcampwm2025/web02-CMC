@@ -583,6 +583,10 @@ export class BattlesService extends EventEmitter {
     }
     const battleState = this.getBattleState(battleId)
 
+    if (!this.canUserVoteAttack(battleState, team)) {
+      throw new BadRequestException('현재 투표할 수 있는 공격 턴이 아닙니다.')
+    }
+
     const discussions = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
 
     const idx = discussions.findIndex(d => d.discussionId === discussionId)
@@ -610,6 +614,9 @@ export class BattlesService extends EventEmitter {
     }
 
     const battleState = this.getBattleState(battleId)
+    if (!this.canUserVoteDefense(battleState, team)) {
+      throw new BadRequestException('현재 투표할 수 있는 반론 턴이 아닙니다.')
+    }
 
     const discussions = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
 
@@ -633,6 +640,37 @@ export class BattlesService extends EventEmitter {
   //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
   //battle:defensed
   //battle:attacked
+
+  private canUserVoteAttack(battleState: ActiveBattleState, team: BattleTeam): boolean {
+    const { phase, turn } = battleState
+    if (!turn) return false
+
+    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.A_ATTACK.name && team === BATTLE_TEAM.A) {
+      return true
+    }
+
+    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.B_ATTACK.name && team === BATTLE_TEAM.B) {
+      return true
+    }
+
+    return false
+  }
+
+  private canUserVoteDefense(battleState: ActiveBattleState, team: BattleTeam): boolean {
+    const { phase, turn } = battleState
+    if (!turn) return false
+
+    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.B_DEFENSE.name && team === BATTLE_TEAM.B) {
+      return true
+    }
+
+    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.A_DEFENSE.name && team === BATTLE_TEAM.A) {
+      return true
+    }
+
+    return false
+  }
+
   private pickTopVotedAttackByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
     const battleState = this.getBattleState(battleId)
     const attacks = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
