@@ -1,19 +1,16 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
+import type { BattleInfo } from '@/commons/types/battle';
 import TeamButton from './components/TeamButton';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 
-const MOCK_DATA = {
-  title: '퀵 소트 알고리즘 구현',
-  description: '퀵 소트 알고리즘을 구현하는 방법 중 어느것이 더 좋을까요?',
-  launguage: 'javascript',
-  acode:
-    " function quickSort(arr) { \n if (arr.length <= 1) { \n return arr; \n } \n const pivot = arr[arr.length - 1]; \n const left = []; \n const right = []; \n for (let i = 0; i < arr.length - 1; i++) { \n if (arr[i] < pivot) { \n left.push(arr[i]); \n } else { \n right.push(arr[i]); \n } \n } \n return [...quickSort(left), pivot, ...quickSort(right)]; \n } ',",
-  bcode:
-    " function quickSort(arr) { \n if (arr.length <= 1) { \n return arr; \n } \n const pivot = arr[arr.length - 1]; \n const left = []; \n const right = []; \n for (let i = 0; i < arr.length - 1; i++) { \n if (arr[i] < pivot) { \n left.push(arr[i]); \n } else { \n right.push(arr[i]); \n } \n } \n return [...quickSort(left), pivot, ...quickSort(right)]; \n } ',"
-};
-
 export default function TeamSelectPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const battleInfo = useLoaderData<BattleInfo>();
+
+  const handleTeamSelect = (team: 'A' | 'B' | 'NONE') => {
+    navigate(`/battle/${id}`, { state: { selectedTeam: team } });
+  };
 
   return (
     <main className="text-white flex items-center justify-center min-h-screen">
@@ -23,13 +20,13 @@ export default function TeamSelectPage() {
           <h1 className="ml-2 text-[16px] my-auto">진영을 선택해주세요</h1>
         </div>
         <div className="w-[768px] h-[113px] bg-[#1E1E2F] border-[1px] border-[#2D2D3F] rounded-lg mx-auto text-center py-6 mt-6 mb-10">
-          <p className="font-bold text-[20px]">{MOCK_DATA.title}</p>
-          <p className="mt-2 text-[#99A1AF] text-[16px]">{MOCK_DATA.description}</p>
+          <p className="font-bold text-[20px]">{battleInfo.title}</p>
+          <p className="mt-2 text-[#99A1AF] text-[16px]">{battleInfo.description}</p>
         </div>
         <div className="w-fit mx-auto my-4 flex gap-8 text-white">
-          <TeamButton team="A" language={MOCK_DATA.launguage} code={MOCK_DATA.acode} />
-          <TeamButton team="NONE" />
-          <TeamButton team="B" language={MOCK_DATA.launguage} code={MOCK_DATA.bcode} />
+          <TeamButton team="A" language="javascript" code={battleInfo.aCode} onSelect={handleTeamSelect} />
+          <TeamButton team="NONE" onSelect={handleTeamSelect} />
+          <TeamButton team="B" language="javascript" code={battleInfo.bCode} onSelect={handleTeamSelect} />
         </div>
         <button
           onClick={() => navigate('/')}

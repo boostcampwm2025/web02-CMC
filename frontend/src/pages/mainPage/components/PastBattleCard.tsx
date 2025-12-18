@@ -4,7 +4,7 @@ import { TEAM_STYLE } from '../types/team';
 import IconBox from './IconBox';
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
-import Badge from '@/components/Badge';
+import Badge from '@/commons/components/Badge';
 
 export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
   const { winner, teamA, teamB } = item.result;
