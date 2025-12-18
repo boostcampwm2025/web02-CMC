@@ -1,5 +1,5 @@
 import { BadRequestException, ValidationPipe, ArgumentMetadata } from '@nestjs/common'
-import { BattleListRequestQueryDto } from './battle-list-request-query.dto'
+import { BattleListRequestQueryDto } from './battleListRequestQuery.dto'
 
 describe('BattlesRequestQueryDto', () => {
   const pipe = new ValidationPipe({
