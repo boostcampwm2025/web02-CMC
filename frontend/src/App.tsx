@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     }
   },
   {
-    path: '/team-select',
+    path: '/battle/:id/team-select/',
     element: <TeamSelectPage />
   },
   {

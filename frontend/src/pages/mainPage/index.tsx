@@ -60,7 +60,7 @@ export default function MainPage() {
               </Link>
 
               <Link
-                to="/team-select"
+                to={`/battle/1/team-select`}
                 className="flex items-center rounded-xl px-5 py-3 bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A]"
               >
                 배틀 참여
@@ -93,7 +93,7 @@ export default function MainPage() {
               <span className="text-sm text-gray-400">{openTotal}개 진행중</span>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {openBattles.map((b, index) => (
+              {openBattles?.map((b, index) => (
                 <LiveBattleCard key={b.id} item={b} isHot={index === 0} />
               ))}
             </div>
@@ -108,7 +108,7 @@ export default function MainPage() {
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {closedBattles.map((b) => (
+              {closedBattles?.map((b) => (
                 <PastBattleCard key={b.id} item={b} />
               ))}
             </div>
