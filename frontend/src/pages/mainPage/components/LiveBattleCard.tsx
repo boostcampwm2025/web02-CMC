@@ -3,8 +3,14 @@ import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../types/battle';
 import PeopleIcon from '@/assets/icon/people.svg?react';
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import IconBox from './IconBox';
+import Badge from '@/components/Badge';
 
-export default function LiveBattleCard({ item }: { item: BattleCardItem }) {
+interface LiveBattleCardProps {
+  item: BattleCardItem;
+  isHot?: boolean;
+}
+
+export default function LiveBattleCard({ item, isHot = false }: LiveBattleCardProps) {
   const { text, bg, bgSoft, icon: Icon } = BATTLE_CATEGORY_CONFIG[item.category];
 
   return (
@@ -26,6 +32,11 @@ export default function LiveBattleCard({ item }: { item: BattleCardItem }) {
               <span className="text-gray-400 text-xs uppercase">{item.category}</span>
             </div>
           </div>
+          {isHot && (
+            <Badge textClass={'text-yellow-400'} bgClass={'bg-yellow-400/20'}>
+              Hot
+            </Badge>
+          )}
         </div>
 
         {/* 제목 / 설명 */}

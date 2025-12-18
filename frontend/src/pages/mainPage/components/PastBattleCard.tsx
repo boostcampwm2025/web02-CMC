@@ -4,6 +4,7 @@ import { TEAM_STYLE } from '../types/team';
 import IconBox from './IconBox';
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import Badge from '@/components/Badge';
 
 export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
   const { winner, teamA, teamB } = item.result;
@@ -28,9 +29,9 @@ export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
             </div>
           </div>
 
-          <span className={`px-3 py-1 rounded-full text-xs ${teamStyle.bgSoft} ${teamStyle.text}`}>
+          <Badge textClass={teamStyle.text} bgClass={teamStyle.bgSoft}>
             {teamStyle.label}
-          </span>
+          </Badge>
         </div>
 
         {/* 제목 */}
