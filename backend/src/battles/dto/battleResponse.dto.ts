@@ -11,7 +11,7 @@ export class BattleResponseDto {
 
   static fromEntity(battle: Battle): BattleResponseDto {
     const res = new BattleResponseDto()
-    const expiresAt = new Date(battle.createdAt.getTime() + battle.playTime * 60 * 1000)
+    const expiresAt = new Date(battle.createdAt.getTime() + battle.playTime.time * 60 * 1000)
 
     res.id = battle.id
     res.title = battle.title
