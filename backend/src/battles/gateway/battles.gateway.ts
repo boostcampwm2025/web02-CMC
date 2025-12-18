@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common'
+import { Logger, OnModuleInit } from '@nestjs/common'
 import { Socket, Server } from 'socket.io'
 
 import {
@@ -13,15 +13,20 @@ import {
 import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
+import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
 
 @WebSocketGateway()
-export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
   @WebSocketServer()
   server: Server
 
   private readonly logger = new Logger(BattlesGateway.name)
 
   constructor(private readonly battlesService: BattlesService) {}
+
+  onModuleInit() {
+    this.bindBattleEvents()
+  }
 
   handleConnection(client: Socket) {
     this.logger.log(`[소켓 연결] - ${client.id}`)
@@ -65,5 +70,39 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
         })
       }
     }
+  }
+
+  turnUpdate(payload: BattleTurnResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:turn:update', payload)
+  }
+
+  phaseUpdate(payload: BattlePhaseResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:phase:update', payload)
+  }
+
+  roundUpdate(payload: BattleRoundResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:round:update', payload)
+  }
+
+  private bindBattleEvents() {
+    this.battlesService.on('battle:phase:update', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
+
+    this.battlesService.on('battle:turn:update', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
+
+    this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
+
+    // this.battlesService.on('battle:ended', payload => {
+    //   const { battleId } = payload
+    //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
+    // })
   }
 }
