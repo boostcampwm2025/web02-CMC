@@ -42,9 +42,87 @@ export default function BattlePage() {
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
 
-  const getTotalVotes = () => {
-    return objections.reduce((sum, obj) => sum + obj.votes, 0);
-  };
+  // 투표 결과 업데이트 수신
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
+      setObjections((prev) => {
+        const updated = prev.map((obj) => {
+          const isTarget = String(obj.id) === data.discussionId;
+          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes('abc') } : obj;
+        });
+        const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
+        return updated.map((obj) => ({ ...obj, totalVotes }));
+      });
+    };
+
+    // 다른 사람이 제출한 이의제기/반론 수신
+    const handleNewAttack = (data: {
+      discussionId: string;
+      authorId: string;
+      content: string;
+      upvotes: number;
+      votes: string[];
+    }) => {
+      setObjections((prev) => {
+        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
+
+        if (selectedTeam === 'NONE') {
+          return prev;
+        }
+        const newObjection: Objection = {
+          id: data.discussionId as unknown as number,
+          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          team: selectedTeam,
+          content: data.content,
+          votes: data.upvotes,
+          totalVotes,
+          hasVoted: data.votes.includes('abc')
+        };
+
+        return [...prev, newObjection];
+      });
+    };
+
+    const handleNewDefense = (data: {
+      discussionId: string;
+      authorId: string;
+      content: string;
+      upvotes: number;
+      votes: string[];
+    }) => {
+      setObjections((prev) => {
+        if (selectedTeam === 'NONE') {
+          return prev;
+        }
+        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
+        const newObjection: Objection = {
+          id: data.discussionId as unknown as number,
+          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          team: selectedTeam,
+          content: data.content,
+          votes: data.upvotes,
+          totalVotes,
+          hasVoted: data.votes.includes('abc')
+        };
+
+        return [...prev, newObjection];
+      });
+    };
+
+    socket.on('Battle:AttackVoteUpdate', handleVoteUpdate);
+    socket.on('Battle:DefenseVoteUpdate', handleVoteUpdate);
+    socket.on('Battle:NewAttack', handleNewAttack);
+    socket.on('Battle:NewDefense', handleNewDefense);
+
+    return () => {
+      socket.off('Battle:AttackVoteUpdate', handleVoteUpdate);
+      socket.off('Battle:DefenseVoteUpdate', handleVoteUpdate);
+      socket.off('Battle:NewAttack', handleNewAttack);
+      socket.off('Battle:NewDefense', handleNewDefense);
+    };
+  }, [socket, selectedTeam]);
 
   const handleVote = (objectionId: number) => {
     if (!socket || selectedTeam === 'NONE') return;
@@ -94,17 +172,8 @@ export default function BattlePage() {
       team: selectedTeam
     });
 
-    const newObjection: Objection = {
-      id: Date.now(),
-      user: 'You',
-      team: selectedTeam,
-      content,
-      votes: 0,
-      totalVotes: getTotalVotes(),
-      hasVoted: false
-    };
-
-    setObjections((prev) => [...prev, newObjection]);
+    // 서버에서 Battle:NewAttack/NewDefense로 받을 예정이므로 여기서는 optimistic update 제거
+    // 중복 추가 방지
   };
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
