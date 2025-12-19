@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        # 배포 시 백엔드 도메인/포트로 교체
+        VITE_API_URL: http://49.50.137.2:3000
+    ports:
+      - '80:80'
+    depends_on:
+      - backend
+    restart: unless-stopped
