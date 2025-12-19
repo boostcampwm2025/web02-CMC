@@ -5,7 +5,7 @@ import TimerIcon from '@/assets/icon/timer.svg?react';
 interface TeamChangeModalProps {
   aTeamCounts: number;
   bTeamCounts: number;
-  currentTeam : 'A' | 'B' | 'NONE'; 
+  currentTeam: 'A' | 'B' | 'NONE';
   remainingTime: number;
   noneTeamCounts: number;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;

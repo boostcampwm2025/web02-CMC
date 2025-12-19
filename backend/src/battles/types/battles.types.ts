@@ -50,6 +50,7 @@ export interface Battle {
 }
 export interface BattleChat {
   messageId: string
+  team: BattleTeam
   sender: string
   text: string
   createdAt: Date

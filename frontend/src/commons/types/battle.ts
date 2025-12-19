@@ -1,7 +1,12 @@
 // BattleChat 타입
 export interface BattleChat {
-  authorId: string;
-  content: string;
+  battleId: string;
+  scope: 'TEAM' | 'ALL';
+  messageId: string;
+  sender: string;
+  team: Team;
+  text: string;
+  createdAt: Date;
 }
 
 export interface BattleInfo {

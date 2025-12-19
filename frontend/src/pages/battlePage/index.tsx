@@ -29,7 +29,8 @@ export default function BattlePage() {
     closeModal: closeTeamChangeModal
   } = useModal(false);
 
-  const { socket, currentStage, battleProgress } = useBattleSocket({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { socket, currentStage, battleProgress, isConnected, battleData } = useBattleSocket({
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
@@ -181,8 +182,8 @@ export default function BattlePage() {
   };
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
-    console.log(team);
     // @ Todo 팀 변경 로직 추가 필요
     closeTeamChangeModal();
   };
@@ -213,7 +214,14 @@ export default function BattlePage() {
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection aTeamMemebers={102} team={selectedTeam} />
+            <ChatSection
+              aTeamMemebers={102}
+              team={selectedTeam}
+              socket={socket}
+              battleId={id}
+              chats={battleData?.chats || []}
+              allChats={battleData?.allChats || []}
+            />
             <ObjectionInput
               onSubmit={handleObjectionSubmit}
               phase={battleProgress?.phase}
