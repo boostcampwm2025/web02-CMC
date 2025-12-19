@@ -1,6 +1,6 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
@@ -25,6 +25,8 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
+import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 
 @Injectable()
@@ -452,12 +454,17 @@ export class BattlesService extends EventEmitter {
     }
 
     switch (state.turn.status) {
-      case BATTLE_TURN.A_ATTACK.name:
+      case BATTLE_TURN.A_ATTACK.name: {
+        this.emitAttackedResult(state.battleId, BATTLE_TEAM.A)
+
         state.turn.status = BATTLE_TURN.B_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.B_DEFENSE.time
         return BATTLE_PHASE.TEAM_A_ATTACK
+      }
 
-      case BATTLE_TURN.B_DEFENSE.name:
+      case BATTLE_TURN.B_DEFENSE.name: {
+        this.emitDefensedResult(state.battleId, BATTLE_TEAM.B)
+
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.A_ATTACK.name
           state.turn.count += 1
@@ -469,13 +476,19 @@ export class BattlesService extends EventEmitter {
           state.expiredAt = now + BATTLE_TURN.B_ATTACK.time
           return BATTLE_PHASE.TEAM_B_ATTACK
         }
+      }
 
-      case BATTLE_TURN.B_ATTACK.name:
+      case BATTLE_TURN.B_ATTACK.name: {
+        this.emitAttackedResult(state.battleId, BATTLE_TEAM.B)
+
         state.turn.status = BATTLE_TURN.A_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.A_DEFENSE.time
         return BATTLE_PHASE.TEAM_B_ATTACK
+      }
 
-      case BATTLE_TURN.A_DEFENSE.name:
+      case BATTLE_TURN.A_DEFENSE.name: {
+        this.emitDefensedResult(state.battleId, BATTLE_TEAM.A)
+
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.B_ATTACK.name
           state.turn.count += 1
@@ -485,6 +498,7 @@ export class BattlesService extends EventEmitter {
           state.turn = null
           return BATTLE_PHASE.TEAM_SWITCH
         }
+      }
     }
   }
 
@@ -621,14 +635,145 @@ export class BattlesService extends EventEmitter {
     return false
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDiscussion {
-    throw new Error('handleAttackVote: Not implemented yet')
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+    //Todo: 턴 관리 pr 머지 후 턴 고려
+    const { userId, team } = data
+
+    if (team === BATTLE_TEAM.NONE) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+    const battleState = this.getBattleState(battleId)
+
+    if (!this.canUserVoteAttack(battleState, team)) {
+      throw new BadRequestException('현재 투표할 수 있는 공격 턴이 아닙니다.')
+    }
+
+    const discussions = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
+
+    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    if (idx === -1) {
+      throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
+    }
+
+    const target = discussions[idx]
+
+    if (this.hasAlreadyVoted(target.votes, userId)) {
+      throw new BadRequestException('이미 투표한 항목입니다.')
+    }
+
+    const updated = this.applyVote(target, userId)
+    discussions[idx] = updated
+
+    return DiscussionVoteResponseDto.of(battleId, updated)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): BattleDefense {
-    throw new Error('handleDefenseVote: Not implemented yet')
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+    const { userId, team } = data
+
+    if (team === BATTLE_TEAM.NONE) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+
+    const battleState = this.getBattleState(battleId)
+    if (!this.canUserVoteDefense(battleState, team)) {
+      throw new BadRequestException('현재 투표할 수 있는 반론 턴이 아닙니다.')
+    }
+
+    const discussions = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
+
+    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    if (idx === -1) {
+      throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
+    }
+
+    const target = discussions[idx]
+
+    if (this.hasAlreadyVoted(target.votes, userId)) {
+      throw new BadRequestException('이미 투표한 항목입니다.')
+    }
+
+    const updated = this.applyVote(target, userId)
+    discussions[idx] = updated
+
+    return DiscussionVoteResponseDto.of(battleId, updated)
+  }
+
+  //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
+  //battle:defensed
+  //battle:attacked
+
+  private canUserVoteAttack(battleState: ActiveBattleState, team: BattleTeam): boolean {
+    const { phase, turn } = battleState
+    if (!turn) return false
+
+    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.A_ATTACK.name && team === BATTLE_TEAM.A) {
+      return true
+    }
+
+    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.B_ATTACK.name && team === BATTLE_TEAM.B) {
+      return true
+    }
+
+    return false
+  }
+
+  private canUserVoteDefense(battleState: ActiveBattleState, team: BattleTeam): boolean {
+    const { phase, turn } = battleState
+    if (!turn) return false
+
+    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.B_DEFENSE.name && team === BATTLE_TEAM.B) {
+      return true
+    }
+
+    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.A_DEFENSE.name && team === BATTLE_TEAM.A) {
+      return true
+    }
+
+    return false
+  }
+
+  private pickTopVotedAttackByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
+    const battleState = this.getBattleState(battleId)
+    const attacks = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
+
+    if (attacks.length === 0) return null
+
+    return attacks.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
+  }
+
+  private pickTopVotedDefenseByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
+    const battleState = this.getBattleState(battleId)
+    const defenses = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
+
+    if (defenses.length === 0) return null
+
+    return defenses.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
+  }
+
+  private emitAttackedResult(battleId: string, team: BattleTeam) {
+    const top = this.pickTopVotedAttackByTeam(battleId, team)
+    if (!top) return
+
+    this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
+  }
+
+  private emitDefensedResult(battleId: string, team: BattleTeam) {
+    const top = this.pickTopVotedDefenseByTeam(battleId, team)
+    if (!top) return
+
+    this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
+  }
+
+  private hasAlreadyVoted(votes: readonly string[], userId: string): boolean {
+    return votes.includes(userId)
+  }
+
+  private applyVote<T extends { votes: string[]; upvotes: number }>(discussion: T, userId: string): T {
+    return {
+      ...discussion,
+      votes: [...discussion.votes, userId],
+      upvotes: discussion.upvotes + 1,
+    }
   }
 
   private scheduleNextTick(battleId: string) {
