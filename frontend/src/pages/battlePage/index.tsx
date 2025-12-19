@@ -22,7 +22,6 @@ type LocationState = {
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
-  // const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'NONE'>(
     (state as LocationState)?.selectedTeam || 'NONE'
   );
@@ -99,12 +98,12 @@ export default function BattlePage() {
         }
         const newObjection: Objection = {
           id: data.discussionId as unknown as number,
-          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
           team: selectedTeam,
           content: data.content,
           votes: data.upvotes,
           totalVotes,
-          hasVoted: data.votes.includes('abc')
+          hasVoted: data.votes.includes(userId)
         };
 
         return [...prev, newObjection];
@@ -125,12 +124,12 @@ export default function BattlePage() {
         const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
         const newObjection: Objection = {
           id: data.discussionId as unknown as number,
-          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
           team: selectedTeam,
           content: data.content,
           votes: data.upvotes,
           totalVotes,
-          hasVoted: data.votes.includes('abc')
+          hasVoted: data.votes.includes(userId)
         };
 
         return [...prev, newObjection];
@@ -214,7 +213,7 @@ export default function BattlePage() {
 
     socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
       battleId: id || '1',
-      authorId: 'abc', // TODO: 실제 userId로 교체 필요
+      authorId: userId,
       content,
       team: selectedTeam
     });
