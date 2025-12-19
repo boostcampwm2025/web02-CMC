@@ -8,6 +8,7 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 
@@ -41,11 +42,109 @@ export default function BattlePage() {
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
 
-  const getTotalVotes = () => {
-    return objections.reduce((sum, obj) => sum + obj.votes, 0);
-  };
+  // 턴 변경 시 투표 리스트 초기화
+  useEffect(() => {
+    setObjections([]);
+  }, [battleProgress?.turn?.status, battleProgress?.phase]);
+
+  // 투표 결과 업데이트 수신
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
+      setObjections((prev) => {
+        const updated = prev.map((obj) => {
+          const isTarget = String(obj.id) === data.discussionId;
+          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes('abc') } : obj;
+        });
+        const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
+        return updated.map((obj) => ({ ...obj, totalVotes }));
+      });
+    };
+
+    // 다른 사람이 제출한 이의제기/반론 수신
+    const handleNewAttack = (data: {
+      discussionId: string;
+      authorId: string;
+      content: string;
+      upvotes: number;
+      votes: string[];
+    }) => {
+      setObjections((prev) => {
+        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
+
+        if (selectedTeam === 'NONE') {
+          return prev;
+        }
+        const newObjection: Objection = {
+          id: data.discussionId as unknown as number,
+          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          team: selectedTeam,
+          content: data.content,
+          votes: data.upvotes,
+          totalVotes,
+          hasVoted: data.votes.includes('abc')
+        };
+
+        return [...prev, newObjection];
+      });
+    };
+
+    const handleNewDefense = (data: {
+      discussionId: string;
+      authorId: string;
+      content: string;
+      upvotes: number;
+      votes: string[];
+    }) => {
+      setObjections((prev) => {
+        if (selectedTeam === 'NONE') {
+          return prev;
+        }
+        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
+        const newObjection: Objection = {
+          id: data.discussionId as unknown as number,
+          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          team: selectedTeam,
+          content: data.content,
+          votes: data.upvotes,
+          totalVotes,
+          hasVoted: data.votes.includes('abc')
+        };
+
+        return [...prev, newObjection];
+      });
+    };
+
+    socket.on('Battle:AttackVoteUpdate', handleVoteUpdate);
+    socket.on('Battle:DefenseVoteUpdate', handleVoteUpdate);
+    socket.on('Battle:NewAttack', handleNewAttack);
+    socket.on('Battle:NewDefense', handleNewDefense);
+
+    return () => {
+      socket.off('Battle:AttackVoteUpdate', handleVoteUpdate);
+      socket.off('Battle:DefenseVoteUpdate', handleVoteUpdate);
+      socket.off('Battle:NewAttack', handleNewAttack);
+      socket.off('Battle:NewDefense', handleNewDefense);
+    };
+  }, [socket, selectedTeam]);
 
   const handleVote = (objectionId: number) => {
+    if (!socket || selectedTeam === 'NONE') return;
+
+    const targetObjection = objections.find((obj) => obj.id === objectionId);
+    if (targetObjection?.hasVoted) return;
+
+    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
+    const eventName = isAttacking ? 'Battle:AttackVote' : 'Battle:DefenseVote';
+
+    socket.emit(eventName, {
+      battleId: id || '1',
+      discussionId: String(objectionId),
+      userId: 'abc', // TODO: 실제 userId로 교체 필요
+      team: selectedTeam
+    });
+
     setObjections((prev) => {
       const updated = prev.map((obj) => {
         if (obj.id === objectionId) {
@@ -59,23 +158,27 @@ export default function BattlePage() {
       const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
       return updated.map((obj) => ({ ...obj, totalVotes }));
     });
-    // @ Todo 소켓으로 투표 정보 전송 로직 추가 필요
   };
 
   const handleObjectionSubmit = (content: string) => {
-    if (selectedTeam === 'NONE') return;
-    const newObjection: Objection = {
-      id: Date.now(),
-      user: 'You',
-      team: selectedTeam,
-      content,
-      votes: 0,
-      totalVotes: getTotalVotes(),
-      hasVoted: false
-    };
+    if (selectedTeam === 'NONE' || !socket) return;
 
-    setObjections((prev) => [...prev, newObjection]);
-    // @ Todo 소켓으로 이의제기 정보 전송 로직 추가 필요
+    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
+    const canSubmit = !isInputDisabled(selectedTeam, battleProgress?.phase, battleProgress?.turn?.status);
+
+    if (!canSubmit) {
+      return;
+    }
+
+    socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
+      battleId: id || '1',
+      authorId: 'abc', // TODO: 실제 userId로 교체 필요
+      content,
+      team: selectedTeam
+    });
+
+    // 서버에서 Battle:NewAttack/NewDefense로 받을 예정이므로 여기서는 optimistic update 제거
+    // 중복 추가 방지
   };
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
