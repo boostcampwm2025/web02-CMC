@@ -1,6 +1,6 @@
 const fetchBattleInfo = async (id: string) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/battles/${id}/join`, {
+    const response = await fetch(`/api/battles/${id}/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
