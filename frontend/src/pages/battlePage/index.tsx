@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLoaderData, useLocation } from 'react-router-dom';
-import type { BattleInfo } from '@/commons/types/battle';
+import type { BattleInfo, BattleAttackedResult, BattleDefensedResult } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
@@ -9,9 +9,11 @@ import ObjectionVote, { type Objection } from './components/objection/ObjectionV
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 import { useBattleTimer } from './hooks/useBattleTimer';
+import { useEffectModal } from './hooks/useEffectModal';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
+import ObjectionModal from './components/effects/ObjectionModal';
 
 type LocationState = {
   selectedTeam?: 'A' | 'B' | 'NONE';
@@ -28,6 +30,7 @@ export default function BattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
+  const { effectModal, showEffect, hideEffect } = useEffectModal();
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: openTeamChangeModal,
@@ -137,6 +140,27 @@ export default function BattlePage() {
       socket.off('Battle:NewDefense', handleNewDefense);
     };
   }, [socket, selectedTeam]);
+
+  // battle:attacked / battle:defensed 이벤트 처리
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleAttacked = (data: BattleAttackedResult) => {
+      const attackTeam = selectedTeam === 'A' ? 'B' : 'A';
+      showEffect(attackTeam, data.attack.content, 'attack');
+    };
+    const handleDefensed = (data: BattleDefensedResult) => {
+      showEffect(selectedTeam, data.defense.content, 'defense');
+    };
+
+    socket.on('battle:attacked', handleAttacked);
+    socket.on('battle:defensed', handleDefensed);
+
+    return () => {
+      socket.off('battle:attacked', handleAttacked);
+      socket.off('battle:defensed', handleDefensed);
+    };
+  }, [socket, selectedTeam, showEffect]);
 
   const handleVote = (objectionId: number) => {
     if (!socket || selectedTeam === 'NONE') return;
@@ -272,6 +296,16 @@ export default function BattlePage() {
           currentTeam={selectedTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
+        />
+      )}
+
+      {effectModal.isOpen && effectModal.team !== 'NONE' && (
+        <ObjectionModal
+          isOpen={effectModal.isOpen}
+          team={effectModal.team}
+          content={effectModal.content}
+          type={effectModal.type}
+          onClose={hideEffect}
         />
       )}
     </div>
