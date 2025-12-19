@@ -5,15 +5,15 @@ export const BATTLE_PHASE = {
   // },
   OPINION_SHARE: {
     name: 'OPINION_SHARE',
-    time: 60 * 1000, // 1분
+    time: 10 * 1000, // 1분
   },
   TEAM_A_ATTACK: {
     name: 'TEAM_A_ATTACK',
-    time: 120 * 1000, // 2분
+    time: 20 * 1000, // 2분
   },
   TEAM_B_ATTACK: {
     name: 'TEAM_B_ATTACK',
-    time: 120 * 1000, // 2분
+    time: 20 * 1000, // 2분
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
@@ -22,10 +22,10 @@ export const BATTLE_PHASE = {
 } as const
 
 export const BATTLE_TURN = {
-  A_ATTACK: { name: 'A_ATTACK', time: 30 * 1000 },
-  B_ATTACK: { name: 'B_ATTACK', time: 30 * 1000 },
-  A_DEFENSE: { name: 'A_DEFENSE', time: 30 * 1000 },
-  B_DEFENSE: { name: 'B_DEFENSE', time: 30 * 1000 },
+  A_ATTACK: { name: 'A_ATTACK', time: 10 * 1000 },
+  B_ATTACK: { name: 'B_ATTACK', time: 10 * 1000 },
+  A_DEFENSE: { name: 'A_DEFENSE', time: 10 * 1000 },
+  B_DEFENSE: { name: 'B_DEFENSE', time: 10 * 1000 },
 } as const
 
 export const BATTLE_STATUS = {

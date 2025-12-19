@@ -155,10 +155,10 @@ export default function BattlePage() {
 
     const handleAttacked = (data: BattleAttackedResult) => {
       const attackTeam = selectedTeam === 'A' ? 'B' : 'A';
-      showEffect(attackTeam, data.attack.content, 'attack');
+      showEffect(attackTeam, data.attack.text, 'attack');
     };
     const handleDefensed = (data: BattleDefensedResult) => {
-      showEffect(selectedTeam, data.defense.content, 'defense');
+      showEffect(selectedTeam, data.defense.text, 'defense');
     };
 
     socket.on('battle:attacked', handleAttacked);
