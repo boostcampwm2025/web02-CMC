@@ -44,8 +44,7 @@ const MOCK_TIMELINE: TimelineItem[] = [
 ];
 
 export default function TimelineSection() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [timeline, setTimeline] = useState<TimelineItem[]>(MOCK_TIMELINE);
+  const [timeline] = useState<TimelineItem[]>(MOCK_TIMELINE);
 
   /*
   useEffect(() => {
