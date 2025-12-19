@@ -362,11 +362,7 @@ export class BattlesService extends EventEmitter {
       this.emit('battle:phase:update', res)
     }
 
-    if (
-      state.turn?.status &&
-      !(prevPhase === BATTLE_PHASE.OPINION_SHARE.name && nextPhase === BATTLE_PHASE.TEAM_A_ATTACK) &&
-      prevTurn !== state.turn.status
-    ) {
+    if (state.turn?.status && prevTurn !== state.turn.status) {
       const res = BattleTurnResponseDto.of({
         battleId,
         turn: state.turn,
