@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlusIcon from '@/assets/icon/plus.svg?react';
-import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
+import { BATTLE_CATEGORY_CONFIG, type BattleCategory } from '../mainPage/types/battle';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
@@ -44,7 +44,7 @@ export default function BattleCreatePage() {
   const [aCode, setACode] = useState('');
   const [bCode, setBCode] = useState('');
   const [language, setLanguage] = useState<BattleLanguage>('javascript');
-  const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
+  const [category, setCategory] = useState<BattleCategory>(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('TEN_MIN');
   const [type, setType] = useState<BattleType>('PUBLIC');
   const [password, setPassword] = useState('');
@@ -191,7 +191,7 @@ export default function BattleCreatePage() {
                   <label className="text-sm text-gray-300">카테고리</label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => setCategory(e.target.value as BattleCategory)}
                     className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   >
                     {categoryOptions.map((o) => (

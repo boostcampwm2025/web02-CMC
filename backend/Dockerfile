@@ -10,7 +10,8 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json ./backend/package.json
 
 # Install deps (workspace-aware)
-RUN pnpm install --frozen-lockfile
+ENV HUSKY=0
+RUN HUSKY=0 pnpm install --frozen-lockfile
 
 # Copy source
 COPY backend ./backend
@@ -28,8 +29,9 @@ RUN corepack enable
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json ./backend/package.json
 
-# Install prod deps only for backend
-RUN pnpm install --filter backend --prod --frozen-lockfile
+# Install prod deps only for backend (skip scripts to avoid husky)
+ENV HUSKY=0
+RUN HUSKY=0 pnpm install --filter backend --prod --frozen-lockfile --ignore-scripts
 
 # Copy built artifacts
 COPY --from=builder /app/backend/dist ./backend/dist

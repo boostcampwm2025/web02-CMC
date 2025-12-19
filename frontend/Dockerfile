@@ -8,6 +8,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY frontend/package.json ./frontend/package.json
 
 # Install deps
+ENV HUSKY=0
 RUN pnpm install --frozen-lockfile
 
 # Copy source
