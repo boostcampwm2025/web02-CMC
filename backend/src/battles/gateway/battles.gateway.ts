@@ -67,9 +67,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       await client.join(battleTeamRoom)
 
       client.emit('battle:joined', { ...res })
-
-      // client.to(battleRoomId).emit('battle:joined', { ...res, participantId: client.id })
-      // client.to(battleTeamRoom).emit('battle:joined', { ...res, participantId: client.id })
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:join:error', {
