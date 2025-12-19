@@ -104,3 +104,6 @@ export interface BattleDefensedResult {
     upvotes: number;
   };
 }
+
+// 이펙트 타입
+export type BattleEffectType = 'OBJECTION' | 'REVERSAL' | 'SURRENDER';
