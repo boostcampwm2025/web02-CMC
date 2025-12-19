@@ -632,7 +632,7 @@ export class BattlesService extends EventEmitter {
     return false
   }
 
-  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto[] {
     //Todo: 턴 관리 pr 머지 후 턴 고려
     const { userId, team } = data
 
@@ -658,13 +658,26 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('이미 투표한 항목입니다.')
     }
 
+    const updatedDiscussions: DiscussionVoteResponseDto[] = []
+
+    // 다른 항목에 투표한 기록이 있으면 취소
+    discussions.forEach((discussion, i) => {
+      if (i !== idx && this.hasAlreadyVoted(discussion.votes, userId)) {
+        const canceled = this.removeVote(discussion, userId)
+        discussions[i] = canceled
+        updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
+      }
+    })
+
+    // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
-    return DiscussionVoteResponseDto.of(battleId, updated)
+    return updatedDiscussions
   }
 
-  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto {
+  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto[] {
     const { userId, team } = data
 
     if (team === BATTLE_TEAM.NONE) {
@@ -689,10 +702,23 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('이미 투표한 항목입니다.')
     }
 
+    const updatedDiscussions: DiscussionVoteResponseDto[] = []
+
+    // 다른 항목에 투표한 기록이 있으면 취소
+    discussions.forEach((discussion, i) => {
+      if (i !== idx && this.hasAlreadyVoted(discussion.votes, userId)) {
+        const canceled = this.removeVote(discussion, userId)
+        discussions[i] = canceled
+        updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
+      }
+    })
+
+    // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
-    return DiscussionVoteResponseDto.of(battleId, updated)
+    return updatedDiscussions
   }
 
   //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
@@ -770,6 +796,14 @@ export class BattlesService extends EventEmitter {
       ...discussion,
       votes: [...discussion.votes, userId],
       upvotes: discussion.upvotes + 1,
+    }
+  }
+
+  private removeVote<T extends { votes: string[]; upvotes: number }>(discussion: T, userId: string): T {
+    return {
+      ...discussion,
+      votes: discussion.votes.filter(id => id !== userId),
+      upvotes: discussion.upvotes - 1,
     }
   }
 

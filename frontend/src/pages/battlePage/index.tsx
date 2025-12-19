@@ -30,10 +30,20 @@ export default function BattlePage() {
     closeModal: closeTeamChangeModal
   } = useModal(false);
 
+  // 각 탭/브라우저별 고유 userId 생성 (테스트용)
+  const [userId] = useState(() => {
+    let id = sessionStorage.getItem('testUserId');
+    if (!id) {
+      id = `user-${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem('testUserId', id);
+    }
+    return id;
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { socket, currentStage, battleProgress, isConnected, battleData } = useBattleSocket({
     battleId: id || '1',
-    userId: 'abc',
+    userId,
     team: selectedTeam
   });
 
@@ -60,7 +70,7 @@ export default function BattlePage() {
       setObjections((prev) => {
         const updated = prev.map((obj) => {
           const isTarget = String(obj.id) === data.discussionId;
-          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes('abc') } : obj;
+          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes(userId) } : obj;
         });
         const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
         return updated.map((obj) => ({ ...obj, totalVotes }));
@@ -132,7 +142,7 @@ export default function BattlePage() {
       socket.off('Battle:NewAttack', handleNewAttack);
       socket.off('Battle:NewDefense', handleNewDefense);
     };
-  }, [socket, selectedTeam]);
+  }, [socket, selectedTeam, userId]);
 
   const handleVote = (objectionId: number) => {
     if (!socket || selectedTeam === 'NONE') return;
@@ -146,7 +156,7 @@ export default function BattlePage() {
     socket.emit(eventName, {
       battleId: id || '1',
       discussionId: String(objectionId),
-      userId: 'abc', // TODO: 실제 userId로 교체 필요
+      userId,
       team: selectedTeam
     });
 

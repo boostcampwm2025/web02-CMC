@@ -113,34 +113,40 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('battle:attackvote')
+  @SubscribeMessage('Battle:AttackVote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
-      const attack = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
+      const updates = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('battle:attackvote:update', attack)
+      // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
+      updates.forEach(update => {
+        this.server.to(teamRoom).emit('Battle:AttackVoteUpdate', update)
+      })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:attackvote:error', {
+        client.emit('Battle:AttackVote:Error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('battle:defensevote')
+  @SubscribeMessage('Battle:DefenseVote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
-      const defense = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
+      const updates = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('battle:defensevote:update', defense)
+      // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
+      updates.forEach(update => {
+        this.server.to(teamRoom).emit('Battle:DefenseVoteUpdate', update)
+      })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:defensevote:error', {
+        client.emit('Battle:DefenseVote:Error', {
           message: error.message,
         })
       }
