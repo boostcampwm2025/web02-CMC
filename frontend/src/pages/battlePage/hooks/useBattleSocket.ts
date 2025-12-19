@@ -16,7 +16,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io('/', {
+    const newSocket = io('http://localhost:3000', {
       transports: ['websocket']
     });
 

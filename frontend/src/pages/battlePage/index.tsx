@@ -67,7 +67,6 @@ export default function BattlePage() {
     setObjections([]);
   }, [battleProgress?.turn?.status, battleProgress?.phase]);
 
-  // 투표 결과 업데이트 수신
   useEffect(() => {
     if (!socket) return;
 
@@ -184,20 +183,6 @@ export default function BattlePage() {
       discussionId: String(objectionId),
       userId,
       team: selectedTeam
-    });
-
-    setObjections((prev) => {
-      const updated = prev.map((obj) => {
-        if (obj.id === objectionId) {
-          return { ...obj, hasVoted: true, votes: obj.votes + 1 };
-        } else if (obj.hasVoted) {
-          return { ...obj, hasVoted: false, votes: obj.votes - 1 };
-        }
-        return obj;
-      });
-
-      const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
-      return updated.map((obj) => ({ ...obj, totalVotes }));
     });
   };
 
