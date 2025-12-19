@@ -6,9 +6,11 @@ import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { Socket } from 'socket.io-client';
+import type { BattleChat } from '@/commons/types/battle';
 
 interface Message {
-  id: number;
+  id: string;
   user: string;
   team: 'A' | 'B' | 'NONE';
   content: string;
@@ -18,7 +20,7 @@ interface Message {
 
 const MOCK_TEAM_MESSAGES: Message[] = [
   {
-    id: 1,
+    id: '1',
     user: 'CodeMaster',
     team: 'A',
     content: '구현스가 Set을 사용해서 더 간결하네요',
@@ -26,7 +28,7 @@ const MOCK_TEAM_MESSAGES: Message[] = [
     type: 'normal'
   },
   {
-    id: 2,
+    id: '2',
     user: 'JSLover',
     team: 'A',
     content: 'Set 사용이 훨씬 직관적인 것 같은데요',
@@ -34,7 +36,7 @@ const MOCK_TEAM_MESSAGES: Message[] = [
     type: 'normal'
   },
   {
-    id: 3,
+    id: '3',
     user: 'You',
     team: 'A',
     content: '코드가 구려요',
@@ -42,7 +44,7 @@ const MOCK_TEAM_MESSAGES: Message[] = [
     type: 'objection'
   },
   {
-    id: 4,
+    id: '4',
     user: 'You',
     team: 'A',
     content: '별론데요',
@@ -53,7 +55,7 @@ const MOCK_TEAM_MESSAGES: Message[] = [
 
 const MOCK_ALL_MESSAGES: Message[] = [
   {
-    id: 1,
+    id: '1',
     user: 'PlayerB',
     team: 'B',
     content: 'B팀도 나쁘지 않은데요?',
@@ -61,7 +63,7 @@ const MOCK_ALL_MESSAGES: Message[] = [
     type: 'objection'
   },
   {
-    id: 2,
+    id: '2',
     user: 'CodeMaster',
     team: 'A',
     content: 'A팀이 더 나은 것 같습니다',
@@ -69,7 +71,7 @@ const MOCK_ALL_MESSAGES: Message[] = [
     type: 'rebuttal'
   },
   {
-    id: 3,
+    id: '3',
     user: 'Observer',
     team: 'NONE',
     content: '둘 다 장단점이 있네요',
@@ -79,12 +81,24 @@ const MOCK_ALL_MESSAGES: Message[] = [
 ];
 
 interface ChatSectionProps {
+  socket: Socket | null;
+  battleId?: string;
+  chats: BattleChat[];
+  allChats: BattleChat[];
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
   team: 'A' | 'B' | 'NONE';
 }
 
-export default function ChatSection({ aTeamMemebers, onSendMessage, team }: ChatSectionProps) {
+export default function ChatSection({
+  socket,
+  aTeamMemebers,
+  onSendMessage,
+  team,
+  battleId,
+  chats,
+  allChats
+}: ChatSectionProps) {
   const [teamMessages, setTeamMessages] = useState<Message[]>(MOCK_TEAM_MESSAGES);
   const [allMessages, setAllMessages] = useState<Message[]>(MOCK_ALL_MESSAGES);
   const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'NONE' ? 'all' : 'team');
@@ -95,14 +109,81 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
   }, [activeTab, teamMessages, allMessages]);
 
   useEffect(() => {
+    const newChats =
+      chats?.map(
+        (chat: BattleChat): Message => ({
+          id: chat.messageId,
+          user: chat.sender,
+          team: chat.team,
+          content: chat.text,
+          timestamp: new Date(chat.createdAt).toISOString().replace('T', ' ').substring(0, 19),
+          type: 'normal'
+        })
+      ) ?? [];
+
+    const newAllchats =
+      allChats?.map(
+        (chat: BattleChat): Message => ({
+          id: chat.messageId,
+          user: chat.sender,
+          team: chat.team,
+          content: chat.text,
+          timestamp: new Date(chat.createdAt).toISOString().replace('T', ' ').substring(0, 19),
+          type: 'normal'
+        })
+      ) ?? [];
+
+    setTeamMessages((prev) => [...prev, ...newChats]);
+    setAllMessages((prev) => [...prev, ...newAllchats]);
+  }, [chats, allChats]);
+
+  useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [currentMessages]);
 
+  useEffect(() => {
+    const handleChatUpdate = (message: BattleChat) => {
+      const newMessage: Message = {
+        id: message.messageId,
+        user: message.sender,
+        team: message.team,
+        content: message.text,
+        timestamp: new Date(message.createdAt).toISOString().replace('T', ' ').substring(0, 19),
+        type: 'normal'
+      };
+
+      if (message.scope === 'TEAM') {
+        setTeamMessages((prev) => [...prev, newMessage]);
+      } else {
+        setAllMessages((prev) => [...prev, newMessage]);
+      }
+
+      if (onSendMessage) {
+        onSendMessage(newMessage.content);
+      }
+    };
+    socket?.on('battle:chatUpdate', handleChatUpdate);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]);
+
   const handleSendMessage = (content: string) => {
+    if (!socket) return;
+
+    const scope = activeTab === 'team' ? 'TEAM' : 'ALL';
+
+    const chatMessage = {
+      battleId,
+      scope,
+      team,
+      text: content.trim()
+    };
+
+    socket.emit('battle:chat', chatMessage);
+
     const newMessage: Message = {
-      id: currentMessages.length + 1,
+      id: currentMessages.length + 1 + '',
       user: 'You',
       team: team,
       content,
@@ -115,7 +196,6 @@ export default function ChatSection({ aTeamMemebers, onSendMessage, team }: Chat
     } else {
       setAllMessages((prev) => [...prev, newMessage]);
     }
-
     if (onSendMessage) {
       onSendMessage(content);
     }
