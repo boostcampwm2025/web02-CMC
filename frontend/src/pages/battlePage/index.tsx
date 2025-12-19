@@ -58,7 +58,11 @@ export default function BattlePage() {
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
-      openTeamChangeModal();
+      const timer = setTimeout(() => {
+        openTeamChangeModal();
+      }, 4000);
+
+      return () => clearTimeout(timer);
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
 
