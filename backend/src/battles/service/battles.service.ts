@@ -814,31 +814,10 @@ export class BattlesService extends EventEmitter {
   private resetDiscussionsByTurn(battleId: string) {
     const battleState = this.getBattleState(battleId)
 
-    // 모든 공격 의견의 투표 기록 초기화
-    battleState.teamA.attacks = battleState.teamA.attacks.map(attack => ({
-      ...attack,
-      votes: [],
-      upvotes: 0,
-    }))
-
-    battleState.teamB.attacks = battleState.teamB.attacks.map(attack => ({
-      ...attack,
-      votes: [],
-      upvotes: 0,
-    }))
-
-    // 모든 반론 의견의 투표 기록 초기화
-    battleState.teamA.defenses = battleState.teamA.defenses.map(defense => ({
-      ...defense,
-      votes: [],
-      upvotes: 0,
-    }))
-
-    battleState.teamB.defenses = battleState.teamB.defenses.map(defense => ({
-      ...defense,
-      votes: [],
-      upvotes: 0,
-    }))
+    battleState.teamA.attacks = []
+    battleState.teamB.attacks = []
+    battleState.teamA.defenses = []
+    battleState.teamB.defenses = []
   }
 
   private scheduleNextTick(battleId: string) {
