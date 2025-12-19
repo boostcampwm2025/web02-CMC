@@ -153,11 +153,14 @@ export default function BattlePage() {
     if (!socket) return;
 
     const handleAttacked = (data: BattleAttackedResult) => {
-      const attackTeam = selectedTeam === 'A' ? 'B' : 'A';
-      showEffect(attackTeam, data.attack.text, 'attack');
+      // 턴 상태로 공격하는 팀 판단
+      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
+      showEffect(attackingTeam, data.attack.text, 'attack');
     };
     const handleDefensed = (data: BattleDefensedResult) => {
-      showEffect(selectedTeam, data.defense.text, 'defense');
+      // 턴 상태로 방어하는 팀 판단
+      const defendingTeam = battleProgress?.turn?.status === 'A_DEFENSE' ? 'A' : 'B';
+      showEffect(defendingTeam, data.defense.text, 'defense');
     };
 
     socket.on('battle:attacked', handleAttacked);
@@ -167,7 +170,7 @@ export default function BattlePage() {
       socket.off('battle:attacked', handleAttacked);
       socket.off('battle:defensed', handleDefensed);
     };
-  }, [socket, selectedTeam, showEffect]);
+  }, [socket, battleProgress?.turn?.status, showEffect]);
 
   const handleVote = (objectionId: number) => {
     if (!socket || selectedTeam === 'NONE') return;
