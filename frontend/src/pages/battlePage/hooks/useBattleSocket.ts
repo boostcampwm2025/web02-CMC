@@ -33,7 +33,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
     });
 
     // 배틀 참여 성공시 데이터 수신
-    newSocket.on('battle:joined', (data: BattleJoinData) => {
+    newSocket.once('battle:joined', (data: BattleJoinData) => {
       setBattleData(data);
 
       // 초기 battleState 설정

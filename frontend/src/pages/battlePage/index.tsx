@@ -23,7 +23,6 @@ export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
   const navigate = useNavigate();
-  // const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'NONE'>(
     (state as LocationState)?.selectedTeam || 'NONE'
   );
@@ -60,7 +59,11 @@ export default function BattlePage() {
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
-      openTeamChangeModal();
+      const timer = setTimeout(() => {
+        openTeamChangeModal();
+      }, 4000);
+
+      return () => clearTimeout(timer);
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
 
@@ -69,7 +72,6 @@ export default function BattlePage() {
     setObjections([]);
   }, [battleProgress?.turn?.status, battleProgress?.phase]);
 
-  // 투표 결과 업데이트 수신
   useEffect(() => {
     if (!socket) return;
 
@@ -100,12 +102,12 @@ export default function BattlePage() {
         }
         const newObjection: Objection = {
           id: data.discussionId as unknown as number,
-          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
           team: selectedTeam,
           content: data.content,
           votes: data.upvotes,
           totalVotes,
-          hasVoted: data.votes.includes('abc')
+          hasVoted: data.votes.includes(userId)
         };
 
         return [...prev, newObjection];
@@ -126,12 +128,12 @@ export default function BattlePage() {
         const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
         const newObjection: Objection = {
           id: data.discussionId as unknown as number,
-          user: data.authorId === 'abc' ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+          user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
           team: selectedTeam,
           content: data.content,
           votes: data.upvotes,
           totalVotes,
-          hasVoted: data.votes.includes('abc')
+          hasVoted: data.votes.includes(userId)
         };
 
         return [...prev, newObjection];
@@ -156,11 +158,14 @@ export default function BattlePage() {
     if (!socket) return;
 
     const handleAttacked = (data: BattleAttackedResult) => {
-      const attackTeam = selectedTeam === 'A' ? 'B' : 'A';
-      showEffect(attackTeam, data.attack.content, 'attack');
+      // 턴 상태로 공격하는 팀 판단
+      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
+      showEffect(attackingTeam, data.attack.text, 'attack');
     };
     const handleDefensed = (data: BattleDefensedResult) => {
-      showEffect(selectedTeam, data.defense.content, 'defense');
+      // 턴 상태로 방어하는 팀 판단
+      const defendingTeam = battleProgress?.turn?.status === 'A_DEFENSE' ? 'A' : 'B';
+      showEffect(defendingTeam, data.defense.text, 'defense');
     };
 
     socket.on('battle:attacked', handleAttacked);
@@ -170,7 +175,7 @@ export default function BattlePage() {
       socket.off('battle:attacked', handleAttacked);
       socket.off('battle:defensed', handleDefensed);
     };
-  }, [socket, selectedTeam, showEffect]);
+  }, [socket, battleProgress?.turn?.status, showEffect]);
 
   const handleVote = (objectionId: number) => {
     if (!socket || selectedTeam === 'NONE') return;
@@ -187,20 +192,6 @@ export default function BattlePage() {
       userId,
       team: selectedTeam
     });
-
-    setObjections((prev) => {
-      const updated = prev.map((obj) => {
-        if (obj.id === objectionId) {
-          return { ...obj, hasVoted: true, votes: obj.votes + 1 };
-        } else if (obj.hasVoted) {
-          return { ...obj, hasVoted: false, votes: obj.votes - 1 };
-        }
-        return obj;
-      });
-
-      const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
-      return updated.map((obj) => ({ ...obj, totalVotes }));
-    });
   };
 
   const handleObjectionSubmit = (content: string) => {
@@ -215,7 +206,7 @@ export default function BattlePage() {
 
     socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
       battleId: id || '1',
-      authorId: 'abc', // TODO: 실제 userId로 교체 필요
+      authorId: userId,
       content,
       team: selectedTeam
     });

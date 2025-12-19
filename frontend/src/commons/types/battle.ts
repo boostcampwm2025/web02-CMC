@@ -88,7 +88,7 @@ export interface BattleAttackedResult {
     discussionId: string;
     authorId: string;
     type: string;
-    content: string;
+    text: string;
     upvotes: number;
   };
 }
@@ -100,7 +100,7 @@ export interface BattleDefensedResult {
     discussionId: string;
     authorId: string;
     type: string;
-    content: string;
+    text: string;
     upvotes: number;
   };
 }

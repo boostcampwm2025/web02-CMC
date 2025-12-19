@@ -18,68 +18,6 @@ interface Message {
   type?: 'normal' | 'objection' | 'rebuttal';
 }
 
-const MOCK_TEAM_MESSAGES: Message[] = [
-  {
-    id: '1',
-    user: 'CodeMaster',
-    team: 'A',
-    content: '구현스가 Set을 사용해서 더 간결하네요',
-    timestamp: '2025-12-16 21:30:00',
-    type: 'normal'
-  },
-  {
-    id: '2',
-    user: 'JSLover',
-    team: 'A',
-    content: 'Set 사용이 훨씬 직관적인 것 같은데요',
-    timestamp: '2025-12-16 21:31:00',
-    type: 'normal'
-  },
-  {
-    id: '3',
-    user: 'You',
-    team: 'A',
-    content: '코드가 구려요',
-    timestamp: '2025-12-16 21:32:00',
-    type: 'objection'
-  },
-  {
-    id: '4',
-    user: 'You',
-    team: 'A',
-    content: '별론데요',
-    timestamp: '2025-12-16 21:32:30',
-    type: 'normal'
-  }
-];
-
-const MOCK_ALL_MESSAGES: Message[] = [
-  {
-    id: '1',
-    user: 'PlayerB',
-    team: 'B',
-    content: 'B팀도 나쁘지 않은데요?',
-    timestamp: '2025-12-16 21:30:30',
-    type: 'objection'
-  },
-  {
-    id: '2',
-    user: 'CodeMaster',
-    team: 'A',
-    content: 'A팀이 더 나은 것 같습니다',
-    timestamp: '2025-12-16 21:31:00',
-    type: 'rebuttal'
-  },
-  {
-    id: '3',
-    user: 'Observer',
-    team: 'NONE',
-    content: '둘 다 장단점이 있네요',
-    timestamp: '2025-12-16 21:31:30',
-    type: 'normal'
-  }
-];
-
 interface ChatSectionProps {
   socket: Socket | null;
   battleId?: string;
@@ -99,8 +37,8 @@ export default function ChatSection({
   chats,
   allChats
 }: ChatSectionProps) {
-  const [teamMessages, setTeamMessages] = useState<Message[]>(MOCK_TEAM_MESSAGES);
-  const [allMessages, setAllMessages] = useState<Message[]>(MOCK_ALL_MESSAGES);
+  const [teamMessages, setTeamMessages] = useState<Message[]>([]);
+  const [allMessages, setAllMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'NONE' ? 'all' : 'team');
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
