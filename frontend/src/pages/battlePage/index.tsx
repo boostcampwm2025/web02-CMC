@@ -48,8 +48,7 @@ export default function BattlePage() {
     return id;
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { socket, currentStage, battleProgress, isConnected, battleData } = useBattleSocket({
+  const { socket, currentStage, battleProgress, battleData } = useBattleSocket({
     battleId: id || '1',
     userId,
     team: selectedTeam
