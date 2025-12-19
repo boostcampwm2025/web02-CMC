@@ -1,6 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import type { BattleJoinData, UseBattleSocketProps, BattleProgressState } from '@/commons/types/battle';
+import type {
+  BattleJoinData,
+  UseBattleSocketProps,
+  BattleProgressState,
+  BattleAttackedResult,
+  BattleDefensedResult
+} from '@/commons/types/battle';
 
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
@@ -83,6 +89,15 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
             }
           : null
       );
+    });
+
+    newSocket.on('battle:attacked', (data: BattleAttackedResult) => {
+      console.log('Battle:Attacked received:', data);
+    });
+
+    // Battle:Defensed 이벤트 구독 (방어 결과)
+    newSocket.on('battle:defensed', (data: BattleDefensedResult) => {
+      console.log('Battle:Defensed received:', data);
     });
 
     return () => {

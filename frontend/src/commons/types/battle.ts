@@ -80,3 +80,27 @@ export interface BattleProgressState {
   startedAt: number;
   expiredAt: number;
 }
+
+// Battle:Attacked 이벤트 응답 타입
+export interface BattleAttackedResult {
+  battleId: string;
+  attack: {
+    discussionId: string;
+    authorId: string;
+    type: string;
+    content: string;
+    upvotes: number;
+  };
+}
+
+// Battle:Defensed 이벤트 응답 타입
+export interface BattleDefensedResult {
+  battleId: string;
+  defense: {
+    discussionId: string;
+    authorId: string;
+    type: string;
+    content: string;
+    upvotes: number;
+  };
+}
