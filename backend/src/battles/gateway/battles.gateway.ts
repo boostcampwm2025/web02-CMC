@@ -113,7 +113,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:AttackVote')
+  @SubscribeMessage('battle:attackvote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -122,18 +122,18 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('Battle:AttackVoteUpdate', update)
+        this.server.to(teamRoom).emit('battle:attackvote:update', update)
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:AttackVote:Error', {
+        client.emit('battle:attackvote:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('Battle:DefenseVote')
+  @SubscribeMessage('battle:defensevote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -142,11 +142,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('Battle:DefenseVoteUpdate', update)
+        this.server.to(teamRoom).emit('battle:defensevote:update', update)
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:DefenseVote:Error', {
+        client.emit('battle:defensevote:error', {
           message: error.message,
         })
       }

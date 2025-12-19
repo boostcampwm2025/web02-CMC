@@ -131,14 +131,14 @@ export default function BattlePage() {
       });
     };
 
-    socket.on('Battle:AttackVoteUpdate', handleVoteUpdate);
-    socket.on('Battle:DefenseVoteUpdate', handleVoteUpdate);
+    socket.on('battle:attackvote:update', handleVoteUpdate);
+    socket.on('battle:defensevote:update', handleVoteUpdate);
     socket.on('Battle:NewAttack', handleNewAttack);
     socket.on('Battle:NewDefense', handleNewDefense);
 
     return () => {
-      socket.off('Battle:AttackVoteUpdate', handleVoteUpdate);
-      socket.off('Battle:DefenseVoteUpdate', handleVoteUpdate);
+      socket.off('battle:attackvote:update', handleVoteUpdate);
+      socket.off('battle:defensevote:update', handleVoteUpdate);
       socket.off('Battle:NewAttack', handleNewAttack);
       socket.off('Battle:NewDefense', handleNewDefense);
     };
@@ -151,7 +151,7 @@ export default function BattlePage() {
     if (targetObjection?.hasVoted) return;
 
     const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
-    const eventName = isAttacking ? 'Battle:AttackVote' : 'Battle:DefenseVote';
+    const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
 
     socket.emit(eventName, {
       battleId: id || '1',
