@@ -191,7 +191,7 @@ export default function BattleCreatePage() {
                   <label className="text-sm text-gray-300">카테고리</label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => setCategory(e.target.value as typeof category)}
                     className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   >
                     {categoryOptions.map((o) => (
