@@ -1,4 +1,4 @@
-import { NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common'
+import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
 import { Battle } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import {
@@ -617,6 +617,93 @@ describe('BattlesService', () => {
       expect(state.all.chats).toHaveLength(1)
       expect(state.teamA.chats).toHaveLength(0)
       expect(state.teamB.chats).toHaveLength(0)
+    })
+  })
+  describe('handleAttackVote', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1' })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.TEAM_A_ATTACK.name
+      state.turn = {
+        status: BATTLE_TURN.A_ATTACK.name,
+        count: 1,
+      }
+
+      service.handleAttack('battle-1', {
+        authorId: 'user-a',
+        content: 'attack!',
+        team: BATTLE_TEAM.A,
+      })
+    })
+
+    it('정상적으로 공격 이의제기에 투표한다', () => {
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+
+      const result = service.handleAttackVote('battle-1', attack.discussionId, {
+        userId: 'voter-1',
+        team: BATTLE_TEAM.A,
+      })
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          attackId: attack.discussionId,
+          count: 1,
+        }),
+      )
+    })
+
+    it('같은 유저가 중복 투표하면 BadRequestException', () => {
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+
+      service.handleAttackVote('battle-1', attack.discussionId, {
+        userId: 'voter-1',
+        team: BATTLE_TEAM.A,
+      })
+
+      expect(() =>
+        service.handleAttackVote('battle-1', attack.discussionId, {
+          userId: 'voter-1',
+          team: BATTLE_TEAM.A,
+        }),
+      ).toThrow(BadRequestException)
+    })
+
+    it('중립 진영은 투표할 수 없다', () => {
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+
+      expect(() =>
+        service.handleAttackVote('battle-1', attack.discussionId, {
+          userId: 'neutral',
+          team: BATTLE_TEAM.NONE,
+        }),
+      ).toThrow(ForbiddenException)
+    })
+
+    it('현재 공격 턴이 아니면 BadRequestException', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.turn!.status = BATTLE_TURN.B_ATTACK.name
+
+      const attack = state.teamA.attacks[0]
+
+      expect(() =>
+        service.handleAttackVote('battle-1', attack.discussionId, {
+          userId: 'user',
+          team: BATTLE_TEAM.A,
+        }),
+      ).toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 discussion이면 NotFoundException', () => {
+      expect(() =>
+        service.handleAttackVote('battle-1', 'invalid-id', {
+          userId: 'user',
+          team: BATTLE_TEAM.A,
+        }),
+      ).toThrow(NotFoundException)
     })
   })
 })

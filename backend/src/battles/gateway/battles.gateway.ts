@@ -17,6 +17,7 @@ import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteR
 import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
+import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import type { BattleTeam } from '../types/battles.types'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
@@ -112,34 +113,34 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:AttackVote')
+  @SubscribeMessage('battle:attackvote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
       const attack = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:AttackVoteUpdate', attack)
+      this.server.to(teamRoom).emit('battle:attackvote:update', attack)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:AttackVote:Error', {
+        client.emit('battle:attackvote:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('Battle:DefenseVote')
+  @SubscribeMessage('battle:defensevote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
       const defense = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:DefenseVoteUpdate', defense)
+      this.server.to(teamRoom).emit('battle:defensevote:update', defense)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:DefenseVote:Error', {
+        client.emit('battle:defensevote:error', {
           message: error.message,
         })
       }
@@ -167,6 +168,20 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.server.to(battleRoomId).emit('battle:round:update', payload)
   }
 
+  onAttacked(payload: DiscussionVoteResultDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:attacked', payload)
+  }
+
+  onDefensed(payload: DiscussionVoteResultDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:defensed', payload)
+  }
+
   closeBattle(payload: BattleClosedResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -187,6 +202,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
 
+    this.battlesService.on('battle:attacked', (payload: DiscussionVoteResultDto) => this.onAttacked(payload))
+
+    this.battlesService.on('battle:defensed', (payload: DiscussionVoteResultDto) => this.onDefensed(payload))
     this.battlesService.on(
       'battle:team:update',
       (payload: {
@@ -213,7 +231,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
           ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
           : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
 
-      this.server.to(roomId).emit('battle:chatUpdate', saved)
+      // this.server.to(roomId).emit('battle:chatUpdate', saved)
+      this.server.to(roomId).except(client.id).emit('battle:chatUpdate', saved)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:chat:error', { message: error.message })
