@@ -270,6 +270,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       socket.emit('battle:team:update', { battleId: payload.battleId, team: change.to })
     }
 
-    this.server.to(battleRoomId).emit('battle:team:update', payload)
+    this.server.to(battleRoomId).emit('battle:team:update:all', payload)
   }
 }
