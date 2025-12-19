@@ -4,6 +4,7 @@ interface ObjectionModalProps {
   isOpen: boolean;
   team: 'A' | 'B';
   content: string;
+  type: 'attack' | 'defense';
   onClose: () => void;
 }
 
@@ -24,7 +25,7 @@ const ANIMATION_DURATION = {
   HIDE: 300
 } as const;
 
-export default function ObjectionModal({ isOpen, team, content, onClose }: ObjectionModalProps) {
+export default function ObjectionModal({ isOpen, team, content, type, onClose }: ObjectionModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -73,7 +74,9 @@ export default function ObjectionModal({ isOpen, team, content, onClose }: Objec
           <div
             className={`px-6 py-2 rounded-full bg-gradient-to-r ${gradient} shadow-lg ${glow} transition-all duration-500 ${badgeClass}`}
           >
-            <span className="text-white font-bold text-lg tracking-wider">{team}팀 이의제기</span>
+            <span className="text-white font-bold text-lg tracking-wider">
+              {team}팀 {type === 'attack' ? '이의제기' : '반론'}
+            </span>
           </div>
 
           <div className={`relative transition-all duration-700 delay-200 ${textClass}`}>
@@ -84,7 +87,7 @@ export default function ObjectionModal({ isOpen, team, content, onClose }: Objec
                 textShadow: '0 0 40px rgba(255, 255, 255, 0.5), 0 0 80px rgba(255, 255, 255, 0.3)'
               }}
             >
-              이의 있음!!
+              {type === 'attack' ? '이의 있음!!' : '반론!!'}
             </h1>
           </div>
 

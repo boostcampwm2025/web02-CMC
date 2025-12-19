@@ -143,10 +143,10 @@ export default function BattlePage() {
 
     const handleAttacked = (data: BattleAttackedResult) => {
       const attackTeam = selectedTeam === 'A' ? 'B' : 'A';
-      showEffect(attackTeam, data.attack.content);
+      showEffect(attackTeam, data.attack.content, 'attack');
     };
     const handleDefensed = (data: BattleDefensedResult) => {
-      showEffect(selectedTeam, data.defense.content);
+      showEffect(selectedTeam, data.defense.content, 'defense');
     };
 
     socket.on('battle:attacked', handleAttacked);
@@ -284,6 +284,7 @@ export default function BattlePage() {
           isOpen={effectModal.isOpen}
           team={effectModal.team}
           content={effectModal.content}
+          type={effectModal.type}
           onClose={hideEffect}
         />
       )}

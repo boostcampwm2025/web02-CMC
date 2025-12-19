@@ -5,20 +5,23 @@ interface EffectModalState {
   isOpen: boolean;
   team: Team;
   content: string;
+  type: 'attack' | 'defense';
 }
 
 export function useEffectModal() {
   const [effectModal, setEffectModal] = useState<EffectModalState>({
     isOpen: false,
     team: 'A',
-    content: ''
+    content: '',
+    type: 'attack'
   });
 
-  const showEffect = useCallback((team: Team, content: string) => {
+  const showEffect = useCallback((team: Team, content: string, type: 'attack' | 'defense') => {
     setEffectModal({
       isOpen: true,
       team,
-      content
+      content,
+      type
     });
   }, []);
 
@@ -26,7 +29,8 @@ export function useEffectModal() {
     setEffectModal({
       isOpen: false,
       team: 'A',
-      content: ''
+      content: '',
+      type: 'attack'
     });
   }, []);
 
