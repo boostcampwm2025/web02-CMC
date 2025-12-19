@@ -192,11 +192,24 @@ export default function BattlePage() {
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleChangedTeam = (data: { battleId: string; team: 'A' | 'B' | 'NONE' }) => {
+      setSelectedTeam(data.team);
+    };
+
+    socket.on('battle:team:update', handleChangedTeam);
+
+    return () => {
+      socket.off('battle:team:update', handleChangedTeam);
+    };
+  }, [socket]);
+
   const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
     if (!socket) return;
     socket.emit('battle:teamVote', { battleId: id, team });
 
-    setSelectedTeam(team);
     closeTeamChangeModal();
   };
 
