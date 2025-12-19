@@ -270,6 +270,7 @@ export class BattlesService extends EventEmitter {
 
     const chat = {
       messageId: this.generateId(),
+      team,
       sender: senderId,
       text: text.trim(),
       createdAt: new Date(),
@@ -289,7 +290,7 @@ export class BattlesService extends EventEmitter {
     const target = team === BATTLE_TEAM.A ? battleState.teamA : battleState.teamB
     target.chats.push(chat)
 
-    return { battleId, scope, team, ...chat }
+    return { battleId, scope, ...chat }
   }
 
   private addParticipant(battleId: string, clientId: string, team: string): void {

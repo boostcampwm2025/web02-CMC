@@ -213,7 +213,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
           ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
           : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
 
-      this.server.to(roomId).emit('battle:chatUpdate', saved)
+      // this.server.to(roomId).emit('battle:chatUpdate', saved)
+      this.server.to(roomId).except(client.id).emit('battle:chatUpdate', saved)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:chat:error', { message: error.message })
