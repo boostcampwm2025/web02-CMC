@@ -1,24 +1,16 @@
 import { BattleDiscussion } from '../types/battles.types'
 
 export class DiscussionVoteResponseDto {
-  battleId: string
-  attackId?: string
-  defenseId?: string
-  count: number
+  discussionId: string
+  upvotes: number
+  votes: string[]
 
   static fromEntity(battleId: string, discussion: BattleDiscussion): DiscussionVoteResponseDto {
     const dto = new DiscussionVoteResponseDto()
 
-    dto.battleId = battleId
-    dto.count = discussion.upvotes
-
-    if (discussion.type === 'ATTACK') {
-      dto.attackId = discussion.discussionId
-    }
-
-    if (discussion.type === 'DEFENSE') {
-      dto.defenseId = discussion.discussionId
-    }
+    dto.discussionId = discussion.discussionId
+    dto.upvotes = discussion.upvotes
+    dto.votes = [...discussion.votes]
 
     return dto
   }
