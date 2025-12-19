@@ -453,6 +453,7 @@ export class BattlesService extends EventEmitter {
     switch (state.turn.status) {
       case BATTLE_TURN.A_ATTACK.name: {
         this.emitAttackedResult(state.battleId, BATTLE_TEAM.A)
+        this.resetDiscussionsByTurn(state.battleId)
 
         state.turn.status = BATTLE_TURN.B_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.B_DEFENSE.time
@@ -461,6 +462,7 @@ export class BattlesService extends EventEmitter {
 
       case BATTLE_TURN.B_DEFENSE.name: {
         this.emitDefensedResult(state.battleId, BATTLE_TEAM.B)
+        this.resetDiscussionsByTurn(state.battleId)
 
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.A_ATTACK.name
@@ -477,6 +479,7 @@ export class BattlesService extends EventEmitter {
 
       case BATTLE_TURN.B_ATTACK.name: {
         this.emitAttackedResult(state.battleId, BATTLE_TEAM.B)
+        this.resetDiscussionsByTurn(state.battleId)
 
         state.turn.status = BATTLE_TURN.A_DEFENSE.name
         state.expiredAt = now + BATTLE_TURN.A_DEFENSE.time
@@ -485,6 +488,7 @@ export class BattlesService extends EventEmitter {
 
       case BATTLE_TURN.A_DEFENSE.name: {
         this.emitDefensedResult(state.battleId, BATTLE_TEAM.A)
+        this.resetDiscussionsByTurn(state.battleId)
 
         if (state.turn.count < 2) {
           state.turn.status = BATTLE_TURN.B_ATTACK.name
@@ -805,6 +809,36 @@ export class BattlesService extends EventEmitter {
       votes: discussion.votes.filter(id => id !== userId),
       upvotes: discussion.upvotes - 1,
     }
+  }
+
+  private resetDiscussionsByTurn(battleId: string) {
+    const battleState = this.getBattleState(battleId)
+
+    // 모든 공격 의견의 투표 기록 초기화
+    battleState.teamA.attacks = battleState.teamA.attacks.map(attack => ({
+      ...attack,
+      votes: [],
+      upvotes: 0,
+    }))
+
+    battleState.teamB.attacks = battleState.teamB.attacks.map(attack => ({
+      ...attack,
+      votes: [],
+      upvotes: 0,
+    }))
+
+    // 모든 반론 의견의 투표 기록 초기화
+    battleState.teamA.defenses = battleState.teamA.defenses.map(defense => ({
+      ...defense,
+      votes: [],
+      upvotes: 0,
+    }))
+
+    battleState.teamB.defenses = battleState.teamB.defenses.map(defense => ({
+      ...defense,
+      votes: [],
+      upvotes: 0,
+    }))
   }
 
   private scheduleNextTick(battleId: string) {
