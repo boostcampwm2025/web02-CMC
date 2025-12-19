@@ -10,7 +10,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const newSocket = io(import.meta.env.VITE_API_URL, {
+    const newSocket = io('/', {
       transports: ['websocket']
     });
 

@@ -7,8 +7,6 @@ type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
 type BattlePlayTime = 'FIVE_MIN' | 'TEN_MIN' | 'THIRTY_MIN';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
   { label: 'TypeScript', value: 'typescript' },
@@ -67,7 +65,7 @@ export default function BattleCreatePage() {
     setErrorMessage(null);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/battles`, {
+      const res = await fetch(`/api/battles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
