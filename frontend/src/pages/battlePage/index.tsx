@@ -20,7 +20,11 @@ type LocationState = {
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
-  const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
+  // const { selectedTeam = 'NONE' } = (state || {}) as LocationState;
+  const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'NONE'>(
+    (state as LocationState)?.selectedTeam || 'NONE'
+  );
+
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const [objections, setObjections] = useState<Objection[]>([]);
@@ -187,9 +191,12 @@ export default function BattlePage() {
   };
 
   //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
-    // @ Todo 팀 변경 로직 추가 필요
+    if (!socket) return;
+    socket.emit('battle:teamVote', { battleId: id, team });
+
+    setSelectedTeam(team);
     closeTeamChangeModal();
   };
 
