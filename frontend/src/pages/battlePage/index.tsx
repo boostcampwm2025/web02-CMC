@@ -8,6 +8,7 @@ import ObjectionInput from './components/objection/ObjectionInput';
 import ObjectionVote, { type Objection } from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
+import { useBattleTimer } from './hooks/useBattleTimer';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
@@ -34,6 +35,10 @@ export default function BattlePage() {
     battleId: id || '1',
     userId: 'abc',
     team: selectedTeam
+  });
+
+  const { formattedTime } = useBattleTimer({
+    expiredAt: battleProgress?.expiredAt
   });
 
   useEffect(() => {
@@ -195,7 +200,7 @@ export default function BattlePage() {
           title="배열에서 중복 제거하기"
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
           status={currentStage || 'END'}
-          timer="0:02"
+          timer={formattedTime}
           teamACounts={1}
           teamBCounts={1}
           teamNoneCounts={0}
@@ -243,7 +248,7 @@ export default function BattlePage() {
           aTeamCounts={10}
           bTeamCounts={8}
           noneTeamCounts={2}
-          remainingTime={30}
+          remainingTime={formattedTime}
           currentTeam={selectedTeam}
           handleTeamChange={handleTeamChange}
           onClose={closeTeamChangeModal}
