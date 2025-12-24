@@ -96,10 +96,10 @@ export function useBattleSocket() {
       newSocket.off('battle:round:update');
       newSocket.off('battle:attacked');
       newSocket.off('battle:defensed');
-      newSocket.off('battle:attackvote:update', handleVoteUpdate);
-      newSocket.off('battle:defensevote:update', handleVoteUpdate);
-      newSocket.off('Battle:NewAttack', handleNewDiscussion);
-      newSocket.off('Battle:NewDefense', handleNewDiscussion);
+      newSocket.off('battle:attackvote:update');
+      newSocket.off('battle:defensevote:update');
+      newSocket.off('Battle:NewAttack');
+      newSocket.off('Battle:NewDefense');
       newSocket.disconnect();
       setSocket(null);
       setIsConnected(false);
