@@ -567,6 +567,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
+    battleState.all.attacks.push(attack)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.attacks.push(attack)
     } else {
@@ -595,6 +596,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
+    battleState.all.defenses.push(defense)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.defenses.push(defense)
     } else {
