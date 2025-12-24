@@ -8,11 +8,22 @@ import type {
   BattleDefensedResult
 } from '@/commons/types/battle';
 
+interface Objection {
+  id: number;
+  user: string;
+  team: 'A' | 'B';
+  content: string;
+  votes: number;
+  totalVotes: number;
+  hasVoted: boolean;
+}
+
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
   const [battleProgress, setBattleProgressState] = useState<BattleProgressState | null>(null);
   const [currentStage, setCurrentStage] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [objections, setObjections] = useState<Objection[]>([]);
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -65,6 +76,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
           : null
       );
       setCurrentStage(data.phase);
+      setObjections([]);
     });
 
     // Turn 변경 이벤트 구독
@@ -80,6 +92,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
           : null
       );
       setCurrentStage(data.turn?.status || null);
+      setObjections([]);
     });
 
     // Round 변경 이벤트 구독
@@ -98,10 +111,53 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       console.log('Battle:Attacked received:', data);
     });
 
-    // Battle:Defensed 이벤트 구독 (방어 결과)
     newSocket.on('battle:defensed', (data: BattleDefensedResult) => {
       console.log('Battle:Defensed received:', data);
     });
+
+    // 투표 업데이트 이벤트
+    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
+      setObjections((prev) => {
+        const updated = prev.map((obj) => {
+          const isTarget = String(obj.id) === data.discussionId;
+          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes(userId) } : obj;
+        });
+        const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
+        return updated.map((obj) => ({ ...obj, totalVotes }));
+      });
+    };
+
+    // 새 이의제기/반론 추가
+    const handleNewDiscussion = (data: {
+      discussionId: string;
+      authorId: string;
+      content: string;
+      upvotes: number;
+      votes: string[];
+    }) => {
+      if (team === 'NONE') return;
+
+      setObjections((prev) => {
+        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
+        return [
+          ...prev,
+          {
+            id: data.discussionId as unknown as number,
+            user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+            team: team as 'A' | 'B',
+            content: data.content,
+            votes: data.upvotes,
+            totalVotes,
+            hasVoted: data.votes.includes(userId)
+          }
+        ];
+      });
+    };
+
+    newSocket.on('battle:attackvote:update', handleVoteUpdate);
+    newSocket.on('battle:defensevote:update', handleVoteUpdate);
+    newSocket.on('Battle:NewAttack', handleNewDiscussion);
+    newSocket.on('Battle:NewDefense', handleNewDiscussion);
 
     return () => {
       newSocket.disconnect();
@@ -113,6 +169,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
     battleData,
     battleProgress,
     currentStage,
-    isConnected
+    isConnected,
+    objections
   };
 }
