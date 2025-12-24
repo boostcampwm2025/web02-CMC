@@ -25,9 +25,11 @@ export type TurnStatus = 'A_ATTACK' | 'B_ATTACK' | 'A_DEFENSE' | 'B_DEFENSE';
 export interface BattleDiscussion {
   discussionId: string;
   authorId: string;
-  type: string;
+  type: 'ATTACK' | 'DEFENSE';
   content: string;
   upvotes: number;
+  votes: string[];
+  status: 'PENDING' | 'SELECTED' | 'REJECTED';
 }
 
 // BattleDefense 타입
