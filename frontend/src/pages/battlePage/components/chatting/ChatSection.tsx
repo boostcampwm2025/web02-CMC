@@ -23,7 +23,8 @@ interface ChatSectionProps {
   battleId?: string;
   chats: BattleChat[];
   allChats: BattleChat[];
-  aTeamMemebers: number;
+  teamACounts: number;
+  teamBCounts: number;
   onSendMessage?: (content: string) => void;
   team: 'A' | 'B' | 'NONE';
   userId: string;
@@ -31,7 +32,8 @@ interface ChatSectionProps {
 
 export default function ChatSection({
   socket,
-  aTeamMemebers,
+  teamACounts,
+  teamBCounts,
   onSendMessage,
   team,
   battleId,
@@ -47,6 +49,13 @@ export default function ChatSection({
   const currentMessages = useMemo(() => {
     return activeTab === 'team' ? teamMessages : allMessages;
   }, [activeTab, teamMessages, allMessages]);
+
+  const currentMemberCount = useMemo(() => {
+    if (activeTab === 'all') {
+      return teamACounts + teamBCounts;
+    }
+    return team === 'A' ? teamACounts : teamBCounts;
+  }, [activeTab, team, teamACounts, teamBCounts]);
 
   useEffect(() => {
     const newChats =
@@ -155,7 +164,7 @@ export default function ChatSection({
           </div>
           <span className="text-[12px] text-[#99A1AF] flex items-center gap-1">
             <PeoplesIcons />
-            {aTeamMemebers}
+            {currentMemberCount}
           </span>
         </div>
 

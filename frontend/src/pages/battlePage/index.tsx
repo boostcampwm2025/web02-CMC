@@ -180,7 +180,8 @@ export default function BattlePage() {
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
             <ChatSection
-              aTeamMemebers={102}
+              teamACounts={battleData?.counts.teamA || 0}
+              teamBCounts={battleData?.counts.teamB || 0}
               team={selectedTeam}
               socket={socket}
               battleId={id}
