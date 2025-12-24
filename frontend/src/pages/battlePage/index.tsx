@@ -186,6 +186,7 @@ export default function BattlePage() {
               battleId={id}
               chats={battleData?.chats || []}
               allChats={battleData?.allChats || []}
+              userId={userId}
             />
             <ObjectionInput
               onSubmit={handleObjectionSubmit}

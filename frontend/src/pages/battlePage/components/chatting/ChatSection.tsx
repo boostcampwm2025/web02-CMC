@@ -26,6 +26,7 @@ interface ChatSectionProps {
   aTeamMemebers: number;
   onSendMessage?: (content: string) => void;
   team: 'A' | 'B' | 'NONE';
+  userId: string;
 }
 
 export default function ChatSection({
@@ -35,7 +36,8 @@ export default function ChatSection({
   team,
   battleId,
   chats,
-  allChats
+  allChats,
+  userId
 }: ChatSectionProps) {
   const [teamMessages, setTeamMessages] = useState<Message[]>([]);
   const [allMessages, setAllMessages] = useState<Message[]>([]);
@@ -178,6 +180,7 @@ export default function ChatSection({
               content={message.content}
               timestamp={message.timestamp}
               showTeamBadge={activeTab === 'all'}
+              currentUserId={userId}
             />
           )
         )}
