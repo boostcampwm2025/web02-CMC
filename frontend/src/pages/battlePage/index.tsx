@@ -253,8 +253,8 @@ export default function BattlePage() {
           description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
           status={currentStage || 'END'}
           timer={formattedTime}
-          teamACounts={1}
-          teamBCounts={1}
+          teamACounts={battleData?.counts.teamA || 0}
+          teamBCounts={battleData?.counts.teamB || 0}
           teamNoneCounts={0}
         />
       </div>
