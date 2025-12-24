@@ -157,8 +157,8 @@ export default function BattlePage() {
     <div className="text-white flex flex-col items-center">
       <div className="w-[1800px]">
         <BattleHeader
-          title="배열에서 중복 제거하기"
-          description="배열에서 중복된 요소를 제거하는 최적의 방법은?"
+          title={battleInfo.title}
+          description={battleInfo.description}
           status={currentStage || 'END'}
           timer={formattedTime}
           teamACounts={battleData?.counts.teamA || 0}
