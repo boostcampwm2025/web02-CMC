@@ -210,12 +210,7 @@ export default function BattlePage() {
       content,
       team: selectedTeam
     });
-
-    // 서버에서 Battle:NewAttack/NewDefense로 받을 예정이므로 여기서는 optimistic update 제거
-    // 중복 추가 방지
   };
-
-  //@Todo 초기 이의제기/반론 목록 로드 소켓 로직 추가 필요
 
   useEffect(() => {
     if (!socket) return;
@@ -268,7 +263,7 @@ export default function BattlePage() {
               codeA={battleInfo.aCode}
               codeB={battleInfo.bCode}
             />
-            <TimelineSection />
+            <TimelineSection attackList={battleData?.timelines.attacks} defenseList={battleData?.timelines.defenses} />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
             <ChatSection
