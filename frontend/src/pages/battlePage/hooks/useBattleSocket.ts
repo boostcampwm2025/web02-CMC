@@ -61,6 +61,32 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       } else {
         setCurrentStage(data.turn?.status || data.phase);
       }
+
+      // 초기 투표 리스트 동기화
+      if (team !== 'NONE' && data.turn?.status) {
+        const voteMap: Record<string, typeof data.attacks | typeof data.defenses> = {
+          'A_ATTACK-A': data.attacks,
+          'B_DEFENSE-B': data.defenses,
+          'B_ATTACK-B': data.attacks,
+          'A_DEFENSE-A': data.defenses
+        };
+
+        const currentVoteList = voteMap[`${data.turn.status}-${team}`];
+        if (currentVoteList?.length) {
+          const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
+          setObjections(
+            currentVoteList.map(({ discussionId, authorId, content, upvotes, votes }) => ({
+              id: discussionId as unknown as number,
+              user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
+              team: team as 'A' | 'B',
+              content,
+              votes: upvotes,
+              totalVotes,
+              hasVoted: votes.includes(userId)
+            }))
+          );
+        }
+      }
     });
 
     // Phase 변경 이벤트 구독
