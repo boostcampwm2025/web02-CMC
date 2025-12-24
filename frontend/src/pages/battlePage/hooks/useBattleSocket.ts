@@ -45,8 +45,11 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
         expiredAt: data.expiredAt
       });
 
-      // 초기 currentStage 설정
-      setCurrentStage(data.phase);
+      if (data.phase === 'OPINION_SHARE' || data.phase === 'TEAM_SWITCH') {
+        setCurrentStage(data.phase);
+      } else {
+        setCurrentStage(data.turn?.status || data.phase);
+      }
     });
 
     // Phase 변경 이벤트 구독

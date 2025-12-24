@@ -24,6 +24,11 @@ export { type Objection };
 export default function ObjectionVote({ objections, onVote, phase, team }: ObjectionVoteProps) {
   const isAttacking = isMyTeamAttacking(team || 'NONE', phase);
 
+  // OPINION_SHARE 단계에서는 투표 UI를 표시하지 않음
+  if (phase === 'OPINION_SHARE') {
+    return null;
+  }
+
   const headerText = isAttacking ? '제출된 이의제기 목록' : '제출된 반론 목록';
   const infoText = isAttacking
     ? '이의제기가 실시간으로 추가되며, 바로 투표 가능합니다!'

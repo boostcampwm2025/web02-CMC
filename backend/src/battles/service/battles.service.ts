@@ -611,6 +611,11 @@ export class BattlesService extends EventEmitter {
 
     if (userTeam === BATTLE_TEAM.NONE) return false
 
+    // OPINION_SHARE 단계에서는 모든 팀이 의견 제출 가능
+    if (phase === 'OPINION_SHARE') {
+      return true
+    }
+
     if (phase === 'TEAM_A_ATTACK' && turn?.status === 'A_ATTACK' && userTeam === BATTLE_TEAM.A) {
       return true
     }
