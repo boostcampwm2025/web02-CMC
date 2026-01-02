@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useLoaderData, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLoaderData, useLocation } from 'react-router-dom';
 import type { BattleInfo, BattleAttackedResult, BattleDefensedResult } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
@@ -33,7 +33,6 @@ type LocationState = {
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
   const { state } = useLocation();
-  const navigate = useNavigate();
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'NONE'>(
     (state as LocationState)?.selectedTeam || 'NONE'
   );
@@ -137,20 +136,6 @@ export default function BattlePage() {
 
     closeTeamChangeModal();
   };
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleBattleClosed = (payload: { battleId: string }) => {
-      navigate(`/battle/${payload.battleId}/result`);
-    };
-
-    socket.on('battle:closed', handleBattleClosed);
-
-    return () => {
-      socket.off('battle:closed', handleBattleClosed);
-    };
-  }, [socket, navigate]);
 
   return (
     <div className="text-white flex flex-col items-center">
