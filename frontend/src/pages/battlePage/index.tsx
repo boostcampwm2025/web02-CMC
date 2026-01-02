@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useParams, useLoaderData, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
@@ -12,6 +12,7 @@ import { useBattleTimer } from './hooks/useBattleTimer';
 import { useBattleProgress } from './hooks/useBattleProgress';
 import { useBattleDiscussions } from './hooks/useBattleDiscussions';
 import { useBattleTimeline } from './hooks/useBattleTimeline';
+import { useBattleTeam } from './hooks/useBattleTeam';
 import {
   useBattleStore,
   selectSocket,
@@ -20,22 +21,15 @@ import {
   selectDiscussions,
   selectTeamCounts,
   selectTimelines,
-  selectChats
+  selectChats,
+  selectSelectedTeam
 } from './stores/battleStore';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import ObjectionModal from './components/effects/ObjectionModal';
 
-type LocationState = {
-  selectedTeam?: 'A' | 'B' | 'NONE';
-};
-
 export default function BattlePage() {
   const { id } = useParams<{ id: string }>();
-  const { state } = useLocation();
-  const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'NONE'>(
-    (state as LocationState)?.selectedTeam || 'NONE'
-  );
 
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
@@ -58,7 +52,7 @@ export default function BattlePage() {
   useBattleSocket({
     battleId: id || '1',
     userId,
-    team: selectedTeam
+    team: 'NONE' // 초기값
   });
 
   const socket = useBattleStore(selectSocket);
@@ -68,6 +62,7 @@ export default function BattlePage() {
   const teamCounts = useBattleStore(selectTeamCounts);
   const timelines = useBattleStore(selectTimelines);
   const chats = useBattleStore(selectChats);
+  const selectedTeam = useBattleStore(selectSelectedTeam);
 
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
@@ -81,37 +76,12 @@ export default function BattlePage() {
     battleId: id || '1'
   });
   const { effectModal, hideEffect } = useBattleTimeline({ socket });
-
-  useEffect(() => {
-    if (battleProgress?.phase === 'TEAM_SWITCH') {
-      const timer = setTimeout(() => {
-        openTeamChangeModal();
-      }, 4000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [battleProgress?.phase, openTeamChangeModal]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleChangedTeam = (data: { battleId: string; team: 'A' | 'B' | 'NONE' }) => {
-      setSelectedTeam(data.team);
-    };
-
-    socket.on('battle:team:update', handleChangedTeam);
-
-    return () => {
-      socket.off('battle:team:update', handleChangedTeam);
-    };
-  }, [socket]);
-
-  const handleTeamChange = (team: 'A' | 'B' | 'NONE') => {
-    if (!socket) return;
-    socket.emit('battle:teamVote', { battleId: id, team });
-
-    closeTeamChangeModal();
-  };
+  const { handleTeamChange } = useBattleTeam({
+    socket,
+    battleId: id || '1',
+    onOpenTeamChangeModal: openTeamChangeModal,
+    onCloseTeamChangeModal: closeTeamChangeModal
+  });
 
   return (
     <div className="text-white flex flex-col items-center">

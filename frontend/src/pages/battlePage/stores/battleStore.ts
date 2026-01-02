@@ -25,6 +25,7 @@ interface BattleStore {
     defenses: BattleDefense[];
   } | null;
   chats: BattleChat[];
+  selectedTeam: 'A' | 'B' | 'NONE';
 
   setSocket: (socket: Socket | null) => void;
   setIsConnected: (connected: boolean) => void;
@@ -38,6 +39,7 @@ interface BattleStore {
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
   setChats: (chats: BattleChat[]) => void;
   addChat: (chat: BattleChat) => void;
+  setSelectedTeam: (team: 'A' | 'B' | 'NONE') => void;
 }
 
 export const useBattleStore = create<BattleStore>((set) => ({
@@ -49,6 +51,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
   teamCounts: null,
   timelines: null,
   chats: [],
+  selectedTeam: 'NONE',
 
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
@@ -82,7 +85,8 @@ export const useBattleStore = create<BattleStore>((set) => ({
   addChat: (chat) =>
     set((state) => ({
       chats: [...state.chats, chat]
-    }))
+    })),
+  setSelectedTeam: (team) => set({ selectedTeam: team })
 }));
 
 export const selectSocket = (state: BattleStore) => state.socket;
@@ -93,3 +97,4 @@ export const selectDiscussions = (state: BattleStore) => state.discussions;
 export const selectTeamCounts = (state: BattleStore) => state.teamCounts;
 export const selectTimelines = (state: BattleStore) => state.timelines;
 export const selectChats = (state: BattleStore) => state.chats;
+export const selectSelectedTeam = (state: BattleStore) => state.selectedTeam;
