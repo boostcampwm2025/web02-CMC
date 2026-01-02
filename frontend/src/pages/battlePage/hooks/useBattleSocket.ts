@@ -8,21 +8,18 @@ import type {
 } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 
-interface Objection {
-  id: number;
-  user: string;
-  team: 'A' | 'B';
-  content: string;
-  votes: number;
-  totalVotes: number;
-  hasVoted: boolean;
-}
-
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
-  const [objections, setObjections] = useState<Objection[]>([]);
 
-  const { setSocket, setIsConnected, setCurrentStage, setBattleProgress } = useBattleStore();
+  const {
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    addDiscussion,
+    updateDiscussionVote
+  } = useBattleStore();
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, {
@@ -72,7 +69,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
         const currentVoteList = VOTE_MAP[`${data.turn.status}_${team}`];
         if (currentVoteList?.length) {
           const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
-          setObjections(
+          setDiscussions(
             currentVoteList.map(({ discussionId, authorId, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
               user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
@@ -97,14 +94,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
 
     // 투표 업데이트 이벤트
     const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
-      setObjections((prev) => {
-        const updated = prev.map((obj) => {
-          const isTarget = String(obj.id) === data.discussionId;
-          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes(userId) } : obj;
-        });
-        const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
-        return updated.map((obj) => ({ ...obj, totalVotes }));
-      });
+      updateDiscussionVote(data.discussionId, data.upvotes, data.votes, userId);
     };
 
     // 새 이의제기/반론 추가
@@ -117,20 +107,14 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
     }) => {
       if (team === 'NONE') return;
 
-      setObjections((prev) => {
-        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
-        return [
-          ...prev,
-          {
-            id: data.discussionId as unknown as number,
-            user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
-            team: team as 'A' | 'B',
-            content: data.content,
-            votes: data.upvotes,
-            totalVotes,
-            hasVoted: data.votes.includes(userId)
-          }
-        ];
+      addDiscussion({
+        id: data.discussionId as unknown as number,
+        user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+        team: team as 'A' | 'B',
+        content: data.content,
+        votes: data.upvotes,
+        totalVotes: 0,
+        hasVoted: data.votes.includes(userId)
       });
     };
 
@@ -155,10 +139,21 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setSocket(null);
       setIsConnected(false);
     };
-  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage, setBattleProgress]);
+  }, [
+    battleId,
+    userId,
+    team,
+    password,
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    addDiscussion,
+    updateDiscussionVote
+  ]);
 
   return {
-    battleData,
-    objections
+    battleData
   };
 }
