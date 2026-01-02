@@ -1,14 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Socket } from 'socket.io-client';
 import type { BattleProgressState } from '@/commons/types/battle';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore, selectSocket } from '../stores/battleStore';
 
-interface UseBattleProgressProps {
-  socket: Socket | null;
-}
-
-export function useBattleProgress({ socket }: UseBattleProgressProps) {
+export function useBattleProgress() {
+  const socket = useBattleStore(selectSocket);
   const { setCurrentStage, updateBattleProgress } = useBattleStore();
   const navigate = useNavigate();
 
@@ -47,8 +43,8 @@ export function useBattleProgress({ socket }: UseBattleProgressProps) {
     socket.on('battle:round:update', handleRoundUpdate);
 
     // 배틀 종료 이벤트 구독
-    const handleBattleClosed = (payload: { battleId: string }) => {
-      navigate(`/battle/${payload.battleId}/result`);
+    const handleBattleClosed = (data: { battleId: string }) => {
+      navigate(`/battle/${data.battleId}/result`);
     };
     socket.on('battle:closed', handleBattleClosed);
 

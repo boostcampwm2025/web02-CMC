@@ -1,14 +1,10 @@
 import { useEffect } from 'react';
-import { Socket } from 'socket.io-client';
 import type { BattleAttackedResult, BattleDefensedResult } from '@/commons/types/battle';
-import { useBattleStore, selectBattleProgress } from '../stores/battleStore';
+import { useBattleStore, selectBattleProgress, selectSocket } from '../stores/battleStore';
 import { useEffectModal } from './useEffectModal';
 
-interface UseBattleTimelineProps {
-  socket: Socket | null;
-}
-
-export function useBattleTimeline({ socket }: UseBattleTimelineProps) {
+export function useBattleTimeline() {
+  const socket = useBattleStore(selectSocket);
   const battleProgress = useBattleStore(selectBattleProgress);
   const { effectModal, showEffect, hideEffect } = useEffectModal();
 

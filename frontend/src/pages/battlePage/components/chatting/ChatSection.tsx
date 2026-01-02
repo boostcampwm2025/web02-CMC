@@ -6,8 +6,16 @@ import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Socket } from 'socket.io-client';
 import type { BattleChat } from '@/commons/types/battle';
+import {
+  useBattleStore,
+  selectSocket,
+  selectUserId,
+  selectBattleId,
+  selectSelectedTeam,
+  selectChats,
+  selectTeamCounts
+} from '../../stores/battleStore';
 
 interface Message {
   id: string;
@@ -19,28 +27,20 @@ interface Message {
 }
 
 interface ChatSectionProps {
-  socket: Socket | null;
-  battleId?: string;
-  chats: BattleChat[];
-  allChats: BattleChat[];
-  teamACounts: number;
-  teamBCounts: number;
   onSendMessage?: (content: string) => void;
-  team: 'A' | 'B' | 'NONE';
-  userId: string;
 }
 
-export default function ChatSection({
-  socket,
-  teamACounts,
-  teamBCounts,
-  onSendMessage,
-  team,
-  battleId,
-  chats,
-  allChats,
-  userId
-}: ChatSectionProps) {
+export default function ChatSection({ onSendMessage }: ChatSectionProps) {
+  const socket = useBattleStore(selectSocket);
+  const userId = useBattleStore(selectUserId);
+  const battleId = useBattleStore(selectBattleId);
+  const team = useBattleStore(selectSelectedTeam);
+  const chats = useBattleStore(selectChats);
+  const teamCounts = useBattleStore(selectTeamCounts);
+
+  const teamACounts = teamCounts?.teamA || 0;
+  const teamBCounts = teamCounts?.teamB || 0;
+  const allChats = chats || [];
   const [teamMessages, setTeamMessages] = useState<Message[]>([]);
   const [allMessages, setAllMessages] = useState<Message[]>([]);
   const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'NONE' ? 'all' : 'team');

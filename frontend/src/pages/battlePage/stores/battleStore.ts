@@ -3,6 +3,8 @@ import { Socket } from 'socket.io-client';
 import type { BattleProgressState, BattleDiscussion, BattleDefense, BattleChat } from '@/commons/types/battle';
 
 interface BattleStore {
+  userId: string;
+  battleId: string;
   socket: Socket | null;
   isConnected: boolean;
   currentStage: string | null;
@@ -27,6 +29,7 @@ interface BattleStore {
   chats: BattleChat[];
   selectedTeam: 'A' | 'B' | 'NONE';
 
+  initializeBattle: (config: { userId: string; battleId: string }) => void;
   setSocket: (socket: Socket | null) => void;
   setIsConnected: (connected: boolean) => void;
   setCurrentStage: (stage: string | null) => void;
@@ -43,6 +46,8 @@ interface BattleStore {
 }
 
 export const useBattleStore = create<BattleStore>((set) => ({
+  userId: '',
+  battleId: '',
   socket: null,
   isConnected: false,
   currentStage: null,
@@ -53,6 +58,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
   chats: [],
   selectedTeam: 'NONE',
 
+  initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId }),
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
   setCurrentStage: (stage) => set({ currentStage: stage }),
@@ -89,6 +95,8 @@ export const useBattleStore = create<BattleStore>((set) => ({
   setSelectedTeam: (team) => set({ selectedTeam: team })
 }));
 
+export const selectUserId = (state: BattleStore) => state.userId;
+export const selectBattleId = (state: BattleStore) => state.battleId;
 export const selectSocket = (state: BattleStore) => state.socket;
 export const selectCurrentStage = (state: BattleStore) => state.currentStage;
 export const selectIsConnected: (state: BattleStore) => boolean = (state: BattleStore) => state.isConnected;

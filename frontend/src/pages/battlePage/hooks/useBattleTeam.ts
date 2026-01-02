@@ -1,15 +1,20 @@
 import { useEffect, useCallback } from 'react';
-import { Socket } from 'socket.io-client';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../stores/battleStore';
+import {
+  useBattleStore,
+  selectBattleProgress,
+  selectSelectedTeam,
+  selectSocket,
+  selectBattleId
+} from '../stores/battleStore';
 
 interface UseBattleTeamProps {
-  socket: Socket | null;
-  battleId: string;
   onOpenTeamChangeModal: () => void;
   onCloseTeamChangeModal: () => void;
 }
 
-export function useBattleTeam({ socket, battleId, onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattleTeamProps) {
+export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattleTeamProps) {
+  const socket = useBattleStore(selectSocket);
+  const battleId = useBattleStore(selectBattleId);
   const { setSelectedTeam } = useBattleStore();
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);

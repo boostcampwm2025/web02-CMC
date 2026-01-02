@@ -1,6 +1,7 @@
 import ScaleIcon from '@/assets/icon/scale.svg?react';
 import ObjectionVoteItem from './ObjectionVoteItem';
 import { isMyTeamAttacking } from '../../utils/battlePhase';
+import { useBattleStore, selectDiscussions, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
 
 interface Objection {
   id: number;
@@ -13,16 +14,18 @@ interface Objection {
 }
 
 interface ObjectionVoteProps {
-  objections: Objection[];
   onVote: (objectionId: number) => void;
-  phase?: 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH';
-  team?: 'A' | 'B' | 'NONE';
 }
 
 export { type Objection };
 
-export default function ObjectionVote({ objections, onVote, phase, team }: ObjectionVoteProps) {
-  const isAttacking = isMyTeamAttacking(team || 'NONE', phase);
+export default function ObjectionVote({ onVote }: ObjectionVoteProps) {
+  const objections = useBattleStore(selectDiscussions);
+  const battleProgress = useBattleStore(selectBattleProgress);
+  const team = useBattleStore(selectSelectedTeam);
+
+  const phase = battleProgress?.phase;
+  const isAttacking = isMyTeamAttacking(team, phase);
 
   // OPINION_SHARE 단계에서는 투표 UI를 표시하지 않음
   if (phase === 'OPINION_SHARE') {

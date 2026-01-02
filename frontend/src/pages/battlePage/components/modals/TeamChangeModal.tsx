@@ -1,26 +1,27 @@
 import { createPortal } from 'react-dom';
 import VoteIcon from '@/assets/icon/vote.svg?react';
 import TimerIcon from '@/assets/icon/timer.svg?react';
+import { useBattleStore, selectTeamCounts, selectSelectedTeam, selectBattleProgress } from '../../stores/battleStore';
+import { useBattleTimer } from '../../hooks/useBattleTimer';
 
 interface TeamChangeModalProps {
-  aTeamCounts: number;
-  bTeamCounts: number;
-  currentTeam: 'A' | 'B' | 'NONE';
-  remainingTime: string;
-  noneTeamCounts: number;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   onClose: () => void;
 }
 
-export default function TeamChangeModal({
-  aTeamCounts,
-  bTeamCounts,
-  noneTeamCounts,
-  remainingTime,
-  currentTeam,
-  handleTeamChange,
-  onClose
-}: TeamChangeModalProps) {
+export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChangeModalProps) {
+  const teamCounts = useBattleStore(selectTeamCounts);
+  const currentTeam = useBattleStore(selectSelectedTeam);
+  const battleProgress = useBattleStore(selectBattleProgress);
+
+  const { formattedTime: remainingTime } = useBattleTimer({
+    expiredAt: battleProgress?.expiredAt
+  });
+
+  const aTeamCounts = teamCounts?.teamA || 0;
+  const bTeamCounts = teamCounts?.teamB || 0;
+  const noneTeamCounts = 0;
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 

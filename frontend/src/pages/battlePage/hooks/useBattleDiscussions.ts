@@ -1,16 +1,20 @@
 import { useEffect, useCallback } from 'react';
-import { Socket } from 'socket.io-client';
-import { useBattleStore, selectBattleProgress, selectDiscussions } from '../stores/battleStore';
+import {
+  useBattleStore,
+  selectBattleProgress,
+  selectDiscussions,
+  selectSocket,
+  selectUserId,
+  selectBattleId,
+  selectSelectedTeam
+} from '../stores/battleStore';
 import { getObjectionConfig, isInputDisabled } from '../utils/battlePhase';
 
-interface UseBattleDiscussionsProps {
-  socket: Socket | null;
-  userId: string;
-  team: 'A' | 'B' | 'NONE';
-  battleId: string;
-}
-
-export function useBattleDiscussions({ socket, userId, team, battleId }: UseBattleDiscussionsProps) {
+export function useBattleDiscussions() {
+  const socket = useBattleStore(selectSocket);
+  const userId = useBattleStore(selectUserId);
+  const battleId = useBattleStore(selectBattleId);
+  const team = useBattleStore(selectSelectedTeam);
   const { updateDiscussionVote, addDiscussion } = useBattleStore();
   const battleProgress = useBattleStore(selectBattleProgress);
   const objections = useBattleStore(selectDiscussions);

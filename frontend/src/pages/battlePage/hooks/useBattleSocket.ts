@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import type { BattleJoinData, UseBattleSocketProps } from '@/commons/types/battle';
+import type { BattleJoinData } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 
-export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
+export function useBattleSocket() {
   const {
+    userId,
+    battleId,
     setSocket,
     setIsConnected,
     setCurrentStage,
@@ -16,6 +18,8 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
   } = useBattleStore();
 
   useEffect(() => {
+    if (!userId || !battleId) return;
+
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket']
     });
@@ -27,8 +31,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       newSocket.emit('battle:join', {
         userId,
         battleId,
-        team,
-        password
+        team: 'NONE'
       });
     });
 
@@ -55,6 +58,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setChats(data.allChats || []);
 
       // 초기 투표 리스트 동기화
+      const team = useBattleStore.getState().selectedTeam;
       if (team !== 'NONE' && data.turn?.status) {
         const VOTE_MAP: Record<string, typeof data.attacks | typeof data.defenses> = {
           A_ATTACK_B: data.attacks,
@@ -98,10 +102,8 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setIsConnected(false);
     };
   }, [
-    battleId,
     userId,
-    team,
-    password,
+    battleId,
     setSocket,
     setIsConnected,
     setCurrentStage,
