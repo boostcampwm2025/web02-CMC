@@ -1,15 +1,60 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Socket } from 'socket.io-client';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore, selectBattleProgress, selectDiscussions } from '../stores/battleStore';
+import { getObjectionConfig, isInputDisabled } from '../utils/battlePhase';
 
 interface UseBattleDiscussionsProps {
   socket: Socket | null;
   userId: string;
   team: 'A' | 'B' | 'NONE';
+  battleId: string;
 }
 
-export function useBattleDiscussions({ socket, userId, team }: UseBattleDiscussionsProps) {
+export function useBattleDiscussions({ socket, userId, team, battleId }: UseBattleDiscussionsProps) {
   const { updateDiscussionVote, addDiscussion } = useBattleStore();
+  const battleProgress = useBattleStore(selectBattleProgress);
+  const objections = useBattleStore(selectDiscussions);
+
+  const handleVote = useCallback(
+    (objectionId: number) => {
+      if (!socket || team === 'NONE') return;
+
+      const targetObjection = objections?.find((obj) => obj.id === objectionId);
+      if (targetObjection?.hasVoted) return;
+
+      const { isAttacking } = getObjectionConfig(team, battleProgress?.phase);
+      const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
+
+      socket.emit(eventName, {
+        battleId,
+        discussionId: String(objectionId),
+        userId,
+        team
+      });
+    },
+    [socket, team, objections, battleProgress, battleId, userId]
+  );
+
+  const handleObjectionSubmit = useCallback(
+    (content: string) => {
+      if (team === 'NONE' || !socket) return;
+
+      const { isAttacking } = getObjectionConfig(team, battleProgress?.phase);
+      const canSubmit = !isInputDisabled(team, battleProgress?.phase, battleProgress?.turn?.status);
+
+      if (!canSubmit) {
+        return;
+      }
+
+      socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
+        battleId,
+        authorId: userId,
+        content,
+        team
+      });
+    },
+    [socket, team, battleProgress, battleId, userId]
+  );
 
   useEffect(() => {
     if (!socket) return;
@@ -52,4 +97,6 @@ export function useBattleDiscussions({ socket, userId, team }: UseBattleDiscussi
       socket.off('Battle:NewDefense', handleNewDiscussion);
     };
   }, [socket, userId, team, updateDiscussionVote, addDiscussion]);
+
+  return { handleVote, handleObjectionSubmit };
 }

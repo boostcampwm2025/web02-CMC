@@ -12,7 +12,6 @@ import { useBattleTimer } from './hooks/useBattleTimer';
 import { useEffectModal } from './hooks/useEffectModal';
 import { useBattleProgress } from './hooks/useBattleProgress';
 import { useBattleDiscussions } from './hooks/useBattleDiscussions';
-import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import {
   useBattleStore,
   selectSocket,
@@ -77,7 +76,12 @@ export default function BattlePage() {
   });
 
   useBattleProgress({ socket });
-  useBattleDiscussions({ socket, userId, team: selectedTeam });
+  const { handleVote, handleObjectionSubmit } = useBattleDiscussions({
+    socket,
+    userId,
+    team: selectedTeam,
+    battleId: id || '1'
+  });
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
@@ -112,41 +116,6 @@ export default function BattlePage() {
       socket.off('battle:defensed', handleDefensed);
     };
   }, [socket, battleProgress?.turn?.status, showEffect]);
-
-  const handleVote = (objectionId: number) => {
-    if (!socket || selectedTeam === 'NONE') return;
-
-    const targetObjection = objections?.find((obj) => obj.id === objectionId);
-    if (targetObjection?.hasVoted) return;
-
-    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
-    const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
-
-    socket.emit(eventName, {
-      battleId: id || '1',
-      discussionId: String(objectionId),
-      userId,
-      team: selectedTeam
-    });
-  };
-
-  const handleObjectionSubmit = (content: string) => {
-    if (selectedTeam === 'NONE' || !socket) return;
-
-    const { isAttacking } = getObjectionConfig(selectedTeam, battleProgress?.phase);
-    const canSubmit = !isInputDisabled(selectedTeam, battleProgress?.phase, battleProgress?.turn?.status);
-
-    if (!canSubmit) {
-      return;
-    }
-
-    socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
-      battleId: id || '1',
-      authorId: userId,
-      content,
-      team: selectedTeam
-    });
-  };
 
   useEffect(() => {
     if (!socket) return;
