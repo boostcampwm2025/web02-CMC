@@ -11,15 +11,7 @@ import { useBattleStore } from '../stores/battleStore';
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
 
-  const {
-    setSocket,
-    setIsConnected,
-    setCurrentStage,
-    setBattleProgress,
-    setDiscussions,
-    addDiscussion,
-    updateDiscussionVote
-  } = useBattleStore();
+  const { setSocket, setIsConnected, setCurrentStage, setBattleProgress, setDiscussions } = useBattleStore();
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, {
@@ -92,37 +84,6 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       console.log('Battle:Defensed received:', data);
     });
 
-    // 투표 업데이트 이벤트
-    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
-      updateDiscussionVote(data.discussionId, data.upvotes, data.votes, userId);
-    };
-
-    // 새 이의제기/반론 추가
-    const handleNewDiscussion = (data: {
-      discussionId: string;
-      authorId: string;
-      content: string;
-      upvotes: number;
-      votes: string[];
-    }) => {
-      if (team === 'NONE') return;
-
-      addDiscussion({
-        id: data.discussionId as unknown as number,
-        user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
-        team: team as 'A' | 'B',
-        content: data.content,
-        votes: data.upvotes,
-        totalVotes: 0,
-        hasVoted: data.votes.includes(userId)
-      });
-    };
-
-    newSocket.on('battle:attackvote:update', handleVoteUpdate);
-    newSocket.on('battle:defensevote:update', handleVoteUpdate);
-    newSocket.on('Battle:NewAttack', handleNewDiscussion);
-    newSocket.on('Battle:NewDefense', handleNewDiscussion);
-
     return () => {
       newSocket.off('connect');
       newSocket.off('battle:joined');
@@ -139,19 +100,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setSocket(null);
       setIsConnected(false);
     };
-  }, [
-    battleId,
-    userId,
-    team,
-    password,
-    setSocket,
-    setIsConnected,
-    setCurrentStage,
-    setBattleProgress,
-    setDiscussions,
-    addDiscussion,
-    updateDiscussionVote
-  ]);
+  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage, setBattleProgress, setDiscussions]);
 
   return {
     battleData

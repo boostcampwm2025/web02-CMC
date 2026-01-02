@@ -11,6 +11,7 @@ import { useBattleSocket } from './hooks/useBattleSocket';
 import { useBattleTimer } from './hooks/useBattleTimer';
 import { useEffectModal } from './hooks/useEffectModal';
 import { useBattleProgress } from './hooks/useBattleProgress';
+import { useBattleDiscussions } from './hooks/useBattleDiscussions';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import {
   useBattleStore,
@@ -70,6 +71,7 @@ export default function BattlePage() {
   });
 
   useBattleProgress({ socket });
+  useBattleDiscussions({ socket, userId, team: selectedTeam });
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
