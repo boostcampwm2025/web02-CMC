@@ -10,6 +10,7 @@ import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 import { useBattleTimer } from './hooks/useBattleTimer';
 import { useEffectModal } from './hooks/useEffectModal';
+import { useBattleProgress } from './hooks/useBattleProgress';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
 import { useBattleStore, selectSocket, selectCurrentStage } from './stores/battleStore';
 import useModal from '@/commons/hooks/useModal';
@@ -59,6 +60,8 @@ export default function BattlePage() {
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
   });
+
+  useBattleProgress({ socket });
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {

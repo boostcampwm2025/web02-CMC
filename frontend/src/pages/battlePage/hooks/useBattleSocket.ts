@@ -89,50 +89,6 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       }
     });
 
-    // Phase 변경 이벤트 구독
-    newSocket.on('battle:phase:update', (data: BattleProgressState) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              phase: data.phase,
-              startedAt: data.startedAt,
-              expiredAt: data.expiredAt
-            }
-          : null
-      );
-      setCurrentStage(data.phase);
-      setObjections([]);
-    });
-
-    // Turn 변경 이벤트 구독
-    newSocket.on('battle:turn:update', (data: BattleProgressState) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              turn: data.turn,
-              startedAt: data.startedAt,
-              expiredAt: data.expiredAt
-            }
-          : null
-      );
-      setCurrentStage(data.turn?.status || null);
-      setObjections([]);
-    });
-
-    // Round 변경 이벤트 구독
-    newSocket.on('battle:round:update', (data: { battleId: string; round: number }) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              round: data.round
-            }
-          : null
-      );
-    });
-
     newSocket.on('battle:attacked', (data: BattleAttackedResult) => {
       console.log('Battle:Attacked received:', data);
     });
