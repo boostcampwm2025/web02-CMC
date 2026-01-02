@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLoaderData, useLocation } from 'react-router-dom';
-import type { BattleInfo, BattleAttackedResult, BattleDefensedResult } from '@/commons/types/battle';
+import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
@@ -9,9 +9,9 @@ import ObjectionVote from './components/objection/ObjectionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattleSocket } from './hooks/useBattleSocket';
 import { useBattleTimer } from './hooks/useBattleTimer';
-import { useEffectModal } from './hooks/useEffectModal';
 import { useBattleProgress } from './hooks/useBattleProgress';
 import { useBattleDiscussions } from './hooks/useBattleDiscussions';
+import { useBattleTimeline } from './hooks/useBattleTimeline';
 import {
   useBattleStore,
   selectSocket,
@@ -39,7 +39,6 @@ export default function BattlePage() {
 
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
-  const { effectModal, showEffect, hideEffect } = useEffectModal();
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: openTeamChangeModal,
@@ -81,6 +80,7 @@ export default function BattlePage() {
     team: selectedTeam,
     battleId: id || '1'
   });
+  const { effectModal, hideEffect } = useBattleTimeline({ socket });
 
   useEffect(() => {
     if (battleProgress?.phase === 'TEAM_SWITCH') {
@@ -91,30 +91,6 @@ export default function BattlePage() {
       return () => clearTimeout(timer);
     }
   }, [battleProgress?.phase, openTeamChangeModal]);
-
-  // 턴 변경 시 투표 리스트 초기화
-  useEffect(() => {
-    if (!socket) return;
-
-    const handleAttacked = (data: BattleAttackedResult) => {
-      // 턴 상태로 공격하는 팀 판단
-      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
-      showEffect(attackingTeam, data.attack.text, 'attack');
-    };
-    const handleDefensed = (data: BattleDefensedResult) => {
-      // 턴 상태로 방어하는 팀 판단
-      const defendingTeam = battleProgress?.turn?.status === 'A_DEFENSE' ? 'A' : 'B';
-      showEffect(defendingTeam, data.defense.text, 'defense');
-    };
-
-    socket.on('battle:attacked', handleAttacked);
-    socket.on('battle:defensed', handleDefensed);
-
-    return () => {
-      socket.off('battle:attacked', handleAttacked);
-      socket.off('battle:defensed', handleDefensed);
-    };
-  }, [socket, battleProgress?.turn?.status, showEffect]);
 
   useEffect(() => {
     if (!socket) return;
