@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
-import type { BattleProgressState } from '@/commons/types/battle';
+import type { BattleProgressState, BattleDiscussion, BattleDefense, BattleChat } from '@/commons/types/battle';
 
 interface BattleStore {
   socket: Socket | null;
@@ -16,6 +16,15 @@ interface BattleStore {
     totalVotes: number;
     hasVoted: boolean;
   }>;
+  teamCounts: {
+    teamA: number;
+    teamB: number;
+  } | null;
+  timelines: {
+    attacks: BattleDiscussion[];
+    defenses: BattleDefense[];
+  } | null;
+  chats: BattleChat[];
 
   setSocket: (socket: Socket | null) => void;
   setIsConnected: (connected: boolean) => void;
@@ -25,6 +34,10 @@ interface BattleStore {
   setDiscussions: (discussions: BattleStore['discussions']) => void;
   addDiscussion: (discussion: BattleStore['discussions'][0]) => void;
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
+  setTeamCounts: (counts: { teamA: number; teamB: number }) => void;
+  setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
+  setChats: (chats: BattleChat[]) => void;
+  addChat: (chat: BattleChat) => void;
 }
 
 export const useBattleStore = create<BattleStore>((set) => ({
@@ -33,6 +46,9 @@ export const useBattleStore = create<BattleStore>((set) => ({
   currentStage: null,
   battleProgress: null,
   discussions: [],
+  teamCounts: null,
+  timelines: null,
+  chats: [],
 
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
@@ -58,7 +74,15 @@ export const useBattleStore = create<BattleStore>((set) => ({
       return {
         discussions: updated.map((obj) => ({ ...obj, totalVotes }))
       };
-    })
+    }),
+
+  setTeamCounts: (counts) => set({ teamCounts: counts }),
+  setTimelines: (timelines) => set({ timelines }),
+  setChats: (chats) => set({ chats }),
+  addChat: (chat) =>
+    set((state) => ({
+      chats: [...state.chats, chat]
+    }))
 }));
 
 export const selectSocket = (state: BattleStore) => state.socket;
@@ -66,3 +90,6 @@ export const selectCurrentStage = (state: BattleStore) => state.currentStage;
 export const selectIsConnected: (state: BattleStore) => boolean = (state: BattleStore) => state.isConnected;
 export const selectBattleProgress = (state: BattleStore) => state.battleProgress;
 export const selectDiscussions = (state: BattleStore) => state.discussions;
+export const selectTeamCounts = (state: BattleStore) => state.teamCounts;
+export const selectTimelines = (state: BattleStore) => state.timelines;
+export const selectChats = (state: BattleStore) => state.chats;

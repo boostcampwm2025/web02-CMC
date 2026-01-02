@@ -18,7 +18,10 @@ import {
   selectSocket,
   selectCurrentStage,
   selectBattleProgress,
-  selectDiscussions
+  selectDiscussions,
+  selectTeamCounts,
+  selectTimelines,
+  selectChats
 } from './stores/battleStore';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
@@ -55,7 +58,7 @@ export default function BattlePage() {
     return id;
   });
 
-  const { battleData } = useBattleSocket({
+  useBattleSocket({
     battleId: id || '1',
     userId,
     team: selectedTeam
@@ -65,6 +68,9 @@ export default function BattlePage() {
   const currentStage = useBattleStore(selectCurrentStage);
   const battleProgress = useBattleStore(selectBattleProgress);
   const objections = useBattleStore(selectDiscussions);
+  const teamCounts = useBattleStore(selectTeamCounts);
+  const timelines = useBattleStore(selectTimelines);
+  const chats = useBattleStore(selectChats);
 
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
@@ -185,8 +191,8 @@ export default function BattlePage() {
           description={battleInfo.description}
           status={currentStage || 'END'}
           timer={formattedTime}
-          teamACounts={battleData?.counts.teamA || 0}
-          teamBCounts={battleData?.counts.teamB || 0}
+          teamACounts={teamCounts?.teamA || 0}
+          teamBCounts={teamCounts?.teamB || 0}
           teamNoneCounts={0}
         />
       </div>
@@ -200,17 +206,17 @@ export default function BattlePage() {
               codeA={battleInfo.aCode}
               codeB={battleInfo.bCode}
             />
-            <TimelineSection attackList={battleData?.timelines.attacks} defenseList={battleData?.timelines.defenses} />
+            <TimelineSection attackList={timelines?.attacks} defenseList={timelines?.defenses} />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
             <ChatSection
-              teamACounts={battleData?.counts.teamA || 0}
-              teamBCounts={battleData?.counts.teamB || 0}
+              teamACounts={teamCounts?.teamA || 0}
+              teamBCounts={teamCounts?.teamB || 0}
               team={selectedTeam}
               socket={socket}
               battleId={id}
-              chats={battleData?.chats || []}
-              allChats={battleData?.allChats || []}
+              chats={chats || []}
+              allChats={chats || []}
               userId={userId}
             />
             <ObjectionInput

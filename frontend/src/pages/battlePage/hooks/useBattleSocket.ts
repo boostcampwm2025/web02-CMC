@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import type {
-  BattleJoinData,
-  UseBattleSocketProps,
-  BattleAttackedResult,
-  BattleDefensedResult
-} from '@/commons/types/battle';
+import type { BattleJoinData, UseBattleSocketProps } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
-  const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
-
-  const { setSocket, setIsConnected, setCurrentStage, setBattleProgress, setDiscussions } = useBattleStore();
+  const {
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    setTeamCounts,
+    setTimelines,
+    setChats
+  } = useBattleStore();
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, {
@@ -32,8 +34,6 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
 
     // 배틀 참여 성공시 데이터 수신
     newSocket.once('battle:joined', (data: BattleJoinData) => {
-      setBattleData(data);
-
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
@@ -48,6 +48,11 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       } else {
         setCurrentStage(data.turn?.status || data.phase);
       }
+
+      // 팀 인원 수, 타임라인, 채팅 데이터 store에 저장
+      setTeamCounts(data.counts);
+      setTimelines(data.timelines);
+      setChats(data.allChats || []);
 
       // 초기 투표 리스트 동기화
       if (team !== 'NONE' && data.turn?.status) {
@@ -76,14 +81,6 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       }
     });
 
-    newSocket.on('battle:attacked', (data: BattleAttackedResult) => {
-      console.log('Battle:Attacked received:', data);
-    });
-
-    newSocket.on('battle:defensed', (data: BattleDefensedResult) => {
-      console.log('Battle:Defensed received:', data);
-    });
-
     return () => {
       newSocket.off('connect');
       newSocket.off('battle:joined');
@@ -100,9 +97,18 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setSocket(null);
       setIsConnected(false);
     };
-  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage, setBattleProgress, setDiscussions]);
-
-  return {
-    battleData
-  };
+  }, [
+    battleId,
+    userId,
+    team,
+    password,
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    setTeamCounts,
+    setTimelines,
+    setChats
+  ]);
 }
