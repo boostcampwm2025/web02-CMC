@@ -3,7 +3,6 @@ import { io } from 'socket.io-client';
 import type {
   BattleJoinData,
   UseBattleSocketProps,
-  BattleProgressState,
   BattleAttackedResult,
   BattleDefensedResult
 } from '@/commons/types/battle';
@@ -21,10 +20,9 @@ interface Objection {
 
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
-  const [battleProgress, setBattleProgressState] = useState<BattleProgressState | null>(null);
   const [objections, setObjections] = useState<Objection[]>([]);
 
-  const { setSocket, setIsConnected, setCurrentStage } = useBattleStore();
+  const { setSocket, setIsConnected, setCurrentStage, setBattleProgress } = useBattleStore();
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, {
@@ -48,7 +46,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setBattleData(data);
 
       // 초기 battleState 설정
-      setBattleProgressState({
+      setBattleProgress({
         round: data.round,
         phase: data.phase,
         turn: data.turn,
@@ -157,11 +155,10 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       setSocket(null);
       setIsConnected(false);
     };
-  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage]);
+  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage, setBattleProgress]);
 
   return {
     battleData,
-    battleProgress,
     objections
   };
 }
