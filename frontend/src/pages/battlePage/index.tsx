@@ -11,6 +11,7 @@ import { useBattleSocket } from './hooks/useBattleSocket';
 import { useBattleTimer } from './hooks/useBattleTimer';
 import { useEffectModal } from './hooks/useEffectModal';
 import { getObjectionConfig, isInputDisabled } from './utils/battlePhase';
+import { useBattleStore, selectSocket, selectCurrentStage } from './stores/battleStore';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import ObjectionModal from './components/effects/ObjectionModal';
@@ -46,11 +47,14 @@ export default function BattlePage() {
     return id;
   });
 
-  const { socket, currentStage, battleProgress, battleData, objections } = useBattleSocket({
+  const { battleProgress, battleData, objections } = useBattleSocket({
     battleId: id || '1',
     userId,
     team: selectedTeam
   });
+
+  const socket = useBattleStore(selectSocket);
+  const currentStage = useBattleStore(selectCurrentStage);
 
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt

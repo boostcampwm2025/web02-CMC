@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import type {
   BattleJoinData,
   UseBattleSocketProps,
@@ -7,6 +7,7 @@ import type {
   BattleAttackedResult,
   BattleDefensedResult
 } from '@/commons/types/battle';
+import { useBattleStore } from '../stores/battleStore';
 
 interface Objection {
   id: number;
@@ -21,17 +22,16 @@ interface Objection {
 export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
   const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
   const [battleProgress, setBattleProgressState] = useState<BattleProgressState | null>(null);
-  const [currentStage, setCurrentStage] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [objections, setObjections] = useState<Objection[]>([]);
-  const socketRef = useRef<Socket | null>(null);
+
+  const { setSocket, setIsConnected, setCurrentStage } = useBattleStore();
 
   useEffect(() => {
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket']
     });
 
-    socketRef.current = newSocket;
+    setSocket(newSocket);
 
     newSocket.on('connect', () => {
       setIsConnected(true);
@@ -198,15 +198,14 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       newSocket.off('Battle:NewAttack', handleNewDiscussion);
       newSocket.off('Battle:NewDefense', handleNewDiscussion);
       newSocket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
     };
-  }, [battleId, userId, team, password]);
+  }, [battleId, userId, team, password, setSocket, setIsConnected, setCurrentStage]);
 
   return {
-    socket: socketRef.current,
     battleData,
     battleProgress,
-    currentStage,
-    isConnected,
     objections
   };
 }
