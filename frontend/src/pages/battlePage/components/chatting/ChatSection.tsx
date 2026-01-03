@@ -5,39 +5,32 @@ import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useBattleStore, selectUserId, selectSelectedTeam, selectTeamCounts } from '../../stores/battleStore';
 import { useBattleChat } from '../../hooks/useBattleChat';
+import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
 
 export default function ChatSection() {
   const userId = useBattleStore(selectUserId);
   const team = useBattleStore(selectSelectedTeam);
-  const teamCounts = useBattleStore(selectTeamCounts);
+  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
 
   const { teamMessages, allMessages, sendMessage } = useBattleChat();
 
-  const teamACounts = teamCounts?.teamA || 0;
-  const teamBCounts = teamCounts?.teamB || 0;
-
   const [activeTab, setActiveTab] = useState<'team' | 'all'>(team === 'NONE' ? 'all' : 'team');
-  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const currentMessages = useMemo(() => {
     return activeTab === 'team' ? teamMessages : allMessages;
   }, [activeTab, teamMessages, allMessages]);
 
+  const chatContainerRef = useAutoScrollDown([currentMessages]);
+
   const currentMemberCount = useMemo(() => {
     if (activeTab === 'all') {
-      return teamACounts + teamBCounts;
+      return teamACount + teamBCount;
     }
-    return team === 'A' ? teamACounts : teamBCounts;
-  }, [activeTab, team, teamACounts, teamBCounts]);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [currentMessages]);
+    return team === 'A' ? teamACount : teamBCount;
+  }, [activeTab, team, teamACount, teamBCount]);
 
   const handleSendMessage = (content: string) => {
     const scope = activeTab === 'team' ? 'TEAM' : 'ALL';

@@ -11,15 +11,13 @@ interface BattleHeaderProps {
 export default function BattleHeader({ title, description }: BattleHeaderProps) {
   const currentStage = useBattleStore(selectCurrentStage);
   const battleProgress = useBattleStore(selectBattleProgress);
-  const teamCounts = useBattleStore(selectTeamCounts);
+  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
 
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
   });
 
   const status = currentStage || 'END';
-  const teamACounts = teamCounts?.teamA || 0;
-  const teamBCounts = teamCounts?.teamB || 0;
   const teamNoneCounts = 0;
   return (
     <header className="bg-[#1E1E2F] px-8 py-6 rounded-lg mb-2">
@@ -30,7 +28,7 @@ export default function BattleHeader({ title, description }: BattleHeaderProps) 
         </div>
         <div className="flex items-center gap-4">
           <StatusCard turn={status} timer={formattedTime} />
-          <VoteStatus teamACounts={teamACounts} teamBCounts={teamBCounts} teamNoneCounts={teamNoneCounts} />
+          <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={teamNoneCounts} />
         </div>
       </div>
     </header>

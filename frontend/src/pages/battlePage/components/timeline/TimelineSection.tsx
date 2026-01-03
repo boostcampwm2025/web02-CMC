@@ -10,6 +10,7 @@ export default function TimelineSection() {
 
   const attackList = timelines?.attacks || [];
   const defenseList = timelines?.defenses || [];
+
   const timeLines = useMemo(() => {
     const maxLength = attackList.length;
     const result: BattleDiscussion[] = [];

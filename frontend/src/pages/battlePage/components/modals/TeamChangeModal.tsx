@@ -10,7 +10,7 @@ interface TeamChangeModalProps {
 }
 
 export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChangeModalProps) {
-  const teamCounts = useBattleStore(selectTeamCounts);
+  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const currentTeam = useBattleStore(selectSelectedTeam);
   const battleProgress = useBattleStore(selectBattleProgress);
 
@@ -18,8 +18,6 @@ export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChang
     expiredAt: battleProgress?.expiredAt
   });
 
-  const aTeamCounts = teamCounts?.teamA || 0;
-  const bTeamCounts = teamCounts?.teamB || 0;
   const noneTeamCounts = 0;
 
   const modalRoot = document.getElementById('modal-root');
@@ -51,7 +49,7 @@ export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChang
           >
             {currentTeam === 'A' && <span className="absolute top-2 right-2 text-[#155DFC] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">A팀</span>
-            <span>{aTeamCounts}명</span>
+            <span>{teamACount}명</span>
           </button>
           <button
             type="button"
@@ -69,7 +67,7 @@ export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChang
           >
             {currentTeam === 'B' && <span className="absolute top-2 right-2 text-[#FB2C36] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">B팀</span>
-            <span>{bTeamCounts}명</span>
+            <span>{teamBCount}명</span>
           </button>
         </div>
         <p className="text-[#6A7282] text-[14px]">💡투표 후에도 다음 투표 시간에 팀을 변경할 수 있어요</p>

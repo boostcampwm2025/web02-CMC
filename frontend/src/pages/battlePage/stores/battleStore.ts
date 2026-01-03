@@ -19,9 +19,9 @@ interface BattleStore {
     hasVoted: boolean;
   }>;
   teamCounts: {
-    teamA: number;
-    teamB: number;
-  } | null;
+    teamACount: number;
+    teamBCount: number;
+  };
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
@@ -38,7 +38,7 @@ interface BattleStore {
   setDiscussions: (discussions: BattleStore['discussions']) => void;
   addDiscussion: (discussion: BattleStore['discussions'][0]) => void;
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
-  setTeamCounts: (counts: { teamA: number; teamB: number }) => void;
+  setTeamCounts: (counts: { teamACount: number; teamBCount: number }) => void;
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
   setChats: (chats: BattleChat[]) => void;
   addChat: (chat: BattleChat) => void;
@@ -53,7 +53,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
   currentStage: null,
   battleProgress: null,
   discussions: [],
-  teamCounts: null,
+  teamCounts: { teamACount: 0, teamBCount: 0 },
   timelines: null,
   chats: [],
   selectedTeam: 'NONE',
