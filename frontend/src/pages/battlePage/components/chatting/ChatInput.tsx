@@ -11,7 +11,6 @@ export default function ChatInput({ onSend }: ChatInputProps) {
   const handleSend = () => {
     if (inputValue) {
       onSend(inputValue);
-      // @Todo : 소켓으로 메세지 전송 이벤트 로직 필요.
       setInputValue('');
     }
   };
