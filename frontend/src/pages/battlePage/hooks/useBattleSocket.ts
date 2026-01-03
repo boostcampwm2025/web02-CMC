@@ -7,6 +7,7 @@ export function useBattleSocket() {
   const {
     userId,
     battleId,
+    selectedTeam,
     setSocket,
     setIsConnected,
     setCurrentStage,
@@ -14,7 +15,8 @@ export function useBattleSocket() {
     setDiscussions,
     setTeamCounts,
     setTimelines,
-    setChats
+    setTeamChats,
+    setAllChats
   } = useBattleStore();
 
   useEffect(() => {
@@ -31,7 +33,7 @@ export function useBattleSocket() {
       newSocket.emit('battle:join', {
         userId,
         battleId,
-        team: 'NONE'
+        team: selectedTeam
       });
     });
 
@@ -55,7 +57,8 @@ export function useBattleSocket() {
       // 팀 인원 수, 타임라인, 채팅 데이터 store에 저장
       setTeamCounts({ teamACount: data.counts.teamA, teamBCount: data.counts.teamB });
       setTimelines(data.timelines);
-      setChats(data.allChats || []);
+      setTeamChats(data.chats || []);
+      setAllChats(data.allChats || []);
 
       // 초기 투표 리스트 동기화
       const team = useBattleStore.getState().selectedTeam;
@@ -104,6 +107,7 @@ export function useBattleSocket() {
   }, [
     userId,
     battleId,
+    selectedTeam,
     setSocket,
     setIsConnected,
     setCurrentStage,
@@ -111,6 +115,7 @@ export function useBattleSocket() {
     setDiscussions,
     setTeamCounts,
     setTimelines,
-    setChats
+    setTeamChats,
+    setAllChats
   ]);
 }

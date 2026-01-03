@@ -1,9 +1,9 @@
 import ScaleIcon from '@/assets/icon/scale.svg?react';
-import ObjectionVoteItem from './ObjectionVoteItem';
+import DiscussionVoteItem from './DiscussionVoteItem';
 import { isMyTeamAttacking } from '../../utils/battlePhase';
 import { useBattleStore, selectDiscussions, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
 
-interface Objection {
+interface Discussion {
   id: number;
   user: string;
   team: 'A' | 'B';
@@ -13,14 +13,14 @@ interface Objection {
   hasVoted: boolean;
 }
 
-interface ObjectionVoteProps {
-  onVote: (objectionId: number) => void;
+interface DiscussionVoteProps {
+  onVote: (discussionId: number) => void;
 }
 
-export { type Objection };
+export { type Discussion };
 
-export default function ObjectionVote({ onVote }: ObjectionVoteProps) {
-  const objections = useBattleStore(selectDiscussions);
+export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
+  const discussions = useBattleStore(selectDiscussions);
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
 
@@ -38,7 +38,7 @@ export default function ObjectionVote({ onVote }: ObjectionVoteProps) {
     : '반론이 실시간으로 추가되며, 바로 투표 가능합니다!';
   const summaryText = isAttacking ? '이의제기' : '반론';
 
-  if (objections.length === 0) {
+  if (discussions.length === 0) {
     return null;
   }
 
@@ -58,16 +58,16 @@ export default function ObjectionVote({ onVote }: ObjectionVoteProps) {
 
       <div className="p-4 bg-gradient-to-r from-[#1E1E2F] to-[#59168B]">
         <div className="space-y-3 ">
-          {objections.map((objection) => (
-            <ObjectionVoteItem
-              key={objection.id}
-              user={objection.user}
-              team={objection.team}
-              content={objection.content}
-              votes={objection.votes}
-              totalVotes={objection.totalVotes}
-              hasVoted={objection.hasVoted}
-              onVote={() => onVote(objection.id)}
+          {discussions.map((discussion) => (
+            <DiscussionVoteItem
+              key={discussion.id}
+              user={discussion.user}
+              team={discussion.team}
+              content={discussion.content}
+              votes={discussion.votes}
+              totalVotes={discussion.totalVotes}
+              hasVoted={discussion.hasVoted}
+              onVote={() => onVote(discussion.id)}
             />
           ))}
         </div>
@@ -75,7 +75,7 @@ export default function ObjectionVote({ onVote }: ObjectionVoteProps) {
       <div className="py-4 bg-gradient-to-r from-[#1C398E] to-[#59168B] border-t border-[#2D2D3F] flex items-center justify-center gap-2 text-[13px]">
         <span className="text-[#FFB800]">⚡</span>
         <span className="text-white font-medium">
-          총 {objections.length}개의 {summaryText}
+          총 {discussions.length}개의 {summaryText}
         </span>
         <span className="text-[#99A1AF]">/ 투표 완료</span>
       </div>

@@ -47,7 +47,7 @@ export const isInputDisabled = (
   return true;
 };
 
-export const getObjectionConfig = (team: Team, phase?: BattlePhase) => {
+export const getDiscussionConfig = (team: Team, phase?: BattlePhase) => {
   const isAttacking = isMyTeamAttacking(team, phase);
 
   return {

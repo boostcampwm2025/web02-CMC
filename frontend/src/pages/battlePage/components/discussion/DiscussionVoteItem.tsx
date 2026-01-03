@@ -1,4 +1,4 @@
-interface ObjectionVoteItemProps {
+interface DiscussionVoteItemProps {
   user: string;
   team: 'A' | 'B';
   content: string;
@@ -8,7 +8,7 @@ interface ObjectionVoteItemProps {
   onVote: () => void;
 }
 
-export default function ObjectionVoteItem({
+export default function DiscussionVoteItem({
   user,
   team,
   content,
@@ -16,7 +16,7 @@ export default function ObjectionVoteItem({
   totalVotes,
   hasVoted,
   onVote
-}: ObjectionVoteItemProps) {
+}: DiscussionVoteItemProps) {
   const getVotePercentage = (votes: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((votes / total) * 100);

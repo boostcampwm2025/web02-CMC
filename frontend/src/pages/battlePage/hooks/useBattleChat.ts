@@ -6,7 +6,8 @@ import {
   selectUserId,
   selectBattleId,
   selectSelectedTeam,
-  selectChats
+  selectTeamChats,
+  selectAllChats
 } from '../stores/battleStore';
 import { convertBattleChatToMessage } from '../utils/convertChatMessage';
 
@@ -15,18 +16,20 @@ export function useBattleChat() {
   const userId = useBattleStore(selectUserId);
   const battleId = useBattleStore(selectBattleId);
   const team = useBattleStore(selectSelectedTeam);
-  const chats = useBattleStore(selectChats);
+  const teamChats = useBattleStore(selectTeamChats);
+  const allChats = useBattleStore(selectAllChats);
   const addChat = useBattleStore((state) => state.addChat);
 
-  // store의 chats를 필터링/변환만 수행
+  // 팀 채팅: 같은 팀인 것만
   const teamMessages = useMemo(
-    () => chats.filter((chat) => chat.scope === 'TEAM').map((chat) => convertBattleChatToMessage(chat, userId)),
-    [chats, userId]
+    () => teamChats.filter((chat) => chat.team === team).map((chat) => convertBattleChatToMessage(chat, userId)),
+    [teamChats, team, userId]
   );
 
+  // 전체 채팅: 그대로
   const allMessages = useMemo(
-    () => chats.filter((chat) => chat.scope === 'ALL').map((chat) => convertBattleChatToMessage(chat, userId)),
-    [chats, userId]
+    () => allChats.map((chat) => convertBattleChatToMessage(chat, userId)),
+    [allChats, userId]
   );
 
   // 실시간 채팅 업데이트 이벤트 구독
@@ -56,9 +59,21 @@ export function useBattleChat() {
         text: content.trim()
       };
 
+      // Optimistic update: 즉시 로컬 state에 추가
+      const optimisticMessage: BattleChat = {
+        messageId: `temp-${Date.now()}`,
+        battleId,
+        sender: userId,
+        team,
+        scope,
+        text: content.trim(),
+        createdAt: new Date().toISOString() as any
+      };
+      addChat(optimisticMessage);
+
       socket.emit('battle:chat', chatMessage);
     },
-    [socket, battleId, team]
+    [socket, battleId, team, userId, addChat]
   );
 
   return {

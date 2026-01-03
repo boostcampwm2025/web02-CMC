@@ -26,7 +26,8 @@ interface BattleStore {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
   } | null;
-  chats: BattleChat[];
+  teamChats: BattleChat[];
+  allChats: BattleChat[];
   selectedTeam: 'A' | 'B' | 'NONE';
 
   initializeBattle: (config: { userId: string; battleId: string }) => void;
@@ -40,7 +41,8 @@ interface BattleStore {
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
   setTeamCounts: (counts: { teamACount: number; teamBCount: number }) => void;
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
-  setChats: (chats: BattleChat[]) => void;
+  setTeamChats: (chats: BattleChat[]) => void;
+  setAllChats: (chats: BattleChat[]) => void;
   addChat: (chat: BattleChat) => void;
   setSelectedTeam: (team: 'A' | 'B' | 'NONE') => void;
 }
@@ -55,7 +57,8 @@ export const useBattleStore = create<BattleStore>((set) => ({
   discussions: [],
   teamCounts: { teamACount: 0, teamBCount: 0 },
   timelines: null,
-  chats: [],
+  teamChats: [],
+  allChats: [],
   selectedTeam: 'NONE',
 
   initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId }),
@@ -87,11 +90,16 @@ export const useBattleStore = create<BattleStore>((set) => ({
 
   setTeamCounts: (counts) => set({ teamCounts: counts }),
   setTimelines: (timelines) => set({ timelines }),
-  setChats: (chats) => set({ chats }),
+  setTeamChats: (chats) => set({ teamChats: chats }),
+  setAllChats: (chats) => set({ allChats: chats }),
   addChat: (chat) =>
-    set((state) => ({
-      chats: [...state.chats, chat]
-    })),
+    set((state) => {
+      if (chat.scope === 'TEAM') {
+        return { teamChats: [...state.teamChats, chat] };
+      } else {
+        return { allChats: [...state.allChats, chat] };
+      }
+    }),
   setSelectedTeam: (team) => set({ selectedTeam: team })
 }));
 
@@ -104,5 +112,6 @@ export const selectBattleProgress = (state: BattleStore) => state.battleProgress
 export const selectDiscussions = (state: BattleStore) => state.discussions;
 export const selectTeamCounts = (state: BattleStore) => state.teamCounts;
 export const selectTimelines = (state: BattleStore) => state.timelines;
-export const selectChats = (state: BattleStore) => state.chats;
+export const selectTeamChats = (state: BattleStore) => state.teamChats;
+export const selectAllChats = (state: BattleStore) => state.allChats;
 export const selectSelectedTeam = (state: BattleStore) => state.selectedTeam;

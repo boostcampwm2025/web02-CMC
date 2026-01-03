@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { isInputDisabled, getObjectionConfig } from '../../utils/battlePhase';
+import { isInputDisabled, getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
 
-interface ObjectionInputProps {
+interface DiscussionInputProps {
   disabled?: boolean;
   onSubmit?: (content: string) => void;
 }
 
-export default function ObjectionInput({ disabled = false, onSubmit }: ObjectionInputProps) {
+export default function DiscussionInput({ disabled = false, onSubmit }: DiscussionInputProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const [inputValue, setInputValue] = useState('');
@@ -15,7 +15,7 @@ export default function ObjectionInput({ disabled = false, onSubmit }: Objection
   const phase = battleProgress?.phase;
   const turnStatus = battleProgress?.turn?.status;
 
-  const { placeholderText, buttonText, Icon } = getObjectionConfig(team, phase);
+  const { placeholderText, buttonText, Icon } = getDiscussionConfig(team, phase);
   const disabled_input = isInputDisabled(team, phase, turnStatus, disabled);
 
   const handleSubmit = () => {

@@ -6,7 +6,7 @@ export interface Message {
   team: Team;
   content: string;
   timestamp: string;
-  type?: 'normal' | 'objection' | 'rebuttal';
+  type?: 'normal' | 'attack' | 'defense';
 }
 
 export const convertBattleChatToMessage = (chat: BattleChat, userId: string): Message => ({

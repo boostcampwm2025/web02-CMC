@@ -8,7 +8,7 @@ import {
   selectBattleId,
   selectSelectedTeam
 } from '../stores/battleStore';
-import { getObjectionConfig, isInputDisabled } from '../utils/battlePhase';
+import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);
@@ -17,33 +17,33 @@ export function useBattleDiscussions() {
   const team = useBattleStore(selectSelectedTeam);
   const { updateDiscussionVote, addDiscussion } = useBattleStore();
   const battleProgress = useBattleStore(selectBattleProgress);
-  const objections = useBattleStore(selectDiscussions);
+  const discussions = useBattleStore(selectDiscussions);
 
   const handleVote = useCallback(
-    (objectionId: number) => {
+    (discussionId: number) => {
       if (!socket || team === 'NONE') return;
 
-      const targetObjection = objections?.find((obj) => obj.id === objectionId);
-      if (targetObjection?.hasVoted) return;
+      const targetDiscussion = discussions?.find((obj) => obj.id === discussionId);
+      if (targetDiscussion?.hasVoted) return;
 
-      const { isAttacking } = getObjectionConfig(team, battleProgress?.phase);
+      const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
       const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
 
       socket.emit(eventName, {
         battleId,
-        discussionId: String(objectionId),
+        discussionId: String(discussionId),
         userId,
         team
       });
     },
-    [socket, team, objections, battleProgress, battleId, userId]
+    [socket, team, discussions, battleProgress, battleId, userId]
   );
 
-  const handleObjectionSubmit = useCallback(
+  const handleDiscussionSubmit = useCallback(
     (content: string) => {
       if (team === 'NONE' || !socket) return;
 
-      const { isAttacking } = getObjectionConfig(team, battleProgress?.phase);
+      const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
       const canSubmit = !isInputDisabled(team, battleProgress?.phase, battleProgress?.turn?.status);
 
       if (!canSubmit) {
@@ -102,5 +102,5 @@ export function useBattleDiscussions() {
     };
   }, [socket, userId, team, updateDiscussionVote, addDiscussion]);
 
-  return { handleVote, handleObjectionSubmit };
+  return { handleVote, handleDiscussionSubmit };
 }
