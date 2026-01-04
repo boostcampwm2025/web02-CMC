@@ -44,19 +44,19 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
     mockTeamCounts = { teamACount: 5, teamBCount: 3 };
 
     mockTeamMessages = [
-      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'normal' }
+      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'chat' }
     ];
 
     mockAllMessages = [
-      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'normal' },
-      { id: '2', user: 'user-789', team: 'B', content: 'B팀 메시지', timestamp: '2026-01-04 10:02:00', type: 'normal' }
+      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'chat' },
+      { id: '2', user: 'user-789', team: 'B', content: 'B팀 메시지', timestamp: '2026-01-04 10:02:00', type: 'chat' }
     ];
   });
 
   it('팀 채팅 활성화시 현재 팀 메시지만 표시되는지', () => {
     mockSelectedTeam = 'A';
     mockTeamMessages = [
-      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'normal' }
+      { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'chat' }
     ];
     render(<ChatSection />);
 

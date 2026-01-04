@@ -20,13 +20,26 @@ export function useBattleChat() {
   const allChats = useBattleStore(selectAllChats);
   const addChat = useBattleStore((state) => state.addChat);
 
-  // 팀 채팅: 같은 팀인 것만
-  const teamMessages = useMemo(
-    () => teamChats.filter((chat) => chat.team === team).map((chat) => convertBattleChatToMessage(chat, userId)),
-    [teamChats, team, userId]
-  );
+  // 팀 채팅
+  const teamMessages = useMemo(() => {
+    const teamOnlyMessages = teamChats
+      .filter((chat) => chat.team === team)
+      .map((chat) => convertBattleChatToMessage(chat, userId));
 
-  // 전체 채팅: 그대로
+    const allChatTeamMessages = allChats
+      .filter((chat) => chat.team === team)
+      .map((chat) => convertBattleChatToMessage(chat, userId));
+
+    // 메시지 ID 기준으로 중복 제거하며 병합
+    const messageMap = new Map();
+    [...teamOnlyMessages, ...allChatTeamMessages].forEach((msg) => {
+      messageMap.set(msg.id, msg);
+    });
+
+    return Array.from(messageMap.values());
+  }, [teamChats, allChats, team, userId]);
+
+  // 전체 채팅
   const allMessages = useMemo(
     () => allChats.map((chat) => convertBattleChatToMessage(chat, userId)),
     [allChats, userId]
@@ -59,7 +72,6 @@ export function useBattleChat() {
         text: content.trim()
       };
 
-      // Optimistic update: 즉시 로컬 state에 추가
       const optimisticMessage: BattleChat = {
         messageId: `temp-${Date.now()}`,
         battleId,

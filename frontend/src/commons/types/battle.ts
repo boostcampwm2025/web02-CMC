@@ -7,6 +7,7 @@ export interface BattleChat {
   team: Team;
   text: string;
   createdAt: Date;
+  type?: 'chat' | 'attack' | 'defense';
 }
 
 export interface BattleInfo {
