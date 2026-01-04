@@ -19,6 +19,9 @@ export function useBattleProgress() {
         expiredAt: data.expiredAt
       });
       setCurrentStage(data.phase);
+
+      // 페이즈가 변경되면 투표 리스트 초기화
+      useBattleStore.getState().setDiscussions([]);
     };
 
     // Turn 변경 이벤트 구독
@@ -29,6 +32,9 @@ export function useBattleProgress() {
         expiredAt: data.expiredAt
       });
       setCurrentStage(data.turn?.status || null);
+
+      // 턴이 변경되면 투표 리스트 초기화
+      useBattleStore.getState().setDiscussions([]);
     };
 
     // Round 변경 이벤트 구독
