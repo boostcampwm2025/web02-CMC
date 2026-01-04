@@ -99,4 +99,90 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
     // 이제 B팀 메시지도 보임
     expect(screen.getByText('B팀 메시지')).toBeInTheDocument();
   });
+
+  it('선정된 이의제기 메시지가 DiscussionMessage로 렌더링되는지', () => {
+    mockSelectedTeam = 'NONE';
+    mockAllMessages = [
+      {
+        id: '1',
+        user: 'SYSTEM',
+        team: 'A',
+        content: '이 코드는 성능 문제가 있습니다',
+        timestamp: '2026-01-04 10:00:00',
+        type: 'attack'
+      }
+    ];
+    const { container } = render(<ChatSection />);
+
+    expect(screen.getByText('이 코드는 성능 문제가 있습니다')).toBeInTheDocument();
+    // DiscussionMessage 컴포넌트가 렌더링되었는지 확인
+    const discussionMessage = container.querySelector('[class*="discussion"]') || container.querySelector('div');
+    expect(discussionMessage).toBeInTheDocument();
+  });
+
+  it('선정된 반론 메시지가 DiscussionMessage로 렌더링되는지', () => {
+    mockSelectedTeam = 'NONE';
+    mockAllMessages = [
+      {
+        id: '1',
+        user: 'SYSTEM',
+        team: 'B',
+        content: '캐싱을 사용하면 해결됩니다',
+        timestamp: '2026-01-04 10:05:00',
+        type: 'defense'
+      }
+    ];
+    render(<ChatSection />);
+
+    expect(screen.getByText('캐싱을 사용하면 해결됩니다')).toBeInTheDocument();
+  });
+
+  it('일반 채팅과 특수 메시지(이의제기/반론)가 함께 표시되는지', () => {
+    mockSelectedTeam = 'NONE';
+    mockAllMessages = [
+      { id: '1', user: 'user-123', team: 'A', content: '안녕하세요', timestamp: '2026-01-04 10:00:00', type: 'chat' },
+      {
+        id: '2',
+        user: 'SYSTEM',
+        team: 'A',
+        content: '이 코드는 문제가 있습니다',
+        timestamp: '2026-01-04 10:01:00',
+        type: 'attack'
+      },
+      {
+        id: '3',
+        user: 'SYSTEM',
+        team: 'B',
+        content: '그렇지 않습니다',
+        timestamp: '2026-01-04 10:02:00',
+        type: 'defense'
+      },
+      { id: '4', user: 'user-456', team: 'B', content: '반갑습니다', timestamp: '2026-01-04 10:03:00', type: 'chat' }
+    ];
+    render(<ChatSection />);
+
+    expect(screen.getByText('안녕하세요')).toBeInTheDocument();
+    expect(screen.getByText('이 코드는 문제가 있습니다')).toBeInTheDocument();
+    expect(screen.getByText('그렇지 않습니다')).toBeInTheDocument();
+    expect(screen.getByText('반갑습니다')).toBeInTheDocument();
+  });
+
+  it('팀 라운지에서도 해당 팀의 선정된 이의제기/반론이 표시되는지', () => {
+    mockSelectedTeam = 'A';
+    mockTeamMessages = [
+      { id: '1', user: 'user-123', team: 'A', content: 'A팀 채팅', timestamp: '2026-01-04 10:00:00', type: 'chat' },
+      {
+        id: '2',
+        user: 'SYSTEM',
+        team: 'A',
+        content: 'A팀의 이의제기',
+        timestamp: '2026-01-04 10:01:00',
+        type: 'attack'
+      }
+    ];
+    render(<ChatSection />);
+
+    expect(screen.getByText('A팀 채팅')).toBeInTheDocument();
+    expect(screen.getByText('A팀의 이의제기')).toBeInTheDocument();
+  });
 });
