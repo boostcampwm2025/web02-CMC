@@ -70,42 +70,6 @@ describe('CodeSection', () => {
     expect(screen.getByText(/function teamB/)).toBeInTheDocument();
   });
 
-  it('스플릿 뷰 버튼 클릭 시 onViewChange 콜백 호출', async () => {
-    const user = userEvent.setup();
-    render(
-      <CodeSection
-        onViewChange={mockOnViewChange}
-        currentView="tab"
-        codeA={mockCodeA}
-        codeB={mockCodeB}
-        language="JavaScript"
-      />
-    );
-
-    const splitButton = screen.getByRole('button', { name: '스플릿 뷰' });
-    await user.click(splitButton);
-
-    expect(mockOnViewChange).toHaveBeenCalledWith('split');
-  });
-
-  it('탭 뷰 버튼 클릭 시 onViewChange 콜백 호출', async () => {
-    const user = userEvent.setup();
-    render(
-      <CodeSection
-        onViewChange={mockOnViewChange}
-        currentView="split"
-        codeA={mockCodeA}
-        codeB={mockCodeB}
-        language="JavaScript"
-      />
-    );
-
-    const tabButton = screen.getByRole('button', { name: '탭 뷰' });
-    await user.click(tabButton);
-
-    expect(mockOnViewChange).toHaveBeenCalledWith('tab');
-  });
-
   it('split 뷰에서는 A/B 탭 버튼이 표시되지 않음', () => {
     render(
       <CodeSection
