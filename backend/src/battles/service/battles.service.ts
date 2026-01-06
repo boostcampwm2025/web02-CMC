@@ -567,6 +567,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
+    battleState.all.attacks.push(attack)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.attacks.push(attack)
     } else {
@@ -595,6 +596,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
+    battleState.all.defenses.push(defense)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.defenses.push(defense)
     } else {
@@ -608,6 +610,11 @@ export class BattlesService extends EventEmitter {
     const { phase, turn } = battleState
 
     if (userTeam === BATTLE_TEAM.NONE) return false
+
+    // OPINION_SHARE 단계에서는 모든 팀이 의견 제출 가능
+    if (phase === 'OPINION_SHARE') {
+      return true
+    }
 
     if (phase === 'TEAM_A_ATTACK' && turn?.status === 'A_ATTACK' && userTeam === BATTLE_TEAM.A) {
       return true

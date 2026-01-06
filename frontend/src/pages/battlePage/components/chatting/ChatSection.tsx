@@ -23,19 +23,23 @@ interface ChatSectionProps {
   battleId?: string;
   chats: BattleChat[];
   allChats: BattleChat[];
-  aTeamMemebers: number;
+  teamACounts: number;
+  teamBCounts: number;
   onSendMessage?: (content: string) => void;
   team: 'A' | 'B' | 'NONE';
+  userId: string;
 }
 
 export default function ChatSection({
   socket,
-  aTeamMemebers,
+  teamACounts,
+  teamBCounts,
   onSendMessage,
   team,
   battleId,
   chats,
-  allChats
+  allChats,
+  userId
 }: ChatSectionProps) {
   const [teamMessages, setTeamMessages] = useState<Message[]>([]);
   const [allMessages, setAllMessages] = useState<Message[]>([]);
@@ -45,6 +49,13 @@ export default function ChatSection({
   const currentMessages = useMemo(() => {
     return activeTab === 'team' ? teamMessages : allMessages;
   }, [activeTab, teamMessages, allMessages]);
+
+  const currentMemberCount = useMemo(() => {
+    if (activeTab === 'all') {
+      return teamACounts + teamBCounts;
+    }
+    return team === 'A' ? teamACounts : teamBCounts;
+  }, [activeTab, team, teamACounts, teamBCounts]);
 
   useEffect(() => {
     const newChats =
@@ -82,6 +93,8 @@ export default function ChatSection({
   }, [currentMessages]);
 
   useEffect(() => {
+    if (!socket) return;
+
     const handleChatUpdate = (message: BattleChat) => {
       const newMessage: Message = {
         id: message.messageId,
@@ -102,9 +115,13 @@ export default function ChatSection({
         onSendMessage(newMessage.content);
       }
     };
-    socket?.on('battle:chatUpdate', handleChatUpdate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket]);
+
+    socket.on('battle:chatUpdate', handleChatUpdate);
+
+    return () => {
+      socket.off('battle:chatUpdate', handleChatUpdate);
+    };
+  }, [socket, onSendMessage]);
 
   const handleSendMessage = (content: string) => {
     if (!socket) return;
@@ -153,7 +170,7 @@ export default function ChatSection({
           </div>
           <span className="text-[12px] text-[#99A1AF] flex items-center gap-1">
             <PeoplesIcons />
-            {aTeamMemebers}
+            {currentMemberCount}
           </span>
         </div>
 
@@ -178,6 +195,7 @@ export default function ChatSection({
               content={message.content}
               timestamp={message.timestamp}
               showTeamBadge={activeTab === 'all'}
+              currentUserId={userId}
             />
           )
         )}

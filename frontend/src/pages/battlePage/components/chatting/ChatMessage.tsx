@@ -7,6 +7,7 @@ interface ChatMessageProps {
   timestamp: string;
   showTeamBadge?: boolean;
   type?: 'normal' | 'objection' | 'rebuttal';
+  currentUserId?: string;
 }
 
 const TEAM_NICKNAME_COLORS = {
@@ -27,9 +28,16 @@ const TEAM_LABELS = {
   NONE: '중립'
 };
 
-export default function ChatMessage({ user, team, content, timestamp, showTeamBadge = false }: ChatMessageProps) {
+export default function ChatMessage({
+  user,
+  team,
+  content,
+  timestamp,
+  showTeamBadge = false,
+  currentUserId
+}: ChatMessageProps) {
   const nickNameColor = TEAM_NICKNAME_COLORS[team];
-  const isYou = user === 'You';
+  const isYou = user === currentUserId;
 
   return (
     <div className={`flex ${isYou ? 'flex-col items-end' : 'flex-col items-start'} mb-3`}>
