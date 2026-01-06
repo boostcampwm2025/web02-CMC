@@ -186,6 +186,17 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
     newSocket.on('Battle:NewDefense', handleNewDiscussion);
 
     return () => {
+      newSocket.off('connect');
+      newSocket.off('battle:joined');
+      newSocket.off('battle:phase:update');
+      newSocket.off('battle:turn:update');
+      newSocket.off('battle:round:update');
+      newSocket.off('battle:attacked');
+      newSocket.off('battle:defensed');
+      newSocket.off('battle:attackvote:update', handleVoteUpdate);
+      newSocket.off('battle:defensevote:update', handleVoteUpdate);
+      newSocket.off('Battle:NewAttack', handleNewDiscussion);
+      newSocket.off('Battle:NewDefense', handleNewDiscussion);
       newSocket.disconnect();
     };
   }, [battleId, userId, team, password]);

@@ -93,6 +93,8 @@ export default function ChatSection({
   }, [currentMessages]);
 
   useEffect(() => {
+    if (!socket) return;
+
     const handleChatUpdate = (message: BattleChat) => {
       const newMessage: Message = {
         id: message.messageId,
@@ -113,9 +115,13 @@ export default function ChatSection({
         onSendMessage(newMessage.content);
       }
     };
-    socket?.on('battle:chatUpdate', handleChatUpdate);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket]);
+
+    socket.on('battle:chatUpdate', handleChatUpdate);
+
+    return () => {
+      socket.off('battle:chatUpdate', handleChatUpdate);
+    };
+  }, [socket, onSendMessage]);
 
   const handleSendMessage = (content: string) => {
     if (!socket) return;

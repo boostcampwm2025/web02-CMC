@@ -148,10 +148,17 @@ export default function BattlePage() {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('battle:closed', (payload: { battleId: string }) => {
+
+    const handleBattleClosed = (payload: { battleId: string }) => {
       navigate(`/battle/${payload.battleId}/result`);
-    });
-  }, [socket]);
+    };
+
+    socket.on('battle:closed', handleBattleClosed);
+
+    return () => {
+      socket.off('battle:closed', handleBattleClosed);
+    };
+  }, [socket, navigate]);
 
   return (
     <div className="text-white flex flex-col items-center">
