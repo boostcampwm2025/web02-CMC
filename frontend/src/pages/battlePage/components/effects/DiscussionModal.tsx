@@ -75,7 +75,7 @@ export default function DiscussionModal({ isOpen, team, content, type, onClose }
             className={`px-6 py-2 rounded-full bg-gradient-to-r ${gradient} shadow-lg ${glow} transition-all duration-500 ${badgeClass}`}
           >
             <span className="text-white font-bold text-lg tracking-wider">
-              {team}팀 {type === 'attack' ? '공격' : '방어'}
+              {team}팀 {type === 'attack' ? '이의제기' : '반론'}
             </span>
           </div>
 
@@ -87,7 +87,7 @@ export default function DiscussionModal({ isOpen, team, content, type, onClose }
                 textShadow: '0 0 40px rgba(255, 255, 255, 0.5), 0 0 80px rgba(255, 255, 255, 0.3)'
               }}
             >
-              {type === 'attack' ? '공격!!' : '방어!!'}
+              {type === 'attack' ? '이의제기!!' : '반론!!'}
             </h1>
           </div>
 

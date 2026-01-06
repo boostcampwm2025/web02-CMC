@@ -1,26 +1,25 @@
 import { createPortal } from 'react-dom';
 import VoteIcon from '@/assets/icon/vote.svg?react';
 import TimerIcon from '@/assets/icon/timer.svg?react';
+import { useBattleStore, selectTeamCounts, selectSelectedTeam, selectBattleProgress } from '../../stores/battleStore';
+import { useBattleTimer } from '../../hooks/useBattleTimer';
 
 interface TeamChangeModalProps {
-  aTeamCounts: number;
-  bTeamCounts: number;
-  currentTeam: 'A' | 'B' | 'NONE';
-  remainingTime: string;
-  noneTeamCounts: number;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   onClose: () => void;
 }
 
-export default function TeamChangeModal({
-  aTeamCounts,
-  bTeamCounts,
-  noneTeamCounts,
-  remainingTime,
-  currentTeam,
-  handleTeamChange,
-  onClose
-}: TeamChangeModalProps) {
+export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChangeModalProps) {
+  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
+  const currentTeam = useBattleStore(selectSelectedTeam);
+  const battleProgress = useBattleStore(selectBattleProgress);
+
+  const { formattedTime: remainingTime } = useBattleTimer({
+    expiredAt: battleProgress?.expiredAt
+  });
+
+  const noneTeamCounts = 0;
+
   const modalRoot = document.getElementById('modal-root');
   if (!modalRoot) return null;
 
@@ -50,7 +49,7 @@ export default function TeamChangeModal({
           >
             {currentTeam === 'A' && <span className="absolute top-2 right-2 text-[#155DFC] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">A팀</span>
-            <span>{aTeamCounts}명</span>
+            <span>{teamACount}명</span>
           </button>
           <button
             type="button"
@@ -68,7 +67,7 @@ export default function TeamChangeModal({
           >
             {currentTeam === 'B' && <span className="absolute top-2 right-2 text-[#FB2C36] text-[24px]">✓</span>}
             <span className="text-[18px] font-bold">B팀</span>
-            <span>{bTeamCounts}명</span>
+            <span>{teamBCount}명</span>
           </button>
         </div>
         <p className="text-[#6A7282] text-[14px]">💡투표 후에도 다음 투표 시간에 팀을 변경할 수 있어요</p>

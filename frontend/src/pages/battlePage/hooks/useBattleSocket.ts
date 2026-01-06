@@ -1,54 +1,46 @@
-import { useEffect, useState, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import type {
-  BattleJoinData,
-  UseBattleSocketProps,
-  BattleProgressState,
-  BattleAttackedResult,
-  BattleDefensedResult
-} from '@/commons/types/battle';
+import { useEffect } from 'react';
+import { io } from 'socket.io-client';
+import type { BattleJoinData } from '@/commons/types/battle';
+import { useBattleStore } from '../stores/battleStore';
 
-interface Objection {
-  id: number;
-  user: string;
-  team: 'A' | 'B';
-  content: string;
-  votes: number;
-  totalVotes: number;
-  hasVoted: boolean;
-}
-
-export function useBattleSocket({ battleId, userId, team, password }: UseBattleSocketProps) {
-  const [battleData, setBattleData] = useState<BattleJoinData | null>(null);
-  const [battleProgress, setBattleProgressState] = useState<BattleProgressState | null>(null);
-  const [currentStage, setCurrentStage] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [objections, setObjections] = useState<Objection[]>([]);
-  const socketRef = useRef<Socket | null>(null);
+export function useBattleSocket() {
+  const {
+    userId,
+    battleId,
+    selectedTeam,
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    setTeamCounts,
+    setTimelines,
+    setTeamChats,
+    setAllChats
+  } = useBattleStore();
 
   useEffect(() => {
+    if (!userId || !battleId) return;
+
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket']
     });
 
-    socketRef.current = newSocket;
+    setSocket(newSocket);
 
     newSocket.on('connect', () => {
       setIsConnected(true);
       newSocket.emit('battle:join', {
         userId,
         battleId,
-        team,
-        password
+        team: selectedTeam
       });
     });
 
     // 배틀 참여 성공시 데이터 수신
     newSocket.once('battle:joined', (data: BattleJoinData) => {
-      setBattleData(data);
-
       // 초기 battleState 설정
-      setBattleProgressState({
+      setBattleProgress({
         round: data.round,
         phase: data.phase,
         turn: data.turn,
@@ -62,7 +54,14 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
         setCurrentStage(data.turn?.status || data.phase);
       }
 
+      // 팀 인원 수, 타임라인, 채팅 데이터 store에 저장
+      setTeamCounts({ teamACount: data.counts.teamA, teamBCount: data.counts.teamB });
+      setTimelines(data.timelines);
+      setTeamChats(data.chats || []);
+      setAllChats(data.allChats || []);
+
       // 초기 투표 리스트 동기화
+      const team = useBattleStore.getState().selectedTeam;
       if (team !== 'NONE' && data.turn?.status) {
         const VOTE_MAP: Record<string, typeof data.attacks | typeof data.defenses> = {
           A_ATTACK_B: data.attacks,
@@ -74,7 +73,7 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
         const currentVoteList = VOTE_MAP[`${data.turn.status}_${team}`];
         if (currentVoteList?.length) {
           const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
-          setObjections(
+          setDiscussions(
             currentVoteList.map(({ discussionId, authorId, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
               user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
@@ -89,102 +88,6 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       }
     });
 
-    // Phase 변경 이벤트 구독
-    newSocket.on('battle:phase:update', (data: BattleProgressState) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              phase: data.phase,
-              startedAt: data.startedAt,
-              expiredAt: data.expiredAt
-            }
-          : null
-      );
-      setCurrentStage(data.phase);
-      setObjections([]);
-    });
-
-    // Turn 변경 이벤트 구독
-    newSocket.on('battle:turn:update', (data: BattleProgressState) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              turn: data.turn,
-              startedAt: data.startedAt,
-              expiredAt: data.expiredAt
-            }
-          : null
-      );
-      setCurrentStage(data.turn?.status || null);
-      setObjections([]);
-    });
-
-    // Round 변경 이벤트 구독
-    newSocket.on('battle:round:update', (data: { battleId: string; round: number }) => {
-      setBattleProgressState((prev) =>
-        prev
-          ? {
-              ...prev,
-              round: data.round
-            }
-          : null
-      );
-    });
-
-    newSocket.on('battle:attacked', (data: BattleAttackedResult) => {
-      console.log('Battle:Attacked received:', data);
-    });
-
-    newSocket.on('battle:defensed', (data: BattleDefensedResult) => {
-      console.log('Battle:Defensed received:', data);
-    });
-
-    // 투표 업데이트 이벤트
-    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
-      setObjections((prev) => {
-        const updated = prev.map((obj) => {
-          const isTarget = String(obj.id) === data.discussionId;
-          return isTarget ? { ...obj, votes: data.upvotes, hasVoted: data.votes.includes(userId) } : obj;
-        });
-        const totalVotes = updated.reduce((sum, obj) => sum + obj.votes, 0);
-        return updated.map((obj) => ({ ...obj, totalVotes }));
-      });
-    };
-
-    // 새 이의제기/반론 추가
-    const handleNewDiscussion = (data: {
-      discussionId: string;
-      authorId: string;
-      content: string;
-      upvotes: number;
-      votes: string[];
-    }) => {
-      if (team === 'NONE') return;
-
-      setObjections((prev) => {
-        const totalVotes = prev.reduce((sum, obj) => sum + obj.votes, 0);
-        return [
-          ...prev,
-          {
-            id: data.discussionId as unknown as number,
-            user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
-            team: team as 'A' | 'B',
-            content: data.content,
-            votes: data.upvotes,
-            totalVotes,
-            hasVoted: data.votes.includes(userId)
-          }
-        ];
-      });
-    };
-
-    newSocket.on('battle:attackvote:update', handleVoteUpdate);
-    newSocket.on('battle:defensevote:update', handleVoteUpdate);
-    newSocket.on('Battle:NewAttack', handleNewDiscussion);
-    newSocket.on('Battle:NewDefense', handleNewDiscussion);
-
     return () => {
       newSocket.off('connect');
       newSocket.off('battle:joined');
@@ -198,15 +101,21 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
       newSocket.off('Battle:NewAttack', handleNewDiscussion);
       newSocket.off('Battle:NewDefense', handleNewDiscussion);
       newSocket.disconnect();
+      setSocket(null);
+      setIsConnected(false);
     };
-  }, [battleId, userId, team, password]);
-
-  return {
-    socket: socketRef.current,
-    battleData,
-    battleProgress,
-    currentStage,
-    isConnected,
-    objections
-  };
+  }, [
+    userId,
+    battleId,
+    selectedTeam,
+    setSocket,
+    setIsConnected,
+    setCurrentStage,
+    setBattleProgress,
+    setDiscussions,
+    setTeamCounts,
+    setTimelines,
+    setTeamChats,
+    setAllChats
+  ]);
 }

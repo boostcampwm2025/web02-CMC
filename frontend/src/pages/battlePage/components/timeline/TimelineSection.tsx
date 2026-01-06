@@ -3,13 +3,14 @@ import BattleIcon from '@/assets/icon/battle.svg?react';
 import DownArrowIcon from '@/assets/icon/downArrow.svg?react';
 import TimelineCard from './TimelineCard';
 import type { BattleDiscussion } from '@/commons/types/battle';
+import { useBattleStore, selectTimelines } from '../../stores/battleStore';
 
-interface TimelineSectionProps {
-  attackList?: BattleDiscussion[];
-  defenseList?: BattleDiscussion[];
-}
+export default function TimelineSection() {
+  const timelines = useBattleStore(selectTimelines);
 
-export default function TimelineSection({ attackList = [], defenseList = [] }: TimelineSectionProps) {
+  const attackList = timelines?.attacks || [];
+  const defenseList = timelines?.defenses || [];
+
   const timeLines = useMemo(() => {
     const maxLength = attackList.length;
     const result: BattleDiscussion[] = [];
