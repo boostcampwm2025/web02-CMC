@@ -64,14 +64,14 @@ export function useBattleSocket({ battleId, userId, team, password }: UseBattleS
 
       // 초기 투표 리스트 동기화
       if (team !== 'NONE' && data.turn?.status) {
-        const voteMap: Record<string, typeof data.attacks | typeof data.defenses> = {
-          'A_ATTACK-A': data.attacks,
-          'B_DEFENSE-B': data.defenses,
-          'B_ATTACK-B': data.attacks,
-          'A_DEFENSE-A': data.defenses
+        const VOTE_MAP: Record<string, typeof data.attacks | typeof data.defenses> = {
+          A_ATTACK_B: data.attacks,
+          B_DEFENSE_A: data.defenses,
+          B_ATTACK_A: data.attacks,
+          A_DEFENSE_B: data.defenses
         };
 
-        const currentVoteList = voteMap[`${data.turn.status}-${team}`];
+        const currentVoteList = VOTE_MAP[`${data.turn.status}_${team}`];
         if (currentVoteList?.length) {
           const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
           setObjections(
