@@ -41,6 +41,8 @@ interface BattleStore {
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
   setTeamCounts: (counts: { teamACount: number; teamBCount: number }) => void;
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
+  addAttackTimeline: (attack: BattleDiscussion) => void;
+  addDefenseTimeline: (defense: BattleDefense) => void;
   setTeamChats: (chats: BattleChat[]) => void;
   setAllChats: (chats: BattleChat[]) => void;
   addChat: (chat: BattleChat) => void;
@@ -90,6 +92,20 @@ export const useBattleStore = create<BattleStore>((set) => ({
 
   setTeamCounts: (counts) => set({ teamCounts: counts }),
   setTimelines: (timelines) => set({ timelines }),
+  addAttackTimeline: (attack) =>
+    set((state) => ({
+      timelines: {
+        attacks: [...(state.timelines?.attacks || []), attack],
+        defenses: state.timelines?.defenses || []
+      }
+    })),
+  addDefenseTimeline: (defense) =>
+    set((state) => ({
+      timelines: {
+        attacks: state.timelines?.attacks || [],
+        defenses: [...(state.timelines?.defenses || []), defense]
+      }
+    })),
   setTeamChats: (chats) => set({ teamChats: chats }),
   setAllChats: (chats) => set({ allChats: chats }),
   addChat: (chat) =>
@@ -97,7 +113,10 @@ export const useBattleStore = create<BattleStore>((set) => ({
       if (chat.scope === 'TEAM') {
         return { teamChats: [...state.teamChats, chat] };
       } else {
-        return { allChats: [...state.allChats, chat] };
+        return {
+          allChats: [...state.allChats, chat],
+          teamChats: [...state.teamChats, chat]
+        };
       }
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team })
