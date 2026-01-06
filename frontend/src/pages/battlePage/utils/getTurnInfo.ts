@@ -13,7 +13,7 @@ export const getTurnInfo = (stage: string | null): TurnInfo => {
     };
   }
 
-  const phaseMap: Record<BattlePhase, TurnInfo> = {
+  const PHASE_MAP: Record<BattlePhase, TurnInfo> = {
     OPINION_SHARE: {
       title: '의견 공유 시간',
       description: '코드를 분석하고 팀원들과 의견을 나누세요.'
@@ -32,7 +32,7 @@ export const getTurnInfo = (stage: string | null): TurnInfo => {
     }
   };
 
-  const turnMap: Record<TurnStatus, TurnInfo> = {
+  const TURN_MAP: Record<TurnStatus, TurnInfo> = {
     A_ATTACK: {
       title: 'A팀 이의제기 시간',
       description: 'A팀이 코드의 문제점을 지적하세요.'
@@ -51,12 +51,12 @@ export const getTurnInfo = (stage: string | null): TurnInfo => {
     }
   };
 
-  if (stage in turnMap) {
-    return turnMap[stage as TurnStatus];
+  if (stage in TURN_MAP) {
+    return TURN_MAP[stage as TurnStatus];
   }
 
-  if (stage in phaseMap) {
-    return phaseMap[stage as BattlePhase];
+  if (stage in PHASE_MAP) {
+    return PHASE_MAP[stage as BattlePhase];
   }
 
   return {
