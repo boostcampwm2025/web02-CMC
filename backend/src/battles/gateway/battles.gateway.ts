@@ -76,7 +76,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:attack')
+  @SubscribeMessage('battle:attack')
   handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, authorId, content, team } = dto
@@ -86,7 +86,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       this.server.to(teamRoom).emit('Battle:NewAttack', attack)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:attack:Error', {
+        client.emit('battle:attack:error', {
           message: error.message,
         })
       }
@@ -103,7 +103,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       this.server.to(teamRoom).emit('Battle:NewDefense', defense)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:defense:Error', {
+        client.emit('battle:defense:error', {
           message: error.message,
         })
       }
@@ -154,21 +154,21 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:turn:update', payload)
+    this.server.to(battleRoomId).emit('battle:turn:updated', payload)
   }
 
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:phase:update', payload)
+    this.server.to(battleRoomId).emit('battle:phase:updated', payload)
   }
 
   roundUpdate(payload: BattleRoundResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:round:update', payload)
+    this.server.to(battleRoomId).emit('battle:round:updated', payload)
   }
 
   onAttacked(payload: DiscussionVoteResultDto) {
