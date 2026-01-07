@@ -119,7 +119,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('battle:attackvote:update', update)
+        this.server.to(teamRoom).emit('battle:attack:voted', update)
       })
     } catch (error) {
       if (error instanceof Error) {
