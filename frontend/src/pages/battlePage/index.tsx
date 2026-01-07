@@ -4,7 +4,7 @@ import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
-import DiscussionInput from './components/discussion/DiscussionInput';
+// import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattle } from './hooks/useBattle';
@@ -23,7 +23,7 @@ export default function BattlePage() {
     closeModal: handleCloseTeamChangeModal
   } = useModal(false);
 
-  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, handleTeamChange } = useBattle({
+  const { handleVote, effectModal, hideEffect, handleTeamChange } = useBattle({
     battleId,
     onOpenTeamChangeModal: handleOpenTeamChangeModal,
     onCloseTeamChangeModal: handleCloseTeamChangeModal
@@ -47,9 +47,8 @@ export default function BattlePage() {
             <TimelineSection />
           </div>
           <aside className="flex flex-col gap-4 w-[590px]">
-            <ChatSection />
-            <DiscussionInput onSubmit={handleDiscussionSubmit} />
             <DiscussionVote onVote={handleVote} />
+            <ChatSection />
           </aside>
         </div>
       </main>
