@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import BattleIcon from '@/assets/icon/battle.svg?react';
 import { isInputDisabled, getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
+import { TEAM_COLORS } from '../../types/teamColors';
 
 interface DiscussionInputProps {
   disabled?: boolean;
@@ -12,10 +14,15 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   const team = useBattleStore(selectSelectedTeam);
   const [inputValue, setInputValue] = useState('');
 
+  // 중립 진영은 DiscussionInput 표시 안 함
+  if (team === 'NONE') {
+    return null;
+  }
+
   const phase = battleProgress?.phase;
   const turnStatus = battleProgress?.turn?.status;
 
-  const { placeholderText, buttonText, Icon } = getDiscussionConfig(team, phase);
+  const { placeholderText, buttonText, Icon, isAttacking } = getDiscussionConfig(team, phase);
   const disabled_input = isInputDisabled(team, phase, turnStatus, disabled);
 
   const handleSubmit = () => {
@@ -31,27 +38,59 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
     }
   };
 
+  const hintText = isAttacking
+    ? '상대 진영의 코드와 주장의 빈틈을 노려 반론을 던져보세요.'
+    : '아직 이의제기 단계가 아닙니다. 잠시만 기다려주세요.';
+
+  const colors = TEAM_COLORS[team];
+
   return (
-    <section className="w-full bg-[#1E1E2F] rounded-lg overflow-hidden">
-      <div className="p-4 flex gap-1">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
-          placeholder={placeholderText}
-          disabled={disabled_input}
-          autoFocus
-          className="w-full bg-[#2D2D3F] border border-[#FF5A5F] rounded-md px-4 py-3 text-[13px] text-white placeholder-[#666] focus:outline-none focus:border-[#FF5A5F] disabled:opacity-50 disabled:cursor-not-allowed"
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={disabled_input}
-          className="w-[140px] py-2 bg-[#4A5568] text-[15px] text-white rounded-md hover:bg-[#5A6578] transition-colors flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#4A5568]"
-        >
-          <Icon className="w-[22px] h-[22px]" />
-          {buttonText}
-        </button>
+    <section
+      className={`w-full bg-linear-to-r ${colors.containerGradient} border ${colors.border} rounded-lg overflow-hidden shadow-lg`}
+    >
+      {/* 헤더 */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BattleIcon className={`w-5 h-5 ${colors.icon}`} />
+            <h3 className="text-white text-[15px] font-semibold">{team}팀 이의제기</h3>
+          </div>
+          {isAttacking && (
+            <div
+              className={`flex items-center gap-1.5 bg-linear-to-r ${colors.badgeGradient} px-3 py-1.5 rounded-full`}
+            >
+              <span className="text-white text-[12px] font-medium">반격 시간</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 입력 영역 */}
+      <div className="px-4 pb-4">
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder={placeholderText}
+            disabled={disabled_input}
+            autoFocus
+            className={`flex-1 bg-[#2D2D3F] border ${colors.inputBorder} rounded-lg px-4 py-3 text-[14px] text-white placeholder-[#666] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={disabled_input}
+            className={`px-6 py-3 ${colors.buttonBg} text-white rounded-lg ${colors.buttonHover} ${colors.buttonActive} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-[14px] shadow-md hover:shadow-lg`}
+          >
+            <Icon className="w-5 h-5" />
+            {buttonText}
+          </button>
+        </div>
+
+        <div className={`flex items-start gap-2 ${colors.hintText} text-[12px]`}>
+          <p className="leading-relaxed">{hintText}</p>
+        </div>
       </div>
     </section>
   );
