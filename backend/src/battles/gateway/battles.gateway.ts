@@ -83,7 +83,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const attack = this.battlesService.handleAttack(battleId, { authorId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:NewAttack', attack)
+      this.server.to(teamRoom).emit('battle:attack:created', attack)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('Battle:Attack:Error', {
@@ -100,7 +100,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const defense = this.battlesService.handleDefense(battleId, { authorId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:NewDefense', defense)
+      this.server.to(teamRoom).emit('battle:defense:created', defense)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('Battle:Defense:Error', {

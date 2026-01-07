@@ -83,7 +83,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewAttack', mockAttack)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
 
     it('공격 등록 실패 시 에러 이벤트를 emit한다', () => {
@@ -137,7 +137,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewDefense', mockDefense)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
 
     it('반론 등록 실패 시 에러 이벤트를 emit한다', () => {

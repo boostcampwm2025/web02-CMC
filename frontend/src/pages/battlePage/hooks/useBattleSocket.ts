@@ -98,7 +98,7 @@ export function useBattleSocket() {
       newSocket.off('battle:defensed');
       newSocket.off('battle:attackvote:update');
       newSocket.off('battle:defensevote:update');
-      newSocket.off('Battle:NewAttack');
+      newSocket.off('battle:attack:created');
       newSocket.off('Battle:NewDefense');
       newSocket.disconnect();
       setSocket(null);
