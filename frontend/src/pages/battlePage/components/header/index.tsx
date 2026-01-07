@@ -7,7 +7,7 @@ import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/
 import type { Phase } from '@/commons/types/battle';
 
 const PHASE_INSTRUCTIONS: Record<Phase, string> = {
-  PENDING: '배틀이 곧 시작됩니다. 준비해주세요',
+  PENDING: '',
   OPINION_SHARE: '자유롭게 의견을 작성하고 투표에 참여해주세요',
   ATTACK: '주어진 시간 내에 상대 코드의 문제점을 지적해주세요',
   DEFENSE: '상대의 공격에 대한 반박 논리를 작성해주세요',
@@ -24,10 +24,12 @@ export default function BattleHeader() {
       <TimeProgressBar />
       <div className="px-8 flex-1 flex items-center justify-between">
         <StageIndicator />
-        <div className="flex flex-col items-center justify-center">
-          <BattleTimer />
-          <p className="text-sm text-gray-400">{instruction}</p>
-        </div>
+        {phase !== 'PENDING' && (
+          <div className="flex flex-col items-center justify-center">
+            <BattleTimer />
+            <p className="text-sm text-gray-400">{instruction}</p>
+          </div>
+        )}
         <TeamCounter />
       </div>
       <ParticipantRatioBar />
