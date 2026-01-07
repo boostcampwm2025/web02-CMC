@@ -50,7 +50,7 @@ export function useBattleDiscussions() {
         return;
       }
 
-      socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
+      socket.emit(isAttacking ? 'battle:attack' : 'battle:defense', {
         battleId,
         authorId: userId,
         content,
