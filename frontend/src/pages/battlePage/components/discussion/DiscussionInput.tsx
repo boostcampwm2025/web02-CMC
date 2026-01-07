@@ -52,7 +52,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BattleIcon className={`w-5 h-5 ${colors.icon}`} />
+            <BattleIcon className={`w-5 h-5 ${colors.primary}`} />
             <h3 className="text-white text-[15px] font-semibold">{team}팀 이의제기</h3>
           </div>
           {isAttacking && (
@@ -76,19 +76,19 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
             placeholder={placeholderText}
             disabled={disabled_input}
             autoFocus
-            className={`flex-1 bg-[#2D2D3F] border ${colors.inputBorder} rounded-lg px-4 py-3 text-[14px] text-white placeholder-[#666] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
+            className={`flex-1 bg-[#2D2D3F] border ${colors.border} rounded-lg px-4 py-3 text-[14px] text-white placeholder-[#666] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
           />
           <button
             onClick={handleSubmit}
             disabled={disabled_input}
-            className={`px-6 py-3 ${colors.buttonBg} text-white rounded-lg ${colors.buttonHover} ${colors.buttonActive} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-[14px] shadow-md hover:shadow-lg`}
+            className={`px-6 py-3 ${colors.primaryBg} text-white rounded-lg ${colors.buttonHover} ${colors.buttonActive} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-[14px] shadow-md hover:shadow-lg`}
           >
             <Icon className="w-5 h-5" />
             {buttonText}
           </button>
         </div>
 
-        <div className={`flex items-start gap-2 ${colors.hintText} text-[12px]`}>
+        <div className={`flex items-start gap-2 ${colors.primary} text-[12px]`}>
           <p className="leading-relaxed">{hintText}</p>
         </div>
       </div>
