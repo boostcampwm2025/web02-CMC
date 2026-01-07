@@ -52,7 +52,7 @@ describe('BattlesGateway - Discussion Events', () => {
     gateway.server = mockServer
   })
 
-  describe('Battle:Attack', () => {
+  describe('Battle:attack', () => {
     it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
@@ -160,7 +160,7 @@ describe('BattlesGateway - Discussion Events', () => {
     })
   })
 
-  describe('Battle:AttackVote', () => {
+  describe('battle:attack:vote', () => {
     it('공격 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackVoteRequestDto = {
         battleId: 'battle-1',
@@ -194,7 +194,7 @@ describe('BattlesGateway - Discussion Events', () => {
     })
   })
 
-  describe('Battle:DefenseVote', () => {
+  describe('battle:defense:vote', () => {
     it('반론 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseVoteRequestDto = {
         battleId: 'battle-1',
