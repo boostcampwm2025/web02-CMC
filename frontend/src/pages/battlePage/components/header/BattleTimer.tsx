@@ -11,7 +11,9 @@ export default function BattleTimer() {
   const isUrgent = remainingSeconds <= 5;
 
   return (
-    <div className={`text-[72px] font-bold tracking-wider ${isUrgent ? 'text-red-500' : 'text-white'}`}>
+    <div
+      className={`text-[72px] font-bold tracking-wider ${isUrgent ? 'text-red-500 animate-timer-shake' : 'text-white'}`}
+    >
       {formattedTime}
     </div>
   );
