@@ -27,7 +27,7 @@ export function useBattleDiscussions() {
       if (targetDiscussion?.hasVoted) return;
 
       const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
-      const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
+      const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
 
       socket.emit(eventName, {
         battleId,

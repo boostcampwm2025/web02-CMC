@@ -110,7 +110,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('battle:attackvote')
+  @SubscribeMessage('battle:attack:vote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -123,14 +123,14 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:attackvote:error', {
+        client.emit('battle:attack:vote:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('battle:defensevote')
+  @SubscribeMessage('battle:defense:vote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -143,7 +143,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:defensevote:error', {
+        client.emit('battle:defense:vote:error', {
           message: error.message,
         })
       }
