@@ -55,17 +55,12 @@ export function useBattleSocket() {
       setTeamChats(data.chats || []);
       setAllChats(data.allChats || []);
 
-      // 초기 투표 리스트 동기화
+      // 초기 투표 리스트 동기화 (ATTACK/DEFENSE 페이즈만)
       const team = useBattleStore.getState().selectedTeam;
-      if (team !== 'NONE' && (data.phase == 'ATTACK' || data.phase == 'DEFENSE')) {
-        const VOTE_MAP: Record<string, typeof data.attacks | typeof data.defenses> = {
-          A_ATTACK_B: data.attacks,
-          B_DEFENSE_A: data.defenses,
-          B_ATTACK_A: data.attacks,
-          A_DEFENSE_B: data.defenses
-        };
+      if (team !== 'NONE') {
+        const currentVoteList =
+          data.phase === 'ATTACK' ? data.attacks : data.phase === 'DEFENSE' ? data.defenses : null;
 
-        const currentVoteList = VOTE_MAP[`${data.phase}_${team}`];
         if (currentVoteList?.length) {
           const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
           setDiscussions(
