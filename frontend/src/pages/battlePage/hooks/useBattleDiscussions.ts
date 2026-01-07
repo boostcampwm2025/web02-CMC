@@ -89,7 +89,7 @@ export function useBattleDiscussions() {
       });
     };
 
-    socket.on('battle:attackvote:update', handleVoteUpdate);
+    socket.on('battle:attack:voted', handleVoteUpdate);
     socket.on('battle:defensevote:update', handleVoteUpdate);
     socket.on('battle:attack:created', handleNewDiscussion);
     socket.on('battle:defense:created', handleNewDiscussion);
