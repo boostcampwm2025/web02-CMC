@@ -53,10 +53,10 @@ export function useBattleChat() {
       addChat(message);
     };
 
-    socket.on('battle:chatUpdate', handleChatUpdate);
+    socket.on('battle:chatted', handleChatUpdate);
 
     return () => {
-      socket.off('battle:chatUpdate', handleChatUpdate);
+      socket.off('battle:chatted', handleChatUpdate);
     };
   }, [socket, addChat]);
 
