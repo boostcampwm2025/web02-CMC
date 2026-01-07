@@ -1,4 +1,4 @@
-import ProgressBar from './ProgressBar';
+import ParticipantRatioBar from './ParticipantRatioBar';
 import StageIndicator from './StageIndicator';
 import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
@@ -27,7 +27,7 @@ export default function BattleHeader({ title, description }: BattleHeaderProps) 
         <TeamCounter />
       </div>
 
-      <ProgressBar />
+      <ParticipantRatioBar />
     </header>
   );
 }
