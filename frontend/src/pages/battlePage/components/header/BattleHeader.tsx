@@ -1,52 +1,33 @@
-import StatusCard from './StatusCard';
-import VoteStatus from './VoteStatus';
-import {
-  useBattleStore,
-  selectCurrentStage,
-  selectBattleProgress,
-  selectTeamCounts,
-  selectBattleId,
-  selectSocket
-} from '../../stores/battleStore';
-import { useBattleTimer } from '../../hooks/useBattleTimer';
+import ProgressBar from './ProgressBar';
+import StageIndicator from './StageIndicator';
+import BattleTimer from './BattleTimer';
+import TeamCounter from './TeamCounter';
 
-export default function BattleHeader() {
-  const currentStage = useBattleStore(selectCurrentStage);
-  const battleProgress = useBattleStore(selectBattleProgress);
-  const { teamACount, teamBCount, none } = useBattleStore(selectTeamCounts);
-  const battleId = useBattleStore(selectBattleId);
-  const socket = useBattleStore(selectSocket);
+interface BattleHeaderProps {
+  title: string;
+  description: string;
+}
 
-  const { formattedTime } = useBattleTimer({
-    expiredAt: battleProgress?.expiredAt ?? undefined
-  });
-
-  const status = currentStage || 'END';
-
-  const handleStart = () => {
-    if (!socket || !battleId) return;
-    socket.emit('battle:start', { battleId });
-  };
-
-  const showStartButton = currentStage === 'PENDING';
+export default function BattleHeader({ title, description }: BattleHeaderProps) {
+  console.log(title);
+  console.log(description);
 
   return (
-    <header className="bg-[#1E1E2F] px-8 py-6 rounded-lg mb-2">
-      <div className="flex justify-between">
-        <div className="flex items-center gap-4">
-          <StatusCard phase={status} timer={formattedTime} />
-          <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={none} />
+    <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
+      <div className="bg-blue-500 h-[6px]" />
+
+      <div className="px-8 flex-1 flex items-center justify-between">
+        <StageIndicator />
+
+        <div className="flex flex-col items-center justify-center">
+          <BattleTimer />
+          <p className="text-sm text-gray-400">주어진 시간 내에 코드의 문제점을 지적하세요</p>
         </div>
-        {showStartButton && (
-          <button
-            type="button"
-            onClick={handleStart}
-            className="h-10 px-4 rounded-lg border border-[#FF6900] text-[#FF6900] hover:bg-[#FF6900]/10"
-          >
-            배틀 시작
-          </button>
-        )}
+
+        <TeamCounter />
       </div>
+
+      <ProgressBar />
     </header>
   );
 }
