@@ -2,6 +2,7 @@ import ParticipantRatioBar from './ParticipantRatioBar';
 import StageIndicator from './StageIndicator';
 import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
+import TimeProgressBar from './TimeProgressBar';
 
 interface BattleHeaderProps {
   title: string;
@@ -14,7 +15,7 @@ export default function BattleHeader({ title, description }: BattleHeaderProps) 
 
   return (
     <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
-      <div className="bg-blue-500 h-[6px]" />
+      <TimeProgressBar />
 
       <div className="px-8 flex-1 flex items-center justify-between">
         <StageIndicator />
