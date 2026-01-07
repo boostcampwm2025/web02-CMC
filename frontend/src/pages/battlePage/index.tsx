@@ -49,25 +49,27 @@ export default function BattlePage() {
       {/* 메인 콘텐츠 */}
       <div
         className={`flex flex-col items-center transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'ml-[400px]' : 'ml-0'
+          isSidebarOpen ? 'ml-sidebar' : 'ml-0'
         }`}
       >
-        <div className={`transition-all duration-300 ${isSidebarOpen ? 'w-[1400px]' : 'w-[1800px]'}`}>
+        <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <BattleHeader />
         </div>
-        <main className={`transition-all duration-300 ${isSidebarOpen ? 'w-[1400px]' : 'w-[1800px]'}`}>
+        <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <div className="flex gap-2 py-4">
             <div className="flex-1 min-w-0">
               <CodeSection
                 onViewChange={setViewMode}
                 currentView={viewMode}
-                language="javascript"
+                language={battleInfo.language}
                 codeA={battleInfo.aCode}
                 codeB={battleInfo.bCode}
               />
             </div>
             <aside
-              className={`flex flex-col gap-4 transition-all duration-300 ${isSidebarOpen ? 'w-[450px]' : 'w-[590px]'}`}
+              className={`flex flex-col gap-4 transition-all duration-300 ${
+                isSidebarOpen ? 'lounge-width-open' : 'lounge-width-closed'
+              }`}
             >
               <ChatSection />
               <DiscussionInput onSubmit={handleDiscussionSubmit} />

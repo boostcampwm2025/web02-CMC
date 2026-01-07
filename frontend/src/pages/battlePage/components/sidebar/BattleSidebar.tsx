@@ -20,7 +20,7 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full w-[400px]  bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
+      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
