@@ -1,7 +1,6 @@
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
-
-type Phase = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH';
+import type { Phase } from '@/commons/types/battle';
 
 const PHASE_INFO: Record<Phase, { category: string; message: string }> = {
   PENDING: {
