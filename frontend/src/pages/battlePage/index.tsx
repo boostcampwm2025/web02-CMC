@@ -4,7 +4,7 @@ import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header/BattleHeader';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
-// import DiscussionInput from './components/discussion/DiscussionInput';
+import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
 import TimelineSection from './components/timeline/TimelineSection';
 import { useBattle } from './hooks/useBattle';
@@ -23,18 +23,18 @@ export default function BattlePage() {
     closeModal: handleCloseTeamChangeModal
   } = useModal(false);
 
-  const { handleVote, effectModal, hideEffect, handleTeamChange } = useBattle({
+  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, handleTeamChange } = useBattle({
     battleId,
     onOpenTeamChangeModal: handleOpenTeamChangeModal,
     onCloseTeamChangeModal: handleCloseTeamChangeModal
   });
 
   return (
-    <div className="text-white flex flex-col items-center">
+    <div className="text-white flex flex-col items-center relative">
       <div className="w-[1800px]">
         <BattleHeader title={battleInfo.title} description={battleInfo.description} />
       </div>
-      <main className="w-[1800px]">
+      <main className="w-[1800px] pb-24">
         <div className="flex gap-2 py-4">
           <div className="flex-1">
             <CodeSection
@@ -52,6 +52,13 @@ export default function BattlePage() {
           </aside>
         </div>
       </main>
+
+      {/* DiscussionInput 항상 중앙 하단에 고정 */}
+      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[1800px] px-4 pb-4 z-50">
+        <div className="max-w-[590px] mx-auto">
+          <DiscussionInput onSubmit={handleDiscussionSubmit} />
+        </div>
+      </div>
 
       {isTeamChangeModalOpen && (
         <TeamChangeModal handleTeamChange={handleTeamChange} onClose={handleCloseTeamChangeModal} />
