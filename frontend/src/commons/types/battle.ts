@@ -18,9 +18,8 @@ export interface BattleInfo {
 }
 
 // 공통 타입들
-export type BattlePhase = 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH';
+export type BattlePhase = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH';
 export type Team = 'A' | 'B' | 'NONE';
-export type TurnStatus = 'A_ATTACK' | 'B_ATTACK' | 'A_DEFENSE' | 'B_DEFENSE';
 
 // BattleDiscussion 타입
 export interface BattleDiscussion {
@@ -58,10 +57,6 @@ export interface BattleJoinData {
   // 배틀 상태 정보
   round: number;
   phase: BattlePhase;
-  turn: {
-    status: TurnStatus;
-    count: number;
-  } | null;
   startedAt: number;
   expiredAt: number;
 }
@@ -76,10 +71,6 @@ export interface UseBattleSocketProps {
 export interface BattleProgressState {
   round: number;
   phase: BattlePhase;
-  turn: {
-    status: TurnStatus;
-    count: number;
-  } | null;
   startedAt: number;
   expiredAt: number;
 }
