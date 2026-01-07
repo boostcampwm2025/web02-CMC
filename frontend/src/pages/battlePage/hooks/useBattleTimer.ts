@@ -30,6 +30,7 @@ export function useBattleTimer({ expiredAt }: UseBattleTimerProps) {
 
   return {
     remainingTime,
+    remainingSeconds: remainingTime,
     formattedTime: formatTime(remainingTime)
   };
 }

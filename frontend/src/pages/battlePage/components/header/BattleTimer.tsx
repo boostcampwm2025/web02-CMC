@@ -4,13 +4,15 @@ import { useBattleTimer } from '../../hooks/useBattleTimer';
 export default function BattleTimer() {
   const battleProgress = useBattleStore(selectBattleProgress);
 
-  const { formattedTime } = useBattleTimer({
+  const { formattedTime, remainingSeconds } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
   });
 
+  const isUrgent = remainingSeconds <= 5;
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="text-[72px] font-bold text-white">{formattedTime}</div>
+    <div className={`text-[72px] font-bold tracking-wider ${isUrgent ? 'text-red-500' : 'text-white'}`}>
+      {formattedTime}
     </div>
   );
 }
