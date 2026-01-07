@@ -26,15 +26,15 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: #2D2D3F;
+  background: #2d2d3f;
   border-radius: 5px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #FF6900;
+  background: #ff6900;
   border-radius: 5px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #FF8533;
+  background: #ff8533;
 }

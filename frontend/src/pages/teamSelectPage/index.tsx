@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useStepFlow } from './hooks/useStepFlow';
 import StepIndicator from './components/StepIndicator';
@@ -69,10 +70,45 @@ export default function TeamSelectPage() {
         {/* Step Indicator */}
         <StepIndicator currentStep={currentStep} />
 
-        {/* Step Content */}
-        <div className="mb-8">{renderStep()}</div>
+        {/* Step Content with Side Navigation */}
+        <div className="relative mb-8">
+          <div className="flex items-center justify-center gap-8">
+            {/* 이전 버튼 - 첫 단계가 아닐 때만 표시 */}
+            {currentStep > 1 && (
+              <button
+                onClick={goToPrev}
+                className="w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors flex-shrink-0"
+                aria-label="이전 단계"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
 
-        {/* Step Navigation */}
+            {/* Step Content */}
+            <div className="flex-1 max-w-6xl">{renderStep()}</div>
+
+            {/* 다음 버튼 - 마지막 단계가 아닐 때만 표시 */}
+            {currentStep < 4 && (
+              <button
+                onClick={goToNext}
+                disabled={!canGoNext}
+                className={`
+                  w-12 h-12 rounded-full flex items-center justify-center transition-colors flex-shrink-0
+                  ${
+                    canGoNext
+                      ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
+                      : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
+                  }
+                `}
+                aria-label="다음 단계"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Step Navigation (하단 인디케이터) */}
         <StepNavigation
           currentStep={currentStep}
           onPrev={goToPrev}
