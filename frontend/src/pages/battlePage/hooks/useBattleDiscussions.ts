@@ -90,13 +90,13 @@ export function useBattleDiscussions() {
     };
 
     socket.on('battle:attack:voted', handleVoteUpdate);
-    socket.on('battle:defensevote:update', handleVoteUpdate);
+    socket.on('battle:defense:voted', handleVoteUpdate);
     socket.on('battle:attack:created', handleNewDiscussion);
     socket.on('battle:defense:created', handleNewDiscussion);
 
     return () => {
-      socket.off('battle:attackvote:update', handleVoteUpdate);
-      socket.off('battle:defensevote:update', handleVoteUpdate);
+      socket.off('battle:attack:voted', handleVoteUpdate);
+      socket.off('battle:defense:voted', handleVoteUpdate);
       socket.off('battle:attack:created', handleNewDiscussion);
       socket.off('battle:defense:created', handleNewDiscussion);
     };

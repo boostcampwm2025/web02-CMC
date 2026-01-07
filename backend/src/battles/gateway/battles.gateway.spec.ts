@@ -224,7 +224,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('battle:defensevote:update', mockResponse)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:voted', mockResponse)
     })
   })
 })

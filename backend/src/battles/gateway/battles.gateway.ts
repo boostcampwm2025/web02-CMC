@@ -139,7 +139,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('battle:defensevote:update', update)
+        this.server.to(teamRoom).emit('battle:defense:voted', update)
       })
     } catch (error) {
       if (error instanceof Error) {
@@ -235,7 +235,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
           : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
 
       // this.server.to(roomId).emit('battle:chatUpdate', saved)
-      this.server.to(roomId).except(client.id).emit('battle:chatUpdate', saved)
+      this.server.to(roomId).except(client.id).emit('battle:chatted', saved)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:chat:error', { message: error.message })
