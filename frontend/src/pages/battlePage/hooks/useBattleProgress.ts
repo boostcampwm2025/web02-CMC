@@ -24,19 +24,6 @@ export function useBattleProgress() {
       useBattleStore.getState().setDiscussions([]);
     };
 
-    // Turn 변경 이벤트 구독
-    const handleTurnUpdate = (data: BattleProgressState) => {
-      updateBattleProgress({
-        turn: data.turn,
-        startedAt: data.startedAt,
-        expiredAt: data.expiredAt
-      });
-      setCurrentStage(data.turn?.status || null);
-
-      // 턴이 변경되면 투표 리스트 초기화
-      useBattleStore.getState().setDiscussions([]);
-    };
-
     // Round 변경 이벤트 구독
     const handleRoundUpdate = (data: { battleId: string; round: number }) => {
       updateBattleProgress({
@@ -45,7 +32,6 @@ export function useBattleProgress() {
     };
 
     socket.on('battle:phase:updated', handlePhaseUpdate);
-    socket.on('battle:turn:updated', handleTurnUpdate);
     socket.on('battle:round:updated', handleRoundUpdate);
 
     // 배틀 종료 이벤트 구독
@@ -56,7 +42,6 @@ export function useBattleProgress() {
 
     return () => {
       socket.off('battle:phase:updated', handlePhaseUpdate);
-      socket.off('battle:turn:updated', handleTurnUpdate);
       socket.off('battle:round:updated', handleRoundUpdate);
       socket.off('battle:closed', handleBattleClosed);
     };
