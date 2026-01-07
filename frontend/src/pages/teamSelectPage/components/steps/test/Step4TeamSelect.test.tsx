@@ -76,6 +76,6 @@ describe('Step4TeamSelect', () => {
   it('설명 텍스트가 표시된다', () => {
     render(<Step4TeamSelect onSelect={mockOnSelect} />);
 
-    expect(screen.getByText('진영을 선택하세요')).toBeInTheDocument();
+    expect(screen.getByText('진영 선택')).toBeInTheDocument();
   });
 });

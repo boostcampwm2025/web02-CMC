@@ -56,7 +56,7 @@ describe('Step3Timeline', () => {
   it('설명 텍스트가 표시된다', () => {
     render(<Step3Timeline timelines={mockTimelines} />);
 
-    expect(screen.getByText(/배틀 진행 과정/)).toBeInTheDocument();
+    expect(screen.getByText(/타임라인/)).toBeInTheDocument();
   });
 
   it('스크롤 가능한 컨테이너를 가진다', () => {

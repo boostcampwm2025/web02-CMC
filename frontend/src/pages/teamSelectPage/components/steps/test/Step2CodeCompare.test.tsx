@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import Step2CodeCompare from '../Step2CodeCompare';
 
 // react-syntax-highlighter mock
@@ -30,34 +29,28 @@ describe('Step2CodeCompare', () => {
   it('CodeCarousel 컴포넌트를 사용한다', () => {
     render(<Step2CodeCompare aCode={aCode} bCode={bCode} language={language} />);
 
-    // 좌우 화살표 버튼이 있는지 확인
-    const buttons = screen.getAllByRole('button');
-    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    // A와 B 코드가 모두 표시되는지 확인
+    expect(screen.getByText(aCode)).toBeInTheDocument();
+    expect(screen.getByText(bCode)).toBeInTheDocument();
   });
 
-  it('초기에는 A 코드가 표시된다', () => {
+  it('A와 B 코드가 동시에 표시된다', () => {
     render(<Step2CodeCompare aCode={aCode} bCode={bCode} language={language} />);
 
     expect(screen.getByText(aCode)).toBeInTheDocument();
-    expect(screen.queryByText(bCode)).not.toBeInTheDocument();
+    expect(screen.getByText(bCode)).toBeInTheDocument();
   });
 
-  it('화살표 클릭으로 코드를 전환할 수 있다', async () => {
-    const user = userEvent.setup();
+  it('두 개의 CodeViewer가 렌더링된다', () => {
     render(<Step2CodeCompare aCode={aCode} bCode={bCode} language={language} />);
 
-    const buttons = screen.getAllByRole('button');
-    const rightButton = buttons[1];
-
-    await user.click(rightButton);
-
-    expect(screen.getByText(bCode)).toBeInTheDocument();
-    expect(screen.queryByText(aCode)).not.toBeInTheDocument();
+    const codeViewers = screen.getAllByTestId('code-viewer');
+    expect(codeViewers).toHaveLength(2);
   });
 
   it('설명 텍스트가 표시된다', () => {
     render(<Step2CodeCompare aCode={aCode} bCode={bCode} language={language} />);
 
-    expect(screen.getByText(/코드를 비교/)).toBeInTheDocument();
+    expect(screen.getByText(/두 구현의 코드를 비교/)).toBeInTheDocument();
   });
 });

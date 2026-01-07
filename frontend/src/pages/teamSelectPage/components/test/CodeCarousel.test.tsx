@@ -24,83 +24,74 @@ describe('CodeCarousel', () => {
   it('렌더링된다', () => {
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    // 초기에는 A 코드가 표시됨
+    // A와 B 코드가 모두 표시됨
     expect(screen.getByText(aCode)).toBeInTheDocument();
+    expect(screen.getByText(bCode)).toBeInTheDocument();
   });
 
-  it('초기에는 A 코드가 표시된다', () => {
+  it('A와 B 코드가 동시에 표시된다', () => {
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
     expect(screen.getByText(aCode)).toBeInTheDocument();
-    expect(screen.queryByText(bCode)).not.toBeInTheDocument();
+    expect(screen.getByText(bCode)).toBeInTheDocument();
   });
 
-  it('좌우 화살표 버튼이 표시된다', () => {
+  it('두 개의 CodeViewer가 렌더링된다', () => {
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(2);
+    const codeViewers = screen.getAllByTestId('code-viewer');
+    expect(codeViewers).toHaveLength(2);
   });
 
-  it('우측 화살표 클릭 시 B 코드로 전환된다', async () => {
+  it('A 코드 호버 시 확대된다', async () => {
     const user = userEvent.setup();
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    const buttons = screen.getAllByRole('button');
-    const rightButton = buttons[1]; // 두 번째 버튼이 우측 화살표
+    const codeViewers = screen.getAllByTestId('code-viewer');
+    const aViewer = codeViewers[0];
 
-    await user.click(rightButton);
+    await user.hover(aViewer.parentElement!);
 
-    expect(screen.queryByText(aCode)).not.toBeInTheDocument();
-    expect(screen.getByText(bCode)).toBeInTheDocument();
+    // 호버 효과로 인해 너비가 변경됨
+    expect(aViewer).toBeInTheDocument();
   });
 
-  it('좌측 화살표 클릭 시 A 코드로 전환된다', async () => {
+  it('B 코드 호버 시 확대된다', async () => {
     const user = userEvent.setup();
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    const buttons = screen.getAllByRole('button');
-    const rightButton = buttons[1];
-    const leftButton = buttons[0];
+    const codeViewers = screen.getAllByTestId('code-viewer');
+    const bViewer = codeViewers[1];
 
-    // 먼저 B로 이동
-    await user.click(rightButton);
-    expect(screen.getByText(bCode)).toBeInTheDocument();
+    await user.hover(bViewer.parentElement!);
 
-    // 다시 A로 이동
-    await user.click(leftButton);
-    expect(screen.getByText(aCode)).toBeInTheDocument();
-    expect(screen.queryByText(bCode)).not.toBeInTheDocument();
+    // 호버 효과로 인해 너비가 변경됨
+    expect(bViewer).toBeInTheDocument();
   });
 
-  it('A↔B 양방향 전환이 가능하다', async () => {
+  it('마우스 떠날 때 원래 크기로 돌아온다', async () => {
     const user = userEvent.setup();
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    const buttons = screen.getAllByRole('button');
-    const leftButton = buttons[0];
-    const rightButton = buttons[1];
+    const codeViewers = screen.getAllByTestId('code-viewer');
+    const aViewer = codeViewers[0];
 
-    // A → B
-    await user.click(rightButton);
-    expect(screen.getByText(bCode)).toBeInTheDocument();
+    await user.hover(aViewer.parentElement!);
+    await user.unhover(aViewer.parentElement!);
 
-    // B → A
-    await user.click(leftButton);
-    expect(screen.getByText(aCode)).toBeInTheDocument();
-
-    // A → B 다시
-    await user.click(rightButton);
-    expect(screen.getByText(bCode)).toBeInTheDocument();
+    expect(aViewer).toBeInTheDocument();
   });
 
-  it('현재 코드 인디케이터가 표시된다', () => {
+  it('양쪽 코드가 각각 독립적으로 호버 가능하다', async () => {
+    const user = userEvent.setup();
     render(<CodeCarousel aCode={aCode} bCode={bCode} language={language} />);
 
-    // 좌우 화살표 버튼 사이의 인디케이터 확인
-    const indicator = screen.getByText((content, element) => {
-      return !!(element?.className.includes('font-medium') && (content === 'A' || content === 'B'));
-    });
-    expect(indicator).toBeInTheDocument();
+    const codeViewers = screen.getAllByTestId('code-viewer');
+
+    await user.hover(codeViewers[0].parentElement!);
+    expect(codeViewers[0]).toBeInTheDocument();
+
+    await user.hover(codeViewers[1].parentElement!);
+    expect(codeViewers[1]).toBeInTheDocument();
   });
 });
