@@ -52,7 +52,7 @@ describe('BattlesGateway - Discussion Events', () => {
     gateway.server = mockServer
   })
 
-  describe('Battle:Attack', () => {
+  describe('battle:attack', () => {
     it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
@@ -83,7 +83,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewAttack', mockAttack)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
 
     it('공격 등록 실패 시 에러 이벤트를 emit한다', () => {
@@ -100,13 +100,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleAttack(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Attack:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:attack:error', {
         message: 'Phase가 올바르지 않습니다',
       })
     })
   })
 
-  describe('Battle:Defense', () => {
+  describe('battle:defense', () => {
     it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
@@ -137,7 +137,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewDefense', mockDefense)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
 
     it('반론 등록 실패 시 에러 이벤트를 emit한다', () => {
@@ -154,13 +154,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleDefense(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Defense:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:defense:error', {
         message: '현재 반론을 등록할 수 없는 단계입니다.',
       })
     })
   })
 
-  describe('Battle:AttackVote', () => {
+  describe('battle:attack:vote', () => {
     it('공격 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackVoteRequestDto = {
         battleId: 'battle-1',
@@ -190,11 +190,11 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('battle:attackvote:update', mockResponse)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:voted', mockResponse)
     })
   })
 
-  describe('Battle:DefenseVote', () => {
+  describe('battle:defense:vote', () => {
     it('반론 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseVoteRequestDto = {
         battleId: 'battle-1',
@@ -224,7 +224,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('battle:defensevote:update', mockResponse)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:voted', mockResponse)
     })
   })
 })

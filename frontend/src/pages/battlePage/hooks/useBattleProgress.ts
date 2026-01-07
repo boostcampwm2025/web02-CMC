@@ -44,9 +44,9 @@ export function useBattleProgress() {
       });
     };
 
-    socket.on('battle:phase:update', handlePhaseUpdate);
-    socket.on('battle:turn:update', handleTurnUpdate);
-    socket.on('battle:round:update', handleRoundUpdate);
+    socket.on('battle:phase:updated', handlePhaseUpdate);
+    socket.on('battle:turn:updated', handleTurnUpdate);
+    socket.on('battle:round:updated', handleRoundUpdate);
 
     // 배틀 종료 이벤트 구독
     const handleBattleClosed = (data: { battleId: string }) => {
@@ -55,9 +55,9 @@ export function useBattleProgress() {
     socket.on('battle:closed', handleBattleClosed);
 
     return () => {
-      socket.off('battle:phase:update', handlePhaseUpdate);
-      socket.off('battle:turn:update', handleTurnUpdate);
-      socket.off('battle:round:update', handleRoundUpdate);
+      socket.off('battle:phase:updated', handlePhaseUpdate);
+      socket.off('battle:turn:updated', handleTurnUpdate);
+      socket.off('battle:round:updated', handleRoundUpdate);
       socket.off('battle:closed', handleBattleClosed);
     };
   }, [socket, setCurrentStage, updateBattleProgress, navigate]);

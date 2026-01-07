@@ -27,7 +27,7 @@ export function useBattleDiscussions() {
       if (targetDiscussion?.hasVoted) return;
 
       const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
-      const eventName = isAttacking ? 'battle:attackvote' : 'battle:defensevote';
+      const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
 
       socket.emit(eventName, {
         battleId,
@@ -50,7 +50,7 @@ export function useBattleDiscussions() {
         return;
       }
 
-      socket.emit(isAttacking ? 'Battle:Attack' : 'Battle:Defense', {
+      socket.emit(isAttacking ? 'battle:attack' : 'battle:defense', {
         battleId,
         authorId: userId,
         content,
@@ -89,16 +89,16 @@ export function useBattleDiscussions() {
       });
     };
 
-    socket.on('battle:attackvote:update', handleVoteUpdate);
-    socket.on('battle:defensevote:update', handleVoteUpdate);
-    socket.on('Battle:NewAttack', handleNewDiscussion);
-    socket.on('Battle:NewDefense', handleNewDiscussion);
+    socket.on('battle:attack:voted', handleVoteUpdate);
+    socket.on('battle:defense:voted', handleVoteUpdate);
+    socket.on('battle:attack:created', handleNewDiscussion);
+    socket.on('battle:defense:created', handleNewDiscussion);
 
     return () => {
-      socket.off('battle:attackvote:update', handleVoteUpdate);
-      socket.off('battle:defensevote:update', handleVoteUpdate);
-      socket.off('Battle:NewAttack', handleNewDiscussion);
-      socket.off('Battle:NewDefense', handleNewDiscussion);
+      socket.off('battle:attack:voted', handleVoteUpdate);
+      socket.off('battle:defense:voted', handleVoteUpdate);
+      socket.off('battle:attack:created', handleNewDiscussion);
+      socket.off('battle:defense:created', handleNewDiscussion);
     };
   }, [socket, userId, team, updateDiscussionVote, addDiscussion]);
 

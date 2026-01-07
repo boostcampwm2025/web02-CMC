@@ -91,15 +91,15 @@ export function useBattleSocket() {
     return () => {
       newSocket.off('connect');
       newSocket.off('battle:joined');
-      newSocket.off('battle:phase:update');
-      newSocket.off('battle:turn:update');
-      newSocket.off('battle:round:update');
+      newSocket.off('battle:phase:updated');
+      newSocket.off('battle:turn:updated');
+      newSocket.off('battle:round:updated');
       newSocket.off('battle:attacked');
       newSocket.off('battle:defensed');
-      newSocket.off('battle:attackvote:update');
-      newSocket.off('battle:defensevote:update');
-      newSocket.off('Battle:NewAttack');
-      newSocket.off('Battle:NewDefense');
+      newSocket.off('battle:attack:voted');
+      newSocket.off('battle:defense:voted');
+      newSocket.off('battle:attack:created');
+      newSocket.off('battle:defense:created');
       newSocket.disconnect();
       setSocket(null);
       setIsConnected(false);

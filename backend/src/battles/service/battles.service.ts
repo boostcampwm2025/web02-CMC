@@ -254,7 +254,7 @@ export class BattlesService extends EventEmitter {
       expiredAt: activeBattleState.expiredAt,
     })
 
-    this.emit('battle:phase:update', res)
+    this.emit('battle:phase:updated', res)
     this.scheduleNextTick(battleId)
   }
 
@@ -359,7 +359,7 @@ export class BattlesService extends EventEmitter {
         startedAt: state.startedAt,
         expiredAt: state.expiredAt,
       })
-      this.emit('battle:phase:update', res)
+      this.emit('battle:phase:updated', res)
     }
 
     if (state.turn?.status && prevTurn !== state.turn.status) {
@@ -370,7 +370,7 @@ export class BattlesService extends EventEmitter {
         expiredAt: state.expiredAt,
       })
 
-      this.emit('battle:turn:update', res)
+      this.emit('battle:turn:updated', res)
     }
 
     if (prevRound !== state.round) {
@@ -379,7 +379,7 @@ export class BattlesService extends EventEmitter {
         round: state.round,
       })
 
-      this.emit('battle:round:update', res)
+      this.emit('battle:round:updated', res)
     }
 
     this.scheduleNextTick(battleId)
