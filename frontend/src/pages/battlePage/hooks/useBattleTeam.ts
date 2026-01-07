@@ -49,7 +49,7 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
   const handleTeamChange = useCallback(
     (team: 'A' | 'B' | 'NONE') => {
       if (!socket) return;
-      socket.emit('battle:teamVote', { battleId, team });
+      socket.emit('battle:team:vote', { battleId, team });
 
       onCloseTeamChangeModal();
     },

@@ -76,7 +76,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:Attack')
+  @SubscribeMessage('Battle:attack')
   handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, authorId, content, team } = dto
@@ -86,14 +86,14 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       this.server.to(teamRoom).emit('Battle:NewAttack', attack)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:Attack:Error', {
+        client.emit('battle:attack:Error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('Battle:Defense')
+  @SubscribeMessage('battle:defense')
   handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, authorId, content, team } = dto
@@ -103,7 +103,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       this.server.to(teamRoom).emit('Battle:NewDefense', defense)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:Defense:Error', {
+        client.emit('battle:defense:Error', {
           message: error.message,
         })
       }
@@ -243,13 +243,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('battle:teamVote')
+  @SubscribeMessage('battle:team:vote')
   handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: Socket) {
     try {
       this.battlesService.voteTeam(dto, client.id)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:teamVote:error', { message: error.message })
+        client.emit('battle:team:vote:error', { message: error.message })
       }
     }
   }
