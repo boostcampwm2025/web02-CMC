@@ -52,7 +52,7 @@ describe('BattlesGateway - Discussion Events', () => {
     gateway.server = mockServer
   })
 
-  describe('Battle:attack', () => {
+  describe('battle:attack', () => {
     it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
@@ -100,13 +100,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleAttack(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Attack:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:attack:error', {
         message: 'Phase가 올바르지 않습니다',
       })
     })
   })
 
-  describe('Battle:Defense', () => {
+  describe('battle:defense', () => {
     it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
@@ -154,7 +154,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleDefense(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Defense:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:defense:error', {
         message: '현재 반론을 등록할 수 없는 단계입니다.',
       })
     })

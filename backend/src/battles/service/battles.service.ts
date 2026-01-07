@@ -370,7 +370,7 @@ export class BattlesService extends EventEmitter {
         expiredAt: state.expiredAt,
       })
 
-      this.emit('battle:turn:update', res)
+      this.emit('battle:turn:updated', res)
     }
 
     if (prevRound !== state.round) {
