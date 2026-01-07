@@ -199,11 +199,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   private bindBattleEvents() {
-    this.battlesService.on('battle:phase:update', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
+    this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
-    this.battlesService.on('battle:turn:update', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
+    this.battlesService.on('battle:turn:updated', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
 
-    this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
+    this.battlesService.on('battle:round:updated', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
 
     this.battlesService.on('battle:attacked', (payload: DiscussionVoteResultDto) => this.onAttacked(payload))
 
