@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
-import BattleHeader from './components/header/BattleHeader';
+import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import DiscussionInput from './components/discussion/DiscussionInput';

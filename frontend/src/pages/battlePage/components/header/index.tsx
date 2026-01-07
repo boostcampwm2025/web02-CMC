@@ -22,18 +22,14 @@ export default function BattleHeader() {
   return (
     <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
       <TimeProgressBar />
-
       <div className="px-8 flex-1 flex items-center justify-between">
         <StageIndicator />
-
         <div className="flex flex-col items-center justify-center">
           <BattleTimer />
           <p className="text-sm text-gray-400">{instruction}</p>
         </div>
-
         <TeamCounter />
       </div>
-
       <ParticipantRatioBar />
     </header>
   );
