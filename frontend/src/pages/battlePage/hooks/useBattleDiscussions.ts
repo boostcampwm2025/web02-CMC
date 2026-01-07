@@ -91,14 +91,14 @@ export function useBattleDiscussions() {
 
     socket.on('battle:attackvote:update', handleVoteUpdate);
     socket.on('battle:defensevote:update', handleVoteUpdate);
-    socket.on('Battle:NewAttack', handleNewDiscussion);
-    socket.on('Battle:NewDefense', handleNewDiscussion);
+    socket.on('battle:attack:created', handleNewDiscussion);
+    socket.on('battle:defense:created', handleNewDiscussion);
 
     return () => {
       socket.off('battle:attackvote:update', handleVoteUpdate);
       socket.off('battle:defensevote:update', handleVoteUpdate);
-      socket.off('Battle:NewAttack', handleNewDiscussion);
-      socket.off('Battle:NewDefense', handleNewDiscussion);
+      socket.off('battle:attack:created', handleNewDiscussion);
+      socket.off('battle:defense:created', handleNewDiscussion);
     };
   }, [socket, userId, team, updateDiscussionVote, addDiscussion]);
 
