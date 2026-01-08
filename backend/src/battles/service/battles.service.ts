@@ -20,11 +20,11 @@ import {
   BATTLE_PLAYTIME,
   BATTLE_STATUS,
   BATTLE_TEAM,
-  BATTLE_TURN,
   BATTLE_TYPE,
   BATTLE_DISCUSSION_TYPE,
+  BATTLE_MAX_PHASE_COUNT,
 } from '../const/battles.const'
-import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
@@ -211,7 +211,8 @@ export class BattlesService extends EventEmitter {
     if (this.activeBattles.has(battleId)) return
 
     const startedAt = Date.now()
-    const expiredAt = startedAt + BATTLE_PHASE.OPINION_SHARE.time
+    // const expiredAt = startedAt + BATTLE_PHASE.OPINION_SHARE.time
+    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
 
     const activeBattleState: ActiveBattleState = {
       battleId,
@@ -237,9 +238,10 @@ export class BattlesService extends EventEmitter {
       },
       participants: new Map(),
       teamVotes: new Map(),
-      phase: BATTLE_PHASE.OPINION_SHARE.name,
+
+      phase: BATTLE_PHASE.PENDING.name,
       round: 1,
-      turn: null,
+      phaseCount: 1,
 
       startedAt,
       expiredAt,
@@ -247,11 +249,13 @@ export class BattlesService extends EventEmitter {
 
     this.activeBattles.set(battleId, activeBattleState)
 
+    // 시작 버튼으로 분류될 예정
     const res = BattlePhaseResponseDto.of({
       battleId,
       phase: activeBattleState.phase,
-      startedAt: activeBattleState.startedAt,
-      expiredAt: activeBattleState.expiredAt,
+      phaseCount: activeBattleState.phaseCount,
+      startedAt,
+      expiredAt,
     })
 
     this.emit('battle:phase:updated', res)
@@ -331,13 +335,11 @@ export class BattlesService extends EventEmitter {
 
   private updatePhase(battleId: string): void {
     const state = this.getBattleState(battleId)
-    if (!state) return
 
     const battle = this.battles.find(battle => battle.id === battleId)
     if (battle?.status === BATTLE_STATUS.CLOSED) return
 
     const prevPhase = state.phase
-    const prevTurn = state.turn?.status ?? null
     const prevRound = state.round
 
     const now = Date.now()
@@ -347,31 +349,7 @@ export class BattlesService extends EventEmitter {
 
     state.phase = nextPhase.name
     state.startedAt = now
-
-    if (!state.turn && nextPhase.time) {
-      state.expiredAt = now + nextPhase.time
-    }
-
-    if (prevPhase !== state.phase) {
-      const res = BattlePhaseResponseDto.of({
-        battleId,
-        phase: state.phase,
-        startedAt: state.startedAt,
-        expiredAt: state.expiredAt,
-      })
-      this.emit('battle:phase:updated', res)
-    }
-
-    if (state.turn?.status && prevTurn !== state.turn.status) {
-      const res = BattleTurnResponseDto.of({
-        battleId,
-        turn: state.turn,
-        startedAt: state.startedAt,
-        expiredAt: state.expiredAt,
-      })
-
-      this.emit('battle:turn:updated', res)
-    }
+    state.expiredAt = now + nextPhase.time
 
     if (prevRound !== state.round) {
       const res = BattleRoundResponseDto.of({
@@ -382,26 +360,46 @@ export class BattlesService extends EventEmitter {
       this.emit('battle:round:updated', res)
     }
 
+    if (prevPhase !== state.phase) {
+      const res = BattlePhaseResponseDto.of({
+        battleId,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt,
+        expiredAt: state.expiredAt,
+      })
+
+      this.emit('battle:phase:update', res)
+    }
+
     this.scheduleNextTick(battleId)
   }
 
   private getNextPhase(state: ActiveBattleState): BattlePhase | null {
     switch (state.phase) {
+      case BATTLE_PHASE.PENDING.name:
+        return BATTLE_PHASE.OPINION_SHARE
       case BATTLE_PHASE.OPINION_SHARE.name:
-        state.turn = {
-          status: BATTLE_TURN.A_ATTACK.name,
-          count: 1,
-        }
-        state.expiredAt = Date.now() + BATTLE_TURN.A_ATTACK.time
-        return BATTLE_PHASE.TEAM_A_ATTACK
+        state.expiredAt = Date.now() + BATTLE_PHASE.ATTACK.time
+        return BATTLE_PHASE.ATTACK
 
-      case BATTLE_PHASE.TEAM_A_ATTACK.name:
-      case BATTLE_PHASE.TEAM_B_ATTACK.name:
-        return this.updateTurn(state)
+      case BATTLE_PHASE.ATTACK.name:
+        return BATTLE_PHASE.DEFENSE
+
+      case BATTLE_PHASE.DEFENSE.name:
+        state.phaseCount++
+
+        if (state.phaseCount <= BATTLE_MAX_PHASE_COUNT) {
+          return BATTLE_PHASE.ATTACK
+        }
+
+        state.phaseCount = 1
+        return BATTLE_PHASE.TEAM_SWITCH
 
       case BATTLE_PHASE.TEAM_SWITCH.name: {
         this.applyTeamVotes(state)
         const isNextRound = this.updateRound(state)
+
         return isNextRound ? BATTLE_PHASE.OPINION_SHARE : null
       }
 
@@ -435,71 +433,6 @@ export class BattlesService extends EventEmitter {
           none: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
         },
       })
-    }
-  }
-
-  private updateTurn(state: ActiveBattleState): BattlePhase {
-    const now = Date.now()
-
-    if (!state.turn) {
-      state.turn = {
-        status: BATTLE_TURN.A_ATTACK.name,
-        count: 1,
-      }
-      state.expiredAt = now + BATTLE_TURN.A_ATTACK.time
-      return BATTLE_PHASE.TEAM_A_ATTACK
-    }
-
-    switch (state.turn.status) {
-      case BATTLE_TURN.A_ATTACK.name: {
-        this.emitAttackedResult(state.battleId, BATTLE_TEAM.A)
-        this.resetDiscussionsByTurn(state.battleId)
-
-        state.turn.status = BATTLE_TURN.B_DEFENSE.name
-        state.expiredAt = now + BATTLE_TURN.B_DEFENSE.time
-        return BATTLE_PHASE.TEAM_A_ATTACK
-      }
-
-      case BATTLE_TURN.B_DEFENSE.name: {
-        this.emitDefensedResult(state.battleId, BATTLE_TEAM.B)
-        this.resetDiscussionsByTurn(state.battleId)
-
-        if (state.turn.count < 2) {
-          state.turn.status = BATTLE_TURN.A_ATTACK.name
-          state.turn.count += 1
-          state.expiredAt = now + BATTLE_TURN.A_ATTACK.time
-          return BATTLE_PHASE.TEAM_A_ATTACK
-        } else {
-          state.turn.status = BATTLE_TURN.B_ATTACK.name
-          state.turn.count = 1
-          state.expiredAt = now + BATTLE_TURN.B_ATTACK.time
-          return BATTLE_PHASE.TEAM_B_ATTACK
-        }
-      }
-
-      case BATTLE_TURN.B_ATTACK.name: {
-        this.emitAttackedResult(state.battleId, BATTLE_TEAM.B)
-        this.resetDiscussionsByTurn(state.battleId)
-
-        state.turn.status = BATTLE_TURN.A_DEFENSE.name
-        state.expiredAt = now + BATTLE_TURN.A_DEFENSE.time
-        return BATTLE_PHASE.TEAM_B_ATTACK
-      }
-
-      case BATTLE_TURN.A_DEFENSE.name: {
-        this.emitDefensedResult(state.battleId, BATTLE_TEAM.A)
-        this.resetDiscussionsByTurn(state.battleId)
-
-        if (state.turn.count < 2) {
-          state.turn.status = BATTLE_TURN.B_ATTACK.name
-          state.turn.count += 1
-          state.expiredAt = now + BATTLE_TURN.B_ATTACK.time
-          return BATTLE_PHASE.TEAM_B_ATTACK
-        } else {
-          state.turn = null
-          return BATTLE_PHASE.TEAM_SWITCH
-        }
-      }
     }
   }
 
@@ -607,20 +540,12 @@ export class BattlesService extends EventEmitter {
   }
 
   private canUserSubmitAttack(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
-    const { phase, turn } = battleState
+    const { phase } = battleState
 
     if (userTeam === BATTLE_TEAM.NONE) return false
 
     // OPINION_SHARE 단계에서는 모든 팀이 의견 제출 가능
-    if (phase === 'OPINION_SHARE') {
-      return true
-    }
-
-    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'A_ATTACK' && userTeam === BATTLE_TEAM.A) {
-      return true
-    }
-
-    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'B_ATTACK' && userTeam === BATTLE_TEAM.B) {
+    if (phase === BATTLE_PHASE.OPINION_SHARE.name || phase === BATTLE_PHASE.ATTACK.name) {
       return true
     }
 
@@ -628,15 +553,11 @@ export class BattlesService extends EventEmitter {
   }
 
   private canUserSubmitDefense(battleState: ActiveBattleState, userTeam: BattleTeam): boolean {
-    const { phase, turn } = battleState
+    const { phase } = battleState
 
     if (userTeam === BATTLE_TEAM.NONE) return false
 
-    if (phase === 'TEAM_A_ATTACK' && turn?.status === 'B_DEFENSE' && userTeam === BATTLE_TEAM.B) {
-      return true
-    }
-
-    if (phase === 'TEAM_B_ATTACK' && turn?.status === 'A_DEFENSE' && userTeam === BATTLE_TEAM.A) {
+    if (phase === BATTLE_PHASE.DEFENSE.name) {
       return true
     }
 
@@ -652,7 +573,7 @@ export class BattlesService extends EventEmitter {
     }
     const battleState = this.getBattleState(battleId)
 
-    if (!this.canUserVoteAttack(battleState, team)) {
+    if (!this.canUserVoteAttack(battleState)) {
       throw new BadRequestException('현재 투표할 수 있는 공격 턴이 아닙니다.')
     }
 
@@ -696,7 +617,7 @@ export class BattlesService extends EventEmitter {
     }
 
     const battleState = this.getBattleState(battleId)
-    if (!this.canUserVoteDefense(battleState, team)) {
+    if (!this.canUserVoteDefense(battleState)) {
       throw new BadRequestException('현재 투표할 수 있는 반론 턴이 아닙니다.')
     }
 
@@ -736,34 +657,12 @@ export class BattlesService extends EventEmitter {
   //battle:defensed
   //battle:attacked
 
-  private canUserVoteAttack(battleState: ActiveBattleState, team: BattleTeam): boolean {
-    const { phase, turn } = battleState
-    if (!turn) return false
-
-    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.A_ATTACK.name && team === BATTLE_TEAM.A) {
-      return true
-    }
-
-    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.B_ATTACK.name && team === BATTLE_TEAM.B) {
-      return true
-    }
-
-    return false
+  private canUserVoteAttack(battleState: ActiveBattleState): boolean {
+    return battleState.phase === BATTLE_PHASE.ATTACK.name ? true : false
   }
 
-  private canUserVoteDefense(battleState: ActiveBattleState, team: BattleTeam): boolean {
-    const { phase, turn } = battleState
-    if (!turn) return false
-
-    if (phase === BATTLE_PHASE.TEAM_A_ATTACK.name && turn.status === BATTLE_TURN.B_DEFENSE.name && team === BATTLE_TEAM.B) {
-      return true
-    }
-
-    if (phase === BATTLE_PHASE.TEAM_B_ATTACK.name && turn.status === BATTLE_TURN.A_DEFENSE.name && team === BATTLE_TEAM.A) {
-      return true
-    }
-
-    return false
+  private canUserVoteDefense(battleState: ActiveBattleState): boolean {
+    return battleState.phase === BATTLE_PHASE.DEFENSE.name ? true : false
   }
 
   private pickTopVotedAttackByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
@@ -832,7 +731,7 @@ export class BattlesService extends EventEmitter {
     if (battle?.status === BATTLE_STATUS.CLOSED) return
 
     const state = this.getBattleState(battleId)
-    if (!state) return
+    if (!state.expiredAt) return
 
     const prevTimer = this.battleTimers.get(battleId)
     if (prevTimer) clearTimeout(prevTimer)
