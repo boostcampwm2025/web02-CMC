@@ -248,7 +248,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  private teamUpdate(payload: BattleTeamUpdateAllResponseDto) {
+  teamUpdate(payload: BattleTeamUpdateAllResponseDto) {
     const battleRoomId = this.battlesService.getBattleRoomId(payload.battleId)
 
     // 각 클라이언트의 소켓 룸 이동 및 개별 알림
