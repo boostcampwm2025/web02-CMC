@@ -14,6 +14,7 @@ import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
+import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import { soundManager } from '@/commons/utils/soundManager';
 
 export default function BattlePage() {
@@ -39,9 +40,7 @@ export default function BattlePage() {
     onCloseTeamChangeModal: handleCloseTeamChangeModal
   });
 
-  // TODO: 진영 투표 결과 모달 추가 시 주석 해제
-  // const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
-  useTeamVoteResult(); // 이벤트 구독만 활성화
+  const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
   return (
     <div className="text-white relative min-h-screen">
@@ -106,6 +105,21 @@ export default function BattlePage() {
             content={effectModal.content}
             type={effectModal.type}
             onClose={hideEffect}
+          />
+        )}
+
+        {isVoteResultModalOpen && voteResult && (
+          <TeamVoteResultModal
+            isOpen={isVoteResultModalOpen}
+            round={voteResult.round}
+            teamACount={voteResult.after.teamA}
+            teamBCount={voteResult.after.teamB}
+            teamABefore={voteResult.before.teamA}
+            teamBBefore={voteResult.before.teamB}
+            teamAPercentage={(voteResult.after.teamA / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            teamBPercentage={(voteResult.after.teamB / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
+            onClose={closeVoteResultModal}
           />
         )}
       </div>

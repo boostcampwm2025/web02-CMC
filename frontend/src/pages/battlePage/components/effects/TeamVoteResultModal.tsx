@@ -5,6 +5,8 @@ interface TeamVoteResultModalProps {
   round: number;
   teamACount: number;
   teamBCount: number;
+  teamABefore: number;
+  teamBBefore: number;
   teamAPercentage: number;
   teamBPercentage: number;
   leadingTeam: 'A' | 'B' | null;
@@ -16,6 +18,8 @@ export default function TeamVoteResultModal({
   round,
   teamACount,
   teamBCount,
+  teamABefore,
+  teamBBefore,
   teamAPercentage,
   teamBPercentage,
   leadingTeam,
@@ -87,7 +91,11 @@ export default function TeamVoteResultModal({
                 <div className="flex flex-col items-start gap-1">
                   <div className="text-[56px] font-black text-blue-400 leading-none">{teamACount}</div>
                   <div className="text-gray-400">
-                    이전 <span className="text-sm">{teamACount - 4}</span> <span className="text-green-400">+4</span>
+                    이전 <span className="text-sm">{teamABefore}</span>{' '}
+                    <span className={teamACount - teamABefore >= 0 ? 'text-green-400' : 'text-red-400'}>
+                      {teamACount - teamABefore >= 0 ? '+' : ''}
+                      {teamACount - teamABefore}
+                    </span>
                   </div>
                 </div>
                 <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
@@ -120,7 +128,11 @@ export default function TeamVoteResultModal({
                 <div className="flex flex-col items-start gap-1">
                   <div className="text-[56px] font-black text-red-400 leading-none">{teamBCount}</div>
                   <div className="text-gray-400">
-                    이전 <span className="text-sm">{teamBCount - 1}</span> <span className="text-green-400">+1</span>
+                    이전 <span className="text-sm">{teamBBefore}</span>{' '}
+                    <span className={teamBCount - teamBBefore >= 0 ? 'text-green-400' : 'text-red-400'}>
+                      {teamBCount - teamBBefore >= 0 ? '+' : ''}
+                      {teamBCount - teamBBefore}
+                    </span>
                   </div>
                 </div>
                 <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
