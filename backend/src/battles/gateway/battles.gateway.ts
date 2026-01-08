@@ -196,7 +196,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:user:update', payload)
+    this.server.to(battleRoomId).emit('battle:user:updated', payload)
   }
 
   private bindBattleEvents() {
@@ -208,9 +208,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     this.battlesService.on('battle:defensed', (payload: DiscussionVoteResultDto) => this.onDefensed(payload))
 
-    this.battlesService.on('battle:team:update', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
+    this.battlesService.on('battle:team:updated', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
 
-    this.battlesService.on('battle:user:update', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
+    this.battlesService.on('battle:user:updated', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
     // this.battlesService.on('battle:ended', payload => {
     //   const { battleId } = payload
     //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
@@ -261,9 +261,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       void socket.leave(fromRoom)
       void socket.join(toRoom)
-      socket.emit('battle:team:update', { battleId: payload.battleId, team: change.to })
+      socket.emit('battle:team:updated', { battleId: payload.battleId, team: change.to })
     }
 
-    this.server.to(battleRoomId).emit('battle:team:update:all', payload)
+    this.server.to(battleRoomId).emit('battle:all:updated', payload)
   }
 }

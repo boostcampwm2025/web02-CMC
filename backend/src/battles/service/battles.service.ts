@@ -325,7 +325,7 @@ export class BattlesService extends EventEmitter {
       teamNone: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
     }
 
-    this.emit('battle:user:update', BattleUserUpdateResponseDto.of(battleId, counts))
+    this.emit('battle:user:updated', BattleUserUpdateResponseDto.of(battleId, counts))
   }
 
   private rebuildTeamUsers(state: ActiveBattleState) {
@@ -464,7 +464,7 @@ export class BattlesService extends EventEmitter {
     }
 
     if (changes.length) {
-      this.emit('battle:team:update', BattleTeamUpdateAllResponseDto.of(state.battleId, state.round, beforeCounts, afterCounts, changes))
+      this.emit('battle:team:updated', BattleTeamUpdateAllResponseDto.of(state.battleId, state.round, beforeCounts, afterCounts, changes))
     }
   }
 
