@@ -64,6 +64,11 @@ export interface BattleDiscussion {
   status: BattleDiscussionStatus
 }
 
+export interface BattleTopOpinions {
+  aTeam: BattleDiscussion | null
+  bTeam: BattleDiscussion | null
+}
+
 export type BattleDefense = BattleDiscussion
 
 export interface BattleData {
