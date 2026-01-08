@@ -502,7 +502,6 @@ export class BattlesService extends EventEmitter {
 
     const battleState = this.getBattleState(battleId)
 
-    console.log(battleState.phase)
     if (!this.canUserSubmitAttack(battleState, team)) {
       throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
     }
