@@ -1,4 +1,5 @@
 import { TrendingUp, Swords, Users, Target } from 'lucide-react';
+import type { BattlePhase } from '@/commons/types/battle';
 
 interface Step1BattleInfoProps {
   title: string;
@@ -8,7 +9,36 @@ interface Step1BattleInfoProps {
   currentRound: number;
   totalRounds: number;
   totalParticipants: number;
+  currentPhase?: BattlePhase;
 }
+
+// Phase별 한글 레이블과 색상 매핑
+const PHASE_CONFIG = {
+  OPINION_SHARE: {
+    label: '의견 공유',
+    color: 'text-green-400',
+    bgColor: 'bg-green-500/20',
+    borderColor: 'border-green-500/50'
+  },
+  TEAM_A_ATTACK: {
+    label: '이의제기',
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/50'
+  },
+  TEAM_B_ATTACK: {
+    label: '이의제기',
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-500/20',
+    borderColor: 'border-pink-500/50'
+  },
+  TEAM_SWITCH: {
+    label: '진영 변경',
+    color: 'text-yellow-400',
+    bgColor: 'bg-yellow-500/20',
+    borderColor: 'border-yellow-500/50'
+  }
+} as const;
 
 export default function Step1BattleInfo({
   title,
@@ -17,8 +47,10 @@ export default function Step1BattleInfo({
   language,
   currentRound,
   totalRounds,
-  totalParticipants
+  totalParticipants,
+  currentPhase
 }: Step1BattleInfoProps) {
+  const phaseConfig = currentPhase ? PHASE_CONFIG[currentPhase] : null;
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-6xl mx-auto">
       {/* 상단 섹션 */}
@@ -85,6 +117,14 @@ export default function Step1BattleInfo({
                 <div className="text-blue-300/70 font-medium">진행 단계</div>
               </div>
             </div>
+            {phaseConfig && (
+              <div
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${phaseConfig.bgColor} ${phaseConfig.borderColor} border mb-4`}
+              >
+                <div className={`w-2 h-2 rounded-full ${phaseConfig.color.replace('text-', 'bg-')} animate-pulse`} />
+                <span className={`text-sm font-semibold ${phaseConfig.color}`}>{phaseConfig.label} 진행 중</span>
+              </div>
+            )}
             <div className="w-full bg-gray-800/50 rounded-full h-3 overflow-hidden border border-blue-500/20">
               <div
                 className="bg-gradient-to-r from-blue-500 to-blue-400 h-full rounded-full transition-all duration-500"

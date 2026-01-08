@@ -18,8 +18,8 @@ export function useBattleTimeline() {
     if (!socket) return;
 
     const handleAttacked = (data: BattleAttackedResult) => {
-      // 백엔드에서 보내준 팀 정보 사용
-      const attackingTeam = data.attack.team;
+      // 턴 상태로 공격하는 팀 판단
+      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
       showEffect(attackingTeam, data.attack.text, 'attack');
 
       // 타임라인에 이의제기 추가
