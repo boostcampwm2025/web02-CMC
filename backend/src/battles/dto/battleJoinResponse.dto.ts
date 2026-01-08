@@ -39,8 +39,8 @@ export class BattleJoinResponseDto {
       teamNone: participants.size - (teamA.users.length + teamB.users.length),
     }
     res.timelines = {
-      attacks: all.attacks.filter(attack => attack.status === 'SELECTED'),
-      defenses: all.defenses.filter(defense => defense.status === 'SELECTED'),
+      attacks: all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),
+      defenses: all.defenses.filter((defense): defense is BattleDefense => defense !== null && defense.status === 'SELECTED'),
     }
 
     res.allChats = all.chats
