@@ -62,7 +62,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 3,
-      phase: 'TEAM_B_ATTACK',
+      phase: 'ATTACK',
       timeRemainingSeconds: 0,
     },
   },
@@ -83,7 +83,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 5,
-      phase: 'TEAM_A_ATTACK',
+      phase: 'ATTACK',
       timeRemainingSeconds: 0,
     },
   },
@@ -127,7 +127,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 2,
-      phase: 'TEAM_A_ATTACK',
+      phase: 'ATTACK',
       timeRemainingSeconds: 0,
     },
   },
@@ -148,7 +148,7 @@ export const MOCK_BATTLES: Battle[] = [
     participantCount: 0,
     initialState: {
       round: 2,
-      phase: 'TEAM_B_ATTACK',
+      phase: 'ATTACK',
       timeRemainingSeconds: 0,
     },
   },
