@@ -19,8 +19,9 @@ import { BattleChatDto } from '../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
-import type { BattleTeam } from '../types/battles.types'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
+import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
+import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -191,6 +192,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     rooms.forEach(room => this.server.in(room).disconnectSockets(true))
   }
 
+  userUpdate(payload: BattleUserUpdateResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:user:updated', payload)
+  }
+
   private bindBattleEvents() {
     this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
@@ -199,15 +207,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.battlesService.on('battle:attacked', (payload: DiscussionVoteResultDto) => this.onAttacked(payload))
 
     this.battlesService.on('battle:defensed', (payload: DiscussionVoteResultDto) => this.onDefensed(payload))
-    this.battlesService.on(
-      'battle:team:update',
-      (payload: {
-        battleId: string
-        changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
-        counts: { teamA: number; teamB: number; none: number }
-      }) => this.teamUpdate(payload),
-    )
 
+    this.battlesService.on('battle:team:updated', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
+
+    this.battlesService.on('battle:user:updated', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
     // this.battlesService.on('battle:ended', payload => {
     //   const { battleId } = payload
     //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
@@ -245,13 +248,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  private teamUpdate(payload: {
-    battleId: string
-    changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
-    counts: { teamA: number; teamB: number; none: number }
-  }) {
+  teamUpdate(payload: BattleTeamUpdateAllResponseDto) {
     const battleRoomId = this.battlesService.getBattleRoomId(payload.battleId)
 
+    // 각 클라이언트의 소켓 룸 이동 및 개별 알림
     for (const change of payload.changes) {
       const socket = this.server.sockets.sockets.get(change.clientId)
       if (!socket) continue
@@ -261,9 +261,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       void socket.leave(fromRoom)
       void socket.join(toRoom)
-      socket.emit('battle:team:update', { battleId: payload.battleId, team: change.to })
+      socket.emit('battle:team:updated', { battleId: payload.battleId, team: change.to })
     }
 
-    this.server.to(battleRoomId).emit('battle:team:update:all', payload)
+    this.server.to(battleRoomId).emit('battle:all:updated', payload)
   }
 }
