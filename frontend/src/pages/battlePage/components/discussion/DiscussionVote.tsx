@@ -27,8 +27,8 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
   const phase = battleProgress?.phase;
   const isAttacking = isMyTeamAttacking(team, phase);
 
-  // OPINION_SHARE 단계에서는 투표 UI를 표시하지 않음
-  if (phase === 'OPINION_SHARE') {
+  // ATTACK/DEFENSE 외 단계에서는 표시하지 않음
+  if (phase !== 'ATTACK' && phase !== 'DEFENSE') {
     return null;
   }
 

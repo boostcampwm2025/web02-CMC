@@ -6,10 +6,8 @@ import type { Discussion } from '@/pages/battlePage/components/discussion/Discus
 let mockDiscussions: Discussion[] = [];
 let mockBattleProgress: {
   phase: string;
-  turn: { status: string };
 } = {
-  phase: 'TEAM_A_ATTACK',
-  turn: { status: 'A_ATTACK' }
+  phase: 'ATTACK'
 };
 let mockSelectedTeam: 'A' | 'B' = 'A';
 
@@ -23,8 +21,7 @@ vi.mock('@/pages/battlePage/stores/battleStore', () => ({
     return selector(state);
   }),
   selectDiscussions: (state: { discussions: Discussion[] }) => state.discussions,
-  selectBattleProgress: (state: { battleProgress: { phase: string; turn: { status: string } } }) =>
-    state.battleProgress,
+  selectBattleProgress: (state: { battleProgress: { phase: string } }) => state.battleProgress,
   selectSelectedTeam: (state: { selectedTeam: 'A' | 'B' }) => state.selectedTeam
 }));
 
@@ -46,14 +43,13 @@ describe('DiscussionVote', () => {
     mockOnVote.mockClear();
     mockDiscussions = [];
     mockBattleProgress = {
-      phase: 'TEAM_A_ATTACK',
-      turn: { status: 'A_ATTACK' }
+      phase: 'ATTACK'
     };
     mockSelectedTeam = 'A';
   });
 
   it('OPINION_SHARE 단계에서는 렌더링하지 않음', () => {
-    mockBattleProgress = { phase: 'OPINION_SHARE', turn: { status: 'A_ATTACK' } };
+    mockBattleProgress = { phase: 'OPINION_SHARE' };
 
     const { container } = render(<DiscussionVote onVote={mockOnVote} />);
 
@@ -70,7 +66,7 @@ describe('DiscussionVote', () => {
 
   it('공격 팀일 때 "제출된 이의제기 목록" 헤더 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_A_ATTACK', turn: { status: 'A_ATTACK' } };
+    mockBattleProgress = { phase: 'ATTACK' };
     mockDiscussions = [
       { id: 1, user: 'user1', team: 'A', content: '테스트', votes: 5, totalVotes: 10, hasVoted: false }
     ];
@@ -83,7 +79,7 @@ describe('DiscussionVote', () => {
 
   it('방어 팀일 때 "제출된 반론 목록" 헤더 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_B_ATTACK', turn: { status: 'B_ATTACK' } };
+    mockBattleProgress = { phase: 'DEFENSE' };
     mockDiscussions = [
       { id: 1, user: 'user1', team: 'B', content: '테스트', votes: 5, totalVotes: 10, hasVoted: false }
     ];

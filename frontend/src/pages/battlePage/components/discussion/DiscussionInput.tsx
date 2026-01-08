@@ -13,10 +13,9 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   const [inputValue, setInputValue] = useState('');
 
   const phase = battleProgress?.phase;
-  const turnStatus = battleProgress?.turn?.status;
 
   const { placeholderText, buttonText, Icon } = getDiscussionConfig(team, phase);
-  const disabled_input = isInputDisabled(team, phase, turnStatus, disabled);
+  const disabled_input = isInputDisabled(team, phase, disabled);
 
   const handleSubmit = () => {
     if (inputValue.trim() && !disabled_input) {
