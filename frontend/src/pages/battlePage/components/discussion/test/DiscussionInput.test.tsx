@@ -5,10 +5,8 @@ import DiscussionInput from '@/pages/battlePage/components/discussion/Discussion
 
 let mockBattleProgress: {
   phase: string;
-  turn: { status: string } | null;
 } = {
-  phase: 'TEAM_A_ATTACK',
-  turn: { status: 'A_ATTACK' }
+  phase: 'ATTACK'
 };
 let mockSelectedTeam: 'A' | 'B' = 'A';
 
@@ -20,8 +18,7 @@ vi.mock('@/pages/battlePage/stores/battleStore', () => ({
     };
     return selector(state);
   }),
-  selectBattleProgress: (state: { battleProgress: { phase: string; turn: { status: string } | null } }) =>
-    state.battleProgress,
+  selectBattleProgress: (state: { battleProgress: { phase: string } }) => state.battleProgress,
   selectSelectedTeam: (state: { selectedTeam: 'A' | 'B' }) => state.selectedTeam
 }));
 
@@ -31,15 +28,14 @@ describe('DiscussionInput', () => {
   beforeEach(() => {
     mockOnSubmit.mockClear();
     mockBattleProgress = {
-      phase: 'TEAM_A_ATTACK',
-      turn: { status: 'A_ATTACK' }
+      phase: 'ATTACK'
     };
     mockSelectedTeam = 'A';
   });
 
   it('공격 팀일 때 "상대 진영에 이의제기..." placeholder 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_A_ATTACK', turn: { status: 'A_ATTACK' } };
+    mockBattleProgress = { phase: 'ATTACK' };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
@@ -49,7 +45,7 @@ describe('DiscussionInput', () => {
 
   it('방어 팀일 때 "상대 진영에 반론..." placeholder 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_B_ATTACK', turn: { status: 'B_ATTACK' } };
+    mockBattleProgress = { phase: 'DEFENSE' };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
@@ -92,7 +88,7 @@ describe('DiscussionInput', () => {
   });
 
   it('OPINION_SHARE 단계에서 input 비활성화', () => {
-    mockBattleProgress = { phase: 'OPINION_SHARE', turn: null };
+    mockBattleProgress = { phase: 'OPINION_SHARE' };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
@@ -100,9 +96,9 @@ describe('DiscussionInput', () => {
     expect(input).toBeDisabled();
   });
 
-  it('잘못된 턴에는 input 비활성화', () => {
+  it('ATTACK/DEFENSE 외 페이즈에서는 input 비활성화', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_A_ATTACK', turn: { status: 'B_DEFENSE' } };
+    mockBattleProgress = { phase: 'TEAM_SWITCH' };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 

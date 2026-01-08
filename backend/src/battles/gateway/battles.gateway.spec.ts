@@ -11,6 +11,8 @@ import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
 import { BattleDiscussion, BattleDefense } from '../types/battles.types'
 
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
+import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
+import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
@@ -30,6 +32,8 @@ describe('BattlesGateway - Discussion Events', () => {
             handleAttackVote: jest.fn(),
             handleDefenseVote: jest.fn(),
             getBattleRoomId: jest.fn(),
+            on: jest.fn(),
+            emit: jest.fn(),
           },
         },
       ],
@@ -52,7 +56,7 @@ describe('BattlesGateway - Discussion Events', () => {
     gateway.server = mockServer
   })
 
-  describe('Battle:Attack', () => {
+  describe('battle:attack', () => {
     it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
@@ -83,7 +87,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewAttack', mockAttack)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
 
     it('공격 등록 실패 시 에러 이벤트를 emit한다', () => {
@@ -100,13 +104,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleAttack(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Attack:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:attack:error', {
         message: 'Phase가 올바르지 않습니다',
       })
     })
   })
 
-  describe('Battle:Defense', () => {
+  describe('battle:defense', () => {
     it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
@@ -137,7 +141,7 @@ describe('BattlesGateway - Discussion Events', () => {
       })
       expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('Battle:NewDefense', mockDefense)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
 
     it('반론 등록 실패 시 에러 이벤트를 emit한다', () => {
@@ -154,13 +158,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.handleDefense(dto, mockClient)
 
-      expect(mockClient.emit).toHaveBeenCalledWith('Battle:Defense:Error', {
+      expect(mockClient.emit).toHaveBeenCalledWith('battle:defense:error', {
         message: '현재 반론을 등록할 수 없는 단계입니다.',
       })
     })
   })
 
-  describe('Battle:AttackVote', () => {
+  describe('battle:attack:vote', () => {
     it('공격 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackVoteRequestDto = {
         battleId: 'battle-1',
@@ -179,7 +183,7 @@ describe('BattlesGateway - Discussion Events', () => {
         status: 'PENDING',
       })
 
-      jest.spyOn(service, 'handleAttackVote').mockReturnValue(mockResponse)
+      jest.spyOn(service, 'handleAttackVote').mockReturnValue([mockResponse])
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
 
       gateway.handleAttackVote(dto, mockClient)
@@ -190,11 +194,11 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
-      expect(mockServer.emit).toHaveBeenCalledWith('battle:attackvote:update', mockResponse)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:voted', mockResponse)
     })
   })
 
-  describe('Battle:DefenseVote', () => {
+  describe('battle:defense:vote', () => {
     it('반론 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseVoteRequestDto = {
         battleId: 'battle-1',
@@ -213,7 +217,7 @@ describe('BattlesGateway - Discussion Events', () => {
         status: 'PENDING',
       })
 
-      jest.spyOn(service, 'handleDefenseVote').mockReturnValue(mockResponse)
+      jest.spyOn(service, 'handleDefenseVote').mockReturnValue([mockResponse])
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
 
       gateway.handleDefenseVote(dto, mockClient)
@@ -224,7 +228,78 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
-      expect(mockServer.emit).toHaveBeenCalledWith('battle:defensevote:update', mockResponse)
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:voted', mockResponse)
+    })
+  })
+
+  describe('battle:user:updated', () => {
+    it('사용자 업데이트 이벤트를 배틀 룸에 브로드캐스트한다', () => {
+      const payload = BattleUserUpdateResponseDto.of('battle-1', {
+        teamA: 5,
+        teamB: 3,
+        teamNone: 2,
+      })
+
+      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle:battle-1')
+
+      gateway.userUpdate(payload)
+
+      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:user:updated', payload)
+    })
+  })
+
+  describe('battle:all:updated', () => {
+    it('팀 변경 이벤트를 배틀 룸에 브로드캐스트한다', () => {
+      const mockSocket1 = {
+        id: 'socket-1',
+        leave: jest.fn(),
+        join: jest.fn(),
+        emit: jest.fn(),
+      }
+      const mockSocket2 = {
+        id: 'socket-2',
+        leave: jest.fn(),
+        join: jest.fn(),
+        emit: jest.fn(),
+      }
+
+      mockServer.sockets = {
+        sockets: new Map([
+          ['client-1', mockSocket1],
+          ['client-2', mockSocket2],
+        ]),
+      }
+
+      const payload = BattleTeamUpdateAllResponseDto.of('battle-1', 1, { teamA: 5, teamB: 3, teamNone: 2 }, { teamA: 4, teamB: 4, teamNone: 2 }, [
+        { clientId: 'client-1', from: BATTLE_TEAM.A, to: BATTLE_TEAM.B },
+        { clientId: 'client-2', from: BATTLE_TEAM.B, to: BATTLE_TEAM.A },
+      ])
+
+      jest.spyOn(service, 'getBattleRoomId').mockImplementation((battleId, team) => {
+        if (!team) return `battle:${battleId}`
+        return `battle:${battleId}:${team}`
+      })
+
+      gateway.teamUpdate(payload)
+
+      expect(mockSocket1.leave).toHaveBeenCalledWith('battle:battle-1:A')
+      expect(mockSocket1.join).toHaveBeenCalledWith('battle:battle-1:B')
+      expect(mockSocket1.emit).toHaveBeenCalledWith('battle:team:updated', {
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.B,
+      })
+
+      expect(mockSocket2.leave).toHaveBeenCalledWith('battle:battle-1:B')
+      expect(mockSocket2.join).toHaveBeenCalledWith('battle:battle-1:A')
+      expect(mockSocket2.emit).toHaveBeenCalledWith('battle:team:updated', {
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.A,
+      })
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:all:updated', payload)
     })
   })
 })

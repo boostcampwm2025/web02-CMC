@@ -3,6 +3,51 @@
 /* Custom styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  min-width: 1440px;
+
+  /* 배틀 페이지 레이아웃 크기 */
+  --sidebar-width: 320px;
+  --main-closed: 1440px;
+  --main-open: 1120px;
+  --lounge-closed: 472px;
+  --lounge-open: 360px;
+}
+
+/* FHD 모니터 */
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-width: 400px;
+    --main-closed: 1800px;
+    --main-open: 1400px;
+    --lounge-closed: 590px;
+    --lounge-open: 450px;
+  }
+}
+
+@layer components {
+  .sidebar-width {
+    width: var(--sidebar-width);
+  }
+
+  .main-width-closed {
+    width: var(--main-closed);
+  }
+
+  .main-width-open {
+    width: var(--main-open);
+  }
+
+  .lounge-width-closed {
+    width: var(--lounge-closed);
+  }
+
+  .lounge-width-open {
+    width: var(--lounge-open);
+  }
+
+  .ml-sidebar {
+    margin-left: var(--sidebar-width);
+  }
 }
 
 body {

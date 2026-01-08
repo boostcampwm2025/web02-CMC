@@ -1,41 +1,42 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName, BattleTurn } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
 
 export class BattleJoinResponseDto {
   battleId: string
   counts: {
     teamA: number
     teamB: number
+    teamNone: number
   }
 
   // 배틀 전체 타임라인 & 채팅
-  timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
+  timelines: { attacks: (BattleDiscussion | null)[]; defenses: (BattleDefense | null)[] }
   allChats: BattleChat[]
 
   // 해당 진영 이의제기 & 반박 & 채팅
-  attacks: BattleDiscussion[]
-  defenses: BattleDefense[]
+  attacks: (BattleDiscussion | null)[]
+  defenses: (BattleDefense | null)[]
   chats: BattleChat[]
 
   // 현재 진행 중인 배틀 정보
   round: number
   phase: BattlePhaseName
-  turn: {
-    status: BattleTurn
-    count: number
-  } | null
-  startedAt: number
-  expiredAt: number
+  phaseCount: number
+
+  startedAt: number | null
+  expiredAt: number | null
 
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
-    const { all, teamA, teamB, round, phase, turn, startedAt, expiredAt } = payload
+    const { all, teamA, teamB, participants, round, phase, phaseCount, startedAt, expiredAt } = payload
+
     const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
     res.battleId = payload.battleId
     res.counts = {
       teamA: teamA.users.length,
       teamB: teamB.users.length,
+      teamNone: participants.size - (teamA.users.length + teamB.users.length),
     }
     res.timelines = {
       attacks: all.attacks.filter(attack => attack.status === 'SELECTED'),
@@ -49,7 +50,7 @@ export class BattleJoinResponseDto {
 
     res.round = round
     res.phase = phase
-    res.turn = turn
+    res.phaseCount = phaseCount
     res.startedAt = startedAt
     res.expiredAt = expiredAt
 
@@ -66,8 +67,8 @@ export class BattleJoinInfoResponseDto {
   description: string
   aCode: string
   bCode: string
-  category: string
   language: string
+  category: string
   participantCount: number
   currentRound: number
   totalRounds: number
@@ -79,8 +80,8 @@ export class BattleJoinInfoResponseDto {
     res.description = battle.description
     res.aCode = battle.aCode
     res.bCode = battle.bCode
-    res.category = battle.category
     res.language = battle.language
+    res.category = battle.category
     res.participantCount = battle.participantCount
 
     // ActiveBattleState가 있으면 실시간 데이터 사용, 없으면 초기 상태 사용
@@ -89,8 +90,8 @@ export class BattleJoinInfoResponseDto {
       res.totalRounds = battle.playTime.rounds
       // 타임라인은 SELECTED 상태인 것만 포함
       res.timelines = {
-        attacks: activeBattleState.all.attacks.filter(attack => attack.status === 'SELECTED'),
-        defenses: activeBattleState.all.defenses.filter(defense => defense.status === 'SELECTED'),
+        attacks: activeBattleState.all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),
+        defenses: activeBattleState.all.defenses.filter((defense): defense is BattleDefense => defense !== null && defense.status === 'SELECTED'),
       }
     } else {
       res.currentRound = battle.initialState.round

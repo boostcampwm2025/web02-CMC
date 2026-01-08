@@ -1,19 +1,19 @@
 export const BATTLE_PHASE = {
-  // WAITING_FOR_START: {
-  //   name: 'WAITING_FOR_START',
-  //   time: 0,
-  // },
+  PENDING: {
+    name: 'PENDING',
+    time: 0,
+  },
   OPINION_SHARE: {
     name: 'OPINION_SHARE',
     time: 60 * 1000, // 1분
   },
-  TEAM_A_ATTACK: {
-    name: 'TEAM_A_ATTACK',
-    time: 120 * 1000, // 2분
+  ATTACK: {
+    name: 'ATTACK',
+    time: 60 * 1000, // 1분
   },
-  TEAM_B_ATTACK: {
-    name: 'TEAM_B_ATTACK',
-    time: 120 * 1000, // 2분
+  DEFENSE: {
+    name: 'DEFENSE',
+    time: 60 * 1000, // 1분
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
@@ -21,12 +21,7 @@ export const BATTLE_PHASE = {
   },
 } as const
 
-export const BATTLE_TURN = {
-  A_ATTACK: { name: 'A_ATTACK', time: 30 * 1000 },
-  B_ATTACK: { name: 'B_ATTACK', time: 30 * 1000 },
-  A_DEFENSE: { name: 'A_DEFENSE', time: 30 * 1000 },
-  B_DEFENSE: { name: 'B_DEFENSE', time: 30 * 1000 },
-} as const
+export const BATTLE_MAX_PHASE_COUNT = 2
 
 export const BATTLE_STATUS = {
   OPEN: 'OPEN',

@@ -15,8 +15,8 @@ export interface BattleInfo {
   description: string;
   aCode: string;
   bCode: string;
-  category: string;
   language: string;
+  category: string;
   participantCount: number;
   currentRound: number;
   totalRounds: number;
@@ -27,9 +27,8 @@ export interface BattleInfo {
 }
 
 // 공통 타입들
-export type BattlePhase = 'OPINION_SHARE' | 'TEAM_A_ATTACK' | 'TEAM_B_ATTACK' | 'TEAM_SWITCH';
+export type BattlePhase = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH';
 export type Team = 'A' | 'B' | 'NONE';
-export type TurnStatus = 'A_ATTACK' | 'B_ATTACK' | 'A_DEFENSE' | 'B_DEFENSE';
 
 // BattleDiscussion 타입
 export interface BattleDiscussion {
@@ -49,13 +48,23 @@ export interface BattleDefense extends BattleDiscussion {
   attackId: string;
 }
 
+// Socket 이벤트 응답 타입 (공통)
+export interface TeamCounts {
+  teamA: number;
+  teamB: number;
+  teamNone: number;
+}
+
+export interface TeamChange {
+  clientId: string;
+  from: Team;
+  to: Team;
+}
+
 // BattleJoinResponseDto 타입
 export interface BattleJoinData {
   battleId: string;
-  counts: {
-    teamA: number;
-    teamB: number;
-  };
+  counts: TeamCounts;
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
@@ -69,12 +78,9 @@ export interface BattleJoinData {
   // 배틀 상태 정보
   round: number;
   phase: BattlePhase;
-  turn: {
-    status: TurnStatus;
-    count: number;
-  } | null;
-  startedAt: number;
-  expiredAt: number;
+  phaseCount: number;
+  startedAt: number | null;
+  expiredAt: number | null;
 }
 
 export interface UseBattleSocketProps {
@@ -87,24 +93,25 @@ export interface UseBattleSocketProps {
 export interface BattleProgressState {
   round: number;
   phase: BattlePhase;
-  turn: {
-    status: TurnStatus;
-    count: number;
-  } | null;
-  startedAt: number;
-  expiredAt: number;
+  phaseCount: number;
+  startedAt: number | null;
+  expiredAt: number | null;
 }
 
 // Battle:Attacked 이벤트 응답 타입
+export interface DiscussionVoteResultItem {
+  id: string | null;
+  text: string | null;
+  ownerId: string | null;
+  count: number | null;
+  team: Team | null;
+}
+
 export interface BattleAttackedResult {
   battleId: string;
   attack: {
-    discussionId: string;
-    authorId: string;
-    type: string;
-    text: string;
-    upvotes: number;
-    team: 'A' | 'B';
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
   };
 }
 
@@ -112,14 +119,32 @@ export interface BattleAttackedResult {
 export interface BattleDefensedResult {
   battleId: string;
   defense: {
-    discussionId: string;
-    authorId: string;
-    type: string;
-    text: string;
-    upvotes: number;
-    team: 'A' | 'B';
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
   };
 }
 
 // 이펙트 타입
 export type BattleEffectType = 'OBJECTION' | 'REVERSAL' | 'SURRENDER';
+
+// battle:user:update 이벤트 응답
+export interface BattleUserUpdateResponse {
+  battleId: string;
+  totalCount: number;
+  counts: TeamCounts;
+}
+
+// battle:team:update:all 이벤트 응답
+export interface BattleTeamUpdateAllResponse {
+  battleId: string;
+  round: number;
+  before: TeamCounts;
+  after: TeamCounts;
+  changes: TeamChange[];
+  difference: {
+    teamA: number;
+    teamB: number;
+    teamNone: number;
+  };
+  dominantTeam: Team | null;
+}

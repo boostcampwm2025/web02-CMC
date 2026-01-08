@@ -1,16 +1,7 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
 import { Battle } from '../types/battles.types'
 import { BattlesService } from './battles.service'
-import {
-  BATTLE_TYPE,
-  BATTLE_CATEGORY,
-  BATTLE_PLAYTIME,
-  BATTLE_LANGUAGE,
-  BATTLE_STATUS,
-  BATTLE_PHASE,
-  BATTLE_TEAM,
-  BATTLE_TURN,
-} from '../const/battles.const'
+import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -113,6 +104,31 @@ describe('BattlesService', () => {
       const state = service['activeBattles'].get('battle-1')!
       expect(state.teamB.users).toContain('client-2')
       expect(state.teamA.users).not.toContain('client-2')
+    })
+
+    it('중립 팀에 참가자를 추가한다', () => {
+      service['addParticipant']('battle-1', 'client-3', BATTLE_TEAM.NONE)
+
+      const state = service['activeBattles'].get('battle-1')!
+      expect(state.teamA.users).not.toContain('client-3')
+      expect(state.teamB.users).not.toContain('client-3')
+      expect(state.participants.get('client-3')).toBe(BATTLE_TEAM.NONE)
+    })
+
+    it('참가자 추가 시 teamNoneCount가 올바르게 계산된다', () => {
+      service['addParticipant']('battle-1', 'client-a1', BATTLE_TEAM.A)
+      service['addParticipant']('battle-1', 'client-b1', BATTLE_TEAM.B)
+      service['addParticipant']('battle-1', 'client-none1', BATTLE_TEAM.NONE)
+      service['addParticipant']('battle-1', 'client-none2', BATTLE_TEAM.NONE)
+
+      const state = service['activeBattles'].get('battle-1')!
+      const totalParticipants = state.participants.size
+      const teamA = state.teamA.users.length
+      const teamB = state.teamB.users.length
+      const teamNone = totalParticipants - teamA - teamB
+
+      expect(teamNone).toBe(2)
+      expect(state.participants.size).toBe(4)
     })
   })
 
@@ -262,55 +278,39 @@ describe('BattlesService', () => {
       service['initBattleState']('battle-1')
     })
 
-    it('OPINION_SHARE → TEAM_A_ATTACK 로 전환된다', () => {
+    it('OPINION_SHARE → ATTACK 으로 전환된다', () => {
       const state = service['activeBattles'].get('battle-1')!
+
+      service['updatePhase']('battle-1')
 
       expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
-      expect(state.turn).toBeNull()
 
       service['updatePhase']('battle-1')
 
-      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
-      expect(state.turn).toEqual({
-        status: BATTLE_TURN.A_ATTACK.name,
-        count: 1,
-      })
+      expect(state.phase).toBe(BATTLE_PHASE.ATTACK.name)
+      expect(state.phaseCount).toBe(1)
     })
 
-    it('A_ATTACK → B_DEFENSE 로 턴이 변경된다', () => {
+    it('ATTACK → DEFENSE 로 턴이 변경된다', () => {
       const state = service['activeBattles'].get('battle-1')!
 
       service['updatePhase']('battle-1')
       service['updatePhase']('battle-1')
+      service['updatePhase']('battle-1')
 
-      expect(state.turn?.status).toBe(BATTLE_TURN.B_DEFENSE.name)
-      expect(state.phase).toBe(BATTLE_PHASE.TEAM_A_ATTACK.name)
+      expect(state.phase).toBe(BATTLE_PHASE.DEFENSE.name)
+      expect(state.phaseCount).toBe(1)
     })
-    it('A_ATTACK ↔ B_DEFENSE 가 2회 반복된다', () => {
+    it('ATTACK ↔ DEFENSE 가 2회 반복된다', () => {
       const state = service['activeBattles'].get('battle-1')!
 
-      service['updatePhase']('battle-1') // OPINION → A_ATTACK
-      service['updatePhase']('battle-1') // A_ATTACK → B_DEFENSE
-      service['updatePhase']('battle-1') // B_DEFENSE → A_ATTACK (count 2)
+      service['updatePhase']('battle-1') // PENDING → OPINION
+      service['updatePhase']('battle-1') // OPINION → ATTACK
+      service['updatePhase']('battle-1') // ATTACK → DEFENSE
+      service['updatePhase']('battle-1') // DEFENSE → ATTACK (count 2)
 
-      expect(state.turn).toEqual({
-        status: BATTLE_TURN.A_ATTACK.name,
-        count: 2,
-      })
-    })
-
-    it('TEAM_A_ATTACK → TEAM_B_ATTACK 로 넘어간다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-
-      // A 공격/방어 2회 소진
-      service['updatePhase']('battle-1') // opinion → A_ATTACK
-      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
-      service['updatePhase']('battle-1') // B_DEF → A_ATTACK (2)
-      service['updatePhase']('battle-1') // A_ATTACK → B_DEF
-      service['updatePhase']('battle-1') // B_DEF → B_ATTACK
-
-      expect(state.phase).toBe(BATTLE_PHASE.TEAM_B_ATTACK.name)
-      expect(state.turn?.status).toBe(BATTLE_TURN.B_ATTACK.name)
+      expect(state.phase).toBe(BATTLE_PHASE.ATTACK.name)
+      expect(state.phaseCount).toBe(2)
     })
 
     it('TEAM_SWITCH 이후 round가 증가한다', () => {
@@ -397,6 +397,47 @@ describe('BattlesService', () => {
 
       expect(state.teamA.users).not.toContain('client-1')
       expect(state.teamB.users).toContain('client-1')
+    })
+
+    it('TEAM_SWITCH 종료 시 팀 변경 후 teamCount가 올바르게 계산된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+
+      expect(state.teamA.users.length).toBe(1)
+      expect(state.teamB.users.length).toBe(0)
+      expect(state.participants.size).toBe(1)
+
+      service['addParticipant']('battle-1', 'client-none', BATTLE_TEAM.NONE)
+
+      const beforeTotal = state.participants.size // 2명
+      const beforeTeamA = state.teamA.users.length // 1명
+      const beforeTeamB = state.teamB.users.length // 0명
+      const beforeTeamNone = beforeTotal - beforeTeamA - beforeTeamB // 2 - 1 - 0 = 1
+
+      expect(beforeTeamNone).toBe(1)
+      expect(state.participants.get('client-none')).toBe(BATTLE_TEAM.NONE)
+
+      // A팀에서 B팀으로 변경
+      service.voteTeam(
+        {
+          battleId: 'battle-1',
+          team: BATTLE_TEAM.B,
+        },
+        'client-1',
+      )
+
+      service['updatePhase']('battle-1')
+
+      const afterTotal = state.participants.size
+      const afterTeamA = state.teamA.users.length // 0명
+      const afterTeamB = state.teamB.users.length // 1명
+      const afterTeamNone = afterTotal - afterTeamA - afterTeamB // 2 - 0 - 1 = 1
+
+      expect(afterTeamNone).toBe(beforeTeamNone)
+      expect(afterTeamA).toBe(0)
+      expect(afterTeamB).toBe(1)
+      expect(state.participants.get('client-1')).toBe(BATTLE_TEAM.B)
+      expect(state.participants.get('client-none')).toBe(BATTLE_TEAM.NONE)
     })
   })
 
@@ -605,6 +646,7 @@ describe('BattlesService', () => {
           battleId: 'battle-1',
           scope: 'ALL',
           text: 'hello all',
+          team: 'A',
         },
         'user-1',
       )
@@ -632,11 +674,7 @@ describe('BattlesService', () => {
       service['initBattleState']('battle-1')
 
       const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.TEAM_A_ATTACK.name
-      state.turn = {
-        status: BATTLE_TURN.A_ATTACK.name,
-        count: 1,
-      }
+      state.phase = BATTLE_PHASE.ATTACK.name
 
       service.handleAttack('battle-1', {
         authorId: 'user-a',
@@ -646,24 +684,24 @@ describe('BattlesService', () => {
     })
 
     it('정상적으로 공격 이의제기에 투표한다', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
 
       const result = service.handleAttackVote('battle-1', attack.discussionId, {
         userId: 'voter-1',
         team: BATTLE_TEAM.A,
       })
-
-      expect(result).toEqual(
+      expect(result).toHaveLength(1)
+      expect(result[0]).toEqual(
         expect.objectContaining({
-          battleId: 'battle-1',
-          attackId: attack.discussionId,
-          count: 1,
+          discussionId: attack.discussionId,
+          upvotes: 1,
+          votes: ['voter-1'],
         }),
       )
     })
 
     it('같은 유저가 중복 투표하면 BadRequestException', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
 
       service.handleAttackVote('battle-1', attack.discussionId, {
         userId: 'voter-1',
@@ -679,7 +717,7 @@ describe('BattlesService', () => {
     })
 
     it('중립 진영은 투표할 수 없다', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]
+      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
 
       expect(() =>
         service.handleAttackVote('battle-1', attack.discussionId, {
@@ -689,14 +727,13 @@ describe('BattlesService', () => {
       ).toThrow(ForbiddenException)
     })
 
-    it('현재 공격 턴이 아니면 BadRequestException', () => {
+    it('현재 수비 페이즈가 아니면 공격 페이즈에 관해 BadRequestException', () => {
       const state = service['activeBattles'].get('battle-1')!
-      state.turn!.status = BATTLE_TURN.B_ATTACK.name
 
-      const attack = state.teamA.attacks[0]
+      const attack = state.teamA.attacks[0]!
 
       expect(() =>
-        service.handleAttackVote('battle-1', attack.discussionId, {
+        service.handleDefenseVote('battle-1', attack.discussionId, {
           userId: 'user',
           team: BATTLE_TEAM.A,
         }),
