@@ -6,7 +6,8 @@ import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
-import TimelineSection from './components/timeline/TimelineSection';
+import BattleSidebar from './components/sidebar/BattleSidebar';
+import BookmarkButton from './components/sidebar/BookmarkButton';
 import { useBattle } from './hooks/useBattle';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
@@ -16,6 +17,7 @@ export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+  const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -30,49 +32,68 @@ export default function BattlePage() {
   });
 
   return (
-    <div className="text-white flex flex-col items-center relative">
-      <div className="w-[1800px]">
-        <BattleHeader title={battleInfo.title} description={battleInfo.description} />
-      </div>
-      <main className="w-[1800px] pb-24">
-        <div className="flex gap-2 py-4">
-          <div className="flex-1">
-            <CodeSection
-              onViewChange={setViewMode}
-              currentView={viewMode}
-              language="javascript"
-              codeA={battleInfo.aCode}
-              codeB={battleInfo.bCode}
-            />
-            <TimelineSection />
+    <div className="text-white relative min-h-screen">
+      {/* 책갈피 버튼 */}
+      <BookmarkButton onOpen={handleOpenSidebar} isOpen={isSidebarOpen} />
+
+      {/* 사이드바 */}
+      <BattleSidebar
+        isOpen={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        title={battleInfo.title}
+        description={battleInfo.description}
+        language={battleInfo.language}
+        category={battleInfo.category}
+      />
+
+      {/* 메인 콘텐츠 */}
+      <div
+        className={`flex flex-col items-center transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? 'ml-sidebar' : 'ml-0'
+        }`}
+      >
+        <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
+          <BattleHeader />
+        </div>
+        <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
+          <div className="flex gap-2 py-4">
+            <div className="flex-1">
+              <CodeSection
+                onViewChange={setViewMode}
+                currentView={viewMode}
+                language={battleInfo.language}
+                codeA={battleInfo.aCode}
+                codeB={battleInfo.bCode}
+              />
+            </div>
+            <aside className="flex flex-col gap-4 w-[590px]">
+              <DiscussionVote onVote={handleVote} />
+              <ChatSection />
+            </aside>
           </div>
-          <aside className="flex flex-col gap-4 w-[590px]">
-            <DiscussionVote onVote={handleVote} />
-            <ChatSection />
-          </aside>
-        </div>
-      </main>
+        </main>
 
-      {/* DiscussionInput 항상 중앙 하단에 고정 */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[1800px] px-4 pb-4 z-50">
-        <div className="max-w-[590px] mx-auto">
-          <DiscussionInput onSubmit={handleDiscussionSubmit} />
+        {/* DiscussionInput 항상 중앙 하단에 고정 */}
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[1800px] px-4 pb-4 z-50">
+          <div className="max-w-[590px] mx-auto">
+            <DiscussionInput onSubmit={handleDiscussionSubmit} />
+          </div>
         </div>
+
+        {isTeamChangeModalOpen && (
+          <TeamChangeModal handleTeamChange={handleTeamChange} onClose={handleCloseTeamChangeModal} />
+        )}
+
+        {effectModal.isOpen && effectModal.team !== 'NONE' && (
+          <DiscussionModal
+            isOpen={effectModal.isOpen}
+            team={effectModal.team}
+            content={effectModal.content}
+            type={effectModal.type}
+            onClose={hideEffect}
+          />
+        )}
       </div>
-
-      {isTeamChangeModalOpen && (
-        <TeamChangeModal handleTeamChange={handleTeamChange} onClose={handleCloseTeamChangeModal} />
-      )}
-
-      {effectModal.isOpen && effectModal.team !== 'NONE' && (
-        <DiscussionModal
-          isOpen={effectModal.isOpen}
-          team={effectModal.team}
-          content={effectModal.content}
-          type={effectModal.type}
-          onClose={hideEffect}
-        />
-      )}
     </div>
   );
 }
