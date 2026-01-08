@@ -25,7 +25,7 @@ export function useBattleTimeline() {
 
     const handleAttacked = (data: BattleAttackedResult) => {
       // ATTACK 페이즈: 양 팀 모두 공격 가능, 사용자 팀 기준으로 표시
-      const attackingTeam = resolveTeam('A');
+      const attackingTeam = resolveTeam('NONE');
       showEffect(attackingTeam, data.attack.text, 'attack');
 
       // 타임라인에 이의제기 추가
@@ -56,7 +56,7 @@ export function useBattleTimeline() {
 
     const handleDefensed = (data: BattleDefensedResult) => {
       // DEFENSE 페이즈: 양 팀 모두 방어 가능, 사용자 팀 기준으로 표시
-      const defendingTeam = resolveTeam('A');
+      const defendingTeam = resolveTeam('NONE');
       showEffect(defendingTeam, data.defense.text, 'defense');
 
       // 타임라인에 반론 추가
