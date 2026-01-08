@@ -19,8 +19,8 @@ import { BattleChatDto } from '../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
-import type { BattleTeam } from '../types/battles.types'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
+import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -199,14 +199,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.battlesService.on('battle:attacked', (payload: DiscussionVoteResultDto) => this.onAttacked(payload))
 
     this.battlesService.on('battle:defensed', (payload: DiscussionVoteResultDto) => this.onDefensed(payload))
-    this.battlesService.on(
-      'battle:team:update',
-      (payload: {
-        battleId: string
-        changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
-        counts: { teamA: number; teamB: number; none: number }
-      }) => this.teamUpdate(payload),
-    )
+
+    this.battlesService.on('battle:team:update', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
 
     // this.battlesService.on('battle:ended', payload => {
     //   const { battleId } = payload
@@ -245,13 +239,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  private teamUpdate(payload: {
-    battleId: string
-    changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }>
-    counts: { teamA: number; teamB: number; none: number }
-  }) {
+  private teamUpdate(payload: BattleTeamUpdateAllResponseDto) {
     const battleRoomId = this.battlesService.getBattleRoomId(payload.battleId)
 
+    // 각 클라이언트의 소켓 룸 이동 및 개별 알림
     for (const change of payload.changes) {
       const socket = this.server.sockets.sockets.get(change.clientId)
       if (!socket) continue

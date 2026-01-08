@@ -37,6 +37,7 @@ import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTur
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
+import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -427,6 +428,13 @@ export class BattlesService extends EventEmitter {
   private applyTeamVotes(state: ActiveBattleState) {
     const changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }> = []
 
+    // 변경 전 인원 수 저장
+    const beforeCounts = {
+      teamA: state.teamA.users.length,
+      teamB: state.teamB.users.length,
+      teamNone: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
+    }
+
     for (const [clientId, desiredTeam] of state.teamVotes.entries()) {
       const currentTeam = state.participants.get(clientId)
       if (!currentTeam) continue
@@ -439,16 +447,15 @@ export class BattlesService extends EventEmitter {
     state.teamVotes.clear()
     this.rebuildTeamUsers(state)
 
+    //변경 후 인원 수
+    const afterCounts = {
+      teamA: state.teamA.users.length,
+      teamB: state.teamB.users.length,
+      teamNone: state.participants.size - (state.teamA.users.length + state.teamB.users.length),
+    }
+
     if (changes.length) {
-      this.emit('battle:team:update', {
-        battleId: state.battleId,
-        changes,
-        counts: {
-          teamA: state.teamA.users.length,
-          teamB: state.teamB.users.length,
-          none: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
-        },
-      })
+      this.emit('battle:team:update', BattleTeamUpdateAllResponseDto.of(state.battleId, state.round, beforeCounts, afterCounts, changes))
     }
   }
 
