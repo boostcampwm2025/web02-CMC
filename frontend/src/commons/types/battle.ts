@@ -39,14 +39,23 @@ export interface BattleDefense extends BattleDiscussion {
   attackId: string;
 }
 
+// Socket 이벤트 응답 타입 (공통)
+export interface TeamCounts {
+  teamA: number;
+  teamB: number;
+  teamNone: number;
+}
+
+export interface TeamChange {
+  clientId: string;
+  from: Team;
+  to: Team;
+}
+
 // BattleJoinResponseDto 타입
 export interface BattleJoinData {
   battleId: string;
-  counts: {
-    teamA: number;
-    teamB: number;
-    teamNone: number;
-  };
+  counts: TeamCounts;
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
@@ -105,3 +114,25 @@ export interface BattleDefensedResult {
 
 // 이펙트 타입
 export type BattleEffectType = 'OBJECTION' | 'REVERSAL' | 'SURRENDER';
+
+// battle:user:update 이벤트 응답
+export interface BattleUserUpdateResponse {
+  battleId: string;
+  totalCount: number;
+  counts: TeamCounts;
+}
+
+// battle:team:update:all 이벤트 응답
+export interface BattleTeamUpdateAllResponse {
+  battleId: string;
+  round: number;
+  before: TeamCounts;
+  after: TeamCounts;
+  changes: TeamChange[];
+  difference: {
+    teamA: number;
+    teamB: number;
+    teamNone: number;
+  };
+  dominantTeam: Team | null;
+}

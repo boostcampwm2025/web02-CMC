@@ -9,6 +9,7 @@ import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar/BattleSidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import { useBattle } from './hooks/useBattle';
+import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
@@ -30,6 +31,10 @@ export default function BattlePage() {
     onOpenTeamChangeModal: handleOpenTeamChangeModal,
     onCloseTeamChangeModal: handleCloseTeamChangeModal
   });
+
+  // TODO: 진영 투표 결과 모달 추가 시 주석 해제
+  // const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
+  useTeamVoteResult(); // 이벤트 구독만 활성화
 
   return (
     <div className="text-white relative min-h-screen">
