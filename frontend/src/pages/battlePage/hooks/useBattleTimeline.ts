@@ -4,80 +4,88 @@ import type {
   BattleDefensedResult,
   BattleDiscussion,
   BattleDefense,
-  BattleChat
+  BattleChat,
+  Team
 } from '@/commons/types/battle';
-import { useBattleStore, selectBattleProgress, selectSocket } from '../stores/battleStore';
+import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
 import { useEffectModal } from './useEffectModal';
 
 export function useBattleTimeline() {
   const socket = useBattleStore(selectSocket);
-  const battleProgress = useBattleStore(selectBattleProgress);
+  const selectedTeam = useBattleStore(selectSelectedTeam);
   const { effectModal, showEffect, hideEffect } = useEffectModal();
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleAttacked = (data: BattleAttackedResult) => {
-      // 턴 상태로 공격하는 팀 판단
-      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
-      showEffect(attackingTeam, data.attack.text, 'attack');
+    const pickEntry = (
+      payload: {
+        aTeam: { id: string | null; text: string | null; ownerId: string | null; count: number | null };
+        bTeam: { id: string | null; text: string | null; ownerId: string | null; count: number | null };
+      },
+      userTeam: Team
+    ) => {
+      // 상대팀의 결과 표시
+      const opponentEntry = userTeam === 'A' ? payload.bTeam : payload.aTeam;
+      if (opponentEntry?.id) {
+        const opponentTeam: Team = userTeam === 'A' ? 'B' : 'A';
+        return { team: opponentTeam, entry: opponentEntry };
+      }
+      return null;
+    };
 
-      // 타임라인에 이의제기 추가
-      const attackDiscussion: BattleDiscussion = {
-        discussionId: data.attack.discussionId,
-        authorId: data.attack.authorId,
-        content: data.attack.text,
-        upvotes: data.attack.upvotes,
+    const pushTimelineAndChat = (
+      battleId: string,
+      team: Team,
+      entry: { id: string | null; text: string | null; ownerId: string | null; count: number | null },
+      type: 'attack' | 'defense'
+    ) => {
+      if (!entry.id || !entry.text) return;
+
+      const discussion: BattleDiscussion | BattleDefense = {
+        discussionId: entry.id,
+        authorId: entry.ownerId ?? '',
+        content: entry.text,
+        upvotes: entry.count ?? 0,
         votes: [],
         status: 'SELECTED',
-        type: 'ATTACK'
-      };
-      useBattleStore.getState().addAttackTimeline(attackDiscussion);
+        type: type === 'attack' ? 'ATTACK' : 'DEFENSE',
+        ...(type === 'defense' ? { attackId: '' } : {})
+      } as BattleDiscussion | BattleDefense;
 
-      // 채팅방에 선정된 이의제기 메시지 추가
-      const attackChatMessage: BattleChat = {
-        battleId: data.battleId,
-        scope: 'ALL' as const,
-        messageId: `attack-${data.attack.discussionId}`,
+      if (type === 'attack') {
+        useBattleStore.getState().addAttackTimeline(discussion as BattleDiscussion);
+      } else {
+        useBattleStore.getState().addDefenseTimeline(discussion as BattleDefense);
+      }
+
+      const chatMessage: BattleChat = {
+        battleId,
+        scope: 'ALL',
+        messageId: `${type}-${entry.id}`,
         sender: 'SYSTEM',
-        team: attackingTeam,
-        text: data.attack.text,
+        team,
+        text: entry.text,
         createdAt: new Date(),
-        type: 'attack'
+        type
       };
-      useBattleStore.getState().addChat(attackChatMessage);
+      useBattleStore.getState().addChat(chatMessage);
+    };
+
+    const handleAttacked = (data: BattleAttackedResult) => {
+      const target = pickEntry(data.attack, selectedTeam);
+      if (target) {
+        showEffect(target.team, target.entry.text ?? '', 'attack');
+        pushTimelineAndChat(data.battleId, target.team, target.entry, 'attack');
+      }
     };
 
     const handleDefensed = (data: BattleDefensedResult) => {
-      // 턴 상태로 방어하는 팀 판단
-      const defendingTeam = battleProgress?.turn?.status === 'A_DEFENSE' ? 'A' : 'B';
-      showEffect(defendingTeam, data.defense.text, 'defense');
-
-      // 타임라인에 반론 추가
-      const defenseDiscussion: BattleDefense = {
-        discussionId: data.defense.discussionId,
-        authorId: data.defense.authorId,
-        content: data.defense.text,
-        upvotes: data.defense.upvotes,
-        votes: [],
-        status: 'SELECTED',
-        type: 'DEFENSE',
-        attackId: '' // 서버에서 제공하지 않으면 빈 문자열
-      };
-      useBattleStore.getState().addDefenseTimeline(defenseDiscussion);
-
-      // 채팅방에 선정된 반론 메시지 추가
-      const defenseChatMessage: BattleChat = {
-        battleId: data.battleId,
-        scope: 'ALL' as const,
-        messageId: `defense-${data.defense.discussionId}`,
-        sender: 'SYSTEM',
-        team: defendingTeam,
-        text: data.defense.text,
-        createdAt: new Date(),
-        type: 'defense'
-      };
-      useBattleStore.getState().addChat(defenseChatMessage);
+      const target = pickEntry(data.defense, selectedTeam);
+      if (target) {
+        showEffect(target.team, target.entry.text ?? '', 'defense');
+        pushTimelineAndChat(data.battleId, target.team, target.entry, 'defense');
+      }
     };
 
     socket.on('battle:attacked', handleAttacked);
@@ -87,7 +95,7 @@ export function useBattleTimeline() {
       socket.off('battle:attacked', handleAttacked);
       socket.off('battle:defensed', handleDefensed);
     };
-  }, [socket, battleProgress?.turn?.status, showEffect]);
+  }, [socket, showEffect, selectedTeam]);
 
   return { effectModal, hideEffect };
 }

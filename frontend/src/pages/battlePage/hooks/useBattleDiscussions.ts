@@ -44,7 +44,7 @@ export function useBattleDiscussions() {
       if (team === 'NONE' || !socket) return;
 
       const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
-      const canSubmit = !isInputDisabled(team, battleProgress?.phase, battleProgress?.turn?.status);
+      const canSubmit = !isInputDisabled(team, battleProgress?.phase);
 
       if (!canSubmit) {
         return;
