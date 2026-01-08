@@ -11,10 +11,12 @@ export default function ParticipantRatioBar() {
   return (
     <div className="flex h-[12px]">
       <div className="bg-blue-500 transition-all duration-500 ease-in-out" style={{ width: `${teamAProgress}%` }}></div>
-      <div
-        className="bg-gray-600 transition-all duration-500 ease-in-out"
-        style={{ width: `${neutralProgress}%` }}
-      ></div>
+      {neutralProgress > 0 && (
+        <div
+          className="bg-gray-600 transition-all duration-500 ease-in-out"
+          style={{ width: `${neutralProgress}%` }}
+        ></div>
+      )}
       <div className="bg-red-500 transition-all duration-500 ease-in-out" style={{ width: `${teamBProgress}%` }}></div>
     </div>
   );
