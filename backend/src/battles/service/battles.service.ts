@@ -595,12 +595,13 @@ export class BattlesService extends EventEmitter {
 
     const discussions = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
 
-    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    const idx = discussions.findIndex(d => d?.discussionId === discussionId)
     if (idx === -1) {
       throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
     }
 
     const target = discussions[idx]
+    if (!target) throw new NotFoundException('해당 항목이 존재하지 않습니다.')
 
     if (this.hasAlreadyVoted(target.votes, userId)) {
       throw new BadRequestException('이미 투표한 항목입니다.')
@@ -610,7 +611,7 @@ export class BattlesService extends EventEmitter {
 
     // 다른 항목에 투표한 기록이 있으면 취소
     discussions.forEach((discussion, i) => {
-      if (i !== idx && this.hasAlreadyVoted(discussion.votes, userId)) {
+      if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
@@ -639,12 +640,13 @@ export class BattlesService extends EventEmitter {
 
     const discussions = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
 
-    const idx = discussions.findIndex(d => d.discussionId === discussionId)
+    const idx = discussions.findIndex(d => d?.discussionId === discussionId)
     if (idx === -1) {
       throw new NotFoundException('해당 진영의 이의제기 항목이 없습니다.')
     }
 
     const target = discussions[idx]
+    if (!target) throw new NotFoundException('해당 항목이 존재하지 않습니다.')
 
     if (this.hasAlreadyVoted(target.votes, userId)) {
       throw new BadRequestException('이미 투표한 항목입니다.')
@@ -654,7 +656,7 @@ export class BattlesService extends EventEmitter {
 
     // 다른 항목에 투표한 기록이 있으면 취소
     discussions.forEach((discussion, i) => {
-      if (i !== idx && this.hasAlreadyVoted(discussion.votes, userId)) {
+      if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
@@ -681,10 +683,12 @@ export class BattlesService extends EventEmitter {
     return battleState.phase === BATTLE_PHASE.DEFENSE.name ? true : false
   }
 
-  private getTopOpinion = (opinions: BattleDiscussion[]) => {
-    if (opinions.length === 0) return null
+  private getTopOpinion = (opinions: (BattleDiscussion | null)[]): BattleDiscussion | null => {
+    const filteredOpinion = opinions.filter((opinion): opinion is BattleDiscussion => opinion !== null)
 
-    return opinions.reduce((top, cur) => (cur.upvotes > top.upvotes ? cur : top))
+    if (filteredOpinion.length === 0) return null
+
+    return filteredOpinion.reduce((top, cur) => (cur.upvotes > top.upvotes ? cur : top))
   }
 
   private pickTopVotedAttack(battleId: string): BattleTopOpinions {
@@ -712,8 +716,8 @@ export class BattlesService extends EventEmitter {
     const battleState = this.activeBattles.get(battleId)
 
     const { aTeam, bTeam } = top
-    if (aTeam) battleState?.all.attacks.push(aTeam)
-    if (bTeam) battleState?.all.attacks.push(bTeam)
+    battleState?.all.attacks.push(aTeam ? aTeam : null)
+    battleState?.all.attacks.push(bTeam ? bTeam : null)
 
     this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
   }
@@ -725,8 +729,8 @@ export class BattlesService extends EventEmitter {
     const battleState = this.activeBattles.get(battleId)
 
     const { aTeam, bTeam } = top
-    if (aTeam) battleState?.all.defenses.push(aTeam)
-    if (bTeam) battleState?.all.defenses.push(bTeam)
+    battleState?.all.defenses.push(aTeam ? aTeam : null)
+    battleState?.all.defenses.push(bTeam ? bTeam : null)
 
     this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
   }

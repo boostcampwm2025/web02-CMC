@@ -74,8 +74,8 @@ export type BattleDefense = BattleDiscussion
 export interface BattleData {
   roomId: string
   chats: BattleChat[]
-  attacks: BattleDiscussion[]
-  defenses: BattleDefense[]
+  attacks: (BattleDiscussion | null)[]
+  defenses: (BattleDefense | null)[]
 }
 
 export interface BattleTeamData extends BattleData {
