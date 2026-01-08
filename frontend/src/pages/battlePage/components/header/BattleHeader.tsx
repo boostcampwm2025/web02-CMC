@@ -27,7 +27,7 @@ export default function BattleHeader({ title, description }: BattleHeaderProps) 
           <p className="text-[#99A1AF] text-[14px]">{description}</p>
         </div>
         <div className="flex items-center gap-4">
-          <StatusCard turn={status} timer={formattedTime} />
+          <StatusCard phase={status} timer={formattedTime} />
           <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={teamNoneCounts} />
         </div>
       </div>
