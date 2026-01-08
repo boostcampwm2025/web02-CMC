@@ -6,6 +6,7 @@ import {
   selectSocket,
   selectBattleId
 } from '../stores/battleStore';
+import type { BattleUserUpdateResponse } from '@/commons/types/battle';
 
 interface UseBattleTeamProps {
   onOpenTeamChangeModal: () => void;
@@ -15,7 +16,7 @@ interface UseBattleTeamProps {
 export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattleTeamProps) {
   const socket = useBattleStore(selectSocket);
   const battleId = useBattleStore(selectBattleId);
-  const { setSelectedTeam } = useBattleStore();
+  const { setSelectedTeam, setTeamCounts } = useBattleStore();
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);
 
@@ -44,6 +45,30 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       socket.off('battle:team:update', handleChangedTeam);
     };
   }, [socket, setSelectedTeam]);
+
+  // 새 참여자 입장 시 전체 인원 수 업데이트
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUserUpdate = (data: BattleUserUpdateResponse) => {
+      if (data.battleId !== battleId) return;
+
+      setTeamCounts(
+        {
+          teamACount: data.counts.teamA,
+          teamBCount: data.counts.teamB,
+          none: data.counts.teamNone
+        },
+        data.totalCount
+      );
+    };
+
+    socket.on('battle:user:update', handleUserUpdate);
+
+    return () => {
+      socket.off('battle:user:update', handleUserUpdate);
+    };
+  }, [socket, setTeamCounts]);
 
   // 팀 변경 요청
   const handleTeamChange = useCallback(

@@ -21,8 +21,9 @@ interface BattleStore {
   teamCounts: {
     teamACount: number;
     teamBCount: number;
-    teamNoneCount: number;
+    none: number;
   };
+  totalParticipants: number;
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
@@ -40,7 +41,7 @@ interface BattleStore {
   setDiscussions: (discussions: BattleStore['discussions']) => void;
   addDiscussion: (discussion: BattleStore['discussions'][0]) => void;
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
-  setTeamCounts: (counts: { teamACount: number; teamBCount: number; teamNoneCount: number }) => void;
+  setTeamCounts: (counts: { teamACount: number; teamBCount: number; none: number }, totalParticipants?: number) => void;
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
   addAttackTimeline: (attack: BattleDiscussion) => void;
   addDefenseTimeline: (defense: BattleDefense) => void;
@@ -58,7 +59,8 @@ export const useBattleStore = create<BattleStore>((set) => ({
   currentStage: null,
   battleProgress: null,
   discussions: [],
-  teamCounts: { teamACount: 0, teamBCount: 0, teamNoneCount: 0 },
+  teamCounts: { teamACount: 0, teamBCount: 0, none: 0 },
+  totalParticipants: 0,
   timelines: null,
   teamChats: [],
   allChats: [],
@@ -91,7 +93,11 @@ export const useBattleStore = create<BattleStore>((set) => ({
       };
     }),
 
-  setTeamCounts: (counts) => set({ teamCounts: counts }),
+  setTeamCounts: (counts, totalParticipants) =>
+    set({
+      teamCounts: counts,
+      totalParticipants: totalParticipants ?? counts.teamACount + counts.teamBCount
+    }),
   setTimelines: (timelines) => set({ timelines }),
   addAttackTimeline: (attack) =>
     set((state) => ({

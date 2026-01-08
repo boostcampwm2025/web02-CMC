@@ -6,7 +6,7 @@ import { useBattleTimer } from '../../hooks/useBattleTimer';
 export default function BattleHeader() {
   const currentStage = useBattleStore(selectCurrentStage);
   const battleProgress = useBattleStore(selectBattleProgress);
-  const { teamACount, teamBCount, teamNoneCount } = useBattleStore(selectTeamCounts);
+  const { teamACount, teamBCount, none } = useBattleStore(selectTeamCounts);
 
   const { formattedTime } = useBattleTimer({
     expiredAt: battleProgress?.expiredAt
@@ -18,7 +18,7 @@ export default function BattleHeader() {
       <div className="flex justify-between">
         <div className="flex items-center gap-4">
           <StatusCard turn={status} timer={formattedTime} />
-          <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={teamNoneCount} />
+          <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={none} />
         </div>
       </div>
     </header>

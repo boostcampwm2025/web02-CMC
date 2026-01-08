@@ -53,7 +53,7 @@ export function useBattleSocket() {
       setTeamCounts({
         teamACount: data.counts.teamA,
         teamBCount: data.counts.teamB,
-        teamNoneCount: data.counts.teamNone
+        none: data.counts.teamNone
       });
       setTimelines(data.timelines);
       setTeamChats(data.chats || []);
