@@ -378,7 +378,7 @@ export class BattlesService extends EventEmitter {
         expiredAt: state.expiredAt,
       })
 
-      this.emit('battle:phase:update', res)
+      this.emit('battle:phase:updated', res)
     }
 
     this.scheduleNextTick(battleId)
@@ -516,7 +516,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
-    battleState.all.attacks.push(attack)
+    // battleState.all.attacks.push(attack)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.attacks.push(attack)
     } else {
@@ -545,7 +545,7 @@ export class BattlesService extends EventEmitter {
       status: 'PENDING',
     }
 
-    battleState.all.defenses.push(defense)
+    // battleState.all.defenses.push(defense)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.defenses.push(defense)
     } else {
@@ -709,12 +709,24 @@ export class BattlesService extends EventEmitter {
     const top = this.pickTopVotedAttack(battleId)
     if (!top) return
 
+    const battleState = this.activeBattles.get(battleId)
+
+    const { aTeam, bTeam } = top
+    if (aTeam) battleState?.all.attacks.push(aTeam)
+    if (bTeam) battleState?.all.attacks.push(bTeam)
+
     this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
   }
 
   private emitDefensedResult(battleId: string) {
     const top = this.pickTopVotedDefense(battleId)
     if (!top) return
+
+    const battleState = this.activeBattles.get(battleId)
+
+    const { aTeam, bTeam } = top
+    if (aTeam) battleState?.all.defenses.push(aTeam)
+    if (bTeam) battleState?.all.defenses.push(bTeam)
 
     this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
   }
