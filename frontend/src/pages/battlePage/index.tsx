@@ -3,6 +3,7 @@ import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
+import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
 
@@ -14,6 +15,7 @@ import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar/BattleSidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import TutorialModal from './components/tutorial/TutorialModal';
+import TutorialStepModal from './components/tutorial/TutorialStepModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
@@ -24,7 +26,19 @@ export default function BattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
-  const { isOpen: isTutorialOpen, closeModal: closeTutorial } = useModal(true);
+
+  // 튜토리얼 관리
+  const {
+    isModalOpen: isTutorialOpen,
+    currentStep,
+    dontShowAgain,
+    skipTutorial,
+    startTutorial,
+    nextStep,
+    prevStep,
+    setDontShowAgain,
+    closeTutorial
+  } = useTutorial();
 
   // 사운드 초기화
   useEffect(() => {
@@ -44,10 +58,6 @@ export default function BattlePage() {
   });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
-
-  const handleTutorialStart = () => {
-    closeTutorial();
-  };
 
   return (
     <div className="text-white relative min-h-screen">
@@ -130,7 +140,22 @@ export default function BattlePage() {
           />
         )}
 
-        <TutorialModal isOpen={isTutorialOpen} onClose={closeTutorial} onStart={handleTutorialStart} />
+        <TutorialModal
+          isOpen={isTutorialOpen && currentStep === 'welcome'}
+          onClose={skipTutorial}
+          onStart={startTutorial}
+          dontShowAgain={dontShowAgain}
+          onDontShowAgainChange={setDontShowAgain}
+        />
+
+        <TutorialStepModal
+          isOpen={isTutorialOpen && currentStep !== 'welcome' && currentStep !== 'completed'}
+          currentStep={currentStep}
+          onNext={nextStep}
+          onPrev={prevStep}
+          onSkip={skipTutorial}
+          onClose={closeTutorial}
+        />
       </div>
     </div>
   );
