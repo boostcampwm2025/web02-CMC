@@ -38,6 +38,7 @@ import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
+import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -317,6 +318,14 @@ export class BattlesService extends EventEmitter {
 
     battleState.participants.set(clientId, team as BattleTeam)
     this.rebuildTeamUsers(battleState)
+
+    const counts = {
+      teamA: battleState.teamA.users.length,
+      teamB: battleState.teamB.users.length,
+      teamNone: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
+    }
+
+    this.emit('battle:user:update', BattleUserUpdateResponseDto.of(battleId, counts))
   }
 
   private rebuildTeamUsers(state: ActiveBattleState) {

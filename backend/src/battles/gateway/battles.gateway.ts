@@ -21,6 +21,7 @@ import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
+import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -191,6 +192,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     rooms.forEach(room => this.server.in(room).disconnectSockets(true))
   }
 
+  userUpdate(payload: BattleUserUpdateResponseDto) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:user:update', payload)
+  }
+
   private bindBattleEvents() {
     this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
@@ -202,6 +210,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     this.battlesService.on('battle:team:update', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
 
+    this.battlesService.on('battle:user:update', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
     // this.battlesService.on('battle:ended', payload => {
     //   const { battleId } = payload
     //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
