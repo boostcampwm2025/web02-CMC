@@ -22,7 +22,7 @@ export default function BattleHeader() {
   return (
     <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
       <TimeProgressBar />
-      <div className="px-8 flex-1 flex items-center justify-between">
+      <div className="px-8 flex-1 grid grid-cols-3 items-center">
         <StageIndicator />
         {phase !== 'PENDING' && (
           <div className="flex flex-col items-center justify-center">
@@ -30,7 +30,9 @@ export default function BattleHeader() {
             <p className="text-sm text-gray-400">{instruction}</p>
           </div>
         )}
-        <TeamCounter />
+        <div className="flex justify-end">
+          <TeamCounter />
+        </div>
       </div>
       <ParticipantRatioBar />
     </header>
