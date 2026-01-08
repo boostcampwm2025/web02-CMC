@@ -15,6 +15,7 @@ export function useBattleProgress() {
     const handlePhaseUpdate = (data: BattleProgressState) => {
       updateBattleProgress({
         phase: data.phase,
+        phaseCount: data.phaseCount,
         startedAt: data.startedAt,
         expiredAt: data.expiredAt
       });

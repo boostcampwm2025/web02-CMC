@@ -9,7 +9,7 @@ export default function BattleHeader() {
   const { teamACount, teamBCount, none } = useBattleStore(selectTeamCounts);
 
   const { formattedTime } = useBattleTimer({
-    expiredAt: battleProgress?.expiredAt
+    expiredAt: battleProgress?.expiredAt ?? undefined
   });
 
   const status = currentStage || 'END';
@@ -17,7 +17,7 @@ export default function BattleHeader() {
     <header className="bg-[#1E1E2F] px-8 py-6 rounded-lg mb-2">
       <div className="flex justify-between">
         <div className="flex items-center gap-4">
-          <StatusCard turn={status} timer={formattedTime} />
+          <StatusCard phase={status} timer={formattedTime} />
           <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={none} />
         </div>
       </div>

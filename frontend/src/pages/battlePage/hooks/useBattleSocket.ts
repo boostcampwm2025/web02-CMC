@@ -43,6 +43,7 @@ export function useBattleSocket() {
       setBattleProgress({
         round: data.round,
         phase: data.phase,
+        phaseCount: data.phaseCount,
         startedAt: data.startedAt,
         expiredAt: data.expiredAt
       });
