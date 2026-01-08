@@ -14,7 +14,7 @@ import { BattlesService } from '../service/battles.service'
 import { BattleJoinRequestDto } from '../dto/battleJoinRequest.dto'
 import { BattleJoinResponseDto } from '../dto/battleJoinResponse.dto'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
-import { BattlePhaseResponseDto, BattleRoundResponseDto, BattleTurnResponseDto } from '../dto/battleTurnResponse.dto'
+import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../const/battles.const'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
@@ -150,13 +150,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  turnUpdate(payload: BattleTurnResponseDto) {
-    const { battleId } = payload
-    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
-
-    this.server.to(battleRoomId).emit('battle:turn:updated', payload)
-  }
-
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -200,8 +193,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
   private bindBattleEvents() {
     this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
-
-    this.battlesService.on('battle:turn:updated', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
 
     this.battlesService.on('battle:round:updated', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
 

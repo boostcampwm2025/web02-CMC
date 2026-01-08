@@ -1,43 +1,20 @@
-import { BattlePhaseName, BattleTurn } from '../types/battles.types'
-
-export class BattleTurnResponseDto {
-  battleId: string
-  turn: {
-    status: BattleTurn
-    count: number
-  } | null
-  startedAt: number
-  expiredAt: number
-
-  static fromEntity(payload: BattleTurnResponseDto): BattleTurnResponseDto {
-    const res = new BattleTurnResponseDto()
-    const { battleId, turn, startedAt, expiredAt } = payload
-
-    res.battleId = battleId
-    res.turn = turn ? { ...turn } : null
-    res.startedAt = startedAt
-    res.expiredAt = expiredAt
-
-    return res
-  }
-
-  static of(payload: BattleTurnResponseDto): BattleTurnResponseDto {
-    return BattleTurnResponseDto.fromEntity(payload)
-  }
-}
+import { BattlePhaseName } from '../types/battles.types'
 
 export class BattlePhaseResponseDto {
   battleId: string
   phase: BattlePhaseName
+  phaseCount: number
+
   startedAt: number
   expiredAt: number
 
   static fromEntity(payload: BattlePhaseResponseDto): BattlePhaseResponseDto {
     const res = new BattlePhaseResponseDto()
-    const { battleId, phase, startedAt, expiredAt } = payload
+    const { battleId, phase, phaseCount, startedAt, expiredAt } = payload
 
     res.battleId = battleId
     res.phase = phase
+    res.phaseCount = phaseCount
     res.startedAt = startedAt
     res.expiredAt = expiredAt
 

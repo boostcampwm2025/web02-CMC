@@ -7,7 +7,6 @@ import {
   BATTLE_STATUS,
   BATTLE_TEAM,
   BATTLE_DISCUSSION_TYPE,
-  BATTLE_TURN,
 } from '../const/battles.const'
 
 export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
@@ -20,7 +19,6 @@ export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGO
 export type BattlePlayTimeName = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]['name']
 export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
 export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
-export type BattleTurn = (typeof BATTLE_TURN)[keyof typeof BATTLE_TURN]['name']
 export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
 
 export interface Battle {
@@ -66,13 +64,18 @@ export interface BattleDiscussion {
   status: BattleDiscussionStatus
 }
 
+export interface BattleTopOpinions {
+  aTeam: BattleDiscussion | null
+  bTeam: BattleDiscussion | null
+}
+
 export type BattleDefense = BattleDiscussion
 
 export interface BattleData {
   roomId: string
   chats: BattleChat[]
-  attacks: BattleDiscussion[]
-  defenses: BattleDefense[]
+  attacks: (BattleDiscussion | null)[]
+  defenses: (BattleDefense | null)[]
 }
 
 export interface BattleTeamData extends BattleData {
@@ -91,10 +94,8 @@ export interface ActiveBattleState {
 
   round: number
   phase: BattlePhaseName
-  turn: {
-    status: BattleTurn
-    count: number
-  } | null
-  startedAt: number
-  expiredAt: number
+  phaseCount: number
+
+  startedAt: number | null
+  expiredAt: number | null
 }

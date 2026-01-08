@@ -179,7 +179,7 @@ describe('BattlesGateway - Discussion Events', () => {
         status: 'PENDING',
       })
 
-      jest.spyOn(service, 'handleAttackVote').mockReturnValue(mockResponse)
+      jest.spyOn(service, 'handleAttackVote').mockReturnValue([mockResponse])
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
 
       gateway.handleAttackVote(dto, mockClient)
@@ -213,7 +213,7 @@ describe('BattlesGateway - Discussion Events', () => {
         status: 'PENDING',
       })
 
-      jest.spyOn(service, 'handleDefenseVote').mockReturnValue(mockResponse)
+      jest.spyOn(service, 'handleDefenseVote').mockReturnValue([mockResponse])
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
 
       gateway.handleDefenseVote(dto, mockClient)
