@@ -63,10 +63,10 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       );
     };
 
-    socket.on('battle:user:update', handleUserUpdate);
+    socket.on('battle:user:updated', handleUserUpdate);
 
     return () => {
-      socket.off('battle:user:update', handleUserUpdate);
+      socket.off('battle:user:updated', handleUserUpdate);
     };
   }, [socket, setTeamCounts]);
 
