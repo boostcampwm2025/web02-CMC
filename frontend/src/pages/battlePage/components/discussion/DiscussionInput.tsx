@@ -21,7 +21,6 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
 
   const phase = battleProgress?.phase;
 
-
   const { placeholderText, buttonText, Icon, isAttacking } = getDiscussionConfig(team, phase);
   const disabled_input = isInputDisabled(team, phase, disabled);
 
@@ -33,7 +32,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       handleSubmit();
     }
   };
