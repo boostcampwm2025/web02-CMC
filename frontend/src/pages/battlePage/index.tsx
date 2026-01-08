@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import BattleHeader from './components/header';
@@ -14,12 +14,18 @@ import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+
+  // 사운드 초기화
+  useEffect(() => {
+    soundManager.preload('timerWarning', '/sounds/timerSound.wav');
+  }, []);
 
   const {
     isOpen: isTeamChangeModalOpen,
