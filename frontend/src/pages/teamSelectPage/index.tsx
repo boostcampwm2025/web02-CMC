@@ -11,7 +11,12 @@ import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
 import { convertToTimelineItems } from './utils/convertTimeline';
 import type { Team } from './types/teamSelect';
-import { useBattleStore, selectTimelines, selectTeamCounts } from '@/pages/battlePage/stores/battleStore';
+import {
+  useBattleStore,
+  selectTimelines,
+  selectTeamCounts,
+  selectBattleProgress
+} from '@/pages/battlePage/stores/battleStore';
 import { useBattleSocket } from '@/pages/battlePage/hooks/useBattleSocket';
 
 export default function TeamSelectPage() {
@@ -24,6 +29,7 @@ export default function TeamSelectPage() {
   // WebSocket을 통해 실시간 타임라인과 참여자 수 가져오기
   const timelines = useBattleStore(selectTimelines);
   const teamCounts = useBattleStore(selectTeamCounts);
+  const battleProgress = useBattleStore(selectBattleProgress);
 
   // 배틀 스토어 초기화 (NONE 팀으로 연결)
   useEffect(() => {
@@ -74,6 +80,7 @@ export default function TeamSelectPage() {
             currentRound={battleInfo.currentRound}
             totalRounds={battleInfo.totalRounds}
             totalParticipants={totalParticipants || battleInfo.participantCount}
+            currentPhase={battleProgress?.phase}
           />
         );
       case 2:
