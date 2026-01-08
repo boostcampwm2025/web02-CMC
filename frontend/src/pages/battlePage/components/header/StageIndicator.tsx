@@ -1,4 +1,7 @@
 import BattleIcon from '@/assets/icon/battle.svg?react';
+import ShieldIcon from '@/assets/icon/shield.svg?react';
+import VoteIcon from '@/assets/icon/vote.svg?react';
+import MessageIcon from '@/assets/icon/message.svg?react';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 
@@ -25,6 +28,19 @@ const PHASE_INFO: Record<BattlePhase, { category: string; message: string }> = {
   }
 };
 
+function getPhaseIcon(phase: BattlePhase) {
+  switch (phase) {
+    case 'DEFENSE':
+      return <ShieldIcon className="w-[28px] h-[28px] text-white" />;
+    case 'TEAM_SWITCH':
+      return <VoteIcon className="w-[28px] h-[28px] text-white" />;
+    case 'OPINION_SHARE':
+      return <MessageIcon className="w-[24px] h-[24px] text-white" />;
+    default:
+      return <BattleIcon className="w-[24px] h-[24px] text-white" />;
+  }
+}
+
 export default function StageIndicator() {
   const battleProgress = useBattleStore(selectBattleProgress);
 
@@ -34,7 +50,7 @@ export default function StageIndicator() {
   return (
     <div className="flex items-center gap-6 min-w-[200px]">
       <div className="w-[56px] h-[56px] bg-gradient-to-br from-[#FF6900] to-[#FB2C36] rounded-xl flex items-center justify-center">
-        <BattleIcon className="w-[24px] h-[24px] text-white" />
+        {getPhaseIcon(phase)}
       </div>
       <div className="text-left">
         <p className="text-[14px] text-[#99A1AF]">{category}</p>
