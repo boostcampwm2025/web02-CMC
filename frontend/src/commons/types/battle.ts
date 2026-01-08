@@ -46,6 +46,7 @@ export interface BattleJoinData {
   counts: {
     teamA: number;
     teamB: number;
+    teamNone: number;
   };
   timelines: {
     attacks: BattleDiscussion[];

@@ -55,7 +55,11 @@ export function useBattleSocket() {
       }
 
       // 팀 인원 수, 타임라인, 채팅 데이터 store에 저장
-      setTeamCounts({ teamACount: data.counts.teamA, teamBCount: data.counts.teamB });
+      setTeamCounts({
+        teamACount: data.counts.teamA,
+        teamBCount: data.counts.teamB,
+        teamNoneCount: data.counts.teamNone
+      });
       setTimelines(data.timelines);
       setTeamChats(data.chats || []);
       setAllChats(data.allChats || []);
