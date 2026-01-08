@@ -221,10 +221,6 @@ export class BattlesService extends EventEmitter {
     if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
     if (this.activeBattles.has(battleId)) return
 
-    const startedAt = Date.now()
-    // const expiredAt = startedAt + BATTLE_PHASE.OPINION_SHARE.time
-    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
-
     const activeBattleState: ActiveBattleState = {
       battleId,
       all: {
@@ -254,17 +250,26 @@ export class BattlesService extends EventEmitter {
       round: 1,
       phaseCount: 1,
 
-      startedAt,
-      expiredAt,
+      startedAt: null,
+      expiredAt: null,
     }
 
     this.activeBattles.set(battleId, activeBattleState)
+  }
 
-    // 시작 버튼으로 분류될 예정
+  startBattle(battleId: string) {
+    const battleState = this.getBattleState(battleId)
+
+    const startedAt = Date.now()
+    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
+
+    battleState.startedAt = startedAt
+    battleState.expiredAt = expiredAt
+
     const res = BattlePhaseResponseDto.of({
       battleId,
-      phase: activeBattleState.phase,
-      phaseCount: activeBattleState.phaseCount,
+      phase: battleState.phase,
+      phaseCount: battleState.phaseCount,
       startedAt,
       expiredAt,
     })
