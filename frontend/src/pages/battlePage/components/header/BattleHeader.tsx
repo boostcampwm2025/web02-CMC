@@ -3,12 +3,7 @@ import VoteStatus from './VoteStatus';
 import { useBattleStore, selectCurrentStage, selectBattleProgress, selectTeamCounts } from '../../stores/battleStore';
 import { useBattleTimer } from '../../hooks/useBattleTimer';
 
-interface BattleHeaderProps {
-  title: string;
-  description: string;
-}
-
-export default function BattleHeader({ title, description }: BattleHeaderProps) {
+export default function BattleHeader() {
   const currentStage = useBattleStore(selectCurrentStage);
   const battleProgress = useBattleStore(selectBattleProgress);
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
@@ -22,10 +17,6 @@ export default function BattleHeader({ title, description }: BattleHeaderProps) 
   return (
     <header className="bg-[#1E1E2F] px-8 py-6 rounded-lg mb-2">
       <div className="flex justify-between">
-        <div>
-          <h1 className="text-[20px] text-left font-bold mb-2">{title}</h1>
-          <p className="text-[#99A1AF] text-[14px]">{description}</p>
-        </div>
         <div className="flex items-center gap-4">
           <StatusCard turn={status} timer={formattedTime} />
           <VoteStatus teamACounts={teamACount} teamBCounts={teamBCount} teamNoneCounts={teamNoneCounts} />

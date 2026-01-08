@@ -1,9 +1,10 @@
-import { Battle, BattleStatus, BattleCategory } from '../types/battles.types'
+import { Battle, BattleStatus, BattleCategory, BattleLanguage } from '../types/battles.types'
 
 export class BattleResponseDto {
   id: string
   title: string
   description: string
+  language: BattleLanguage
   category: BattleCategory
   status: BattleStatus
   createdAt: Date
@@ -17,6 +18,8 @@ export class BattleResponseDto {
     res.id = battle.id
     res.title = battle.title
     res.description = battle.description
+    res.language = battle.language
+
     res.category = battle.category
     res.status = battle.status
     res.createdAt = battle.createdAt
