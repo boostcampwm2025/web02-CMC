@@ -76,41 +76,41 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('Battle:Attack')
+  @SubscribeMessage('battle:attack')
   handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, authorId, content, team } = dto
       const attack = this.battlesService.handleAttack(battleId, { authorId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:NewAttack', attack)
+      this.server.to(teamRoom).emit('battle:attack:created', attack)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:Attack:Error', {
+        client.emit('battle:attack:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('Battle:Defense')
+  @SubscribeMessage('battle:defense')
   handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, authorId, content, team } = dto
       const defense = this.battlesService.handleDefense(battleId, { authorId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
-      this.server.to(teamRoom).emit('Battle:NewDefense', defense)
+      this.server.to(teamRoom).emit('battle:defense:created', defense)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('Battle:Defense:Error', {
+        client.emit('battle:defense:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('battle:attackvote')
+  @SubscribeMessage('battle:attack:vote')
   handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -119,18 +119,18 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('battle:attackvote:update', update)
+        this.server.to(teamRoom).emit('battle:attack:voted', update)
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:attackvote:error', {
+        client.emit('battle:attack:vote:error', {
           message: error.message,
         })
       }
     }
   }
 
-  @SubscribeMessage('battle:defensevote')
+  @SubscribeMessage('battle:defense:vote')
   handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId, discussionId, userId, team } = dto
@@ -139,11 +139,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
-        this.server.to(teamRoom).emit('battle:defensevote:update', update)
+        this.server.to(teamRoom).emit('battle:defense:voted', update)
       })
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:defensevote:error', {
+        client.emit('battle:defense:vote:error', {
           message: error.message,
         })
       }
@@ -154,21 +154,21 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:turn:update', payload)
+    this.server.to(battleRoomId).emit('battle:turn:updated', payload)
   }
 
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:phase:update', payload)
+    this.server.to(battleRoomId).emit('battle:phase:updated', payload)
   }
 
   roundUpdate(payload: BattleRoundResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    this.server.to(battleRoomId).emit('battle:round:update', payload)
+    this.server.to(battleRoomId).emit('battle:round:updated', payload)
   }
 
   onAttacked(payload: DiscussionVoteResultDto) {
@@ -199,11 +199,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   private bindBattleEvents() {
-    this.battlesService.on('battle:phase:update', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
+    this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
-    this.battlesService.on('battle:turn:update', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
+    this.battlesService.on('battle:turn:updated', (payload: BattleTurnResponseDto) => this.turnUpdate(payload))
 
-    this.battlesService.on('battle:round:update', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
+    this.battlesService.on('battle:round:updated', (payload: BattleRoundResponseDto) => this.roundUpdate(payload))
 
     this.battlesService.on('battle:attacked', (payload: DiscussionVoteResultDto) => this.onAttacked(payload))
 
@@ -234,8 +234,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
           ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
           : this.battlesService.getBattleRoomId(battleChatDto.battleId, battleChatDto.team)
 
-      // this.server.to(roomId).emit('battle:chatUpdate', saved)
-      this.server.to(roomId).except(client.id).emit('battle:chatUpdate', saved)
+      // this.server.to(roomId).emit('battle:chatted', saved)
+      this.server.to(roomId).except(client.id).emit('battle:chatted', saved)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:chat:error', { message: error.message })
@@ -243,13 +243,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  @SubscribeMessage('battle:teamVote')
+  @SubscribeMessage('battle:team:vote')
   handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: Socket) {
     try {
       this.battlesService.voteTeam(dto, client.id)
     } catch (error) {
       if (error instanceof Error) {
-        client.emit('battle:teamVote:error', { message: error.message })
+        client.emit('battle:team:vote:error', { message: error.message })
       }
     }
   }
