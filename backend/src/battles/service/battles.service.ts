@@ -5,7 +5,16 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { mockBattleResults } from '../mock/battleResults.mock'
 import { TimelineItem, Mvp } from '../types/battleResult.types'
-import { ActiveBattleState, Battle, BattlePhase, BattleTeam, BattleDiscussion, BattleDefense, BattlePlayTime } from '../types/battles.types'
+import {
+  ActiveBattleState,
+  Battle,
+  BattlePhase,
+  BattleTeam,
+  BattleDiscussion,
+  BattleDefense,
+  BattlePlayTime,
+  BattleTopOpinions,
+} from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import { BattleResponseDto } from '../dto/battleResponse.dto'
@@ -384,9 +393,15 @@ export class BattlesService extends EventEmitter {
         return BATTLE_PHASE.ATTACK
 
       case BATTLE_PHASE.ATTACK.name:
+        this.emitAttackedResult(state.battleId)
+        this.resetDiscussions(state.battleId)
+
         return BATTLE_PHASE.DEFENSE
 
       case BATTLE_PHASE.DEFENSE.name:
+        this.emitDefensedResult(state.battleId)
+        this.resetDiscussions(state.battleId)
+
         state.phaseCount++
 
         if (state.phaseCount <= BATTLE_MAX_PHASE_COUNT) {
@@ -394,6 +409,7 @@ export class BattlesService extends EventEmitter {
         }
 
         state.phaseCount = 1
+
         return BATTLE_PHASE.TEAM_SWITCH
 
       case BATTLE_PHASE.TEAM_SWITCH.name: {
@@ -486,6 +502,7 @@ export class BattlesService extends EventEmitter {
 
     const battleState = this.getBattleState(battleId)
 
+    console.log(battleState.phase)
     if (!this.canUserSubmitAttack(battleState, team)) {
       throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
     }
@@ -665,33 +682,39 @@ export class BattlesService extends EventEmitter {
     return battleState.phase === BATTLE_PHASE.DEFENSE.name ? true : false
   }
 
-  private pickTopVotedAttackByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
-    const battleState = this.getBattleState(battleId)
-    const attacks = team === BATTLE_TEAM.A ? battleState.teamA.attacks : battleState.teamB.attacks
+  private getTopOpinion = (opinions: BattleDiscussion[]) => {
+    if (opinions.length === 0) return null
 
-    if (attacks.length === 0) return null
-
-    return attacks.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
+    return opinions.reduce((top, cur) => (cur.upvotes > top.upvotes ? cur : top))
   }
 
-  private pickTopVotedDefenseByTeam(battleId: string, team: BattleTeam): BattleDiscussion | null {
+  private pickTopVotedAttack(battleId: string): BattleTopOpinions {
     const battleState = this.getBattleState(battleId)
-    const defenses = team === BATTLE_TEAM.A ? battleState.teamA.defenses : battleState.teamB.defenses
 
-    if (defenses.length === 0) return null
-
-    return defenses.slice().sort((a, b) => b.upvotes - a.upvotes)[0]
+    return {
+      aTeam: this.getTopOpinion(battleState.teamA.attacks),
+      bTeam: this.getTopOpinion(battleState.teamB.attacks),
+    }
   }
 
-  private emitAttackedResult(battleId: string, team: BattleTeam) {
-    const top = this.pickTopVotedAttackByTeam(battleId, team)
+  private pickTopVotedDefense(battleId: string): BattleTopOpinions {
+    const battleState = this.getBattleState(battleId)
+
+    return {
+      aTeam: this.getTopOpinion(battleState.teamA.defenses),
+      bTeam: this.getTopOpinion(battleState.teamB.defenses),
+    }
+  }
+
+  private emitAttackedResult(battleId: string) {
+    const top = this.pickTopVotedAttack(battleId)
     if (!top) return
 
     this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
   }
 
-  private emitDefensedResult(battleId: string, team: BattleTeam) {
-    const top = this.pickTopVotedDefenseByTeam(battleId, team)
+  private emitDefensedResult(battleId: string) {
+    const top = this.pickTopVotedDefense(battleId)
     if (!top) return
 
     this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
@@ -717,7 +740,7 @@ export class BattlesService extends EventEmitter {
     }
   }
 
-  private resetDiscussionsByTurn(battleId: string) {
+  private resetDiscussions(battleId: string) {
     const battleState = this.getBattleState(battleId)
 
     battleState.teamA.attacks = []
