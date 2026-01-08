@@ -66,6 +66,8 @@ export class BattleJoinInfoResponseDto {
   description: string
   aCode: string
   bCode: string
+  language: string
+  category: string
 
   static fromEntity(battle: Battle): BattleJoinInfoResponseDto {
     const res = new BattleJoinInfoResponseDto()
@@ -73,6 +75,8 @@ export class BattleJoinInfoResponseDto {
     res.description = battle.description
     res.aCode = battle.aCode
     res.bCode = battle.bCode
+    res.language = battle.language
+    res.category = battle.category
     return res
   }
 

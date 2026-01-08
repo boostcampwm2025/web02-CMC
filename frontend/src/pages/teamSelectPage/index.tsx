@@ -19,7 +19,7 @@ export default function TeamSelectPage() {
           <BattleIcon className="w-[48px] h-[48px] text-[#FF6900]" />
           <h1 className="ml-2 text-[16px] my-auto">진영을 선택해주세요</h1>
         </div>
-        <div className="w-[768px] h-[113px] bg-[#1E1E2F] border-[1px] border-[#2D2D3F] rounded-lg mx-auto text-center py-6 mt-6 mb-10">
+        <div className="w-full max-w-[768px] px-4 h-[113px] bg-[#1E1E2F] border border-[#2D2D3F] rounded-lg mx-auto text-center py-6 mt-6 mb-10">
           <p className="font-bold text-[20px]">{battleInfo.title}</p>
           <p className="mt-2 text-[#99A1AF] text-[16px]">{battleInfo.description}</p>
         </div>

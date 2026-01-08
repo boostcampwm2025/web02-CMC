@@ -15,6 +15,8 @@ export interface BattleInfo {
   description: string;
   aCode: string;
   bCode: string;
+  language: string;
+  category: string;
 }
 
 // 공통 타입들
