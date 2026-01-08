@@ -100,19 +100,31 @@ export const useBattleStore = create<BattleStore>((set) => ({
     }),
   setTimelines: (timelines) => set({ timelines }),
   addAttackTimeline: (attack) =>
-    set((state) => ({
-      timelines: {
-        attacks: [...(state.timelines?.attacks || []), attack],
-        defenses: state.timelines?.defenses || []
-      }
-    })),
+    set((state) => {
+      const existingAttacks = state.timelines?.attacks || [];
+      // 중복 체크: 같은 discussionId가 이미 있으면 추가하지 않음
+      const isDuplicate = existingAttacks.some((a) => a.discussionId === attack.discussionId);
+
+      return {
+        timelines: {
+          attacks: isDuplicate ? existingAttacks : [...existingAttacks, attack],
+          defenses: state.timelines?.defenses || []
+        }
+      };
+    }),
   addDefenseTimeline: (defense) =>
-    set((state) => ({
-      timelines: {
-        attacks: state.timelines?.attacks || [],
-        defenses: [...(state.timelines?.defenses || []), defense]
-      }
-    })),
+    set((state) => {
+      const existingDefenses = state.timelines?.defenses || [];
+      // 중복 체크: 같은 discussionId가 이미 있으면 추가하지 않음
+      const isDuplicate = existingDefenses.some((d) => d.discussionId === defense.discussionId);
+
+      return {
+        timelines: {
+          attacks: state.timelines?.attacks || [],
+          defenses: isDuplicate ? existingDefenses : [...existingDefenses, defense]
+        }
+      };
+    }),
   setTeamChats: (chats) => set({ teamChats: chats }),
   setAllChats: (chats) => set({ allChats: chats }),
   addChat: (chat) =>
