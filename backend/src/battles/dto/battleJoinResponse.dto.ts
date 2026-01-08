@@ -9,12 +9,12 @@ export class BattleJoinResponseDto {
   }
 
   // 배틀 전체 타임라인 & 채팅
-  timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
+  timelines: { attacks: (BattleDiscussion | null)[]; defenses: (BattleDefense | null)[] }
   allChats: BattleChat[]
 
   // 해당 진영 이의제기 & 반박 & 채팅
-  attacks: BattleDiscussion[]
-  defenses: BattleDefense[]
+  attacks: (BattleDiscussion | null)[]
+  defenses: (BattleDefense | null)[]
   chats: BattleChat[]
 
   // 현재 진행 중인 배틀 정보
