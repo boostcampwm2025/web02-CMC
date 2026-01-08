@@ -146,18 +146,17 @@ export default function TeamVoteResultModal({
           </div>
 
           <div
-            className={`w-full bg-gray-800/80 backdrop-blur-sm  rounded-2xl border-2 border-gray-700 p-6 transition-all duration-500 delay-400 ${cardClass}`}
+            className={`w-full bg-gray-800/80 backdrop-blur-sm rounded-2xl border-2 border-gray-700 p-6 transition-all duration-500 delay-400 ${cardClass}`}
           >
             <p
-              className={`text-center font-bold text-[30px] mb-3 ${
+              className={`text-center font-bold text-[30px] mb-6 ${
                 leadingTeam === 'A' ? 'text-blue-400' : 'text-red-400'
               }`}
             >
               {leadingTeam === 'A' ? 'A' : 'B'}팀이 우세하고 있습니다!
             </p>
-            <div className="flex items-center gap-3">
-              <span className="text-blue-400 font-bold text-lg min-w-[40px]">{teamACount}</span>
-              <div className="flex-1 flex items-center gap-0 h-8 rounded-full overflow-hidden">
+            <div className="flex flex-col gap-2">
+              <div className="relative flex items-center gap-0 h-8 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-500 transition-all duration-1000"
                   style={{ width: `${teamAPercentage}%` }}
@@ -166,12 +165,15 @@ export default function TeamVoteResultModal({
                   className="h-full bg-red-500 transition-all duration-1000"
                   style={{ width: `${teamBPercentage}%` }}
                 />
+                <div className="absolute inset-0 flex justify-between items-center px-4">
+                  <span className="text-white font-bold text-[20px]">{teamACount}</span>
+                  <span className="text-white font-bold text-[20px]">{teamBCount}</span>
+                </div>
               </div>
-              <span className="text-red-400 font-bold text-lg min-w-[40px] text-right">{teamBCount}</span>
-            </div>
-            <div className="flex justify-between mt-2 text-sm font-bold px-2">
-              <span className="text-blue-400">{teamAPercentage.toFixed(1)}%</span>
-              <span className="text-red-400">{teamBPercentage.toFixed(1)}%</span>
+              <div className="flex justify-between px-2 text-sm font-bold">
+                <span className="text-blue-400">{teamAPercentage.toFixed(1)}%</span>
+                <span className="text-red-400">{teamBPercentage.toFixed(1)}%</span>
+              </div>
             </div>
           </div>
         </div>
