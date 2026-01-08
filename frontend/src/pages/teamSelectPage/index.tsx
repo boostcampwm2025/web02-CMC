@@ -10,7 +10,7 @@ import Step2CodeCompare from './components/steps/Step2CodeCompare';
 import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
 import { convertToTimelineItems } from './utils/convertTimeline';
-import type { Team } from './types/teamSelect';
+import type { Team } from '@/commons/types/battle';
 import {
   useBattleStore,
   selectTimelines,

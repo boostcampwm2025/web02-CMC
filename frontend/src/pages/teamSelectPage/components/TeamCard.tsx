@@ -1,4 +1,4 @@
-import type { Team } from '../types/teamSelect';
+import type { Team } from '@/commons/types/battle';
 import Sheild from '@/assets/icon/shield.svg?react';
 import Scale from '@/assets/icon/scale.svg?react';
 

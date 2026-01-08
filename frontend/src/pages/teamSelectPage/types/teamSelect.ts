@@ -1,5 +1,3 @@
-export type Team = 'A' | 'B' | 'NONE';
-
 export type Step = 1 | 2 | 3 | 4;
 
 export interface TimelineItem {

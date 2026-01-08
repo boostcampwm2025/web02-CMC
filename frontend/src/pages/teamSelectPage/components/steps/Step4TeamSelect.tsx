@@ -1,6 +1,6 @@
 import { Flag } from 'lucide-react';
 import TeamCard from '../TeamCard';
-import type { Team } from '../../types/teamSelect';
+import type { Team } from '@/commons/types/battle';
 
 interface Step4TeamSelectProps {
   onSelect: (team: Team) => void;
