@@ -78,14 +78,18 @@ export interface BattleProgressState {
 }
 
 // Battle:Attacked 이벤트 응답 타입
+export interface DiscussionVoteResultItem {
+  id: string | null;
+  text: string | null;
+  ownerId: string | null;
+  count: number | null;
+}
+
 export interface BattleAttackedResult {
   battleId: string;
   attack: {
-    discussionId: string;
-    authorId: string;
-    type: string;
-    text: string;
-    upvotes: number;
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
   };
 }
 
@@ -93,11 +97,8 @@ export interface BattleAttackedResult {
 export interface BattleDefensedResult {
   battleId: string;
   defense: {
-    discussionId: string;
-    authorId: string;
-    type: string;
-    text: string;
-    upvotes: number;
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
   };
 }
 
