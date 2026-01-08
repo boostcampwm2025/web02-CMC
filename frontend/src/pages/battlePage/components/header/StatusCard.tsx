@@ -1,13 +1,13 @@
 import TimerIcon from '@/assets/icon/timer.svg?react';
-import { getTurnInfo } from '../../utils/getTurnInfo';
+import { getPhaseInfo } from '../../utils/getTurnInfo';
 
 interface StatusCardProps {
-  turn: string | null;
+  phase: string | null;
   timer: string;
 }
 
-export default function StatusCard({ turn, timer }: StatusCardProps) {
-  const { title, description } = getTurnInfo(turn);
+export default function StatusCard({ phase, timer }: StatusCardProps) {
+  const { title, description } = getPhaseInfo(phase);
   return (
     <div className="bg-gradient-to-br from-[#3D2A28] to-[#2D1F2B] border-2 border-[#FF8A00] rounded-lg px-4 py-2 min-w-[320px] min-h-[145px]">
       <div className="flex justify-between items-center mb-3">
