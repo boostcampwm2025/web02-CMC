@@ -25,11 +25,12 @@ export function useBattleTimeline() {
       },
       userTeam: Team
     ) => {
-      const entry = userTeam === 'B' ? payload.aTeam : payload.bTeam;
-      if (entry && entry.id) return { team: userTeam, entry };
-
-      if (payload.aTeam?.id) return { team: 'A' as Team, entry: payload.aTeam };
-      if (payload.bTeam?.id) return { team: 'B' as Team, entry: payload.bTeam };
+      // 상대팀의 결과 표시
+      const opponentEntry = userTeam === 'A' ? payload.bTeam : payload.aTeam;
+      if (opponentEntry?.id) {
+        const opponentTeam: Team = userTeam === 'A' ? 'B' : 'A';
+        return { team: opponentTeam, entry: opponentEntry };
+      }
       return null;
     };
 
