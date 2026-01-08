@@ -1,4 +1,4 @@
-import { TrendingUp, Swords, Users, Target } from 'lucide-react';
+import { TrendingUp, Swords, Users, Target, Clock, MessageSquare, Shield, Shuffle } from 'lucide-react';
 import type { BattlePhase } from '@/commons/types/battle';
 
 interface Step1BattleInfoProps {
@@ -10,33 +10,45 @@ interface Step1BattleInfoProps {
   totalRounds: number;
   totalParticipants: number;
   currentPhase?: BattlePhase;
+  phaseCount?: number;
 }
 
-// Phase별 한글 레이블과 색상 매핑
+// Phase별 한글 레이블, 색상, 아이콘 매핑
 const PHASE_CONFIG = {
+  PENDING: {
+    label: '대기 중',
+    color: 'text-gray-400',
+    bgColor: 'bg-gray-500/20',
+    borderColor: 'border-gray-500/50',
+    icon: Clock
+  },
   OPINION_SHARE: {
     label: '의견 공유',
     color: 'text-green-400',
     bgColor: 'bg-green-500/20',
-    borderColor: 'border-green-500/50'
+    borderColor: 'border-green-500/50',
+    icon: MessageSquare
   },
-  TEAM_A_ATTACK: {
+  ATTACK: {
     label: '이의제기',
     color: 'text-pink-400',
     bgColor: 'bg-pink-500/20',
-    borderColor: 'border-pink-500/50'
+    borderColor: 'border-pink-500/50',
+    icon: Swords
   },
-  TEAM_B_ATTACK: {
-    label: '이의제기',
-    color: 'text-pink-400',
-    bgColor: 'bg-pink-500/20',
-    borderColor: 'border-pink-500/50'
+  DEFENSE: {
+    label: '반박',
+    color: 'text-purple-400',
+    bgColor: 'bg-purple-500/20',
+    borderColor: 'border-purple-500/50',
+    icon: Shield
   },
   TEAM_SWITCH: {
     label: '진영 변경',
     color: 'text-yellow-400',
     bgColor: 'bg-yellow-500/20',
-    borderColor: 'border-yellow-500/50'
+    borderColor: 'border-yellow-500/50',
+    icon: Shuffle
   }
 } as const;
 
@@ -48,9 +60,11 @@ export default function Step1BattleInfo({
   currentRound,
   totalRounds,
   totalParticipants,
-  currentPhase
+  currentPhase,
+  phaseCount
 }: Step1BattleInfoProps) {
   const phaseConfig = currentPhase ? PHASE_CONFIG[currentPhase] : null;
+  const PhaseIcon = phaseConfig?.icon;
   return (
     <div className="flex flex-col items-center gap-8 w-full max-w-6xl mx-auto">
       {/* 상단 섹션 */}
@@ -94,8 +108,8 @@ export default function Step1BattleInfo({
                 <Users className="w-8 h-8 text-orange-400" />
               </div>
               <div>
-                <div className="text-4xl font-bold text-white mb-1">{totalParticipants}명</div>
-                <div className="text-orange-300/70 font-medium">참여자</div>
+                <div className="text-orange-300/70 font-medium mb-1">총 참여자</div>
+                <div className="text-4xl font-bold text-white">{totalParticipants}명</div>
               </div>
             </div>
             <div className="flex items-center gap-2 text-orange-400 text-sm">
@@ -106,28 +120,37 @@ export default function Step1BattleInfo({
 
           {/* 라운드 카드 */}
           <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/10 rounded-xl p-8 border border-blue-500/30 shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
-            <div className="flex items-center gap-6 mb-6">
-              <div className="w-16 h-16 bg-blue-500/20 rounded-xl flex items-center justify-center border border-blue-500/40">
-                <Target className="w-8 h-8 text-blue-400" />
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">
+                <Target className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <div className="text-4xl font-bold text-white mb-1">
+                <p className="text-gray-400 text-sm mb-1 text-left">진행 단계</p>
+                <p className="text-white text-3xl font-bold mb-2 text-left">
                   라운드 {currentRound} / {totalRounds}
-                </div>
-                <div className="text-blue-300/70 font-medium">진행 단계</div>
+                </p>
+                {phaseConfig && PhaseIcon && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div
+                      className={`px-3 py-1 ${phaseConfig.bgColor} border ${phaseConfig.borderColor} rounded-lg flex items-center gap-1.5`}
+                    >
+                      <PhaseIcon className={`w-4 h-4 ${phaseConfig.color}`} />
+                      <span className={`${phaseConfig.color} text-sm font-bold`}>
+                        {phaseConfig.label}
+                        {(currentPhase === 'ATTACK' || currentPhase === 'DEFENSE') && phaseCount && (
+                          <span className="ml-1.5 text-xs opacity-80">
+                            {phaseCount === 1 ? '1차' : '2차'}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            {phaseConfig && (
+            <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
               <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg ${phaseConfig.bgColor} ${phaseConfig.borderColor} border mb-4`}
-              >
-                <div className={`w-2 h-2 rounded-full ${phaseConfig.color.replace('text-', 'bg-')} animate-pulse`} />
-                <span className={`text-sm font-semibold ${phaseConfig.color}`}>{phaseConfig.label} 진행 중</span>
-              </div>
-            )}
-            <div className="w-full bg-gray-800/50 rounded-full h-3 overflow-hidden border border-blue-500/20">
-              <div
-                className="bg-gradient-to-r from-blue-500 to-blue-400 h-full rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-blue-500 to-blue-400 h-2.5 rounded-full transition-all duration-500"
                 style={{ width: `${(currentRound / totalRounds) * 100}%` }}
               />
             </div>

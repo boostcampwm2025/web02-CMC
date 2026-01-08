@@ -9,7 +9,6 @@ import Step1BattleInfo from './components/steps/Step1BattleInfo';
 import Step2CodeCompare from './components/steps/Step2CodeCompare';
 import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
-import { convertToTimelineItems } from './utils/convertTimeline';
 import type { Team } from '@/commons/types/battle';
 import {
   useBattleStore,
@@ -53,11 +52,10 @@ export default function TeamSelectPage() {
   // WebSocket 연결
   useBattleSocket();
 
-  // 백엔드 timeline 데이터를 TimelineItem으로 변환 (실시간 데이터 사용)
+  // 백엔드 timeline 데이터 (실시간 데이터 사용)
   // 백엔드에서 이미 SELECTED 상태만 필터링되어 전송됨
   const attacks = timelines?.attacks || battleInfo.timelines.attacks;
   const defenses = timelines?.defenses || battleInfo.timelines.defenses;
-  const timelineItems = convertToTimelineItems(attacks, defenses);
 
   // 실시간 참여자 수 계산
   const totalParticipants = (teamCounts?.teamACount || 0) + (teamCounts?.teamBCount || 0);
@@ -81,12 +79,19 @@ export default function TeamSelectPage() {
             totalRounds={battleInfo.totalRounds}
             totalParticipants={totalParticipants || battleInfo.participantCount}
             currentPhase={battleProgress?.phase}
+            phaseCount={battleProgress?.phaseCount}
           />
         );
       case 2:
         return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
       case 3:
-        return <Step3Timeline timelines={timelineItems} />;
+        return (
+          <Step3Timeline
+            timelines={[...attacks, ...defenses]}
+            currentRound={battleInfo.currentRound}
+            totalRounds={battleInfo.totalRounds}
+          />
+        );
       case 4:
         return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       default:
