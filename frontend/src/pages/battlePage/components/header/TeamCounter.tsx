@@ -2,7 +2,7 @@ import { useBattleStore, selectTeamCounts } from '@/pages/battlePage/stores/batt
 import { useEffect, useState } from 'react';
 
 export default function TeamCounter() {
-  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
+  const { teamACount, teamBCount, none: teamNoneCount } = useBattleStore(selectTeamCounts);
   const [animateA, setAnimateA] = useState<'increase' | 'decrease' | null>(null);
   const [animateB, setAnimateB] = useState<'increase' | 'decrease' | null>(null);
   const [prevTeamACount, setPrevTeamACount] = useState(teamACount);
@@ -63,7 +63,6 @@ export default function TeamCounter() {
   }, [teamBCount]);
 
   // @Todo  중립 팀 인원수 추가 로직 필요 현재는 임시적으로 0으로 고정하여 사용
-  const teamNoneCounts = 0;
 
   return (
     <div className="flex items-center gap-8 min-w-[200px] justify-end">
@@ -78,7 +77,7 @@ export default function TeamCounter() {
         <div className="text-[12px] text-[#6A7282]">A팀</div>
       </div>
       <div className="text-center">
-        <div className="text-[46px] font-bold text-[#6A7282]">{teamNoneCounts}</div>
+        <div className="text-[46px] font-bold text-[#6A7282]">{teamNoneCount}</div>
         <div className="text-[12px] text-[#6A7282]">중립</div>
       </div>
       <div className="text-center">

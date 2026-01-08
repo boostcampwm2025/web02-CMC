@@ -1,8 +1,8 @@
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
-import type { Phase } from '@/commons/types/battle';
+import type { BattlePhase } from '@/commons/types/battle';
 
-const PHASE_INFO: Record<Phase, { category: string; message: string }> = {
+const PHASE_INFO: Record<BattlePhase, { category: string; message: string }> = {
   PENDING: {
     category: '대기 중',
     message: '참가자 입장을 기다리고 있습니다'
@@ -28,7 +28,7 @@ const PHASE_INFO: Record<Phase, { category: string; message: string }> = {
 export default function StageIndicator() {
   const battleProgress = useBattleStore(selectBattleProgress);
 
-  const phase = (battleProgress?.phase as Phase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const { category, message } = PHASE_INFO[phase] || PHASE_INFO.PENDING;
 
   return (

@@ -4,9 +4,9 @@ import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
 import TimeProgressBar from './TimeProgressBar';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
-import type { Phase } from '@/commons/types/battle';
+import type { BattlePhase } from '@/commons/types/battle';
 
-const PHASE_INSTRUCTIONS: Record<Phase, string> = {
+const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   PENDING: '',
   OPINION_SHARE: '자유롭게 의견을 작성하고 투표에 참여해주세요',
   ATTACK: '주어진 시간 내에 상대 코드의 문제점을 지적해주세요',
@@ -16,7 +16,7 @@ const PHASE_INSTRUCTIONS: Record<Phase, string> = {
 
 export default function BattleHeader() {
   const battleProgress = useBattleStore(selectBattleProgress);
-  const phase = (battleProgress?.phase as Phase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
 
   return (
