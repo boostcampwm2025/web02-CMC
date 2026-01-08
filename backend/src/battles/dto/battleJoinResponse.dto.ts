@@ -1,5 +1,5 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName, BattleTurn } from '../types/battles.types'
+import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
 
 export class BattleJoinResponseDto {
   battleId: string
@@ -20,16 +20,14 @@ export class BattleJoinResponseDto {
   // 현재 진행 중인 배틀 정보
   round: number
   phase: BattlePhaseName
-  turn: {
-    status: BattleTurn
-    count: number
-  } | null
-  startedAt: number
-  expiredAt: number
+  phaseCount: number
+
+  startedAt: number | null
+  expiredAt: number | null
 
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
-    const { all, teamA, teamB, round, phase, turn, startedAt, expiredAt } = payload
+    const { all, teamA, teamB, round, phase, phaseCount, startedAt, expiredAt } = payload
     const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
     res.battleId = payload.battleId
@@ -49,7 +47,7 @@ export class BattleJoinResponseDto {
 
     res.round = round
     res.phase = phase
-    res.turn = turn
+    res.phaseCount = phaseCount
     res.startedAt = startedAt
     res.expiredAt = expiredAt
 
