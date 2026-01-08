@@ -39,18 +39,11 @@ describe('CodeViewer', () => {
     expect(codeContainer).toHaveClass('border-[#FB2C36]');
   });
 
-  it('호버 시 확장 스타일이 적용된다', () => {
-    const { container } = render(<CodeViewer code={mockCode} language="javascript" team="A" isHovered={true} />);
+  it('전체 너비를 사용한다', () => {
+    const { container } = render(<CodeViewer code={mockCode} language="javascript" team="A" />);
 
     const codeContainer = container.querySelector('[data-testid="code-viewer"]');
-    expect(codeContainer).toHaveClass('w-[70%]');
-  });
-
-  it('호버하지 않을 때 기본 너비가 적용된다', () => {
-    const { container } = render(<CodeViewer code={mockCode} language="javascript" team="A" isHovered={false} />);
-
-    const codeContainer = container.querySelector('[data-testid="code-viewer"]');
-    expect(codeContainer).toHaveClass('w-[50%]');
+    expect(codeContainer).toHaveClass('w-full');
   });
 
   it('language prop이 syntax highlighter에 전달된다', () => {

@@ -18,8 +18,8 @@ export function useBattleTimeline() {
     if (!socket) return;
 
     const handleAttacked = (data: BattleAttackedResult) => {
-      // 턴 상태로 공격하는 팀 판단
-      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
+      // 백엔드에서 보내준 팀 정보 사용
+      const attackingTeam = data.attack.team;
       showEffect(attackingTeam, data.attack.text, 'attack');
 
       // 타임라인에 이의제기 추가
@@ -30,7 +30,8 @@ export function useBattleTimeline() {
         upvotes: data.attack.upvotes,
         votes: [],
         status: 'SELECTED',
-        type: 'ATTACK'
+        type: 'ATTACK',
+        team: attackingTeam
       };
       useBattleStore.getState().addAttackTimeline(attackDiscussion);
 
@@ -62,7 +63,8 @@ export function useBattleTimeline() {
         votes: [],
         status: 'SELECTED',
         type: 'DEFENSE',
-        attackId: '' // 서버에서 제공하지 않으면 빈 문자열
+        attackId: '', // 서버에서 제공하지 않으면 빈 문자열
+        team: defendingTeam
       };
       useBattleStore.getState().addDefenseTimeline(defenseDiscussion);
 

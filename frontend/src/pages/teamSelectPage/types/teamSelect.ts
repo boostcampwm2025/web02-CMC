@@ -10,6 +10,7 @@ export interface TimelineItem {
   content: string;
   upvotes: number;
   timestamp: number;
+  attackId?: string; // 반론인 경우 어떤 이의제기에 대한 것인지
 }
 
 export interface BattleInfo {

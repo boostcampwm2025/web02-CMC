@@ -26,7 +26,7 @@ export default function Step3Timeline({ timelines }: Step3TimelineProps) {
           <div className="w-full bg-[#16162a] border border-[#2d2d3f] rounded-xl p-6 max-h-[500px] overflow-auto scrollbar-thin">
             <div className="flex flex-col gap-4">
               {timelines.map((timeline) => (
-                <TimelineItem key={timeline.id} {...timeline} />
+                <TimelineItem key={timeline.id} {...timeline} allTimelines={timelines} />
               ))}
             </div>
           </div>

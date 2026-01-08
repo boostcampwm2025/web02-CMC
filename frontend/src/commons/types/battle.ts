@@ -15,6 +15,15 @@ export interface BattleInfo {
   description: string;
   aCode: string;
   bCode: string;
+  category: string;
+  language: string;
+  participantCount: number;
+  currentRound: number;
+  totalRounds: number;
+  timelines: {
+    attacks: BattleDiscussion[];
+    defenses: BattleDefense[];
+  };
 }
 
 // 공통 타입들
@@ -31,6 +40,8 @@ export interface BattleDiscussion {
   upvotes: number;
   votes: string[];
   status: 'PENDING' | 'SELECTED' | 'REJECTED';
+  selectedAt?: number; // SELECTED로 변경된 시간 (timestamp)
+  team: 'A' | 'B'; // 어느 팀의 토론인지 (NONE은 불가)
 }
 
 // BattleDefense 타입
@@ -93,6 +104,7 @@ export interface BattleAttackedResult {
     type: string;
     text: string;
     upvotes: number;
+    team: 'A' | 'B';
   };
 }
 
@@ -105,6 +117,7 @@ export interface BattleDefensedResult {
     type: string;
     text: string;
     upvotes: number;
+    team: 'A' | 'B';
   };
 }
 

@@ -19,24 +19,20 @@ const TEAM_STYLES = {
   }
 };
 
-export default function CodeViewer({ code, language, team, isHovered = false }: CodeViewerProps) {
+export default function CodeViewer({ code, language, team }: CodeViewerProps) {
   const teamStyle = TEAM_STYLES[team];
-  const width = isHovered ? 'w-[70%]' : 'w-[50%]';
 
   return (
     <div
       data-testid="code-viewer"
       className={`
-        ${width}
+        w-full
+        h-full
         border-2
         ${teamStyle.border}
         rounded-lg
         overflow-hidden
-        transition-all
-        duration-300
-        ease-in-out
       `}
-      style={{ willChange: 'width' }}
     >
       <SyntaxHighlighter
         language={language}
@@ -46,7 +42,8 @@ export default function CodeViewer({ code, language, team, isHovered = false }: 
           padding: '1rem',
           background: '#1E1E2F',
           fontSize: '14px',
-          maxHeight: '400px',
+          minHeight: '500px',
+          maxHeight: '600px',
           overflow: 'auto'
         }}
         showLineNumbers

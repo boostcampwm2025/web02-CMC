@@ -38,8 +38,8 @@ export class BattleJoinResponseDto {
       teamB: teamB.users.length,
     }
     res.timelines = {
-      attacks: all.attacks,
-      defenses: all.defenses,
+      attacks: all.attacks.filter(attack => attack.status === 'SELECTED'),
+      defenses: all.defenses.filter(defense => defense.status === 'SELECTED'),
     }
 
     res.allChats = all.chats
@@ -66,17 +66,42 @@ export class BattleJoinInfoResponseDto {
   description: string
   aCode: string
   bCode: string
+  category: string
+  language: string
+  participantCount: number
+  currentRound: number
+  totalRounds: number
+  timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
 
-  static fromEntity(battle: Battle): BattleJoinInfoResponseDto {
+  static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
     const res = new BattleJoinInfoResponseDto()
     res.title = battle.title
     res.description = battle.description
     res.aCode = battle.aCode
     res.bCode = battle.bCode
+    res.category = battle.category
+    res.language = battle.language
+    res.participantCount = battle.participantCount
+
+    // ActiveBattleState가 있으면 실시간 데이터 사용, 없으면 초기 상태 사용
+    if (activeBattleState) {
+      res.currentRound = activeBattleState.round
+      res.totalRounds = battle.playTime.rounds
+      // 타임라인은 SELECTED 상태인 것만 포함
+      res.timelines = {
+        attacks: activeBattleState.all.attacks.filter(attack => attack.status === 'SELECTED'),
+        defenses: activeBattleState.all.defenses.filter(defense => defense.status === 'SELECTED'),
+      }
+    } else {
+      res.currentRound = battle.initialState.round
+      res.totalRounds = battle.playTime.rounds
+      res.timelines = { attacks: [], defenses: [] }
+    }
+
     return res
   }
 
-  static of(battle: Battle): BattleJoinInfoResponseDto {
-    return BattleJoinInfoResponseDto.fromEntity(battle)
+  static of(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
+    return BattleJoinInfoResponseDto.fromEntity(battle, activeBattleState)
   }
 }

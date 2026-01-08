@@ -145,7 +145,9 @@ export class BattlesService extends EventEmitter {
 
     if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
 
-    return BattleJoinInfoResponseDto.of(battle)
+    const activeBattleState = this.activeBattles.get(battleId)
+
+    return BattleJoinInfoResponseDto.of(battle, activeBattleState)
   }
 
   joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
@@ -565,6 +567,7 @@ export class BattlesService extends EventEmitter {
       upvotes: 0,
       votes: [],
       status: 'PENDING',
+      team,
     }
 
     battleState.all.attacks.push(attack)
@@ -594,6 +597,7 @@ export class BattlesService extends EventEmitter {
       upvotes: 0,
       votes: [],
       status: 'PENDING',
+      team,
     }
 
     battleState.all.defenses.push(defense)
@@ -788,12 +792,26 @@ export class BattlesService extends EventEmitter {
     const top = this.pickTopVotedAttackByTeam(battleId, team)
     if (!top) return
 
+    // 최다 득표 항목을 SELECTED로 변경하고 타임스탬프 저장
+    top.status = 'SELECTED'
+    top.selectedAt = Date.now()
+
+    const battleState = this.getBattleState(battleId)
+    battleState.all.attacks.push(top)
+
     this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
   }
 
   private emitDefensedResult(battleId: string, team: BattleTeam) {
     const top = this.pickTopVotedDefenseByTeam(battleId, team)
     if (!top) return
+
+    // 최다 득표 항목을 SELECTED로 변경하고 타임스탬프 저장
+    top.status = 'SELECTED'
+    top.selectedAt = Date.now()
+
+    const battleState = this.getBattleState(battleId)
+    battleState.all.defenses.push(top)
 
     this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
   }

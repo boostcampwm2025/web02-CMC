@@ -151,6 +151,12 @@ describe('BattlesService', () => {
       expect(result.description).toBe(battle.description)
       expect(result.aCode).toBe(battle.aCode)
       expect(result.bCode).toBe(battle.bCode)
+      expect(result.category).toBe(battle.category)
+      expect(result.language).toBe(battle.language)
+      expect(result.participantCount).toBe(battle.participantCount)
+      expect(result.currentRound).toBe(battle.initialState.round)
+      expect(result.totalRounds).toBe(battle.playTime.rounds)
+      expect(result.timelines).toEqual({ attacks: [], defenses: [] })
     })
   })
 

@@ -64,6 +64,8 @@ export interface BattleDiscussion {
   upvotes: number
   votes: string[]
   status: BattleDiscussionStatus
+  selectedAt?: number // SELECTED로 변경된 시간 (timestamp)
+  team: BattleTeam // 어느 팀의 토론인지
 }
 
 export type BattleDefense = BattleDiscussion

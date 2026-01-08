@@ -1,10 +1,11 @@
-import { BattleDiscussion } from '../types/battles.types'
+import { BattleDiscussion, BattleTeam } from '../types/battles.types'
 
 export class DiscussionVoteResultItemDto {
   id: string
   text: string
   ownerId: string
   count: number
+  team: BattleTeam
 
   static fromEntity(discussion: BattleDiscussion): DiscussionVoteResultItemDto {
     const dto = new DiscussionVoteResultItemDto()
@@ -13,6 +14,7 @@ export class DiscussionVoteResultItemDto {
     dto.text = discussion.content
     dto.ownerId = discussion.authorId
     dto.count = discussion.upvotes
+    dto.team = discussion.team
 
     return dto
   }
