@@ -4,7 +4,8 @@ import {
   selectBattleProgress,
   selectSelectedTeam,
   selectSocket,
-  selectBattleId
+  selectBattleId,
+  selectTeamCounts
 } from '../stores/battleStore';
 import type { BattleUserUpdateResponse } from '@/commons/types/battle';
 
@@ -19,6 +20,7 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
   const { setSelectedTeam, setTeamCounts } = useBattleStore();
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);
+  const teamCounts = useBattleStore(selectTeamCounts);
 
   // TEAM_SWITCH 페이즈 시 모달 자동 열기
   useEffect(() => {
@@ -69,22 +71,35 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
     return () => {
       socket.off('battle:user:updated', handleUserUpdate);
     };
-  }, [socket, setTeamCounts]);
+  }, [socket, battleId, setTeamCounts]);
 
   // 팀 변경 요청
   const handleTeamChange = useCallback(
     (team: 'A' | 'B' | 'NONE') => {
       if (!socket) return;
-
-      // 낙관적 업데이트: 즉시 UI 반영
       setSelectedTeam(team);
+
+      // 낙관적 업데이트: 인원수 변경
+      const newCounts = { ...teamCounts };
+
+      // 이전 팀에서 -1
+      if (selectedTeam === 'A') newCounts.teamACount = Math.max(0, newCounts.teamACount - 1);
+      else if (selectedTeam === 'B') newCounts.teamBCount = Math.max(0, newCounts.teamBCount - 1);
+      else newCounts.none = Math.max(0, newCounts.none - 1);
+
+      // 새 팀에 +1
+      if (team === 'A') newCounts.teamACount++;
+      else if (team === 'B') newCounts.teamBCount++;
+      else newCounts.none++;
+
+      setTeamCounts(newCounts);
 
       // 서버에 전송
       socket.emit('battle:team:vote', { battleId, team });
 
       onCloseTeamChangeModal();
     },
-    [socket, battleId, setSelectedTeam, onCloseTeamChangeModal]
+    [socket, battleId, selectedTeam, teamCounts, setSelectedTeam, setTeamCounts, onCloseTeamChangeModal]
   );
 
   return { selectedTeam, handleTeamChange };
