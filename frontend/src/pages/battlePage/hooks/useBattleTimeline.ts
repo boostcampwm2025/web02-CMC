@@ -4,22 +4,28 @@ import type {
   BattleDefensedResult,
   BattleDiscussion,
   BattleDefense,
-  BattleChat
+  BattleChat,
+  Team
 } from '@/commons/types/battle';
-import { useBattleStore, selectBattleProgress, selectSocket } from '../stores/battleStore';
+import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
 import { useEffectModal } from './useEffectModal';
 
 export function useBattleTimeline() {
   const socket = useBattleStore(selectSocket);
-  const battleProgress = useBattleStore(selectBattleProgress);
+  const selectedTeam = useBattleStore(selectSelectedTeam);
   const { effectModal, showEffect, hideEffect } = useEffectModal();
+
+  const resolveTeam = (fallback: Team): Team => {
+    if (selectedTeam !== 'NONE') return selectedTeam;
+    return fallback;
+  };
 
   useEffect(() => {
     if (!socket) return;
 
     const handleAttacked = (data: BattleAttackedResult) => {
-      // 턴 상태로 공격하는 팀 판단
-      const attackingTeam = battleProgress?.turn?.status === 'A_ATTACK' ? 'A' : 'B';
+      // ATTACK 페이즈: 양 팀 모두 공격 가능, 사용자 팀 기준으로 표시
+      const attackingTeam = resolveTeam('A');
       showEffect(attackingTeam, data.attack.text, 'attack');
 
       // 타임라인에 이의제기 추가
@@ -49,8 +55,8 @@ export function useBattleTimeline() {
     };
 
     const handleDefensed = (data: BattleDefensedResult) => {
-      // 턴 상태로 방어하는 팀 판단
-      const defendingTeam = battleProgress?.turn?.status === 'A_DEFENSE' ? 'A' : 'B';
+      // DEFENSE 페이즈: 양 팀 모두 방어 가능, 사용자 팀 기준으로 표시
+      const defendingTeam = resolveTeam('A');
       showEffect(defendingTeam, data.defense.text, 'defense');
 
       // 타임라인에 반론 추가
@@ -87,7 +93,7 @@ export function useBattleTimeline() {
       socket.off('battle:attacked', handleAttacked);
       socket.off('battle:defensed', handleDefensed);
     };
-  }, [socket, battleProgress?.turn?.status, showEffect]);
+  }, [socket, showEffect, selectedTeam]);
 
   return { effectModal, hideEffect };
 }
