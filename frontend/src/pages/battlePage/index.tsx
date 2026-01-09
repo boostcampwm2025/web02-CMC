@@ -13,6 +13,7 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
+import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
@@ -58,6 +59,9 @@ export default function BattlePage() {
         }`}
       >
         <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
+          <div className="-mb-[10px]">
+            <BattleProgressBoard />
+          </div>
           <BattleHeader />
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
