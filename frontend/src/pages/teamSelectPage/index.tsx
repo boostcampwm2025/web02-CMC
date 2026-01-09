@@ -121,12 +121,12 @@ export default function TeamSelectPage() {
 
         {/* Step Content with Side Navigation */}
         <div className="relative mb-8">
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex items-start justify-center gap-8">
             {/* 이전 버튼 - 첫 단계가 아닐 때만 표시 */}
             {currentStep > 1 ? (
               <button
                 onClick={goToPrev}
-                className="w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors flex-shrink-0"
+                className="sticky top-24 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors flex-shrink-0 z-10"
                 aria-label="이전 단계"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -144,7 +144,7 @@ export default function TeamSelectPage() {
                 onClick={goToNext}
                 disabled={!canGoNext}
                 className={`
-                  w-12 h-12 rounded-full flex items-center justify-center transition-colors flex-shrink-0
+                  sticky top-24 w-12 h-12 rounded-full flex items-center justify-center transition-colors flex-shrink-0 z-10
                   ${
                     canGoNext
                       ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'

@@ -92,7 +92,7 @@ describe('DiscussionInput', () => {
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/);
+    const input = screen.getByPlaceholderText('의견을 공유하세요...');
     expect(input).toBeDisabled();
   });
 

@@ -127,7 +127,7 @@ export default function Step1BattleInfo({
               <div className="flex-1">
                 <p className="text-gray-400 text-sm mb-1 text-left">진행 단계</p>
                 <p className="text-white text-3xl font-bold mb-2 text-left">
-                  라운드 {currentRound} / {totalRounds}
+                  라운드 {currentPhase === 'PENDING' ? 0 : currentRound} / {totalRounds}
                 </p>
                 {phaseConfig && PhaseIcon && (
                   <div className="flex items-center gap-2 flex-wrap">
@@ -138,9 +138,7 @@ export default function Step1BattleInfo({
                       <span className={`${phaseConfig.color} text-sm font-bold`}>
                         {phaseConfig.label}
                         {(currentPhase === 'ATTACK' || currentPhase === 'DEFENSE') && phaseCount && (
-                          <span className="ml-1.5 text-xs opacity-80">
-                            {phaseCount === 1 ? '1차' : '2차'}
-                          </span>
+                          <span className="ml-1.5 text-xs opacity-80">{phaseCount === 1 ? '1차' : '2차'}</span>
                         )}
                       </span>
                     </div>
