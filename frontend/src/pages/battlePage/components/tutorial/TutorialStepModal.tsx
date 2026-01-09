@@ -1,6 +1,7 @@
 import type { TutorialStep } from '../../hooks/useTutorial';
 import { useSpotlight } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
+import TutorialVoteExample from './TutorialVoteExample';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 
@@ -36,6 +37,13 @@ export default function TutorialStepModal({
   return (
     <div className="fixed inset-0 z-[100]">
       <SpotlightOverlay spotlight={spotlight} onBackdropClick={onSkip} />
+
+      {/* Mock Vote UI - vote 단계에서만 표시 */}
+      {currentStep === 'vote' && (
+        <div data-tutorial="vote" className="absolute right-[155px] top-[205px] z-[99]">
+          <TutorialVoteExample />
+        </div>
+      )}
 
       <div
         className="absolute pointer-events-auto transition-all duration-300"

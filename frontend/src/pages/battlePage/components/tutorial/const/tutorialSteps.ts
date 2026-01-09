@@ -7,6 +7,27 @@ export interface StepContent {
   highlightElement?: string;
 }
 
+export const MOCK_DISCUSSIONS = [
+  {
+    id: 1,
+    user: '김개발',
+    team: 'A' as const,
+    content: 'A 코드는 가독성이 좋고 유지보수가 쉬워 보입니다.',
+    votes: 12,
+    totalVotes: 25,
+    hasVoted: false
+  },
+  {
+    id: 2,
+    user: '박코딩',
+    team: 'B' as const,
+    content: 'B 코드가 성능 면에서 더 효율적입니다.',
+    votes: 13,
+    totalVotes: 25,
+    hasVoted: false
+  }
+];
+
 export const TUTORIAL_STEPS: Record<TutorialStep, StepContent | null> = {
   welcome: null,
   phaseGuide: {
