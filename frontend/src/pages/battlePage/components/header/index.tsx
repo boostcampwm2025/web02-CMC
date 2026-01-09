@@ -3,7 +3,12 @@ import StageIndicator from './StageIndicator';
 import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
 import TimeProgressBar from './TimeProgressBar';
-import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
+import {
+  useBattleStore,
+  selectBattleProgress,
+  selectBattleId,
+  selectSocket
+} from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
@@ -16,20 +21,37 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
 
 export default function BattleHeader() {
   const battleProgress = useBattleStore(selectBattleProgress);
+  const battleId = useBattleStore(selectBattleId);
+  const socket = useBattleStore(selectSocket);
   const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
+
+  const handleStart = () => {
+    if (!socket || !battleId) return;
+    socket.emit('battle:start', { battleId });
+  };
 
   return (
     <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
       <TimeProgressBar />
       <div className="px-8 flex-1 grid grid-cols-3 items-center">
         <StageIndicator />
-        {phase !== 'PENDING' && (
-          <div className="flex flex-col items-center justify-center">
-            <BattleTimer />
-            <p className="text-sm text-gray-400">{instruction}</p>
-          </div>
-        )}
+        <div className="flex flex-col items-center justify-center">
+          {phase === 'PENDING' ? (
+            <button
+              type="button"
+              onClick={handleStart}
+              className="px-5 py-3 rounded-lg border border-[#FF6900] text-[#FF6900] hover:bg-[#FF6900]/10"
+            >
+              배틀 시작
+            </button>
+          ) : (
+            <>
+              <BattleTimer />
+              <p className="text-sm text-gray-400">{instruction}</p>
+            </>
+          )}
+        </div>
         <div className="flex justify-end">
           <TeamCounter />
         </div>
