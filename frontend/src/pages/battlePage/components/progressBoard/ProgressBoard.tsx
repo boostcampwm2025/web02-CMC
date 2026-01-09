@@ -37,6 +37,7 @@ export default function BattleProgressBoard() {
           pointer-events-auto
           relative
           w-[400px]
+          rounded-lg
           bg-[#1a1a2ef2]
           border-b-[1.333px] border-b-[#1E2939]
           shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]
