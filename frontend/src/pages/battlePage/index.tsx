@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
-import BattleHeader from './components/header/BattleHeader';
+import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import DiscussionInput from './components/discussion/DiscussionInput';
@@ -14,12 +14,19 @@ import useModal from '@/commons/hooks/useModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
+import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+
+  // 사운드 초기화
+  useEffect(() => {
+    soundManager.preload('timerWarning', '/sounds/timerSound.wav');
+  }, []);
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -33,9 +40,7 @@ export default function BattlePage() {
     onCloseTeamChangeModal: handleCloseTeamChangeModal
   });
 
-  // TODO: 진영 투표 결과 모달 추가 시 주석 해제
-  // const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
-  useTeamVoteResult(); // 이벤트 구독만 활성화
+  const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
   return (
     <div className="text-white relative min-h-screen">
@@ -100,6 +105,21 @@ export default function BattlePage() {
             content={effectModal.content}
             type={effectModal.type}
             onClose={hideEffect}
+          />
+        )}
+
+        {isVoteResultModalOpen && voteResult && (
+          <TeamVoteResultModal
+            isOpen={isVoteResultModalOpen}
+            round={voteResult.round}
+            teamACount={voteResult.after.teamA}
+            teamBCount={voteResult.after.teamB}
+            teamABefore={voteResult.before.teamA}
+            teamBBefore={voteResult.before.teamB}
+            teamAPercentage={(voteResult.after.teamA / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            teamBPercentage={(voteResult.after.teamB / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
+            onClose={closeVoteResultModal}
           />
         )}
       </div>

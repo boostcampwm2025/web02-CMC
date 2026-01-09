@@ -101,7 +101,6 @@ export function useBattleSocket() {
   }, [
     userId,
     battleId,
-    selectedTeam,
     setSocket,
     setIsConnected,
     setCurrentStage,

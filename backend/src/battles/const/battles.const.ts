@@ -17,7 +17,7 @@ export const BATTLE_PHASE = {
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
-    time: 10 * 1000, // 10초
+    time: 15 * 1000, // 10초
   },
 } as const
 
