@@ -46,6 +46,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   return (
     <section
       className={`w-full bg-linear-to-r ${colors.containerGradient} border ${colors.border} rounded-lg overflow-hidden shadow-lg`}
+      data-tutorial="discussion-input"
     >
       {/* 헤더 */}
       <div className="px-4 pt-4 pb-3">

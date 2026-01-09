@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
+import { useBattle } from './hooks/useBattle';
+import { useTeamVoteResult } from './hooks/useTeamVoteResult';
+import { useTutorial } from './hooks/useTutorial';
+import useModal from '@/commons/hooks/useModal';
+import { soundManager } from '@/commons/utils/soundManager';
+
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
@@ -8,20 +14,31 @@ import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar/BattleSidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
-import { useBattle } from './hooks/useBattle';
-import { useTeamVoteResult } from './hooks/useTeamVoteResult';
-import useModal from '@/commons/hooks/useModal';
+import TutorialModal from './components/tutorial/TutorialModal';
+import TutorialStepModal from './components/tutorial/TutorialStepModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
-import { soundManager } from '@/commons/utils/soundManager';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+
+  // 튜토리얼 관리
+  const {
+    isModalOpen: isTutorialOpen,
+    currentStep,
+    dontShowAgain,
+    skipTutorial,
+    startTutorial,
+    nextStep,
+    prevStep,
+    setDontShowAgain,
+    closeTutorial
+  } = useTutorial();
 
   // 사운드 초기화
   useEffect(() => {
@@ -87,7 +104,7 @@ export default function BattlePage() {
           </div>
         </main>
 
-        {/* DiscussionInput 항상 중앙 하단에 고정 */}
+        {/* DiscussionInput  */}
         <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[1800px] px-4 pb-4 z-50">
           <div className="max-w-[590px] mx-auto">
             <DiscussionInput onSubmit={handleDiscussionSubmit} />
@@ -122,6 +139,23 @@ export default function BattlePage() {
             onClose={closeVoteResultModal}
           />
         )}
+
+        <TutorialModal
+          isOpen={isTutorialOpen && currentStep === 'welcome'}
+          onClose={skipTutorial}
+          onStart={startTutorial}
+          dontShowAgain={dontShowAgain}
+          onDontShowAgainChange={setDontShowAgain}
+        />
+
+        <TutorialStepModal
+          isOpen={isTutorialOpen && currentStep !== 'welcome' && currentStep !== 'completed'}
+          currentStep={currentStep}
+          onNext={nextStep}
+          onPrev={prevStep}
+          onSkip={skipTutorial}
+          onClose={closeTutorial}
+        />
       </div>
     </div>
   );
