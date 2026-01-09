@@ -1,6 +1,6 @@
 export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
 
-export type BattleStatus = 'OPEN' | 'CLOSED';
+export type BattleStatus = 'OPEN' | 'CLOSED' | 'PENDING';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
 import TrophyIcon from '@/assets/icon/trophy.svg?react';

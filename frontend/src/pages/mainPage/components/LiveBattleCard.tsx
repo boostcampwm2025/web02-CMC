@@ -11,7 +11,7 @@ interface LiveBattleCardProps {
 }
 
 export default function LiveBattleCard({ battleInform, isHot = false }: LiveBattleCardProps) {
-  const { category, title, description, timeLabel, clientCount, id } = battleInform;
+  const { category, title, description, timeLabel, clientCount, id, status } = battleInform;
   const config = BATTLE_CATEGORY_CONFIG[category] || BATTLE_CATEGORY_CONFIG.ETC;
   const { text, bg, bgSoft, icon: Icon } = config;
 
@@ -34,9 +34,9 @@ export default function LiveBattleCard({ battleInform, isHot = false }: LiveBatt
               <span className="text-gray-400 text-xs uppercase">{category}</span>
             </div>
           </div>
-          {isHot && (
+          {(isHot || status === 'PENDING') && (
             <Badge textClass={'text-yellow-400'} bgClass={'bg-yellow-400/20'}>
-              Hot
+              {status === 'PENDING' ? '대기방' : 'Hot'}
             </Badge>
           )}
         </div>

@@ -22,6 +22,7 @@ import { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
+import { BattleStartDto } from '../dto/battleStart.dto'
 
 @WebSocketGateway()
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
@@ -75,6 +76,16 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
         })
       }
     }
+  }
+
+  @SubscribeMessage('battle:start')
+  handleStart(@MessageBody() dto: BattleStartDto) {
+    const { battleId } = dto
+    this.battlesService.startBattle(battleId)
+
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:started')
   }
 
   @SubscribeMessage('battle:attack')

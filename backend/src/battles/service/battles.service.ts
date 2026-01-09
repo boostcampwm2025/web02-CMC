@@ -76,7 +76,7 @@ export class BattlesService extends EventEmitter {
       category: payload.category,
       playTime,
       password: payload.type === BATTLE_TYPE.PRIVATE ? undefined : payload.password?.trim(),
-      status: BATTLE_STATUS.OPEN,
+      status: BATTLE_STATUS.PENDING,
       createdAt: now,
       updatedAt: now,
       participantCount: 1,
@@ -96,7 +96,7 @@ export class BattlesService extends EventEmitter {
   //Todo: 정렬 기준 재설정
   //실시간 배틀 목록 조회
   getOpenBattles(limit: number, offset: number) {
-    const filtered = this.battles.filter(battle => this.isPublicAndOpen(battle))
+    const filtered = this.battles.filter(battle => this.isPublicAndWaitingOrOpen(battle))
     const battles = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
 
     return {
@@ -223,10 +223,6 @@ export class BattlesService extends EventEmitter {
     if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
     if (this.activeBattles.has(battleId)) return
 
-    const startedAt = Date.now()
-    // const expiredAt = startedAt + BATTLE_PHASE.OPINION_SHARE.time
-    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
-
     const activeBattleState: ActiveBattleState = {
       battleId,
       all: {
@@ -256,17 +252,30 @@ export class BattlesService extends EventEmitter {
       round: 1,
       phaseCount: 1,
 
-      startedAt,
-      expiredAt,
+      startedAt: null,
+      expiredAt: null,
     }
 
     this.activeBattles.set(battleId, activeBattleState)
+  }
 
-    // 시작 버튼으로 분류될 예정
+  startBattle(battleId: string) {
+    const battleState = this.getBattleState(battleId)
+    const battle = this.battles.find(b => b.id === battleId)
+
+    const startedAt = Date.now()
+    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
+
+    battleState.startedAt = startedAt
+    battleState.expiredAt = expiredAt
+    if (battle) {
+      battle.status = BATTLE_STATUS.OPEN
+    }
+
     const res = BattlePhaseResponseDto.of({
       battleId,
-      phase: activeBattleState.phase,
-      phaseCount: activeBattleState.phaseCount,
+      phase: battleState.phase,
+      phaseCount: battleState.phaseCount,
       startedAt,
       expiredAt,
     })
@@ -499,8 +508,8 @@ export class BattlesService extends EventEmitter {
     this.emit('battle:closed', BattleClosedResponseDto.of({ battleId: battle.id }))
   }
 
-  private isPublicAndOpen(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && battle.status === BATTLE_STATUS.OPEN
+  private isPublicAndWaitingOrOpen(battle: Battle): boolean {
+    return battle.type === BATTLE_TYPE.PUBLIC && (battle.status === BATTLE_STATUS.OPEN || battle.status === BATTLE_STATUS.PENDING)
   }
 
   private isPublicAndClosed(battle: Battle): boolean {

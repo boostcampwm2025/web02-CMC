@@ -24,6 +24,7 @@ export const BATTLE_PHASE = {
 export const BATTLE_MAX_PHASE_COUNT = 2
 
 export const BATTLE_STATUS = {
+  PENDING: 'PENDING',
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
 } as const
