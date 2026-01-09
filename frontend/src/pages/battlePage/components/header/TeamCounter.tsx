@@ -62,10 +62,8 @@ export default function TeamCounter() {
     };
   }, [teamBCount]);
 
-  // @Todo  중립 팀 인원수 추가 로직 필요 현재는 임시적으로 0으로 고정하여 사용
-
   return (
-    <div className="flex items-center gap-8 min-w-[200px] justify-end">
+    <div className="flex items-center gap-8 max-w-[200px]" data-tutorial="team-status">
       <div className="text-center">
         <div
           className={`text-[46px] font-bold text-[#3B82F6] ${

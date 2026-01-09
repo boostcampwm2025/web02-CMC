@@ -46,15 +46,15 @@ export function useTutorial(): UseTutorialReturn {
 
   // 튜토리얼 시작
   const startTutorial = useCallback(() => {
-    setCurrentStep('timer');
+    setCurrentStep('phaseGuide');
   }, [dontShowAgain]);
 
   // 다음 단계로
   const nextStep = useCallback(() => {
     const steps: TutorialStep[] = [
       'welcome',
-      'timer',
       'phaseGuide',
+      'timer',
       'teamStatus',
       'codeCompare',
       'vote',

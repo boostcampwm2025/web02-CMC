@@ -32,7 +32,10 @@ export default function BattleHeader() {
   };
 
   return (
-    <header className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col">
+    <header
+      className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
+      data-tutorial="phase-guide"
+    >
       <TimeProgressBar />
       <div className="px-8 flex-1 grid grid-cols-3 items-center">
         <StageIndicator />
