@@ -149,7 +149,9 @@ export default function Step1BattleInfo({
             <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">
               <div
                 className="bg-gradient-to-r from-blue-500 to-blue-400 h-2.5 rounded-full transition-all duration-500"
-                style={{ width: `${(currentRound / totalRounds) * 100}%` }}
+                style={{
+                  width: `${currentPhase === 'PENDING' ? 0 : (currentRound / totalRounds) * 100}%`
+                }}
               />
             </div>
           </div>

@@ -121,43 +121,43 @@ export default function TeamSelectPage() {
 
         {/* Step Content with Side Navigation */}
         <div className="relative mb-8">
-          <div className="flex items-start justify-center gap-8">
-            {/* 이전 버튼 - 첫 단계가 아닐 때만 표시 */}
-            {currentStep > 1 ? (
-              <button
-                onClick={goToPrev}
-                className="sticky top-24 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors flex-shrink-0 z-10"
-                aria-label="이전 단계"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0" aria-hidden="true" />
-            )}
+          {/* 이전 버튼 - 화면 왼쪽 중앙 고정 */}
 
-            {/* Step Content */}
-            <div className="flex-1 max-w-6xl">{renderStep()}</div>
+          {/* Step Content */}
+          <div className="flex items-center justify-center relative">
+            <div className="w-full max-w-6xl relative">
+              {renderStep()}
 
-            {/* 다음 버튼 - 마지막 단계가 아닐 때만 표시 */}
-            {currentStep < 4 ? (
-              <button
-                onClick={goToNext}
-                disabled={!canGoNext}
-                className={`
-                  sticky top-24 w-12 h-12 rounded-full flex items-center justify-center transition-colors flex-shrink-0 z-10
-                  ${
-                    canGoNext
-                      ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
-                      : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
-                  }
-                `}
-                aria-label="다음 단계"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            ) : (
-              <div className="w-12 h-12 flex-shrink-0" aria-hidden="true" />
-            )}
+              {/* 이전 버튼 - 콘텐츠 왼쪽 */}
+              {currentStep > 1 && (
+                <button
+                  onClick={goToPrev}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors z-10"
+                  aria-label="이전 단계"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+              )}
+
+              {/* 다음 버튼 - 콘텐츠 오른쪽 */}
+              {currentStep < 4 && (
+                <button
+                  onClick={goToNext}
+                  disabled={!canGoNext}
+                  className={`
+                    absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full flex items-center justify-center transition-colors z-10
+                    ${
+                      canGoNext
+                        ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
+                        : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
+                    }
+                  `}
+                  aria-label="다음 단계"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
