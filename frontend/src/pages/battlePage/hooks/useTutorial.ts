@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 
+const TUTORIAL_STORAGE_KEY = 'battlePageTutorialCompleted';
+
 export type TutorialStep =
   | 'welcome'
   | 'timer'
@@ -28,7 +30,10 @@ interface UseTutorialReturn {
 }
 
 export function useTutorial(): UseTutorialReturn {
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(() => {
+    const completed = localStorage.getItem(TUTORIAL_STORAGE_KEY);
+    return completed !== 'true';
+  });
   const [currentStep, setCurrentStep] = useState<TutorialStep>('welcome');
   const [dontShowAgain, setDontShowAgainState] = useState(false);
 
@@ -40,9 +45,12 @@ export function useTutorial(): UseTutorialReturn {
 
   // 튜토리얼 닫기
   const closeTutorial = useCallback(() => {
+    if (dontShowAgain) {
+      localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    }
     setIsModalOpen(false);
     setCurrentStep('welcome');
-  }, []);
+  }, [dontShowAgain]);
 
   // 튜토리얼 시작
   const startTutorial = useCallback(() => {
@@ -70,12 +78,15 @@ export function useTutorial(): UseTutorialReturn {
 
       // 마지막 단계 완료 시
       if (nextStepValue === 'completed') {
+        if (dontShowAgain) {
+          localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+        }
         setTimeout(() => {
           closeTutorial();
         }, 1500);
       }
     }
-  }, [currentStep, closeTutorial]);
+  }, [currentStep, dontShowAgain, closeTutorial]);
 
   // 이전 단계로
   const prevStep = useCallback(() => {
@@ -99,6 +110,9 @@ export function useTutorial(): UseTutorialReturn {
 
   // 튜토리얼 건너뛰기
   const skipTutorial = useCallback(() => {
+    if (dontShowAgain) {
+      localStorage.setItem(TUTORIAL_STORAGE_KEY, 'true');
+    }
     closeTutorial();
   }, [dontShowAgain, closeTutorial]);
 
