@@ -15,7 +15,7 @@ export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChang
   const battleProgress = useBattleStore(selectBattleProgress);
 
   const { formattedTime: remainingTime } = useBattleTimer({
-    expiredAt: battleProgress?.expiredAt
+    expiredAt: battleProgress?.expiredAt ?? undefined
   });
 
   const noneTeamCounts = 0;

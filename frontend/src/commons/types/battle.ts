@@ -17,6 +17,13 @@ export interface BattleInfo {
   bCode: string;
   language: string;
   category: string;
+  participantCount: number;
+  currentRound: number;
+  totalRounds: number;
+  timelines: {
+    attacks: BattleDiscussion[];
+    defenses: BattleDefense[];
+  };
 }
 
 // 공통 타입들
@@ -32,6 +39,8 @@ export interface BattleDiscussion {
   upvotes: number;
   votes: string[];
   status: 'PENDING' | 'SELECTED' | 'REJECTED';
+  selectedAt?: number; // SELECTED로 변경된 시간 (timestamp)
+  team: 'A' | 'B'; // 어느 팀의 토론인지 (NONE은 불가)
 }
 
 // BattleDefense 타입
@@ -69,8 +78,9 @@ export interface BattleJoinData {
   // 배틀 상태 정보
   round: number;
   phase: BattlePhase;
-  startedAt: number;
-  expiredAt: number;
+  phaseCount: number;
+  startedAt: number | null;
+  expiredAt: number | null;
 }
 
 export interface UseBattleSocketProps {
@@ -83,8 +93,9 @@ export interface UseBattleSocketProps {
 export interface BattleProgressState {
   round: number;
   phase: BattlePhase;
-  startedAt: number;
-  expiredAt: number;
+  phaseCount: number;
+  startedAt: number | null;
+  expiredAt: number | null;
 }
 
 // Battle:Attacked 이벤트 응답 타입
@@ -93,6 +104,7 @@ export interface DiscussionVoteResultItem {
   text: string | null;
   ownerId: string | null;
   count: number | null;
+  team: Team | null;
 }
 
 export interface BattleAttackedResult {

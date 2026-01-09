@@ -18,29 +18,13 @@ export function useBattleTimeline() {
   useEffect(() => {
     if (!socket) return;
 
-    const pickEntry = (
-      payload: {
-        aTeam: { id: string | null; text: string | null; ownerId: string | null; count: number | null };
-        bTeam: { id: string | null; text: string | null; ownerId: string | null; count: number | null };
-      },
-      userTeam: Team
-    ) => {
-      // 상대팀의 결과 표시
-      const opponentEntry = userTeam === 'A' ? payload.bTeam : payload.aTeam;
-      if (opponentEntry?.id) {
-        const opponentTeam: Team = userTeam === 'A' ? 'B' : 'A';
-        return { team: opponentTeam, entry: opponentEntry };
-      }
-      return null;
-    };
-
     const pushTimelineAndChat = (
       battleId: string,
       team: Team,
       entry: { id: string | null; text: string | null; ownerId: string | null; count: number | null },
       type: 'attack' | 'defense'
     ) => {
-      if (!entry.id || !entry.text) return;
+      if (!entry.id || !entry.text || !team) return;
 
       const discussion: BattleDiscussion | BattleDefense = {
         discussionId: entry.id,
@@ -50,6 +34,7 @@ export function useBattleTimeline() {
         votes: [],
         status: 'SELECTED',
         type: type === 'attack' ? 'ATTACK' : 'DEFENSE',
+        team: team as 'A' | 'B',
         ...(type === 'defense' ? { attackId: '' } : {})
       } as BattleDiscussion | BattleDefense;
 
@@ -72,19 +57,84 @@ export function useBattleTimeline() {
       useBattleStore.getState().addChat(chatMessage);
     };
 
+    const pushNullPlaceholder = (team: 'A' | 'B', type: 'attack' | 'defense') => {
+      // null인 경우 placeholder 데이터 추가
+      const placeholder: BattleDiscussion | BattleDefense = {
+        discussionId: `null-${team}-${type}-${Date.now()}`,
+        authorId: '',
+        content: '투표로 선정된 의견이 없습니다',
+        upvotes: 0,
+        votes: [],
+        status: 'REJECTED',
+        type: type === 'attack' ? 'ATTACK' : 'DEFENSE',
+        team: team,
+        ...(type === 'defense' ? { attackId: '' } : {})
+      } as BattleDiscussion | BattleDefense;
+
+      if (type === 'attack') {
+        useBattleStore.getState().addAttackTimeline(placeholder as BattleDiscussion);
+      } else {
+        useBattleStore.getState().addDefenseTimeline(placeholder as BattleDefense);
+      }
+    };
+
     const handleAttacked = (data: BattleAttackedResult) => {
-      const target = pickEntry(data.attack, selectedTeam);
-      if (target) {
-        showEffect(target.team, target.entry.text ?? '', 'attack');
-        pushTimelineAndChat(data.battleId, target.team, target.entry, 'attack');
+      // A팀과 B팀 모두 타임라인에 추가 (A팀 먼저, B팀 나중)
+      const { aTeam, bTeam } = data.attack;
+
+      // 이펙트는 상대팀 것만 표시
+      const opponentTeam = selectedTeam === 'A' ? 'B' : 'A';
+      const opponentEntry = selectedTeam === 'A' ? bTeam : aTeam;
+
+      if (opponentEntry?.id && opponentEntry?.team && opponentEntry?.text) {
+        // 일반적인 경우: 투표된 의견이 있을 때
+        showEffect(opponentEntry.team, opponentEntry.text, 'attack');
+      } else if (!opponentEntry?.id) {
+        // null인 경우: 투표된 의견이 없을 때
+        showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'attack');
+      }
+
+      // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)
+      if (aTeam?.team) {
+        pushTimelineAndChat(data.battleId, aTeam.team, aTeam, 'attack');
+      } else {
+        pushNullPlaceholder('A', 'attack');
+      }
+
+      if (bTeam?.team) {
+        pushTimelineAndChat(data.battleId, bTeam.team, bTeam, 'attack');
+      } else {
+        pushNullPlaceholder('B', 'attack');
       }
     };
 
     const handleDefensed = (data: BattleDefensedResult) => {
-      const target = pickEntry(data.defense, selectedTeam);
-      if (target) {
-        showEffect(target.team, target.entry.text ?? '', 'defense');
-        pushTimelineAndChat(data.battleId, target.team, target.entry, 'defense');
+      // A팀과 B팀 모두 타임라인에 추가 (A팀 먼저, B팀 나중)
+      const { aTeam, bTeam } = data.defense;
+
+      // 이펙트는 상대팀 것만 표시
+      const opponentTeam = selectedTeam === 'A' ? 'B' : 'A';
+      const opponentEntry = selectedTeam === 'A' ? bTeam : aTeam;
+
+      if (opponentEntry?.id && opponentEntry?.team && opponentEntry?.text) {
+        // 일반적인 경우: 투표된 의견이 있을 때
+        showEffect(opponentEntry.team, opponentEntry.text, 'defense');
+      } else if (!opponentEntry?.id) {
+        // null인 경우: 투표된 의견이 없을 때
+        showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'defense');
+      }
+
+      // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)
+      if (aTeam?.team) {
+        pushTimelineAndChat(data.battleId, aTeam.team, aTeam, 'defense');
+      } else {
+        pushNullPlaceholder('A', 'defense');
+      }
+
+      if (bTeam?.team) {
+        pushTimelineAndChat(data.battleId, bTeam.team, bTeam, 'defense');
+      } else {
+        pushNullPlaceholder('B', 'defense');
       }
     };
 

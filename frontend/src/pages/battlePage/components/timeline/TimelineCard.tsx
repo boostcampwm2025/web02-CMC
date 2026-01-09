@@ -33,13 +33,11 @@ const TEAM_COLORS = {
   }
 };
 
-const TEAM = 'A'; // 임시
-
 export default function TimelineCard({ discussionDetails }: TimelineCardProps) {
-  const { authorId, content, upvotes, type } = discussionDetails;
+  const { authorId, content, upvotes, type, team } = discussionDetails;
   const discussionType = type === 'ATTACK' ? '이의제기' : '반박';
   const typeColors = TYPE_COLORS[discussionType];
-  const teamColors = TEAM_COLORS[TEAM];
+  const teamColors = TEAM_COLORS[team];
 
   return (
     <div
@@ -50,7 +48,7 @@ export default function TimelineCard({ discussionDetails }: TimelineCardProps) {
           <div
             className={`w-[36px] h-[20px] ${teamColors.badge} rounded-sm flex items-center justify-center text-white font-bold text-[12px] mb-2`}
           >
-            {TEAM}팀
+            {team}팀
           </div>
           <span className={`text-[18px] font-bold ${teamColors.text}`}>{authorId}</span>
           {discussionType === '이의제기' ? (

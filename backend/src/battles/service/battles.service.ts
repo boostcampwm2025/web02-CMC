@@ -156,7 +156,9 @@ export class BattlesService extends EventEmitter {
 
     if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
 
-    return BattleJoinInfoResponseDto.of(battle)
+    const activeBattleState = this.activeBattles.get(battleId)
+
+    return BattleJoinInfoResponseDto.of(battle, activeBattleState)
   }
 
   joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
@@ -530,6 +532,7 @@ export class BattlesService extends EventEmitter {
       upvotes: 0,
       votes: [],
       status: 'PENDING',
+      team,
     }
 
     // battleState.all.attacks.push(attack)
@@ -559,6 +562,7 @@ export class BattlesService extends EventEmitter {
       upvotes: 0,
       votes: [],
       status: 'PENDING',
+      team,
     }
 
     // battleState.all.defenses.push(defense)
@@ -702,9 +706,20 @@ export class BattlesService extends EventEmitter {
   private getTopOpinion = (opinions: (BattleDiscussion | null)[]): BattleDiscussion | null => {
     const filteredOpinion = opinions.filter((opinion): opinion is BattleDiscussion => opinion !== null)
 
+    // 의견이 없으면 null 반환
     if (filteredOpinion.length === 0) return null
 
-    return filteredOpinion.reduce((top, cur) => (cur.upvotes > top.upvotes ? cur : top))
+    // 최고 득표 찾기
+    const top = filteredOpinion.reduce((top, cur) => (cur.upvotes > top.upvotes ? cur : top))
+
+    // 최고 득표가 0이면 null 반환 (아무도 투표하지 않음)
+    if (top.upvotes === 0) return null
+
+    // 선정된 의견의 status를 SELECTED로 변경
+    top.status = 'SELECTED'
+    top.selectedAt = Date.now()
+
+    return top
   }
 
   private pickTopVotedAttack(battleId: string): BattleTopOpinions {
@@ -725,30 +740,48 @@ export class BattlesService extends EventEmitter {
     }
   }
 
+  private createNullPlaceholder(team: 'A' | 'B', type: 'ATTACK' | 'DEFENSE'): BattleDiscussion {
+    const now = Date.now()
+    const placeholder: BattleDiscussion = {
+      discussionId: `null-${team}-${type}-${now}`,
+      authorId: '',
+      content: '투표로 선정된 의견이 없습니다',
+      upvotes: 0,
+      votes: [],
+      status: 'SELECTED',
+      type: type,
+      team: team,
+      selectedAt: now,
+    }
+    return placeholder
+  }
+
   private emitAttackedResult(battleId: string) {
     const top = this.pickTopVotedAttack(battleId)
-    if (!top) return
 
     const battleState = this.activeBattles.get(battleId)
 
     const { aTeam, bTeam } = top
-    battleState?.all.attacks.push(aTeam ? aTeam : null)
-    battleState?.all.attacks.push(bTeam ? bTeam : null)
+    const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'ATTACK')
+    const bEntry = bTeam ? bTeam : this.createNullPlaceholder('B', 'ATTACK')
+    battleState?.all.attacks.push(aEntry)
+    battleState?.all.attacks.push(bEntry)
 
-    this.emit('battle:attacked', DiscussionVoteResultDto.of(battleId, top))
+    this.emit('battle:attacked', DiscussionVoteResultDto.attacked(battleId, top))
   }
 
   private emitDefensedResult(battleId: string) {
     const top = this.pickTopVotedDefense(battleId)
-    if (!top) return
 
     const battleState = this.activeBattles.get(battleId)
 
     const { aTeam, bTeam } = top
-    battleState?.all.defenses.push(aTeam ? aTeam : null)
-    battleState?.all.defenses.push(bTeam ? bTeam : null)
+    const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'DEFENSE')
+    const bEntry = bTeam ? bTeam : this.createNullPlaceholder('B', 'DEFENSE')
+    battleState?.all.defenses.push(aEntry)
+    battleState?.all.defenses.push(bEntry)
 
-    this.emit('battle:defensed', DiscussionVoteResultDto.of(battleId, top))
+    this.emit('battle:defensed', DiscussionVoteResultDto.defensed(battleId, top))
   }
 
   private hasAlreadyVoted(votes: readonly string[], userId: string): boolean {
