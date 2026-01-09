@@ -15,8 +15,9 @@ interface UseBattle {
 
 export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattle) {
   const location = useLocation();
-  const selectedTeam = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
-  // 각 탭/브라우저별 고유 userId 생성 및 store 초기화
+  const selectedTeamFromState = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
+
+  // 배틀 초기화 (selectedTeam 먼저 설정)
   useEffect(() => {
     if (!battleId) return;
 
@@ -26,16 +27,16 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
       sessionStorage.setItem('testUserId', userId);
     }
 
+    // selectedTeam을 먼저 설정
+    if (selectedTeamFromState) {
+      useBattleStore.getState().setSelectedTeam(selectedTeamFromState);
+    }
+
     useBattleStore.getState().initializeBattle({
       userId,
       battleId
     });
-
-    // selectedTeam이 있으면 설정
-    if (selectedTeam) {
-      useBattleStore.getState().setSelectedTeam(selectedTeam);
-    }
-  }, [battleId, selectedTeam]);
+  }, [battleId, selectedTeamFromState]);
 
   // 모든 배틀 관련 훅 초기화
   useBattleSocket();

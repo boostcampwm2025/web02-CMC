@@ -16,7 +16,6 @@ import {
   selectTeamCounts,
   selectBattleProgress
 } from '@/pages/battlePage/stores/battleStore';
-import { useBattleSocket } from '@/pages/battlePage/hooks/useBattleSocket';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
@@ -49,11 +48,8 @@ export default function TeamSelectPage() {
     useBattleStore.getState().setSelectedTeam('NONE');
   }, [id]);
 
-  // WebSocket 연결
-  useBattleSocket();
+  // @TODO : 타임라인 데이터 가져오는 API 추가필요
 
-  // 백엔드 timeline 데이터 (실시간 데이터 사용)
-  // 백엔드에서 이미 SELECTED 상태만 필터링되어 전송됨
   const attacks = timelines?.attacks || battleInfo.timelines.attacks;
   const defenses = timelines?.defenses || battleInfo.timelines.defenses;
 
@@ -62,6 +58,7 @@ export default function TeamSelectPage() {
 
   const handleSubmit = () => {
     if (selectedTeam && id) {
+      useBattleStore.getState().setSelectedTeam(selectedTeam);
       navigate(`/battle/${id}`, { state: { selectedTeam } });
     }
   };
