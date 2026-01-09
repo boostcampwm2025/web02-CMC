@@ -54,7 +54,9 @@ export default function BattlePage() {
         }`}
       >
         <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
-          <BattleProgressBoard />
+          <div className="-mb-[10px]">
+            <BattleProgressBoard />
+          </div>
           <BattleHeader />
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
