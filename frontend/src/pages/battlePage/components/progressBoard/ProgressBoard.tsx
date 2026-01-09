@@ -49,12 +49,17 @@ export default function BattleProgressBoard() {
           <button
             onClick={() => setCollapsed(true)}
             className="
-              absolute right-[-16px] top-[12px]
+              absolute right-[3px] top-[12px]
               w-[32px] h-[32px]
               rounded-full
               bg-[#FF6900]
               shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]
               flex items-center justify-center
+
+              transition-all duration-200 ease-out
+              hover:scale-110
+              hover:bg-[#FF5200]
+              active:scale-95
             "
           >
             <div
@@ -77,6 +82,11 @@ export default function BattleProgressBoard() {
               bg-[#FF6900]
               shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]
               flex items-center justify-center
+              transition-all duration-200 ease-out
+              hover:scale-110
+              hover:bg-[#FF5200]
+              active:scale-95
+
             "
           >
             <div
