@@ -104,9 +104,9 @@ export default function BattlePage() {
           </div>
         </main>
 
-        {/* DiscussionInput  */}
-        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-[1800px] px-4 pb-4 z-50">
-          <div className="max-w-[590px] mx-auto">
+        {/* DiscussionInput - 화면 중앙 하단에 fixed */}
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4">
+          <div className="w-[590px]">
             <DiscussionInput onSubmit={handleDiscussionSubmit} />
           </div>
         </div>
