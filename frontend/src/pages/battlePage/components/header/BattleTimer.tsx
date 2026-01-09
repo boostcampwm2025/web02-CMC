@@ -7,7 +7,7 @@ export default function BattleTimer() {
   const battleProgress = useBattleStore(selectBattleProgress);
 
   const { formattedTime, remainingSeconds } = useBattleTimer({
-    expiredAt: battleProgress?.expiredAt
+    expiredAt: battleProgress?.expiredAt ?? undefined
   });
 
   const isUrgent = remainingSeconds <= 5;
