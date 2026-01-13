@@ -2,14 +2,31 @@ import { useState, useEffect } from 'react';
 
 interface UseResizeOptions {
   initialWidth: number;
+  storageKey?: string;
 }
 
 const MIN_WIDTH = 330;
 const MAX_WIDTH = 800;
 
-export function useResize({ initialWidth }: UseResizeOptions) {
-  const [width, setWidth] = useState(initialWidth);
+export function useResize({ initialWidth, storageKey = 'sidebar-width' }: UseResizeOptions) {
+  const [width, setWidth] = useState(() => {
+    if (typeof window === 'undefined') return initialWidth;
+
+    const savedWidth = localStorage.getItem(storageKey);
+    if (savedWidth) {
+      const parsedWidth = parseInt(savedWidth, 10);
+      if (parsedWidth >= MIN_WIDTH && parsedWidth <= MAX_WIDTH) {
+        return parsedWidth;
+      }
+    }
+    return initialWidth;
+  });
   const [isResizing, setIsResizing] = useState(false);
+
+  // localStorage에 너비 저장
+  useEffect(() => {
+    localStorage.setItem(storageKey, width.toString());
+  }, [width, storageKey]);
 
   useEffect(() => {
     let rafId: number | null = null;
