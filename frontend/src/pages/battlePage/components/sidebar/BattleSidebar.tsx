@@ -3,6 +3,7 @@ import ClockIcon from '@/assets/icon/clock.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 import CloseIcon from '@/assets/icon/close.svg?react';
 import TimelineSection from '../timeline/TimelineSection';
+import { useResize } from '../../hooks/useResize';
 
 interface BattleSidebarProps {
   isOpen: boolean;
@@ -17,12 +18,16 @@ type Tab = 'info' | 'timeline';
 
 export default function BattleSidebar({ isOpen, onClose, title, description, language, category }: BattleSidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
+  const { width, isResizing, setIsResizing } = useResize({
+    initialWidth: 400
+  });
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
+      style={{ width: `${width}px` }}
+      className={`fixed top-0 left-0 h-full bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      } ${isResizing ? 'select-none' : ''}`}
     >
       {/* 헤더 */}
       <div>
@@ -100,7 +105,10 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
           )}
         </div>
         <div className="relative h-[calc(100vh-65px)]">
-          <button className="peer absolute right-0 top-1/2 -translate-y-1/2 w-[4px] h-[80px] bg-orange-400 hover:bg-orange-500 cursor-ew-resize transition-colors z-10" />
+          <button
+            onMouseDown={() => setIsResizing(true)}
+            className="peer absolute right-0 top-1/2 -translate-y-1/2 w-[4px] h-[80px] bg-orange-400 hover:bg-orange-500 cursor-ew-resize transition-colors z-10"
+          />
           <div className="absolute inset-y-0 right-0 w-[8px] bg-orange-400/30 opacity-0 peer-hover:opacity-100 transition-opacity pointer-events-none" />
         </div>
       </div>
