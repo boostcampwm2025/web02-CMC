@@ -13,7 +13,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
+  const round = battleProgress?.round;
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
   const PhaseIcon = phase === 'ATTACK' ? BattleIcon : ShieldIcon;
@@ -50,7 +50,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
       >
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-          {config.label} 페이즈
+          {round}R {config.label}
         </span>
       </div>
 
