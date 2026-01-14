@@ -37,6 +37,11 @@ export default function CodeViewer({
           maxHeight,
           overflow: 'auto'
         }}
+        PreTag={({ children, ...props }: any) => (
+          <pre {...props} className="custom-scrollbar">
+            {children}
+          </pre>
+        )}
       >
         {code}
       </SyntaxHighlighter>
