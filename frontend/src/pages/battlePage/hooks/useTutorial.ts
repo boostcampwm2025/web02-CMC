@@ -4,8 +4,8 @@ const TUTORIAL_STORAGE_KEY = 'battlePageTutorialCompleted';
 
 export type TutorialStep =
   | 'welcome'
-  | 'timer'
   | 'phaseGuide'
+  | 'timer'
   | 'teamStatus'
   | 'codeCompare'
   | 'vote'
@@ -92,8 +92,8 @@ export function useTutorial(): UseTutorialReturn {
   const prevStep = useCallback(() => {
     const steps: TutorialStep[] = [
       'welcome',
-      'timer',
       'phaseGuide',
+      'timer',
       'teamStatus',
       'codeCompare',
       'vote',
