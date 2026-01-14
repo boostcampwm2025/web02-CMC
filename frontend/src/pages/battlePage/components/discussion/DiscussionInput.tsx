@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getDiscussionConfig } from '../../utils/battlePhase';
+import { getDiscussionConfig, isInputDisabled } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import ShieldIcon from '@/assets/icon/shield.svg?react';
@@ -15,10 +15,10 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   const [inputValue, setInputValue] = useState('');
 
   const phase = battleProgress?.phase;
-  const isActive = phase === 'ATTACK' || phase === 'DEFENSE';
+  const shouldShow = !isInputDisabled(team, phase);
 
   // 중립 진영이거나 공격/방어 Phase가 아니면 DiscussionInput 표시 안 함
-  if (team === 'NONE' || !isActive) {
+  if (!shouldShow) {
     return null;
   }
 
@@ -46,7 +46,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
         iconColor: 'text-red-400',
         borderColor: 'border-red-500/50',
         focusRingColor: 'focus:ring-red-500/50',
-        bgGradient: 'from-red-950/30 to-red-900/20',
+        bgGradient: 'from-red-950/70 to-red-900/50',
         textColor: 'text-red-400'
       };
     } else {
@@ -57,7 +57,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
         iconColor: 'text-blue-400',
         borderColor: 'border-blue-500/50',
         focusRingColor: 'focus:ring-blue-500/50',
-        bgGradient: 'from-blue-950/30 to-blue-900/20',
+        bgGradient: 'from-blue-950/70 to-blue-900/50',
         textColor: 'text-blue-400'
       };
     }
@@ -94,9 +94,7 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
               <button
                 onClick={handleSubmit}
                 disabled={disabled}
-                className={`px-4 py-3 bg-black/30 backdrop-blur-md text-white rounded-lg border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.2)] hover:bg-black/40 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.4),0_4px_6px_-2px_rgba(0,0,0,0.3)] active:bg-black/50 font-medium text-[14px] ${
-                  isActive ? 'hover:scale-105' : ''
-                }`}
+                className={`px-4 py-3 bg-black/30 backdrop-blur-md text-white rounded-lg border border-white/10 transition-all flex items-center justify-center gap-2`}
               >
                 {config.buttonText}
               </button>

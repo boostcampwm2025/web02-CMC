@@ -6,6 +6,8 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
+import { isInputDisabled } from './utils/battlePhase';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -59,6 +61,12 @@ export default function BattlePage() {
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
+  // Phase와 Team 정보 가져오기
+  const battleProgress = useBattleStore(selectBattleProgress);
+  const team = useBattleStore(selectSelectedTeam);
+  const phase = battleProgress?.phase;
+  const shouldShowInput = !isInputDisabled(team, phase);
+
   return (
     <div className="text-white relative min-h-screen">
       {/* 책갈피 버튼 */}
@@ -105,10 +113,12 @@ export default function BattlePage() {
         </main>
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
-        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4">
-          <div className="w-[590px]">
-            <DiscussionInput onSubmit={handleDiscussionSubmit} />
-          </div>
+        <div
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4 transition-all duration-300 ease-out ${
+            shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="w-[590px]">{shouldShowInput && <DiscussionInput onSubmit={handleDiscussionSubmit} />}</div>
         </div>
 
         {isTeamChangeModalOpen && (
