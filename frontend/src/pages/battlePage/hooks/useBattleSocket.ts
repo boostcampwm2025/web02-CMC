@@ -16,7 +16,8 @@ export function useBattleSocket() {
     setTeamCounts,
     setTimelines,
     setTeamChats,
-    setAllChats
+    setAllChats,
+    setChatInitialized
   } = useBattleStore();
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export function useBattleSocket() {
       setTimelines(data.timelines);
       setTeamChats(data.chats || []);
       setAllChats(data.allChats || []);
+      setChatInitialized(true);
 
       // 초기 투표 리스트 동기화 (ATTACK/DEFENSE 페이즈만)
       const team = useBattleStore.getState().selectedTeam;
@@ -114,6 +116,7 @@ export function useBattleSocket() {
     setTeamCounts,
     setTimelines,
     setTeamChats,
-    setAllChats
+    setAllChats,
+    setChatInitialized
   ]);
 }
