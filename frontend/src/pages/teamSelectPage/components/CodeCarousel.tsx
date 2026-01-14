@@ -7,6 +7,15 @@ interface CodeCarouselProps {
   language: string;
 }
 
+const TEAM_STYLES = {
+  A: {
+    border: 'border-[#2B7FFF]'
+  },
+  B: {
+    border: 'border-[#FB2C36]'
+  }
+} as const;
+
 export default function CodeCarousel({ aCode, bCode, language }: CodeCarouselProps) {
   const { hoveredCode, handleHover, handleLeave } = useCodeHover();
 
@@ -14,7 +23,7 @@ export default function CodeCarousel({ aCode, bCode, language }: CodeCarouselPro
     <div className="flex items-start justify-center gap-4 w-full">
       {/* A 코드 */}
       <div
-        className={`transition-all duration-300 ${hoveredCode === 'A' ? 'w-[60%]' : hoveredCode === 'B' ? 'w-[40%]' : 'w-1/2'}`}
+        className={`transition-all duration-300 border-2 ${TEAM_STYLES.A.border} rounded-lg overflow-hidden ${hoveredCode === 'A' ? 'w-[60%]' : hoveredCode === 'B' ? 'w-[40%]' : 'w-1/2'}`}
         onMouseEnter={() => handleHover('A')}
         onMouseLeave={handleLeave}
       >
@@ -23,7 +32,7 @@ export default function CodeCarousel({ aCode, bCode, language }: CodeCarouselPro
 
       {/* B 코드 */}
       <div
-        className={`transition-all duration-300 ${hoveredCode === 'B' ? 'w-[60%]' : hoveredCode === 'A' ? 'w-[40%]' : 'w-1/2'}`}
+        className={`transition-all duration-300 border-2 ${TEAM_STYLES.B.border} rounded-lg overflow-hidden ${hoveredCode === 'B' ? 'w-[60%]' : hoveredCode === 'A' ? 'w-[40%]' : 'w-1/2'}`}
         onMouseEnter={() => handleHover('B')}
         onMouseLeave={handleLeave}
       >
