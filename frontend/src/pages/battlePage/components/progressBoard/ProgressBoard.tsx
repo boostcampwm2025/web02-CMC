@@ -43,9 +43,13 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   // 현재 페이즈의 step 번호 계산 (1-6)
   const getCurrentPhaseStep = () => {
-    // phaseCount를 6으로 나눈 나머지 + 1 (1-6 순환)
-    const step = (phaseCount % 6) + 1;
-    return step;
+    // phaseCount는 ATTACK/DEFENSE 반복 횟수 (1~BATTLE_MAX_PHASE_COUNT)
+    // phase와 phaseCount로 step 계산
+    if (phase === 'OPINION_SHARE') return 1;
+    if (phase === 'ATTACK') return phaseCount * 2; // 1차: 2, 2차: 4
+    if (phase === 'DEFENSE') return phaseCount * 2 + 1; // 1차: 3, 2차: 5
+    if (phase === 'TEAM_SWITCH') return 6;
+    return 1;
   };
 
   // 현재 활성 단계인지 확인
