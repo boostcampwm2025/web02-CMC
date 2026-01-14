@@ -23,6 +23,7 @@ export function useBattleProgress() {
 
       // 페이즈가 변경되면 투표 리스트 초기화
       useBattleStore.getState().setDiscussions([]);
+      useBattleStore.getState().commitOpponentNotice();
     };
 
     // Round 변경 이벤트 구독
