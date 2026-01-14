@@ -79,6 +79,7 @@ export interface BattleJoinData {
 
   // 배틀 상태 정보
   round: number;
+  topics: string[];
   phase: BattlePhase;
   phaseCount: number;
   startedAt: number | null;
@@ -96,6 +97,7 @@ export interface BattleProgressState {
   round: number;
   phase: BattlePhase;
   phaseCount: number;
+  topic: string;
   startedAt: number | null;
   expiredAt: number | null;
 }
