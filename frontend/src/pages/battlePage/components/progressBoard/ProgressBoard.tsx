@@ -59,7 +59,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   // 현재 라운드-페이즈 번호 계산
   const getCurrentStageNumber = () => {
-    if (phase === 'PENDING') return '배틀 대기중';
+    if (phase === 'PENDING') return '대기중';
     return `${round} - ${getCurrentPhaseStep()}`;
   };
 
