@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import SidebarHeader from './SidebarHeader';
 import BattleInfoSection from './BattleInfoSection';
 import { useResize } from '../../hooks/useResize';
@@ -22,10 +22,26 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
     initialWidth: 400
   });
 
+  const [isWideLayout, setIsWideLayout] = useState(false);
+  const asideRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        setIsWideLayout(entries[0].contentRect.width >= 650);
+      }
+    });
+    if (asideRef.current) {
+      observer.observe(asideRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <aside
+      ref={asideRef}
       style={{ width: `${width}px` }}
-      className={`fixed top-0 left-0 h-full bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
+      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       } ${isResizing ? 'select-none' : ''}`}
     >
@@ -35,7 +51,7 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
           {activeTab === 'info' ? (
             <BattleInfoSection title={title} description={description} language={language} category={category} />
           ) : (
-            <SidebarTimelineSection />
+            <SidebarTimelineSection isWide={isWideLayout} />
           )}
         </div>
         <div className="relative h-[calc(100vh-65px)]">

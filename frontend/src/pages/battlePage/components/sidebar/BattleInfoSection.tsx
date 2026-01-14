@@ -5,7 +5,7 @@ interface InfoSectionProps {
   category: string;
 }
 
-export default function InfoSection({ title, description, language, category }: InfoSectionProps) {
+export default function BattleInfoSection({ title, description, language, category }: InfoSectionProps) {
   return (
     <div className="p-6 space-y-8">
       <div className="text-left">

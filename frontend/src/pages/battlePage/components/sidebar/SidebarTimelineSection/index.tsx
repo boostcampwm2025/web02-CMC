@@ -4,34 +4,55 @@ import RoundHeader from './RoundHeader';
 import PhaseCard from './PhaseCard';
 import PhaseDivider from './PhaseDivider';
 
-export default function SidebarTimelineSection() {
+interface SidebarTimelineSectionProps {
+  isWide?: boolean;
+}
+
+const FIRST_SUB_ROUND = 1;
+const SECOND_SUB_ROUND = 2;
+const SUB_ROUNDS_PER_ROUND = [FIRST_SUB_ROUND, SECOND_SUB_ROUND];
+const TEAMS_PER_SUB_ROUND = 2;
+const DEFAULT_EXPANDED_ROUND = '1-1';
+
+export default function SidebarTimelineSection({ isWide = false }: SidebarTimelineSectionProps) {
   const timelines = useBattleStore(selectTimelines);
   const battleProgress = useBattleStore(selectBattleProgress);
-  const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set(['1-1']));
+  const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set([DEFAULT_EXPANDED_ROUND]));
 
   const attackList = timelines?.attacks || [];
   const defenseList = timelines?.defenses || [];
   const currentRound = battleProgress?.round || 1;
   const currentPhase = battleProgress?.phase;
+  const currentPhaseCount = battleProgress?.phaseCount || 1;
 
-  // 타임라인 데이터를 서브라운드(n-1, n-2) 단위로 그룹화 하는 로직
+  // Active 상태 판단 로직
+  const isSubRoundActive = (round: number, subIndex: number): boolean => {
+    if (round !== currentRound) return false;
+
+    if (currentPhase === 'ATTACK' || currentPhase === 'DEFENSE') {
+      return subIndex === currentPhaseCount;
+    }
+
+    if (currentPhase === 'TEAM_SWITCH') {
+      return subIndex === SECOND_SUB_ROUND;
+    }
+
+    return subIndex === FIRST_SUB_ROUND;
+  };
+
+  // 타임라인 데이터를 서브라운드(n-1, n-2) 단위로 그룹화
   const subRoundsData = useMemo(() => {
-    const totalRounds = Math.max(Math.ceil(attackList.length / 4), Math.ceil(defenseList.length / 4), currentRound);
-
-    return Array.from({ length: totalRounds }, (_, i) => {
+    return Array.from({ length: currentRound }, (_, i) => {
       const round = i + 1;
-      return [1, 2].map((subIndex) => {
-        const baseIdx = i * 4 + (subIndex - 1) * 2;
+      return SUB_ROUNDS_PER_ROUND.map((subIndex) => {
+        const pairIndex = (i * TEAMS_PER_SUB_ROUND + subIndex - 1) * TEAMS_PER_SUB_ROUND;
+
         return {
           round: `${round}-${subIndex}`,
-          challenge: {
-            teamA: attackList[baseIdx] || null,
-            teamB: attackList[baseIdx + 1] || null
-          },
-          rebuttal: {
-            teamA: defenseList[baseIdx] || null,
-            teamB: defenseList[baseIdx + 1] || null
-          }
+          attackA: attackList[pairIndex] || null,
+          attackB: attackList[pairIndex + 1] || null,
+          defenseB: defenseList[pairIndex] || null,
+          defenseA: defenseList[pairIndex + 1] || null
         };
       });
     }).flat();
@@ -51,16 +72,16 @@ export default function SidebarTimelineSection() {
     <section className="p-4 overflow-y-auto max-h-[calc(100vh-100px)] custom-scrollbar">
       <div className="space-y-2">
         {subRoundsData.map((subRound) => {
-          const isExpanded = expandedRounds.has(subRound.round);
           const [round, subIndex] = subRound.round.split('-').map(Number);
-          const isActive =
-            round === currentRound &&
-            ((subIndex === 1 && currentPhase === 'ATTACK') || (subIndex === 2 && currentPhase === 'DEFENSE'));
+          const isExpanded = expandedRounds.has(subRound.round);
+          const isActive = isSubRoundActive(round, subIndex);
 
           return (
             <div
               key={subRound.round}
-              className={`bg-[#1a1a2e] rounded-lg border overflow-hidden ${isActive ? 'border-orange-500/50' : 'border-[#2d2d3f]'}`}
+              className={`bg-[#1a1a2e] rounded-lg border overflow-hidden ${
+                isActive ? 'border-orange-500/50' : 'border-[#2d2d3f]'
+              }`}
             >
               <RoundHeader
                 round={subRound.round}
@@ -73,14 +94,16 @@ export default function SidebarTimelineSection() {
                 <div className="border-t border-[#2d2d3f]">
                   <PhaseCard
                     phase="attack-A"
-                    challengeMessage={subRound.challenge.teamA}
-                    rebuttalMessage={subRound.rebuttal.teamB}
+                    challengeMessage={subRound.attackA}
+                    rebuttalMessage={subRound.defenseB}
+                    isWide={isWide}
                   />
                   <PhaseDivider />
                   <PhaseCard
                     phase="attack-B"
-                    challengeMessage={subRound.challenge.teamB}
-                    rebuttalMessage={subRound.rebuttal.teamA}
+                    challengeMessage={subRound.attackB}
+                    rebuttalMessage={subRound.defenseA}
+                    isWide={isWide}
                   />
                 </div>
               )}
