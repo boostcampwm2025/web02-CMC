@@ -78,7 +78,13 @@ export const TUTORIAL_STEPS: Record<TutorialStep, StepContent | null> = {
     stepNumber: 7,
     highlightElement: '[data-tutorial="discussion-input"]'
   },
+  sidebar: {
+    title: '사이드바',
+    description: '사이드바에서 문제 설명과 타임라인을 확인할 수 있어요. 필요한 정보를 빠르게 찾아보세요!',
+    stepNumber: 8,
+    highlightElement: '[data-tutorial="sidebar-buttons"]'
+  },
   completed: null
 };
 
-export const TOTAL_STEPS = 7;
+export const TOTAL_STEPS = 8;

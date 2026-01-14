@@ -11,6 +11,7 @@ export type TutorialStep =
   | 'vote'
   | 'chat'
   | 'discussionInput'
+  | 'sidebar'
   | 'completed';
 
 interface UseTutorialReturn {
@@ -68,6 +69,7 @@ export function useTutorial(): UseTutorialReturn {
       'vote',
       'chat',
       'discussionInput',
+      'sidebar',
       'completed'
     ];
     const currentIndex = steps.indexOf(currentStep);
@@ -99,6 +101,7 @@ export function useTutorial(): UseTutorialReturn {
       'vote',
       'chat',
       'discussionInput',
+      'sidebar',
       'completed'
     ];
     const currentIndex = steps.indexOf(currentStep);
