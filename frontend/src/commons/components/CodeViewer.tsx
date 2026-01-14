@@ -9,6 +9,7 @@ interface CodeViewerProps {
   containerClassName?: string;
   minHeight?: string;
   maxHeight?: string;
+  'data-testid'?: string;
 }
 
 export default function CodeViewer({
@@ -16,12 +17,13 @@ export default function CodeViewer({
   language,
   containerClassName,
   minHeight = '460px',
-  maxHeight = '600px'
+  maxHeight = '600px',
+  'data-testid': dataTestId
 }: CodeViewerProps) {
   const syntaxLanguage = languageMapper(language);
 
   return (
-    <div className={`${containerClassName || 'w-full h-full'}  overflow-hidden `}>
+    <div data-testid={dataTestId} className={`${containerClassName || 'w-full h-full'}  overflow-hidden `}>
       <SyntaxHighlighter
         language={syntaxLanguage}
         style={vscDarkPlus}
