@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import SidebarHeader from './SidebarHeader';
 import BattleInfoSection from './BattleInfoSection';
-import TimelineSection from '../timeline/TimelineSection';
 import { useResize } from '../../hooks/useResize';
+import SidebarTimelineSection from './SidebarTimelineSection';
 
 interface BattleSidebarProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
           {activeTab === 'info' ? (
             <BattleInfoSection title={title} description={description} language={language} category={category} />
           ) : (
-            <TimelineSection />
+            <SidebarTimelineSection />
           )}
         </div>
         <div className="relative h-[calc(100vh-65px)]">
