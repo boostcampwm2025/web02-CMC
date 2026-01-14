@@ -7,18 +7,18 @@ interface MessageCardProps {
 }
 
 export default function MessageCard({ message, team, type }: MessageCardProps) {
+  const isTeamA = team === 'A';
+
   if (!message) {
     return (
-      <div className="p-3 text-center">
+      <div className="p-3 min-h-[72px] flex items-center justify-center">
         <div className="text-gray-600 text-xs">{type === 'challenge' ? '이의제기 대기 중' : '반론 대기 중'}</div>
       </div>
     );
   }
 
-  const isTeamA = team === 'A';
-
   return (
-    <div className="p-3">
+    <div className="p-3 min-h-[72px] animate-message-appear">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1">
           <span
