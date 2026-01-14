@@ -33,7 +33,7 @@ const PHASE_STYLES: Record<'attack-A' | 'attack-B', PhaseStyle> = {
     arrow: 'text-red-400',
     challenge: 'bg-gradient-to-l from-red-500/5',
     rebuttal: 'bg-gradient-to-r from-blue-500/5',
-    hasBorderTop: true
+    hasBorderTop: false
   }
 };
 

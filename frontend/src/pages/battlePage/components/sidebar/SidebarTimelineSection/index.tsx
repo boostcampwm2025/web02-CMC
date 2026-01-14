@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useBattleStore, selectTimelines, selectBattleProgress } from '../../../stores/battleStore';
 import RoundHeader from './RoundHeader';
 import PhaseCard from './PhaseCard';
+import PhaseDivider from './PhaseDivider';
 
 export default function SidebarTimelineSection() {
   const timelines = useBattleStore(selectTimelines);
@@ -75,6 +76,7 @@ export default function SidebarTimelineSection() {
                     challengeMessage={subRound.challenge.teamA}
                     rebuttalMessage={subRound.rebuttal.teamB}
                   />
+                  <PhaseDivider />
                   <PhaseCard
                     phase="attack-B"
                     challengeMessage={subRound.challenge.teamB}
