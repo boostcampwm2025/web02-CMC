@@ -62,7 +62,11 @@ export default function BattlePage() {
   return (
     <div className="text-white relative min-h-screen">
       {/* 책갈피 버튼 */}
-      <BookmarkButton onOpen={handleOpenSidebar} isOpen={isSidebarOpen} />
+      <BookmarkButton
+        onOpen={handleOpenSidebar}
+        isOpen={isSidebarOpen}
+        highlight={isTutorialOpen && currentStep === 'sidebar'}
+      />
 
       {/* 사이드바 */}
       <BattleSidebar
