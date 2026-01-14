@@ -135,9 +135,8 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
 
   it('일반 채팅과 상대팀 공지가 함께 표시되는지', () => {
     mockSelectedTeam = 'A';
-    mockAllMessages = [
-      { id: '1', user: 'user-123', team: 'A', content: '안녕하세요', timestamp: '2026-01-04 10:00:00', type: 'chat' },
-      { id: '2', user: 'user-456', team: 'B', content: '반갑습니다', timestamp: '2026-01-04 10:03:00', type: 'chat' }
+    mockTeamMessages = [
+      { id: '1', user: 'user-123', team: 'A', content: '안녕하세요', timestamp: '2026-01-04 10:00:00', type: 'chat' }
     ];
     mockOpponentNotice = {
       id: '3',
@@ -150,7 +149,6 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
     render(<ChatSection />);
 
     expect(screen.getByText('안녕하세요')).toBeInTheDocument();
-    expect(screen.getByText('반갑습니다')).toBeInTheDocument();
     expect(screen.getByText('이 코드는 문제가 있습니다')).toBeInTheDocument();
   });
 
