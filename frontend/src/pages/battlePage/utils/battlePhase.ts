@@ -1,6 +1,4 @@
 import type { BattlePhase, Team } from '@/commons/types/battle';
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
 
 export const isMyTeamAttacking = (team: Team, phase?: BattlePhase): boolean => {
   if (!phase) return false;
@@ -21,10 +19,9 @@ export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = fals
 export const getDiscussionConfig = (phase?: BattlePhase) => {
   if (phase === 'ATTACK') {
     return {
-      label: '공격',
-      placeholderText: '상대 진영의 코드와 주장에 이의제기를 던지세요...',
+      label: '이의제기',
+      placeholderText: '상대 코드의 허점을 찾아 이의 제기하세요',
       buttonText: '이의제기하기',
-      Icon: BattleIcon,
       isAttacking: true,
       isActive: true,
       colors: {
@@ -43,10 +40,9 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
 
   if (phase === 'DEFENSE') {
     return {
-      label: '방어',
-      placeholderText: '상대 진영의 이의제기에 반박하세요...',
+      label: '반론',
+      placeholderText: '상대 주장에 논리적으로 반박해 보세요',
       buttonText: '반론하기',
-      Icon: ShieldIcon,
       isAttacking: false,
       isActive: true,
       colors: {
@@ -56,7 +52,7 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
         glowBorder: 'border-blue-500',
         focusBorder: 'border-blue-500',
         focusRing: 'focus:ring-blue-500/30',
-        bg: 'bg-gradient-to-r from-blue-950/50 to-blue-900/30',
+        bg: 'bg-gradient-to-r ffrom-black/50 to-blue-900/30',
         badge: 'bg-blue-500/20 border-blue-500/40 text-blue-400',
         button: 'bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 text-white'
       }
@@ -68,7 +64,6 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
     placeholderText: '',
     buttonText: '',
     isAttacking: false,
-    Icon: null,
     isActive: false,
     colors: {
       iconBox: '',
