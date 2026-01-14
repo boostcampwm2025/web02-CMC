@@ -9,15 +9,15 @@ export const BATTLE_PHASE = {
   },
   ATTACK: {
     name: 'ATTACK',
-    time: 60 * 1000, // 1분
+    time: 3 * 60 * 1000, // 3분
   },
   DEFENSE: {
     name: 'DEFENSE',
-    time: 60 * 1000, // 1분
+    time: 4 * 60 * 1000, // 4분
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
-    time: 15 * 1000, // 15초
+    time: 40 * 1000, // 40초
   },
 } as const
 
