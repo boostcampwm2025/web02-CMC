@@ -134,9 +134,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
               bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
           />
 
-          <div className="text-center text-[12px] tracking-[0.6px] uppercase text-[#FF6900]">배틀 진행 상황</div>
-
-          <div className="flex items-center justify-between gap-3 px-4">
+          <div className="flex items-center justify-between gap-3 px-4 pt-6">
             {STAGES.map((stage, index) => (
               <div key={stage.step} className="flex items-center gap-3">
                 <StageIcon
@@ -149,10 +147,6 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
                 {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />}
               </div>
             ))}
-          </div>
-
-          <div className="relative mt-1 h-[15px]">
-            <div className="text-center text-[10px] font-bold text-[#6A7282]">Round {round}</div>
           </div>
         </div>
       </div>
