@@ -114,7 +114,7 @@ export default function BattlePage() {
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
-          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4 transition-all duration-300 ease-out ${
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4 transition-all duration-500 ease-out ${
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
