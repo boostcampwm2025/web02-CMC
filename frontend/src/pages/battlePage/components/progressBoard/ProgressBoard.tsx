@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { StageIcon } from './StageIcon';
 import DownArrowIcon from '@/assets/icon/downArrow.svg?react';
 import { selectBattleProgress, useBattleStore } from '../../stores/battleStore';
@@ -30,6 +30,13 @@ interface BattleProgressBoardProps {
 export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgressBoardProps) {
   const [collapsed, setCollapsed] = useState(false);
   const battleProgress = useBattleStore(selectBattleProgress);
+
+  // 프로그레스 바 duration 계산
+  const duration = useMemo(() => {
+    if (!battleProgress?.expiredAt || !battleProgress?.startedAt) return 60;
+    return Math.max(0, (battleProgress.expiredAt - battleProgress.startedAt) / 1000);
+  }, [battleProgress?.expiredAt, battleProgress?.startedAt]);
+
   if (!battleProgress) return null;
 
   const { round, phase } = battleProgress;
@@ -155,8 +162,25 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
               </div>
             ))}
           </div>
+
+          <div className="mt-4 h-[6px] bg-[#0A0A1A] rounded-full overflow-hidden">
+            <div
+              key={`${battleProgress?.expiredAt}-${battleProgress?.startedAt}`}
+              className="h-full bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
+              style={{
+                animation: `shrink ${duration}s linear`,
+                animationFillMode: 'forwards'
+              }}
+            />
+          </div>
         </div>
       </div>
+      <style>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 }
