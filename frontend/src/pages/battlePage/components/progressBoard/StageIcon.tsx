@@ -4,7 +4,6 @@ import ShieldIcon from '@/assets/icon/shield.svg?react';
 import SwitchIcon from '@/assets/icon/switch.svg?react';
 
 export function StageIcon({
-  label,
   icon,
   bg,
   border,
@@ -12,7 +11,6 @@ export function StageIcon({
   active,
   small
 }: {
-  label: string;
   icon: 'message' | 'battle' | 'shield' | 'switch';
   bg: string;
   border: string;
@@ -56,10 +54,6 @@ export function StageIcon({
         }}
       >
         {renderIcon()}
-      </div>
-
-      <div className="text-[10px] font-bold text-center" style={{ color: active ? text : '#99A1AF' }}>
-        {label}
       </div>
     </div>
   );
