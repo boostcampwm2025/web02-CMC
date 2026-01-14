@@ -47,7 +47,7 @@ export default function SidebarTimelineSection() {
   };
 
   return (
-    <section className="p-4">
+    <section className="p-4 overflow-y-auto max-h-[calc(100vh-100px)] custom-scrollbar">
       <div className="space-y-2">
         {subRoundsData.map((subRound) => {
           const isExpanded = expandedRounds.has(subRound.round);
