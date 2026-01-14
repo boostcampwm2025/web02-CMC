@@ -52,7 +52,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
   const getCurrentStageNumber = () => {
     if (phase === 'PENDING') return '배틀 대기중';
     const currentStage = STAGES.find((stage) => isActiveStage(stage.phase, stage.turn));
-    return currentStage ? `${currentStage.turn || round}-${currentStage.step}` : '1-1';
+    return currentStage ? `${currentStage.turn || round} - ${currentStage.step}` : '1 - 1';
   };
 
   const getStageColor = (stage: BattlePhase) => COLOR_MAP[stage] || COLOR_MAP.BASE;
@@ -71,7 +71,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         className={`
           pointer-events-auto
           relative
-          w-[850px]
+          w-[750px]
           rounded-lg
           bg-[#1a1a2ef2]
           border-b-[1.333px] border-b-[#1E2939]
@@ -137,19 +137,21 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         <div
           className={`
             absolute left-[26.21px] top-[16px]
-            w-[800px]
+            w-[700px]
             flex flex-col gap-2
             transition-opacity duration-200
             ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
           `}
         >
           <div
-            className="absolute left-[6px] top-[-4px] h-[4px] w-[790px]
+            className="absolute left-[6px] top-[-4px] h-[4px] w-[690px]
               bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
           />
 
-          <div className="flex items-center justify-between gap-3 px-4 pt-6">
-            <div className="text-[24px] font-bold text-[#FF6900] min-w-[120px]">{getCurrentStageNumber()}</div>
+          <div className="flex items-center gap-4 px-4 pt-6">
+            <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[52.8px]">
+              {getCurrentStageNumber()}
+            </div>
             {STAGES.map((stage, index) => (
               <div key={stage.step} className="flex items-center gap-3">
                 <StageIcon
@@ -158,7 +160,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
                   active={isActiveStage(stage.phase, stage.turn)}
                   small={stage.step !== 1}
                 />
-                {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />}
+                {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40" />}
               </div>
             ))}
           </div>
