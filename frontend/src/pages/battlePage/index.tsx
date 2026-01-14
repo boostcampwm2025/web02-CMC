@@ -22,6 +22,7 @@ import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
+import RoundUpdateModal from './components/effects/RoundUpdateModal';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
@@ -69,11 +70,12 @@ export default function BattlePage() {
     closeModal: handleCloseTeamChangeModal
   } = useModal(false);
 
-  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, handleTeamChange } = useBattle({
-    battleId,
-    onOpenTeamChangeModal: handleOpenTeamChangeModal,
-    onCloseTeamChangeModal: handleCloseTeamChangeModal
-  });
+  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, hideRoundEffect, roundModal, handleTeamChange } =
+    useBattle({
+      battleId,
+      onOpenTeamChangeModal: handleOpenTeamChangeModal,
+      onCloseTeamChangeModal: handleCloseTeamChangeModal
+    });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
@@ -171,6 +173,10 @@ export default function BattlePage() {
             leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
             onClose={closeVoteResultModal}
           />
+        )}
+
+        {roundModal.isPending && !isVoteResultModalOpen && (
+          <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
 
         <TutorialModal
