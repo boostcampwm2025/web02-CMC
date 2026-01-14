@@ -13,14 +13,14 @@ const COLOR_MAP = {
   PENDING: { bg: '#0A0A1A', border: '#364153', text: '#99A1AF' }
 };
 
-// 6단계 정의
+// 6단계 정의 (한 라운드당 6개 페이즈)
 const STAGES = [
-  { step: 1, phase: 'OPINION_SHARE', icon: 'message', label: '의견공유', turn: null },
-  { step: 2, phase: 'ATTACK', icon: 'battle', label: '공격(1차)', turn: 1 },
-  { step: 3, phase: 'DEFENSE', icon: 'shield', label: '수비(1차)', turn: 1 },
-  { step: 4, phase: 'ATTACK', icon: 'battle', label: '공격(2차)', turn: 2 },
-  { step: 5, phase: 'DEFENSE', icon: 'shield', label: '수비(2차)', turn: 2 },
-  { step: 6, phase: 'TEAM_SWITCH', icon: 'switch', label: '팀변경', turn: null }
+  { step: 1, phase: 'OPINION_SHARE', icon: 'message', label: '의견공유' },
+  { step: 2, phase: 'ATTACK', icon: 'battle', label: '공격(1차)' },
+  { step: 3, phase: 'DEFENSE', icon: 'shield', label: '수비(1차)' },
+  { step: 4, phase: 'ATTACK', icon: 'battle', label: '공격(2차)' },
+  { step: 5, phase: 'DEFENSE', icon: 'shield', label: '수비(2차)' },
+  { step: 6, phase: 'TEAM_SWITCH', icon: 'switch', label: '팀변경' }
 ] as const;
 
 interface BattleProgressBoardProps {
@@ -39,20 +39,24 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   if (!battleProgress) return null;
 
-  const { round, phase } = battleProgress;
+  const { round, phase, phaseCount } = battleProgress;
+
+  // 현재 페이즈의 step 번호 계산 (1-6)
+  const getCurrentPhaseStep = () => {
+    // phaseCount를 6으로 나눈 나머지 + 1 (1-6 순환)
+    const step = (phaseCount % 6) + 1;
+    return step;
+  };
 
   // 현재 활성 단계인지 확인
-  const isActiveStage = (stagePhase: string, stageTurn: number | null) => {
-    if (phase !== stagePhase) return false;
-    if (stageTurn === null) return true;
-    return round === stageTurn;
+  const isActiveStage = (stageStep: number) => {
+    return getCurrentPhaseStep() === stageStep;
   };
 
   // 현재 라운드-페이즈 번호 계산
   const getCurrentStageNumber = () => {
     if (phase === 'PENDING') return '배틀 대기중';
-    const currentStage = STAGES.find((stage) => isActiveStage(stage.phase, stage.turn));
-    return currentStage ? `${currentStage.turn || round} - ${currentStage.step}` : '1 - 1';
+    return `${round} - ${getCurrentPhaseStep()}`;
   };
 
   const getStageColor = (stage: BattlePhase) => COLOR_MAP[stage] || COLOR_MAP.BASE;
@@ -157,7 +161,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
                 <StageIcon
                   icon={stage.icon as 'message' | 'battle' | 'shield' | 'switch'}
                   {...getStageColor(stage.phase as BattlePhase)}
-                  active={isActiveStage(stage.phase, stage.turn)}
+                  active={isActiveStage(stage.step)}
                   small={stage.step !== 1}
                 />
                 {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40" />}
