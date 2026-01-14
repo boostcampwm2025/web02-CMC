@@ -25,7 +25,7 @@ export default function BattleCodeViewer({ team, language, code }: CodeViewerPro
   const styles = TEAM_STYLES[team];
 
   return (
-    <div className={`flex-1 ${styles.bg} rounded-lg overflow-hidden border-2 ${styles.border}`}>
+    <div className={`flex-1 min-w-0 ${styles.bg} rounded-lg overflow-hidden border-2 ${styles.border}`}>
       <div className={`${styles.header} px-4 py-2 flex justify-between items-center`}>
         <span className="text-[14px] text-white">{language}</span>
         <span className={`text-[16px] font-bold ${styles.text}`}>구현 {team}</span>

@@ -88,7 +88,7 @@ export default function BattlePage() {
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <div className="flex gap-2 py-4">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <CodeSection
                 onViewChange={setViewMode}
                 currentView={viewMode}

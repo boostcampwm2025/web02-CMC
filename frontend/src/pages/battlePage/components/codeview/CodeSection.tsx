@@ -15,7 +15,7 @@ export default function CodeSection({ onViewChange, currentView, codeA, codeB, l
 
   return (
     <section
-      className="w-full h-fit flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden"
+      className="w-full max-w-full h-fit flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden"
       data-tutorial="code-section"
     >
       <CodeHeader
@@ -24,7 +24,7 @@ export default function CodeSection({ onViewChange, currentView, codeA, codeB, l
         currentTab={currentTab}
         onTabChange={setCurrentTab}
       />
-      <div className="flex gap-4 p-4 flex-1">
+      <div className="flex gap-4 p-4 flex-1 min-w-0">
         {currentView === 'split' ? (
           <>
             <CodeViewer team="A" language={language} code={codeA} />
