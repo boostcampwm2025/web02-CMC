@@ -26,13 +26,15 @@ export default function MessageCard({ message, team, type }: MessageCardProps) {
           >
             {isTeamA ? 'A팀' : 'B팀'}
           </span>
-          <span className="text-white font-medium text-[11px]">{message.authorId ? message.authorId : '익명'}</span>
+          <span className="text-white font-medium text-[11px] break-all">
+            {message.authorId ? message.authorId : '익명'}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-gray-500 text-[10px]">{message.upvotes}명 지지</span>
         </div>
       </div>
-      <p className="text-gray-300 mb-2 leading-relaxed text-[11px]">{message.content}</p>
+      <p className="text-gray-300 mb-2 leading-relaxed text-[11px] break-words">{message.content}</p>
     </div>
   );
 }
