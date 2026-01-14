@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import { isInputDisabled, getDiscussionConfig } from '../../utils/battlePhase';
+import { getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
-import { TEAM_COLORS } from '../../types/teamColors';
+import BattleIcon from '@/assets/icon/battle.svg?react';
+import ShieldIcon from '@/assets/icon/shield.svg?react';
 
 interface DiscussionInputProps {
   disabled?: boolean;
@@ -14,18 +14,18 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
   const team = useBattleStore(selectSelectedTeam);
   const [inputValue, setInputValue] = useState('');
 
-  // 중립 진영은 DiscussionInput 표시 안 함
-  if (team === 'NONE') {
+  const phase = battleProgress?.phase;
+  const isActive = phase === 'ATTACK' || phase === 'DEFENSE';
+
+  // 중립 진영이거나 공격/방어 Phase가 아니면 DiscussionInput 표시 안 함
+  if (team === 'NONE' || !isActive) {
     return null;
   }
 
-  const phase = battleProgress?.phase;
-
-  const { placeholderText, buttonText, Icon, isAttacking } = getDiscussionConfig(team, phase);
-  const disabled_input = isInputDisabled(team, phase, disabled);
+  const config = getDiscussionConfig(phase);
 
   const handleSubmit = () => {
-    if (inputValue.trim() && !disabled_input) {
+    if (inputValue.trim() && !disabled) {
       onSubmit?.(inputValue);
       setInputValue('');
     }
@@ -37,59 +37,71 @@ export default function DiscussionInput({ disabled = false, onSubmit }: Discussi
     }
   };
 
-  const hintText = isAttacking
-    ? '상대 진영의 코드와 주장의 빈틈을 노려 반론을 던져보세요.'
-    : '아직 이의제기 단계가 아닙니다. 잠시만 기다려주세요.';
+  // Phase별 컬러 및 아이콘 설정
+  const getPhaseStyle = () => {
+    if (phase === 'ATTACK') {
+      return {
+        Icon: BattleIcon,
+        iconBoxBg: 'bg-red-500/20',
+        iconColor: 'text-red-400',
+        borderColor: 'border-red-500/50',
+        focusRingColor: 'focus:ring-red-500/50',
+        bgGradient: 'from-red-950/30 to-red-900/20',
+        textColor: 'text-red-400'
+      };
+    } else {
+      // DEFENSE
+      return {
+        Icon: ShieldIcon,
+        iconBoxBg: 'bg-blue-500/20',
+        iconColor: 'text-blue-400',
+        borderColor: 'border-blue-500/50',
+        focusRingColor: 'focus:ring-blue-500/50',
+        bgGradient: 'from-blue-950/30 to-blue-900/20',
+        textColor: 'text-blue-400'
+      };
+    }
+  };
 
-  const colors = TEAM_COLORS[team];
+  const phaseStyle = getPhaseStyle();
+  const PhaseIcon = phaseStyle.Icon;
 
   return (
     <section
-      className={`w-full bg-linear-to-r ${colors.containerGradient} border ${colors.border} rounded-lg overflow-hidden shadow-lg`}
+      className={`w-full bg-linear-to-r ${phaseStyle.bgGradient} border ${phaseStyle.borderColor} rounded-lg overflow-hidden shadow-lg`}
       data-tutorial="discussion-input"
     >
-      {/* 헤더 */}
-      <div className="px-4 pt-4 pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BattleIcon className={`w-5 h-5 ${colors.primary}`} />
-            <h3 className="text-white text-[15px] font-semibold">{team}팀 이의제기</h3>
+      <div className="px-4 py-4">
+        <div className="flex items-center gap-4">
+          {/* 좌측 아이콘 박스 */}
+          <div className={`rounded-xl flex items-center justify-center shrink-0 w-16 h-16 ${phaseStyle.iconBoxBg}`}>
+            <PhaseIcon className={`w-8 h-8 ${phaseStyle.iconColor}`} />
           </div>
-          {isAttacking && (
-            <div
-              className={`flex items-center gap-1.5 bg-linear-to-r ${colors.badgeGradient} px-3 py-1.5 rounded-full`}
-            >
-              <span className="text-white text-[12px] font-medium">반격 시간</span>
+
+          {/* 입력 영역 */}
+          <div className="flex-1 flex flex-col gap-3">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder={config.placeholderText}
+                disabled={disabled}
+                autoFocus
+                className={`flex-1 bg-black/30 backdrop-blur-md border ${phaseStyle.borderColor} rounded-lg px-4 py-3 text-[14px] text-white placeholder-gray-500 focus:outline-none focus:ring-2 ${phaseStyle.focusRingColor} disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
+              />
+              <button
+                onClick={handleSubmit}
+                disabled={disabled}
+                className={`px-4 py-3 bg-black/30 backdrop-blur-md text-white rounded-lg border border-white/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_6px_-1px_rgba(0,0,0,0.3),0_2px_4px_-1px_rgba(0,0,0,0.2)] hover:bg-black/40 hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.4),0_4px_6px_-2px_rgba(0,0,0,0.3)] active:bg-black/50 font-medium text-[14px] ${
+                  isActive ? 'hover:scale-105' : ''
+                }`}
+              >
+                {config.buttonText}
+              </button>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* 입력 영역 */}
-      <div className="px-4 pb-4">
-        <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder={placeholderText}
-            disabled={disabled_input}
-            autoFocus
-            className={`flex-1 bg-[#2D2D3F] border ${colors.border} rounded-lg px-4 py-3 text-[14px] text-white placeholder-[#666] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={disabled_input}
-            className={`px-6 py-3 ${colors.primaryBg} text-white rounded-lg ${colors.buttonHover} ${colors.buttonActive} transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-[14px] shadow-md hover:shadow-lg`}
-          >
-            <Icon className="w-5 h-5" />
-            {buttonText}
-          </button>
-        </div>
-
-        <div className={`flex items-start gap-2 ${colors.primary} text-[12px]`}>
-          <p className="leading-relaxed">{hintText}</p>
+          </div>
         </div>
       </div>
     </section>

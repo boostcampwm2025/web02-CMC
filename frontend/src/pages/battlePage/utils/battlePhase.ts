@@ -1,6 +1,4 @@
 import type { BattlePhase, Team } from '@/commons/types/battle';
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
 
 export const isMyTeamAttacking = (team: Team, phase?: BattlePhase): boolean => {
   if (!phase) return false;
@@ -18,18 +16,30 @@ export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = fals
   return false;
 };
 
-export const getDiscussionConfig = (team: Team, phase?: BattlePhase) => {
-  const isAttacking = isMyTeamAttacking(team, phase) || phase === 'ATTACK';
+export const getDiscussionConfig = (phase?: BattlePhase) => {
+  if (phase === 'ATTACK') {
+    return {
+      placeholderText: '상대 진영의 코드와 주장에 이의제기를 던지세요...',
+      buttonText: '이의제기하기',
+      isAttacking: true,
+      isActive: true
+    };
+  }
 
+  if (phase === 'DEFENSE') {
+    return {
+      placeholderText: '상대 진영의 이의제기에 반박하세요...',
+      buttonText: '반론하기',
+      isAttacking: false,
+      isActive: true
+    };
+  }
+
+  // ATTACK/DEFENSE가 아닌 경우 (사용되지 않지만 타입 안정성을 위해)
   return {
-    placeholderText:
-      phase === 'OPINION_SHARE'
-        ? '의견을 공유하세요...'
-        : isAttacking
-          ? '상대 진영에 이의제기...'
-          : '상대 진영에 반론...',
-    buttonText: isAttacking ? '이의제기' : '반론',
-    Icon: isAttacking ? BattleIcon : ShieldIcon,
-    isAttacking
+    placeholderText: '',
+    buttonText: '',
+    isAttacking: false,
+    isActive: false
   };
 };
