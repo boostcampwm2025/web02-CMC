@@ -13,6 +13,16 @@ const COLOR_MAP = {
   PENDING: { bg: '#0A0A1A', border: '#364153', text: '#99A1AF' }
 };
 
+// 6단계 정의
+const STAGES = [
+  { step: 1, phase: 'OPINION_SHARE', icon: 'message', label: '의견공유', turn: null },
+  { step: 2, phase: 'ATTACK', icon: 'battle', label: '공격(1차)', turn: 1 },
+  { step: 3, phase: 'DEFENSE', icon: 'shield', label: '수비(1차)', turn: 1 },
+  { step: 4, phase: 'ATTACK', icon: 'battle', label: '공격(2차)', turn: 2 },
+  { step: 5, phase: 'DEFENSE', icon: 'shield', label: '수비(2차)', turn: 2 },
+  { step: 6, phase: 'TEAM_SWITCH', icon: 'switch', label: '팀변경', turn: null }
+] as const;
+
 interface BattleProgressBoardProps {
   raiseZIndex?: boolean;
 }
@@ -24,9 +34,14 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   const { round, phase } = battleProgress;
 
-  const isActive = (stage: BattlePhase) => phase === stage;
+  // 현재 활성 단계인지 확인
+  const isActiveStage = (stagePhase: string, stageTurn: number | null) => {
+    if (phase !== stagePhase) return false;
+    if (stageTurn === null) return true;
+    return round === stageTurn;
+  };
 
-  const getStageColor = (stage: BattlePhase) => (isActive(stage) ? COLOR_MAP[stage] : COLOR_MAP.BASE);
+  const getStageColor = (stage: BattlePhase) => COLOR_MAP[stage] || COLOR_MAP.BASE;
 
   return (
     <div
@@ -42,7 +57,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         className={`
           pointer-events-auto
           relative
-          w-[400px]
+          w-[850px]
           rounded-lg
           bg-[#1a1a2ef2]
           border-b-[1.333px] border-b-[#1E2939]
@@ -108,44 +123,32 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         <div
           className={`
             absolute left-[26.21px] top-[16px]
-            w-[347.58px]
+            w-[800px]
             flex flex-col gap-2
             transition-opacity duration-200
             ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
           `}
         >
           <div
-            className="absolute left-[6px] top-[-4px] h-[4px] w-[336px]
+            className="absolute left-[6px] top-[-4px] h-[4px] w-[790px]
               bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
           />
 
           <div className="text-center text-[12px] tracking-[0.6px] uppercase text-[#FF6900]">배틀 진행 상황</div>
 
-          <div className="flex items-center gap-4">
-            <StageIcon
-              label="의견 공유"
-              icon="message"
-              {...getStageColor('OPINION_SHARE')}
-              active={isActive('OPINION_SHARE')}
-            />
-
-            <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />
-
-            <StageIcon label="이의제기" icon="battle" small {...getStageColor('ATTACK')} active={isActive('ATTACK')} />
-
-            <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />
-
-            <StageIcon label="반박" icon="shield" small {...getStageColor('DEFENSE')} active={isActive('DEFENSE')} />
-
-            <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />
-
-            <StageIcon
-              label="팀 변경"
-              icon="switch"
-              small
-              {...getStageColor('TEAM_SWITCH')}
-              active={isActive('TEAM_SWITCH')}
-            />
+          <div className="flex items-center justify-between gap-3 px-4">
+            {STAGES.map((stage, index) => (
+              <div key={stage.step} className="flex items-center gap-3">
+                <StageIcon
+                  label={stage.label}
+                  icon={stage.icon as 'message' | 'battle' | 'shield' | 'switch'}
+                  {...getStageColor(stage.phase as BattlePhase)}
+                  active={isActiveStage(stage.phase, stage.turn)}
+                  small={stage.step !== 1}
+                />
+                {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40 -translate-y-2" />}
+              </div>
+            ))}
           </div>
 
           <div className="relative mt-1 h-[15px]">
