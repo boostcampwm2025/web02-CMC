@@ -279,7 +279,7 @@ export class BattlesService extends EventEmitter {
       battle.status = BATTLE_STATUS.OPEN
     }
 
-    const res = BattlePhaseResponseDto.of({
+    const phaseRes = BattlePhaseResponseDto.of({
       battleId,
       phase: battleState.phase,
       phaseCount: battleState.phaseCount,
@@ -287,7 +287,14 @@ export class BattlesService extends EventEmitter {
       expiredAt,
     })
 
-    this.emit('battle:phase:updated', res)
+    const roundRes = BattleRoundResponseDto.of({
+      battleId,
+      round: 1,
+      topic: battleState.topics[0],
+    })
+
+    this.emit('battle:phase:updated', phaseRes)
+    this.emit('battle:round:updated', roundRes)
     this.scheduleNextTick(battleId)
   }
 
@@ -412,7 +419,7 @@ export class BattlesService extends EventEmitter {
       const res = BattleRoundResponseDto.of({
         battleId,
         round: state.round,
-        topic: battle.topics[state.round],
+        topic: battle.topics[state.round - 1],
       })
 
       this.emit('battle:round:updated', res)
