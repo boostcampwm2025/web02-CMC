@@ -13,7 +13,6 @@ export interface TimelineMessageProps {
  * 공수 전환 카드 컴포넌트 Props
  */
 export interface PhaseFlowCardProps {
-  turn: number;
   attackTeam: 'A' | 'B';
   defenseTeam: 'A' | 'B';
   attackMessage: BattleDiscussion | null;
