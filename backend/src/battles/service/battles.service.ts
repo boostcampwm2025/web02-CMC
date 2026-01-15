@@ -170,8 +170,8 @@ export class BattlesService extends EventEmitter {
     return BattleJoinInfoResponseDto.of(battle, activeBattleState)
   }
 
-  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
-    const { battleId, password, team } = battleJoinRequestDto
+  joinBattle(battleJoinRequestDto: BattleJoinRequestDto) {
+    const { clientId, battleId, password, team } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
@@ -187,9 +187,13 @@ export class BattlesService extends EventEmitter {
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
-    this.addParticipant(battleId, clientId, team)
-
+    //  이미 참여한 clientId인지 확인
     const battleState = this.getBattleState(battleId)
+    if (battleState.participants.has(clientId)) {
+      throw new BadRequestException('이미 참여한 사용자입니다.')
+    }
+
+    this.addParticipant(battleId, clientId, team)
 
     return { battleState, team }
   }
@@ -675,12 +679,18 @@ export class BattlesService extends EventEmitter {
     battleState.guestInfoMap.set(guest.id, guest.nickname)
   }
 
-  // 배틀 방의 모든 clientId 조회
-  getBattleClientIds(battleId: string): string[] {
+  // clientId로 닉네임 조회
+  getNicknameByClientId(battleId: string, clientId: string): string | null {
     const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return []
+    if (!battleState) return null
+    return battleState.guestInfoMap.get(clientId) || null
+  }
 
-    return Array.from(battleState.guestInfoMap.keys())
+  // 배틀 방 내 닉네임 중복 체크
+  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return false
+    return Array.from(battleState.guestInfoMap.values()).some(existingNickname => existingNickname === nickname)
   }
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {

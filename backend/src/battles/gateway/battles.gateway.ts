@@ -59,7 +59,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: Socket) {
     try {
       const { battleId } = battleJoinRequestDto
-      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto, client.id)
+      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto)
 
       const res = BattleJoinResponseDto.of(battleState, team)
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)

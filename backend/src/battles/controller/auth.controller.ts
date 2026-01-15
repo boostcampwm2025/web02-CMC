@@ -27,8 +27,7 @@ export class AuthController {
     }
 
     // 배틀 방 내 닉네임 중복 체크
-    const battleClientIds = this.battlesService.getBattleClientIds(battleId)
-    if (this.authService.isNicknameDuplicateInBattle(battleClientIds, trimmedNickname)) {
+    if (this.battlesService.isNicknameDuplicate(battleId, trimmedNickname)) {
       throw new BadRequestException('이미 사용 중인 닉네임입니다.')
     }
 
