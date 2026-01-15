@@ -14,7 +14,7 @@ import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
-import BattleSidebar from './components/sidebar/BattleSidebar';
+import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import TutorialModal from './components/tutorial/TutorialModal';
 import TutorialStepModal from './components/tutorial/TutorialStepModal';

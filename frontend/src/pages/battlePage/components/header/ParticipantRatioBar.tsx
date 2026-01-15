@@ -7,7 +7,7 @@ export default function ParticipantRatioBar() {
   const teamAProgress = (teamACount / total) * 100;
   const neutralProgress = (none / total) * 100;
   const teamBProgress = (teamBCount / total) * 100;
-  console.log({ teamACount, teamBCount, none, total, teamAProgress, neutralProgress, teamBProgress });
+
   return (
     <div className="flex h-[12px]">
       <div className="bg-blue-500 transition-all duration-500 ease-in-out" style={{ width: `${teamAProgress}%` }}></div>

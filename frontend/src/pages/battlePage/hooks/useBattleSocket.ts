@@ -23,9 +23,6 @@ export function useBattleSocket() {
   useEffect(() => {
     if (!userId || !battleId) return;
 
-    // selectedTeam이 설정될 때까지 대기
-    console.log('Socket connecting with team:', selectedTeam);
-
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket']
     });
@@ -34,7 +31,6 @@ export function useBattleSocket() {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      console.log('Emitting battle:join with team:', selectedTeam);
       newSocket.emit('battle:join', {
         userId,
         battleId,
