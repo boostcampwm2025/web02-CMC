@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   backend:
-    image: ghcr.io/boostcampwm2025/web02-CMC-backend:latest
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
     environment:
       PORT: 3000
     ports:
@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/boostcampwm2025/web02-CMC-frontend:latest
+    image: ghcr.io/boostcampwm2025/web02-cmc-frontend:latest
     ports:
       - '80:80'
     depends_on:
