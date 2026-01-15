@@ -74,6 +74,7 @@ export default function TeamSelectPage() {
             language={battleInfo.language}
             currentRound={battleInfo.currentRound}
             totalRounds={battleInfo.totalRounds}
+            topics={battleInfo.topics}
             totalParticipants={totalParticipants || battleInfo.participantCount}
             currentPhase={battleProgress?.phase}
             phaseCount={battleProgress?.phaseCount}
@@ -85,6 +86,7 @@ export default function TeamSelectPage() {
         return (
           <Step3Timeline
             timelines={[...attacks, ...defenses]}
+            topics={battleInfo.topics}
             currentRound={battleInfo.currentRound}
             totalRounds={battleInfo.totalRounds}
           />

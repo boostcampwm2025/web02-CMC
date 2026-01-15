@@ -9,6 +9,7 @@ describe('Step1BattleInfo', () => {
     category: 'JavaScript',
     language: 'javascript',
     currentRound: 3,
+    topics: ['효율성', '가독성', '유지보수성', '테스트', '성능'],
     totalRounds: 5,
     totalParticipants: 95
   };
