@@ -22,6 +22,8 @@ export interface BattleInfo {
   currentRound: number;
   totalRounds: number;
   topics: string[];
+  currentPhase: BattlePhase;
+  phaseCount: number;
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
