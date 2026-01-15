@@ -37,12 +37,12 @@ export const TUTORIAL_STEPS: Record<TutorialStep, StepContent | null> = {
     stepNumber: 1,
     highlightElement: '[data-tutorial="phase-guide"]'
   },
-  timer: {
-    title: '타이머 & 진행 상황',
+  progressBoard: {
+    title: '배틀 현황판',
     description:
-      '각 페이즈의 남은 시간을 확인하세요. 시간이 5초 이하가 되면 경고음이 울립니다! 상단의 프로그레스 바로 전체 배틀 진행률을 확인할 수 있어요.',
+      '현재 페이즈 진행 상황을 한눈에 확인하세요. 단계 아이콘이 활성 페이즈를 표시하고, 하단에서 라운드를 확인할 수 있어요. 필요하면 접어둘 수도 있습니다.',
     stepNumber: 2,
-    highlightElement: '[data-tutorial="timer"]'
+    highlightElement: '[data-tutorial="progress-board"]'
   },
   teamStatus: {
     title: '팀 현황',
@@ -78,7 +78,20 @@ export const TUTORIAL_STEPS: Record<TutorialStep, StepContent | null> = {
     stepNumber: 7,
     highlightElement: '[data-tutorial="discussion-input"]'
   },
+  sidebar: {
+    title: '사이드바',
+    description: '사이드바에서 문제 설명과 타임라인을 확인할 수 있어요. 필요한 정보를 빠르게 찾아보세요!',
+    stepNumber: 8,
+    highlightElement: '[data-tutorial="sidebar-buttons"]'
+  },
+  sidebarPanel: {
+    title: '사이드바 상세 보기',
+    description:
+      '사이드바가 열렸어요. 상단 탭으로 문제 설명과 타임라인을 전환할 수 있고, 필요한 정보를 빠르게 확인할 수 있어요.',
+    stepNumber: 9,
+    highlightElement: '[data-tutorial="sidebar-panel"]'
+  },
   completed: null
 };
 
-export const TOTAL_STEPS = 7;
+export const TOTAL_STEPS = 9;

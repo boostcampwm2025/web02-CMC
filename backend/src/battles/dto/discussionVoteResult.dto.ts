@@ -34,7 +34,7 @@ export class DiscussionVoteResultDto {
     dto.battleId = battleId
     dto.attack = {
       aTeam: DiscussionVoteResultItemDto.of(discussion.aTeam),
-      bTeam: DiscussionVoteResultItemDto.of(discussion.bTeam)
+      bTeam: DiscussionVoteResultItemDto.of(discussion.bTeam),
     }
     return dto
   }
@@ -44,7 +44,7 @@ export class DiscussionVoteResultDto {
     dto.battleId = battleId
     dto.defense = {
       aTeam: DiscussionVoteResultItemDto.of(discussion.aTeam),
-      bTeam: DiscussionVoteResultItemDto.of(discussion.bTeam)
+      bTeam: DiscussionVoteResultItemDto.of(discussion.bTeam),
     }
     return dto
   }

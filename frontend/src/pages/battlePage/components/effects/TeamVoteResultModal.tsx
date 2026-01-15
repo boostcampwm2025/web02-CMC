@@ -59,10 +59,13 @@ export default function TeamVoteResultModal({
       className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300 ${animationClass}`}
       style={{ background: 'linear-gradient(180deg, #000000 0%, #0A0A1F 50%, #000000 100%)' }}
       onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="vote-result-modal-title"
     >
       <div
         className={`relative flex flex-col items-center transition-all duration-500 ${scaleClass}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleClose}
       >
         <div className="absolute inset-0 blur-[100px] bg-gradient-to-r from-orange-500 to-red-500 opacity-25 animate-pulse scale-125" />
 

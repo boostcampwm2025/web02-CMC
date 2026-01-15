@@ -39,7 +39,7 @@ export default function BattleHeader() {
       <TimeProgressBar />
       <div className="px-8 flex-1 grid grid-cols-3 items-center">
         <StageIndicator />
-        <div className="flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center" data-tutorial="timer">
           {phase === 'PENDING' ? (
             <button
               type="button"

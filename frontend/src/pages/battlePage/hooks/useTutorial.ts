@@ -4,13 +4,15 @@ const TUTORIAL_STORAGE_KEY = 'battlePageTutorialCompleted';
 
 export type TutorialStep =
   | 'welcome'
-  | 'timer'
   | 'phaseGuide'
+  | 'progressBoard'
   | 'teamStatus'
   | 'codeCompare'
   | 'vote'
   | 'chat'
   | 'discussionInput'
+  | 'sidebar'
+  | 'sidebarPanel'
   | 'completed';
 
 interface UseTutorialReturn {
@@ -62,12 +64,14 @@ export function useTutorial(): UseTutorialReturn {
     const steps: TutorialStep[] = [
       'welcome',
       'phaseGuide',
-      'timer',
+      'progressBoard',
       'teamStatus',
       'codeCompare',
       'vote',
       'chat',
       'discussionInput',
+      'sidebar',
+      'sidebarPanel',
       'completed'
     ];
     const currentIndex = steps.indexOf(currentStep);
@@ -92,13 +96,15 @@ export function useTutorial(): UseTutorialReturn {
   const prevStep = useCallback(() => {
     const steps: TutorialStep[] = [
       'welcome',
-      'timer',
       'phaseGuide',
+      'progressBoard',
       'teamStatus',
       'codeCompare',
       'vote',
       'chat',
       'discussionInput',
+      'sidebar',
+      'sidebarPanel',
       'completed'
     ];
     const currentIndex = steps.indexOf(currentStep);

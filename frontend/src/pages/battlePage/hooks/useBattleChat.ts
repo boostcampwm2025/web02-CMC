@@ -7,7 +7,8 @@ import {
   selectBattleId,
   selectSelectedTeam,
   selectTeamChats,
-  selectAllChats
+  selectAllChats,
+  selectOpponentNotice
 } from '../stores/battleStore';
 import { convertBattleChatToMessage } from '../utils/convertChatMessage';
 export function useBattleChat() {
@@ -17,37 +18,30 @@ export function useBattleChat() {
   const team = useBattleStore(selectSelectedTeam);
   const teamChats = useBattleStore(selectTeamChats);
   const allChats = useBattleStore(selectAllChats);
+  const opponentNoticeChat = useBattleStore(selectOpponentNotice);
   const addChat = useBattleStore((state) => state.addChat);
 
   // 팀 채팅
   const teamMessages = useMemo(() => {
-    // 1. 내 팀의 일반 채팅 메시지
     const myTeamChats = teamChats
       .filter((chat) => chat.team === team && chat.scope === 'TEAM' && (!chat.type || chat.type === 'chat'))
       .map((chat) => convertBattleChatToMessage(chat, userId));
 
-    // 2. 상대 팀의 attack/defense 메시지
-    const opponentAttackDefense = allChats
-      .filter((chat) => chat.team !== team && team !== 'NONE' && (chat.type === 'attack' || chat.type === 'defense'))
-      .map((chat) => convertBattleChatToMessage(chat, userId));
-
-    // 메시지 ID 기준으로 중복 제거하며 병합
-    const messageMap = new Map();
-    [...myTeamChats, ...opponentAttackDefense].forEach((msg) => {
-      messageMap.set(msg.id, msg);
-    });
-
-    // 시간순으로 정렬 (timestamp 기준)
-    return Array.from(messageMap.values()).sort(
-      (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
-  }, [teamChats, allChats, team, userId]);
+    return myTeamChats.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }, [teamChats, team, userId]);
   // 전체 채팅
 
-  const allMessages = useMemo(
-    () => allChats.map((chat) => convertBattleChatToMessage(chat, userId)),
-    [allChats, userId]
-  );
+  const allMessages = useMemo(() => {
+    const filtered = allChats.filter(
+      (chat) => !(team !== 'NONE' && chat.team !== team && (chat.type === 'attack' || chat.type === 'defense'))
+    );
+    return filtered.map((chat) => convertBattleChatToMessage(chat, userId));
+  }, [allChats, team, userId]);
+
+  const opponentNotice = useMemo(() => {
+    if (team === 'NONE' || !opponentNoticeChat) return null;
+    return convertBattleChatToMessage(opponentNoticeChat, userId);
+  }, [opponentNoticeChat, team, userId]);
   // 실시간 채팅 업데이트 이벤트 구독
 
   useEffect(() => {
@@ -87,6 +81,7 @@ export function useBattleChat() {
   return {
     teamMessages,
     allMessages,
+    opponentNotice,
     sendMessage
   };
 }

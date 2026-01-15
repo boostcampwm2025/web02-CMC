@@ -5,10 +5,14 @@ interface ChatTabsProps {
   activeTab: 'team' | 'all';
   onTabChange: (tab: 'team' | 'all') => void;
   team: 'A' | 'B' | 'NONE';
+  unreadTeamCount: number;
+  unreadAllCount: number;
 }
 
-export default function ChatTabs({ activeTab, onTabChange, team }: ChatTabsProps) {
+export default function ChatTabs({ activeTab, onTabChange, team, unreadTeamCount, unreadAllCount }: ChatTabsProps) {
   const teamColor = team === 'A' ? 'bg-blue-600' : team === 'B' ? 'bg-red-600' : 'bg-gray-600';
+  const showAllCount = unreadAllCount > 0;
+  const showTeamCount = unreadTeamCount > 0;
 
   if (team === 'NONE') {
     return (
@@ -16,6 +20,11 @@ export default function ChatTabs({ activeTab, onTabChange, team }: ChatTabsProps
         <span className="flex items-center justify-center gap-1">
           <WordIcon className="w-[20px] h-[20px]" />
           <span className="">전체 라운지</span>
+          {showAllCount && (
+            <span className="min-w-[18px] px-1.5 py-[1px] text-[11px] rounded-full bg-white/20 text-white">
+              {unreadAllCount}
+            </span>
+          )}
         </span>
       </div>
     );
@@ -32,6 +41,11 @@ export default function ChatTabs({ activeTab, onTabChange, team }: ChatTabsProps
         <span className="flex items-center justify-center gap-1">
           <PeopleIcon className="w-[20px] h-[20px]" />
           <span className="">팀 라운지</span>
+          {showTeamCount && (
+            <span className="min-w-[18px] px-1.5 py-[1px] text-[11px] rounded-full bg-black/30 text-white">
+              {unreadTeamCount}
+            </span>
+          )}
         </span>
       </button>
       <button
@@ -43,6 +57,11 @@ export default function ChatTabs({ activeTab, onTabChange, team }: ChatTabsProps
         <span className="flex items-center justify-center gap-1">
           <WordIcon className="w-[20px] h-[20px]" />
           <span className="">전체 라운지</span>
+          {showAllCount && (
+            <span className="min-w-[18px] px-1.5 py-[1px] text-[11px] rounded-full bg-black/30 text-white">
+              {unreadAllCount}
+            </span>
+          )}
         </span>
       </button>
     </div>

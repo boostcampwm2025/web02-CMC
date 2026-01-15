@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
+import BattleTopicInput from './components/BattleTopicInput';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
@@ -14,8 +15,8 @@ const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
 ];
 
 const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime }> = [
-  { label: '15분', value: 'FIFTEEN_MIN' },
-  { label: '30분', value: 'THIRTY_MIN' }
+  { label: '15분', value: 'FIFTEEN_MIN', rounds: 1 },
+  { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
 
 const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
@@ -43,11 +44,16 @@ export default function BattleCreatePage() {
   const [language, setLanguage] = useState<BattleLanguage>('javascript');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
+  const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PUBLIC');
   const [password, setPassword] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const rounds = useMemo(() => {
+    return PLAYTIME_OPTIONS.find(({ value }) => value === playTime)?.rounds ?? 0;
+  }, [playTime]);
 
   const canSubmit = useMemo(() => {
     if (!title.trim()) return false;
@@ -55,8 +61,10 @@ export default function BattleCreatePage() {
     if (!aCode.trim()) return false;
     if (!bCode.trim()) return false;
     if (type === 'PRIVATE' && !password.trim()) return false;
+    if (topics.length !== rounds) return false;
+
     return true;
-  }, [title, description, aCode, bCode, type, password]);
+  }, [title, description, aCode, bCode, type, password, topics.length, rounds]);
 
   const handleSubmit = async () => {
     if (!canSubmit || isSubmitting) return;
@@ -77,7 +85,8 @@ export default function BattleCreatePage() {
           type,
           password: type === 'PRIVATE' ? password : undefined,
           category,
-          playTime
+          playTime,
+          topics
         })
       });
 
@@ -243,6 +252,8 @@ export default function BattleCreatePage() {
                   </div>
                 )}
               </div>
+
+              <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
 
               {errorMessage && (
                 <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">

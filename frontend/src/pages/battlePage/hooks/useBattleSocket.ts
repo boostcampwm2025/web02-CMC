@@ -16,7 +16,8 @@ export function useBattleSocket() {
     setTeamCounts,
     setTimelines,
     setTeamChats,
-    setAllChats
+    setAllChats,
+    setChatInitialized
   } = useBattleStore();
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export function useBattleSocket() {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
+        topic: data.topics[data.round - 1],
         phase: data.phase,
         phaseCount: data.phaseCount,
         startedAt: data.startedAt,
@@ -63,6 +65,7 @@ export function useBattleSocket() {
       setTimelines(data.timelines);
       setTeamChats(data.chats || []);
       setAllChats(data.allChats || []);
+      setChatInitialized(true);
 
       // 초기 투표 리스트 동기화 (ATTACK/DEFENSE 페이즈만)
       const team = useBattleStore.getState().selectedTeam;
@@ -114,6 +117,7 @@ export function useBattleSocket() {
     setTeamCounts,
     setTimelines,
     setTeamChats,
-    setAllChats
+    setAllChats,
+    setChatInitialized
   ]);
 }
