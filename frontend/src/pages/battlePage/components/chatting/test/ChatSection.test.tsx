@@ -11,19 +11,22 @@ let mockTeamCounts = { teamACount: 5, teamBCount: 3 };
 let mockTeamMessages: Message[] = [];
 let mockAllMessages: Message[] = [];
 let mockOpponentNotice: Message | null = null;
+const mockChatInitialized = false;
 
 vi.mock('@/pages/battlePage/stores/battleStore', () => ({
   useBattleStore: vi.fn((selector) => {
     const state = {
       userId: mockUserId,
       selectedTeam: mockSelectedTeam,
-      teamCounts: mockTeamCounts
+      teamCounts: mockTeamCounts,
+      chatInitialized: mockChatInitialized
     };
     return selector(state);
   }),
   selectUserId: (state: { userId: string }) => state.userId,
   selectSelectedTeam: (state: { selectedTeam: Team }) => state.selectedTeam,
-  selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts
+  selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts,
+  selectChatInitialized: (state: { chatInitialized: boolean }) => state.chatInitialized
 }));
 
 vi.mock('@/pages/battlePage/hooks/useBattleChat', () => ({
