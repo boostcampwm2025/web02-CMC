@@ -268,46 +268,37 @@ describe('BattlesService', () => {
     })
 
     it('battleId가 없으면 BadRequestException을 던진다', () => {
-      expect(() => service.joinBattle({ battleId: '', team: 'A', userId: '' }, 'client-1')).toThrow(BadRequestException)
+      expect(() => service.joinBattle({ battleId: '', team: 'A', clientId: 'client-1' })).toThrow(BadRequestException)
     })
 
     it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
       expect(() =>
-        service.joinBattle(
-          {
-            battleId: 'invalid',
-            team: 'A',
-            userId: '',
-          },
-          'client-1',
-        ),
+        service.joinBattle({
+          battleId: 'invalid',
+          team: 'A',
+          clientId: 'client-1',
+        }),
       ).toThrow(NotFoundException)
     })
 
     it('비공개 배틀에 잘못된 비밀번호로 접근하면 UnauthorizedException을 던진다', () => {
       expect(() =>
-        service.joinBattle(
-          {
-            battleId: 'private-battle',
-            password: 'wrong',
-            team: 'A',
-            userId: '',
-          },
-          'client-1',
-        ),
+        service.joinBattle({
+          battleId: 'private-battle',
+          password: 'wrong',
+          team: 'A',
+          clientId: 'client-1',
+        }),
       ).toThrow(UnauthorizedException)
     })
 
     it('비공개 배틀에 올바른 비밀번호로 입장한다', () => {
-      const result = service.joinBattle(
-        {
-          battleId: 'private-battle',
-          password: '1234',
-          team: 'A',
-          userId: '',
-        },
-        'client-1',
-      )
+      const result = service.joinBattle({
+        battleId: 'private-battle',
+        password: '1234',
+        team: 'A',
+        clientId: 'client-1',
+      })
 
       expect(result.team).toBe('A')
       expect(result.battleState).toBeDefined()
@@ -315,29 +306,64 @@ describe('BattlesService', () => {
 
     it('종료된 배틀에 입장하려 하면 BadRequestException을 던진다', () => {
       expect(() =>
-        service.joinBattle(
-          {
-            battleId: 'closed-battle',
-            team: 'A',
-            userId: '',
-          },
-          'client-1',
-        ),
+        service.joinBattle({
+          battleId: 'closed-battle',
+          team: 'A',
+          clientId: 'client-1',
+        }),
       ).toThrow(BadRequestException)
     })
 
     it('공개 배틀에 정상적으로 입장한다', () => {
-      const result = service.joinBattle(
-        {
-          battleId: 'public-battle',
-          team: 'A',
-          userId: '',
-        },
-        'client-1',
-      )
+      const result = service.joinBattle({
+        battleId: 'public-battle',
+        team: 'A',
+        clientId: 'client-1',
+      })
 
       expect(result.team).toBe('A')
       expect(result.battleState.teamA.users).toContain('client-1')
+    })
+
+    it('이미 참여한 clientId로 재접속하면 BadRequestException을 던진다', () => {
+      service.joinBattle({
+        battleId: 'public-battle',
+        team: 'A',
+        clientId: 'client-1',
+      })
+
+      expect(() =>
+        service.joinBattle({
+          battleId: 'public-battle',
+          team: 'B',
+          clientId: 'client-1',
+        }),
+      ).toThrow(BadRequestException)
+    })
+
+    it('다른 배틀에는 같은 clientId로 참여할 수 있다', () => {
+      const battle2 = createBattle({
+        id: 'public-battle-2',
+        type: BATTLE_TYPE.PUBLIC,
+        status: BATTLE_STATUS.OPEN,
+      })
+      service.setBattlesForTest([...service['battles'], battle2])
+      service['initBattleState']('public-battle-2')
+
+      service.joinBattle({
+        battleId: 'public-battle',
+        team: 'A',
+        clientId: 'client-1',
+      })
+
+      const result = service.joinBattle({
+        battleId: 'public-battle-2',
+        team: 'B',
+        clientId: 'client-1',
+      })
+
+      expect(result.team).toBe('B')
+      expect(result.battleState.teamB.users).toContain('client-1')
     })
   })
 
@@ -428,14 +454,11 @@ describe('BattlesService', () => {
       service.setBattlesForTest([battle])
       service['initBattleState']('battle-1')
 
-      service.joinBattle(
-        {
-          battleId: 'battle-1',
-          team: BATTLE_TEAM.A,
-          userId: 'user-1',
-        },
-        'client-1',
-      )
+      service.joinBattle({
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.A,
+        clientId: 'client-1',
+      })
     })
 
     it('TEAM_SWITCH가 아니면 팀 변경 투표가 거부된다', () => {

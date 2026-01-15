@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, MinLength, MaxLength } from 'class-validator'
 
-export class CreateGuestDto {
+export class CreateGuestRequestDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(1)

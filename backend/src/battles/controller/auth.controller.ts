@@ -1,7 +1,7 @@
 import { Body, Controller, Post, HttpCode, Param, BadRequestException, NotFoundException } from '@nestjs/common'
 import { AuthService } from '../service/auth.service'
 import { BattlesService } from '../service/battles.service'
-import { CreateGuestDto } from '../dto/createGuest.dto'
+import { CreateGuestRequestDto } from '../dto/createGuestRequest.dto'
 import type { GuestAccount } from '../types/auth.types'
 
 @Controller('auth')
@@ -13,7 +13,7 @@ export class AuthController {
 
   @Post('guest/:battleId')
   @HttpCode(200)
-  createGuest(@Param('battleId') battleId: string, @Body() dto: CreateGuestDto): GuestAccount {
+  createGuest(@Param('battleId') battleId: string, @Body() dto: CreateGuestRequestDto): GuestAccount {
     const trimmedNickname = dto.nickname.trim()
 
     if (!trimmedNickname) {
