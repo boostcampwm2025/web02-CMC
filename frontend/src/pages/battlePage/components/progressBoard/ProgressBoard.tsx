@@ -85,7 +85,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
           border-b-[1.333px] border-b-[#1E2939]
           shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]
           transition-all duration-300 ease-in-out
-          ${collapsed ? '-translate-y-[120px] h-[32px]' : 'h-[143.33px]'}
+          ${collapsed ? '-translate-y-[120px] h-[32px]' : 'h-[100px] pb-3'}
         `}
       >
         {!collapsed && (
@@ -144,14 +144,14 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
         <div
           className={`
-            absolute left-[26.21px] top-[16px]
+            absolute left-[26.21px] top-[12px]
             w-[700px]
-            flex flex-col gap-2
+            flex flex-col gap-1.5
             transition-opacity duration-200
             ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
           `}
         >
-          <div className="flex items-center gap-4 px-4 pt-2">
+          <div className="flex items-center gap-4 px-4">
             <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
               {getCurrentStageNumber()}
             </div>
@@ -168,7 +168,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
             ))}
           </div>
 
-          <div className="mt-4 h-[6px] bg-[#0A0A1A] rounded-full overflow-hidden">
+          <div className="mt-1.5 h-[6px] bg-[#0A0A1A] rounded-full overflow-hidden">
             <div
               key={`${battleProgress?.expiredAt}-${battleProgress?.startedAt}`}
               className="h-full bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
