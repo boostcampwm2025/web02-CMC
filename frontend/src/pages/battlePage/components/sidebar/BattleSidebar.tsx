@@ -11,18 +11,28 @@ interface BattleSidebarProps {
   description: string;
   language: string;
   category: string;
+  raiseZIndex?: boolean;
 }
 
 type Tab = 'info' | 'timeline';
 
-export default function BattleSidebar({ isOpen, onClose, title, description, language, category }: BattleSidebarProps) {
+export default function BattleSidebar({
+  isOpen,
+  onClose,
+  title,
+  description,
+  language,
+  category,
+  raiseZIndex = false
+}: BattleSidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}
+      data-tutorial="sidebar-panel"
+      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] transform transition-transform duration-300 ease-in-out shadow-2xl ${
+        raiseZIndex ? 'z-[120]' : 'z-100'
+      } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
     >
       {/* 헤더 */}
       <div>

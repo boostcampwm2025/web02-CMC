@@ -4,13 +4,17 @@ import MessageIcon from '@/assets/icon/message.svg?react';
 interface BookmarkButtonProps {
   onOpen: () => void;
   isOpen: boolean;
+  highlight?: boolean;
 }
 
-export default function BookmarkButton({ onOpen, isOpen }: BookmarkButtonProps) {
+export default function BookmarkButton({ onOpen, isOpen, highlight = false }: BookmarkButtonProps) {
   if (isOpen) return null;
 
   return (
-    <div className="fixed left-0 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2">
+    <div
+      className={`fixed left-0 top-1/2 -translate-y-1/2 flex flex-col gap-2 ${highlight ? 'z-[120]' : 'z-30'}`}
+      data-tutorial="sidebar-buttons"
+    >
       {/* 문제 설명 */}
       <button
         onClick={onOpen}

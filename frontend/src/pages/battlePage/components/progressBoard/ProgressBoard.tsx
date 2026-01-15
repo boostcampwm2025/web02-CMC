@@ -13,7 +13,11 @@ const COLOR_MAP = {
   PENDING: { bg: '#0A0A1A', border: '#364153', text: '#99A1AF' }
 };
 
-export default function BattleProgressBoard() {
+interface BattleProgressBoardProps {
+  raiseZIndex?: boolean;
+}
+
+export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgressBoardProps) {
   const [collapsed, setCollapsed] = useState(false);
   const battleProgress = useBattleStore(selectBattleProgress);
   if (!battleProgress) return null;
@@ -26,13 +30,15 @@ export default function BattleProgressBoard() {
 
   return (
     <div
-      className="
-        sticky top-0 z-0
+      className={`
+        sticky top-0
         flex justify-center
         pointer-events-none
-      "
+        ${raiseZIndex ? 'z-[110]' : 'z-0'}
+      `}
     >
       <div
+        data-tutorial="progress-board"
         className={`
           pointer-events-auto
           relative
