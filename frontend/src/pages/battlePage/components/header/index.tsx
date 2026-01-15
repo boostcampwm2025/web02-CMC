@@ -2,7 +2,6 @@ import ParticipantRatioBar from './ParticipantRatioBar';
 import StageIndicator from './StageIndicator';
 import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
-import TimeProgressBar from './TimeProgressBar';
 import {
   useBattleStore,
   selectBattleProgress,
@@ -33,10 +32,9 @@ export default function BattleHeader() {
 
   return (
     <header
-      className="h-[185px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
+      className="h-[179px] w-[1800px] bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
       data-tutorial="phase-guide"
     >
-      <TimeProgressBar />
       <div className="px-8 flex-1 grid grid-cols-3 items-center">
         <StageIndicator />
         <div className="flex flex-col items-center justify-center" data-tutorial="timer">
