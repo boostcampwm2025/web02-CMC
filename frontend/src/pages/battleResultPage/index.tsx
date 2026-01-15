@@ -4,6 +4,7 @@ import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
+import CodeViewerSection from './components/CodeViewerSection';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -136,6 +137,9 @@ export default function BattleResultPage() {
           />
         </div>
       </div>
+
+      {/* 코드 섹션 */}
+      <CodeViewerSection codeA={battleData.aCode} codeB={battleData.bCode} language={battleData.language} />
     </div>
   );
 }
