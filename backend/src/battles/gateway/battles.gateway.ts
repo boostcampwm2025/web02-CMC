@@ -1,17 +1,6 @@
 import { Logger, OnModuleInit } from '@nestjs/common'
-import { Server, Socket } from 'socket.io'
-
-interface SocketWithUserId extends Socket {
-  data: {
-    userId?: string
-  }
-  handshake: Socket['handshake'] & {
-    auth: Socket['handshake']['auth'] & {
-      userId?: string
-    }
-  }
-}
-
+import { Server } from 'socket.io'
+import type { SocketWithUserId } from '../types/socket.types'
 import {
   WebSocketGateway,
   SubscribeMessage,
@@ -68,7 +57,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     try {
       const userId = client.handshake.auth.userId
-      if (!userId || typeof userId !== 'string') {
+      if (!userId) {
         throw new Error('userId가 필요합니다.')
       }
 
