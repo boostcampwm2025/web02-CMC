@@ -8,6 +8,7 @@ export interface BattleChat {
   text: string;
   createdAt: Date;
   type?: 'chat' | 'attack' | 'defense';
+  votes?: number;
 }
 
 export interface BattleInfo {
