@@ -47,6 +47,7 @@ export function useBattleSocket() {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
+        topic: data.topics[data.round - 1],
         phase: data.phase,
         phaseCount: data.phaseCount,
         startedAt: data.startedAt,
