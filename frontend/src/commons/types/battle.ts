@@ -3,14 +3,13 @@ export interface BattleChat {
   battleId: string;
   scope: 'TEAM' | 'ALL';
   messageId: string;
-  sender: string;
+  sender: { userId: string; nickname: string };
   team: Team;
   text: string;
   createdAt: Date;
   type?: 'chat' | 'attack' | 'defense';
   votes?: number;
 }
-
 export interface BattleInfo {
   title: string;
   description: string;
@@ -37,7 +36,10 @@ export type Team = 'A' | 'B' | 'NONE';
 // BattleDiscussion 타입
 export interface BattleDiscussion {
   discussionId: string;
-  authorId: string;
+  author: {
+    authorId: string;
+    nickname: string;
+  };
   type: 'ATTACK' | 'DEFENSE';
   content: string;
   upvotes: number;
@@ -109,6 +111,7 @@ export interface DiscussionVoteResultItem {
   id: string | null;
   text: string | null;
   ownerId: string | null;
+  nickname: string | null;
   count: number | null;
   team: Team | null;
 }
