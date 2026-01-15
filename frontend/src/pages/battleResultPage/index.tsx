@@ -109,6 +109,46 @@ export default function BattleResultPage() {
           turn: 1,
           upvotes: 20,
           createdAt: new Date(Date.now() - 1800000).toISOString()
+        },
+        {
+          id: '1',
+          type: 'ATTACK',
+          author: { id: 'user1', nickname: '개발자A' },
+          team: 'A',
+          content: '코드 B는 메모리를 너무 많이 사용합니다.',
+          turn: 1,
+          upvotes: 15,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        },
+        {
+          id: '2',
+          type: 'ATTACK',
+          author: { id: 'user2', nickname: '개발자B' },
+          team: 'B',
+          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
+          turn: 1,
+          upvotes: 20,
+          createdAt: new Date(Date.now() - 1800000).toISOString()
+        },
+        {
+          id: '3',
+          type: 'DEFENSE',
+          author: { id: 'user1', nickname: '개발자A' },
+          team: 'B',
+          content: '코드 B는 메모리를 너무 많이 사용합니다.',
+          turn: 1,
+          upvotes: 15,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        },
+        {
+          id: '4',
+          type: 'DEFENSE',
+          author: { id: 'user2', nickname: '개발자B' },
+          team: 'A',
+          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
+          turn: 1,
+          upvotes: 20,
+          createdAt: new Date(Date.now() - 1800000).toISOString()
         }
       ],
       topics: ['메모리 효율성', '시간 복잡도']
@@ -142,7 +182,7 @@ export default function BattleResultPage() {
     timelines: convertedTimeline,
     topics: battleData.topics,
     currentRound: 0,
-    totalRounds: 2
+    totalRounds: battleData.timeline.length / 4
   }).map((round) => ({
     ...round,
     isActive: true,
