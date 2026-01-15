@@ -30,7 +30,7 @@ export default function BattleResultPage() {
   }
   return dp[n];
 }`,
-      language: 'javascript',
+      language: 'JS',
       type: 'NORMAL',
       status: 'CLOSED',
       category: 'ALGORITHM',
