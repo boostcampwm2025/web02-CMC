@@ -115,7 +115,7 @@ export default function TeamChangeModal({ handleTeamChange, onClose }: TeamChang
       >
         {/* 타임라인 섹션 */}
         <div>
-          <h3 className="text-[18px] font-bold text-center mb-4">Round {currentRound} 타임라인</h3>
+          <h3 className="text-[18px] font-bold text-center mb-4">Round {currentRound} 진영 선택</h3>
 
           {/* 첫 번째 공수: A 이의제기 → B 반론 */}
           <div className="relative bg-[#1a1a2e] rounded-xl border-2 border-[#2d2d3f] overflow-hidden mb-4">
