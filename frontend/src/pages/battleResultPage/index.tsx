@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
+import MetricsCards from './components/MetricsCards';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -115,16 +116,25 @@ export default function BattleResultPage() {
         teamBVotes={result.teamB.votes}
       />
 
-      {/* 투표 차트 섹션 */}
-      <div className="max-w-7xl mx-auto mb-12">
-        <VoteChart
-          teamAPercentage={result.teamA.percentage}
-          teamAVotes={result.teamA.votes}
-          teamBPercentage={result.teamB.percentage}
-          teamBVotes={result.teamB.votes}
-          neutralPercentage={result.neutral.percentage}
-          neutralVotes={result.neutral.votes}
-        />
+      {/* 투표 차트 & 통계 섹션 */}
+      <div className="max-w-7xl mx-auto mb-12 flex gap-6 items-stretch">
+        <div className="flex-1">
+          <VoteChart
+            teamAPercentage={result.teamA.percentage}
+            teamAVotes={result.teamA.votes}
+            teamBPercentage={result.teamB.percentage}
+            teamBVotes={result.teamB.votes}
+            neutralPercentage={result.neutral.percentage}
+            neutralVotes={result.neutral.votes}
+          />
+        </div>
+        <div className="flex-1">
+          <MetricsCards
+            totalParticipants={battleData.metrics.totalParticipants}
+            totalViews={battleData.metrics.totalViews}
+            strategiesCount={battleData.metrics.strategiesCount}
+          />
+        </div>
       </div>
     </div>
   );
