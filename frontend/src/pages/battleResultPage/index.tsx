@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
@@ -8,10 +8,12 @@ import CodeViewerSection from './components/CodeViewerSection';
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import RoundCard from '@/commons/components/timeline/RoundCard';
 import { organizeByRounds } from '@/commons/utils/organizeByRounds';
+import { Trophy, Activity } from 'lucide-react';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [battleData, setBattleData] = useState<BattleResultApiResponse | null>(null);
 
   useEffect(() => {
@@ -80,9 +82,29 @@ export default function BattleResultPage() {
         },
         {
           id: '2',
-          type: 'DEFENSE',
+          type: 'ATTACK',
           author: { id: 'user2', nickname: '개발자B' },
           team: 'B',
+          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
+          turn: 1,
+          upvotes: 20,
+          createdAt: new Date(Date.now() - 1800000).toISOString()
+        },
+        {
+          id: '3',
+          type: 'DEFENSE',
+          author: { id: 'user1', nickname: '개발자A' },
+          team: 'B',
+          content: '코드 B는 메모리를 너무 많이 사용합니다.',
+          turn: 1,
+          upvotes: 15,
+          createdAt: new Date(Date.now() - 3600000).toISOString()
+        },
+        {
+          id: '4',
+          type: 'DEFENSE',
+          author: { id: 'user2', nickname: '개발자B' },
+          team: 'A',
           content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
           turn: 1,
           upvotes: 20,
@@ -202,6 +224,24 @@ export default function BattleResultPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* 하단 버튼 섹션 */}
+      <div className="max-w-7xl mx-auto mb-12 flex gap-4 justify-center">
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-pink-500/30"
+        >
+          <Trophy className="w-5 h-5" />
+          다른 배틀 보기
+        </button>
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-green-500/30"
+        >
+          <Activity className="w-5 h-5" />
+          배틀 다시 시작하기
+        </button>
       </div>
     </div>
   );
