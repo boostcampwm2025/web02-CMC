@@ -67,8 +67,8 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   return (
     <div
-      className={`
-        sticky top-0
+      className="
+        sticky top-0 z-10
         flex justify-center
         pointer-events-none
         ${raiseZIndex ? 'z-[110]' : 'z-0'}
@@ -151,12 +151,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
             ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
           `}
         >
-          <div
-            className="absolute left-[6px] top-[-4px] h-[4px] w-[690px]
-              bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"
-          />
-
-          <div className="flex items-center gap-4 px-4 pt-6">
+          <div className="flex items-center gap-4 px-4 pt-2">
             <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
               {getCurrentStageNumber()}
             </div>
