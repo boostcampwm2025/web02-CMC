@@ -148,7 +148,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
       }
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team }),
-  setChatInitialized: (initialized) => set({ chatInitialized: initialized })
+  setChatInitialized: (initialized) => set({ chatInitialized: initialized }),
   setOpponentNoticePending: (notice) => set({ opponentNoticePending: notice }),
   commitOpponentNotice: () =>
     set((state) => ({
