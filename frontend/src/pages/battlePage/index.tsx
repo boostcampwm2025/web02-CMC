@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattle } from './hooks/useBattle';
@@ -26,6 +26,7 @@ export default function BattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+  const sidebarOpenedForTutorial = useRef(false);
 
   // 튜토리얼 관리
   const {
@@ -44,6 +45,21 @@ export default function BattlePage() {
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
   }, []);
+
+  useEffect(() => {
+    const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
+
+    if (shouldOpenSidebar && !isSidebarOpen) {
+      handleOpenSidebar();
+      sidebarOpenedForTutorial.current = true;
+      return;
+    }
+
+    if (!shouldOpenSidebar && sidebarOpenedForTutorial.current) {
+      handleCloseSidebar();
+      sidebarOpenedForTutorial.current = false;
+    }
+  }, [currentStep, isSidebarOpen, isTutorialOpen, handleCloseSidebar, handleOpenSidebar]);
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -76,6 +92,7 @@ export default function BattlePage() {
         description={battleInfo.description}
         language={battleInfo.language}
         category={battleInfo.category}
+        raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
       />
 
       {/* 메인 콘텐츠 */}
@@ -86,7 +103,7 @@ export default function BattlePage() {
       >
         <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <div className="-mb-[10px]">
-            <BattleProgressBoard />
+            <BattleProgressBoard raiseZIndex={isTutorialOpen && currentStep === 'progressBoard'} />
           </div>
           <BattleHeader />
         </div>
