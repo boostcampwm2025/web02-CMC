@@ -8,7 +8,7 @@ describe('getDiscussionConfig', () => {
 
     expect(config.label).toBe('이의제기');
     expect(config.placeholderText).toBe('상대 코드의 허점을 찾아 이의 제기하세요');
-    expect(config.buttonText).toBe('이의제기하기');
+    expect(config.buttonText).toBe('이의제기');
     expect(config.isAttacking).toBe(true);
     expect(config.isActive).toBe(true);
     expect(config.colors).toBeDefined();
@@ -21,7 +21,7 @@ describe('getDiscussionConfig', () => {
 
     expect(config.label).toBe('반론');
     expect(config.placeholderText).toBe('상대 주장에 논리적으로 반박해 보세요');
-    expect(config.buttonText).toBe('반론하기');
+    expect(config.buttonText).toBe('반론');
     expect(config.isAttacking).toBe(false);
     expect(config.isActive).toBe(true);
     expect(config.colors).toBeDefined();
