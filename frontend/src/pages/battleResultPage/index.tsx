@@ -5,6 +5,7 @@ import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
 import CodeViewerSection from './components/CodeViewerSection';
+import Step3Timeline from '@/pages/teamSelectPage/components/steps/Step3Timeline';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -85,7 +86,8 @@ export default function BattleResultPage() {
           upvotes: 20,
           createdAt: new Date(Date.now() - 1800000).toISOString()
         }
-      ]
+      ],
+      topics: ['메모리 효율성', '시간 복잡도']
     });
   }, [id]);
 
@@ -145,6 +147,27 @@ export default function BattleResultPage() {
         language={battleData.language}
         winner={result.winner}
       />
+
+      {/* 타임라인 섹션 */}
+      <div className="max-w-7xl mx-auto mb-12">
+        <Step3Timeline
+          timelines={battleData.timeline.map((item) => ({
+            discussionId: item.id,
+            authorId: item.author.id,
+            type: item.type,
+            content: item.content,
+            upvotes: item.upvotes,
+            votes: [],
+            status: 'SELECTED' as const,
+            selectedAt: new Date(item.createdAt).getTime(),
+            team: item.team,
+            ...(item.type === 'DEFENSE' && { attackId: '' })
+          }))}
+          topics={battleData.topics}
+          currentRound={2}
+          totalRounds={2}
+        />
+      </div>
     </div>
   );
 }
