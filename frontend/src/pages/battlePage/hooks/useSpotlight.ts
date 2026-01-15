@@ -39,6 +39,8 @@ export function useSpotlight({ selector, enabled = true, padding = 8 }: UseSpotl
     };
 
     updateSpotlight();
+    const animationFrameId = window.requestAnimationFrame(updateSpotlight);
+    const delayedUpdateId = window.setTimeout(updateSpotlight, 350);
 
     window.addEventListener('resize', updateSpotlight);
     window.addEventListener('scroll', updateSpotlight, true);
@@ -46,6 +48,8 @@ export function useSpotlight({ selector, enabled = true, padding = 8 }: UseSpotl
     return () => {
       window.removeEventListener('resize', updateSpotlight);
       window.removeEventListener('scroll', updateSpotlight, true);
+      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(delayedUpdateId);
     };
   }, [enabled, selector, padding]);
 
