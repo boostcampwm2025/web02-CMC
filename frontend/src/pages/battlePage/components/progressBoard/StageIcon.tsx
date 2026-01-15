@@ -9,7 +9,8 @@ export function StageIcon({
   border,
   text,
   active,
-  small
+  small,
+  tooltip
 }: {
   icon: 'message' | 'battle' | 'shield' | 'switch';
   bg: string;
@@ -17,6 +18,7 @@ export function StageIcon({
   text: string;
   active?: boolean;
   small?: boolean;
+  tooltip?: string;
 }) {
   const baseSize = small ? 48 : 52.8;
   const activeSize = small ? 56 : 60;
@@ -41,7 +43,7 @@ export function StageIcon({
   };
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="relative flex flex-col items-center gap-1 group">
       <div
         className={`
           rounded-[12px]
@@ -59,6 +61,30 @@ export function StageIcon({
       >
         {renderIcon()}
       </div>
+      {tooltip && (
+        <div
+          className="
+            absolute top-full mt-2 px-3 py-2
+            bg-[#1E1E2F] text-white text-sm rounded-lg
+            shadow-lg border border-[#364153]
+            opacity-0 group-hover:opacity-100
+            pointer-events-none
+            transition-opacity duration-200
+            whitespace-nowrap z-20
+          "
+        >
+          {tooltip}
+          <div
+            className="
+              absolute bottom-full left-1/2 -translate-x-1/2
+              w-0 h-0
+              border-l-[6px] border-l-transparent
+              border-r-[6px] border-r-transparent
+              border-b-[6px] border-b-[#1E1E2F]
+            "
+          />
+        </div>
+      )}
     </div>
   );
 }
