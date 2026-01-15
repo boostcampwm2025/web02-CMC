@@ -44,7 +44,7 @@ describe('DiscussionInput', () => {
 
     expect(screen.getByPlaceholderText('상대 코드의 허점을 찾아 이의 제기하세요')).toBeInTheDocument();
     expect(screen.getByText('1R 이의제기')).toBeInTheDocument();
-    expect(screen.getByText('이의제기하기')).toBeInTheDocument();
+    expect(screen.getByText('이의제기')).toBeInTheDocument();
   });
 
   it('방어 팀일 때 올바른 placeholder와 라벨 표시', () => {
@@ -55,7 +55,7 @@ describe('DiscussionInput', () => {
 
     expect(screen.getByPlaceholderText('상대 주장에 논리적으로 반박해 보세요')).toBeInTheDocument();
     expect(screen.getByText('1R 반론')).toBeInTheDocument();
-    expect(screen.getByText('반론하기')).toBeInTheDocument();
+    expect(screen.getByText('반론')).toBeInTheDocument();
   });
 
   it('버튼 클릭 시 제출', async () => {
