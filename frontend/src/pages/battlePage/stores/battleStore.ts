@@ -32,6 +32,8 @@ interface BattleStore {
   allChats: BattleChat[];
   selectedTeam: 'A' | 'B' | 'NONE';
   chatInitialized: boolean;
+  opponentNotice: BattleChat | null;
+  opponentNoticePending: BattleChat | null;
 
   initializeBattle: (config: { userId: string; battleId: string }) => void;
   setSocket: (socket: Socket | null) => void;
@@ -51,6 +53,8 @@ interface BattleStore {
   addChat: (chat: BattleChat) => void;
   setSelectedTeam: (team: 'A' | 'B' | 'NONE') => void;
   setChatInitialized: (initialized: boolean) => void;
+  setOpponentNoticePending: (notice: BattleChat | null) => void;
+  commitOpponentNotice: () => void;
 }
 
 export const useBattleStore = create<BattleStore>((set) => ({
@@ -68,6 +72,8 @@ export const useBattleStore = create<BattleStore>((set) => ({
   allChats: [],
   selectedTeam: 'NONE',
   chatInitialized: false,
+  opponentNotice: null,
+  opponentNoticePending: null,
 
   initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
   setSocket: (socket) => set({ socket }),
@@ -143,6 +149,12 @@ export const useBattleStore = create<BattleStore>((set) => ({
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team }),
   setChatInitialized: (initialized) => set({ chatInitialized: initialized })
+  setOpponentNoticePending: (notice) => set({ opponentNoticePending: notice }),
+  commitOpponentNotice: () =>
+    set((state) => ({
+      opponentNotice: state.opponentNoticePending,
+      opponentNoticePending: null
+    }))
 }));
 
 export const selectUserId = (state: BattleStore) => state.userId;
@@ -158,3 +170,4 @@ export const selectTeamChats = (state: BattleStore) => state.teamChats;
 export const selectAllChats = (state: BattleStore) => state.allChats;
 export const selectSelectedTeam = (state: BattleStore) => state.selectedTeam;
 export const selectChatInitialized = (state: BattleStore) => state.chatInitialized;
+export const selectOpponentNotice = (state: BattleStore) => state.opponentNotice;

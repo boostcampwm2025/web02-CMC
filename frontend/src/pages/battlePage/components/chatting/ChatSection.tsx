@@ -24,7 +24,7 @@ export default function ChatSection() {
 
   const [activeTab, setActiveTab] = useState<'team' | 'all'>('team');
 
-  const { teamMessages, allMessages, sendMessage } = useBattleChat();
+  const { teamMessages, allMessages, opponentNotice, sendMessage } = useBattleChat();
 
   const currentTab = team === 'NONE' ? 'all' : activeTab;
 
@@ -101,15 +101,28 @@ export default function ChatSection() {
         />
       </div>
 
+      {opponentNotice && team !== 'NONE' && (
+        <DiscussionMessage
+          user={opponentNotice.user}
+          team={opponentNotice.team}
+          content={opponentNotice.content}
+          timestamp={opponentNotice.timestamp}
+          type={opponentNotice.type === 'defense' ? 'defense' : 'attack'}
+          votes={opponentNotice.votes}
+        />
+      )}
+
       <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
         {currentMessages.map((message) =>
           message.type === 'attack' || message.type === 'defense' ? (
             <DiscussionMessage
               key={message.id}
+              user={message.user}
               team={message.team}
               content={message.content}
               timestamp={message.timestamp}
               type={message.type}
+              votes={message.votes}
             />
           ) : (
             <ChatMessage

@@ -33,6 +33,7 @@ export interface Battle {
   type: BattleType
   category: BattleCategory
   playTime: BattlePlayTime
+  topics: string[]
 
   password?: string
   status: BattleStatus
@@ -95,6 +96,7 @@ export interface ActiveBattleState {
   teamVotes: Map<string, BattleTeam>
 
   round: number
+  topics: string[]
   phase: BattlePhaseName
   phaseCount: number
 

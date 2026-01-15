@@ -4,9 +4,10 @@ import userEvent from '@testing-library/user-event';
 import CodeSection from '@/pages/battlePage/components/codeview/CodeSection';
 
 vi.mock('@/pages/battlePage/components/codeview/CodeViewer', () => ({
-  default: ({ team, code }: { team: 'A' | 'B'; code: string }) => (
+  default: ({ team, language, code }: { team: 'A' | 'B'; language: string; code: string }) => (
     <div data-testid={`code-viewer-${team}`}>
       <span>구현 {team}</span>
+      <span>{language}</span>
       <pre>{code}</pre>
     </div>
   )
