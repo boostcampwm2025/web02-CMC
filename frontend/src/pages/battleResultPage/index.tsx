@@ -5,7 +5,9 @@ import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
 import CodeViewerSection from './components/CodeViewerSection';
-import Step3Timeline from '@/pages/teamSelectPage/components/steps/Step3Timeline';
+import { getTimeAgo } from '@/commons/utils/getTimeAgo';
+import RoundCard from '@/commons/components/timeline/RoundCard';
+import { organizeByRounds } from '@/commons/utils/organizeByRounds';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -99,6 +101,38 @@ export default function BattleResultPage() {
 
   const { result } = battleData;
 
+  // 타임라인 데이터 변환
+  const convertedTimeline = battleData.timeline.map((item) => ({
+    discussionId: item.id,
+    authorId: item.author.id,
+    type: item.type,
+    content: item.content,
+    upvotes: item.upvotes,
+    votes: [],
+    status: 'SELECTED' as const,
+    selectedAt: new Date(item.createdAt).getTime(),
+    team: item.team,
+    ...(item.type === 'DEFENSE' && { attackId: '' })
+  }));
+
+  // 라운드별로 데이터 구성
+  const roundsData = organizeByRounds({
+    timelines: convertedTimeline,
+    topics: battleData.topics,
+    currentRound: 0,
+    totalRounds: 2
+  }).map((round) => ({
+    ...round,
+    isActive: true,
+    isFuture: false
+  }));
+
+  // 시간 포맷 함수
+  const formatTime = (timestamp?: number) => {
+    if (!timestamp) return '알 수 없음';
+    return getTimeAgo(new Date(timestamp).toISOString());
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-950 text-white p-6 md:p-10">
       {/* 헤더 */}
@@ -150,23 +184,24 @@ export default function BattleResultPage() {
 
       {/* 타임라인 섹션 */}
       <div className="max-w-7xl mx-auto mb-12">
-        <Step3Timeline
-          timelines={battleData.timeline.map((item) => ({
-            discussionId: item.id,
-            authorId: item.author.id,
-            type: item.type,
-            content: item.content,
-            upvotes: item.upvotes,
-            votes: [],
-            status: 'SELECTED' as const,
-            selectedAt: new Date(item.createdAt).getTime(),
-            team: item.team,
-            ...(item.type === 'DEFENSE' && { attackId: '' })
-          }))}
-          topics={battleData.topics}
-          currentRound={2}
-          totalRounds={2}
-        />
+        <div className="w-full bg-[#0d0d1a]/50 rounded-2xl p-8 border border-[#1a1a2e]">
+          <div className="flex gap-2 items-center mb-6">
+            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+            <h2 className="text-2xl font-bold">배틀 타임라인</h2>
+          </div>
+          <div className="space-y-4">
+            {roundsData.map((roundData) => (
+              <RoundCard
+                key={roundData.round}
+                roundData={roundData}
+                isExpanded={true}
+                onToggle={() => {}}
+                formatTime={formatTime}
+                showStatus={false}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
