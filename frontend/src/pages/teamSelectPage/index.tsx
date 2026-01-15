@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { selectIsLogginIn, useAuthStore } from '../battlePage/stores/authStore';
 import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { BattleInfo } from '@/commons/types/battle';
@@ -10,6 +11,8 @@ import Step2CodeCompare from './components/steps/Step2CodeCompare';
 import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
 import type { Team } from '@/commons/types/battle';
+import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
+import GuestLoginModal from './components/GuestLoginModal';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
@@ -17,6 +20,9 @@ export default function TeamSelectPage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const loginGuest = useAuthStore((s) => s.loginGuest);
+  const isLoggingIn = useAuthStore(selectIsLogginIn);
 
   // API 데이터 사용 - type 필드 추가
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
@@ -24,7 +30,30 @@ export default function TeamSelectPage() {
 
   const handleSubmit = () => {
     if (selectedTeam && id) {
+      // TODO 로그인 여부확인
+
+      // 게스트 로그인 진입점
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleLogin = async (nickname: string) => {
+    if (!id || !selectedTeam) return;
+
+    setShowLoginModal(false);
+
+    try {
+      const user = await loginGuest(id, nickname);
+
+      useBattleStore.getState().initializeBattle({
+        userId: user.id,
+        battleId: id
+      });
+
+      useBattleStore.getState().setSelectedTeam(selectedTeam);
       navigate(`/battle/${id}`, { state: { selectedTeam } });
+    } catch (e) {
+      alert(e);
     }
   };
 
@@ -134,6 +163,10 @@ export default function TeamSelectPage() {
           canGoNext={currentStep === 4 ? selectedTeam !== null : canGoNext}
         />
       </div>
+
+      {showLoginModal && (
+        <GuestLoginModal disabled={isLoggingIn} onClose={() => setShowLoginModal(false)} onLogin={handleLogin} />
+      )}
     </main>
   );
 }
