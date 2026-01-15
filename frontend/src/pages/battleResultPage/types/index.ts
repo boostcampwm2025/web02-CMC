@@ -62,4 +62,5 @@ export interface BattleResultApiResponse {
   metrics: Metrics;
   voteTimeline: VoteTimelineItem[];
   timeline: TimelineItem[];
+  topics: string[];
 }
