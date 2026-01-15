@@ -20,6 +20,7 @@ export class BattleJoinResponseDto {
 
   // 현재 진행 중인 배틀 정보
   round: number
+  topics: string[]
   phase: BattlePhaseName
   phaseCount: number
 
@@ -28,7 +29,7 @@ export class BattleJoinResponseDto {
 
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
-    const { all, teamA, teamB, participants, round, phase, phaseCount, startedAt, expiredAt } = payload
+    const { all, teamA, teamB, participants, round, topics, phase, phaseCount, startedAt, expiredAt } = payload
 
     const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
@@ -49,6 +50,7 @@ export class BattleJoinResponseDto {
     res.chats = myTeam.chats
 
     res.round = round
+    res.topics = topics
     res.phase = phase
     res.phaseCount = phaseCount
     res.startedAt = startedAt
@@ -72,6 +74,7 @@ export class BattleJoinInfoResponseDto {
   participantCount: number
   currentRound: number
   totalRounds: number
+  topics: string[]
   timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
 
   static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
@@ -83,6 +86,7 @@ export class BattleJoinInfoResponseDto {
     res.language = battle.language
     res.category = battle.category
     res.participantCount = battle.participantCount
+    res.topics = battle.topics
 
     // ActiveBattleState가 있으면 실시간 데이터 사용, 없으면 초기 상태 사용
     if (activeBattleState) {

@@ -14,6 +14,7 @@ import {
   BattleDefense,
   BattlePlayTime,
   BattleTopOpinions,
+  BattlePlayTimeName,
 } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
@@ -63,6 +64,7 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const playTime: BattlePlayTime = BATTLE_PLAYTIME[payload.playTime]
+    const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
 
     const battle: Battle = {
       id: battleId,
@@ -75,6 +77,7 @@ export class BattlesService extends EventEmitter {
       type: payload.type,
       category: payload.category,
       playTime,
+      topics: shuffledTopics,
       password: payload.type === BATTLE_TYPE.PRIVATE ? undefined : payload.password?.trim(),
       status: BATTLE_STATUS.PENDING,
       createdAt: now,
@@ -88,7 +91,7 @@ export class BattlesService extends EventEmitter {
     }
 
     this.battles.push(battle)
-    this.initBattleState(battleId)
+    this.initBattleState(battle.id)
 
     return battle
   }
@@ -221,6 +224,9 @@ export class BattlesService extends EventEmitter {
 
   private initBattleState(battleId: string): void {
     if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
+    const battle = this.battles.find(({ id }) => id == battleId)
+    if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
+
     if (this.activeBattles.has(battleId)) return
 
     const activeBattleState: ActiveBattleState = {
@@ -250,6 +256,7 @@ export class BattlesService extends EventEmitter {
 
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
+      topics: [...battle.topics],
       phaseCount: 1,
 
       startedAt: null,
@@ -339,6 +346,25 @@ export class BattlesService extends EventEmitter {
     this.emit('battle:user:updated', BattleUserUpdateResponseDto.of(battleId, counts))
   }
 
+  private shuffleTopics(topics: string[], playTime: BattlePlayTimeName): string[] {
+    const rounds = BATTLE_PLAYTIME[playTime]?.rounds
+    if (!rounds) throw new BadRequestException('올바르지 않은 배틀 진행 시간입니다.')
+    if (topics.length !== rounds) throw new BadRequestException('대주제의 개수가 라운드 수와 일치하지 않습니다.')
+
+    const shuffled = [...topics]
+    if (topics.length === 1) return shuffled
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+
+      const temp = shuffled[i]
+      shuffled[i] = shuffled[j]
+      shuffled[j] = temp
+    }
+
+    return shuffled
+  }
+
   private rebuildTeamUsers(state: ActiveBattleState) {
     state.teamA.users = []
     state.teamB.users = []
@@ -367,6 +393,7 @@ export class BattlesService extends EventEmitter {
     const state = this.getBattleState(battleId)
 
     const battle = this.battles.find(battle => battle.id === battleId)
+    if (!battle) return
     if (battle?.status === BATTLE_STATUS.CLOSED) return
 
     const prevPhase = state.phase
@@ -385,6 +412,7 @@ export class BattlesService extends EventEmitter {
       const res = BattleRoundResponseDto.of({
         battleId,
         round: state.round,
+        topic: battle.topics[state.round],
       })
 
       this.emit('battle:round:updated', res)
