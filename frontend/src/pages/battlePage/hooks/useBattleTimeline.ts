@@ -21,14 +21,20 @@ export function useBattleTimeline() {
     const pushTimelineAndChat = (
       battleId: string,
       team: Team,
-      entry: { id: string | null; text: string | null; ownerId: string | null; count: number | null },
+      entry: {
+        id: string | null;
+        text: string | null;
+        ownerId: string | null;
+        nickname: string | null;
+        count: number | null;
+      },
       type: 'attack' | 'defense'
     ) => {
       if (!entry.id || !entry.text || !team) return;
 
       const discussion: BattleDiscussion | BattleDefense = {
         discussionId: entry.id,
-        authorId: entry.ownerId ?? '',
+        author: { authorId: entry.ownerId, nickname: entry.nickname },
         content: entry.text,
         upvotes: entry.count ?? 0,
         votes: [],
@@ -48,7 +54,10 @@ export function useBattleTimeline() {
         battleId,
         scope: 'ALL',
         messageId: `${type}-${entry.id}`,
-        sender: entry.ownerId ?? 'SYSTEM',
+        sender: {
+          userId: entry?.ownerId || '',
+          nickname: entry.nickname || 'SYSTEM'
+        },
         team,
         text: entry.text,
         createdAt: new Date(),
@@ -62,7 +71,7 @@ export function useBattleTimeline() {
       // null인 경우 placeholder 데이터 추가
       const placeholder: BattleDiscussion | BattleDefense = {
         discussionId: `null-${team}-${type}-${Date.now()}`,
-        authorId: '',
+        author: { authorId: '', nickname: '' },
         content: '투표로 선정된 의견이 없습니다',
         upvotes: 0,
         votes: [],
@@ -100,7 +109,10 @@ export function useBattleTimeline() {
           battleId: data.battleId,
           scope: 'ALL',
           messageId: `notice-attack-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
-          sender: opponentEntry?.ownerId ?? 'SYSTEM',
+          sender: {
+            userId: opponentEntry?.ownerId ?? '',
+            nickname: opponentEntry?.nickname ?? 'SYSTEM'
+          },
           team: opponentEntry?.team ?? opponentTeam,
           text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
           createdAt: new Date(),
@@ -145,7 +157,10 @@ export function useBattleTimeline() {
           battleId: data.battleId,
           scope: 'ALL',
           messageId: `notice-defense-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
-          sender: opponentEntry?.ownerId ?? 'SYSTEM',
+          sender: {
+            userId: opponentEntry?.ownerId ?? '',
+            nickname: opponentEntry?.nickname ?? 'SYSTEM'
+          },
           team: opponentEntry?.team ?? opponentTeam,
           text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
           createdAt: new Date(),

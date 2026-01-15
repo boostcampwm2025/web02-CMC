@@ -153,9 +153,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
             >
               {isTeamA ? 'A팀' : 'B팀'}
             </span>
-            <span className="text-white font-medium text-sm">
-              {message.authorId ? `User-${message.authorId.slice(0, 6)}` : '익명'}
-            </span>
+            <span className="text-white font-medium text-sm">{message.author?.nickname ?? 'SYSTEM'}</span>
           </div>
           <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
         </div>
