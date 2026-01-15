@@ -75,6 +75,8 @@ export class BattleJoinInfoResponseDto {
   currentRound: number
   totalRounds: number
   topics: string[]
+  currentPhase: BattlePhaseName
+  phaseCount: number
   timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
 
   static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
@@ -92,6 +94,8 @@ export class BattleJoinInfoResponseDto {
     if (activeBattleState) {
       res.currentRound = activeBattleState.round
       res.totalRounds = battle.playTime.rounds
+      res.currentPhase = activeBattleState.phase
+      res.phaseCount = activeBattleState.phaseCount
       // 타임라인은 SELECTED 상태인 것만 포함
       res.timelines = {
         attacks: activeBattleState.all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),
@@ -100,6 +104,8 @@ export class BattleJoinInfoResponseDto {
     } else {
       res.currentRound = battle.initialState.round
       res.totalRounds = battle.playTime.rounds
+      res.currentPhase = battle.initialState.phase
+      res.phaseCount = battle.initialState.phaseCount
       res.timelines = { attacks: [], defenses: [] }
     }
 

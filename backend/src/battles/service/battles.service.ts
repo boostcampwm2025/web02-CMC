@@ -86,6 +86,7 @@ export class BattlesService extends EventEmitter {
       initialState: {
         round: 1,
         phase: BATTLE_PHASE.OPINION_SHARE.name,
+        phaseCount: 1,
         timeRemainingSeconds: playTime.time * 60,
       },
     }

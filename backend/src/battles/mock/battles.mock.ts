@@ -21,6 +21,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',
+      phaseCount: 1,
       timeRemainingSeconds: 10 * 60,
     },
   },
@@ -44,6 +45,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',
+      phaseCount: 1,
       timeRemainingSeconds: 30 * 60,
     },
   },
@@ -66,6 +68,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 3,
       phase: 'ATTACK',
+      phaseCount: 1,
       timeRemainingSeconds: 0,
     },
   },
@@ -88,6 +91,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 5,
       phase: 'ATTACK',
+      phaseCount: 1,
       timeRemainingSeconds: 0,
     },
   },
@@ -111,6 +115,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',
+      phaseCount: 1,
       timeRemainingSeconds: 30 * 60,
     },
   },
@@ -134,6 +139,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 2,
       phase: 'ATTACK',
+      phaseCount: 1,
       timeRemainingSeconds: 0,
     },
   },
@@ -156,6 +162,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 2,
       phase: 'ATTACK',
+      phaseCount: 1,
       timeRemainingSeconds: 0,
     },
   },
@@ -178,6 +185,7 @@ export const MOCK_BATTLES: Battle[] = [
     initialState: {
       round: 1,
       phase: 'OPINION_SHARE',
+      phaseCount: 1,
       timeRemainingSeconds: 10 * 60,
     },
   },
