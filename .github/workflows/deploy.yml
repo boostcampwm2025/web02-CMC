@@ -1,10 +1,9 @@
-name: ci
+name: deploy
 
 on:
-  push:
-    branches: [dev]
   pull_request:
-    branches: [dev]
+    branches:
+      - dev
 
 permissions:
   contents: read
@@ -16,7 +15,7 @@ env:
   IMAGE_FRONTEND: ${{ github.repository }}-frontend
 
 jobs:
-  build-and-push:
+  ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,3 +55,20 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on NCP via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USER }}
+          password: ${{ secrets.NCP_PASSWORD }}
+          script: |
+            set -e
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+            cd "${{ secrets.NCP_DEPLOY_PATH }}"
+            docker compose pull
+            docker compose up -d
