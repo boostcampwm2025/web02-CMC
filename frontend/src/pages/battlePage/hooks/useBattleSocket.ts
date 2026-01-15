@@ -24,7 +24,8 @@ export function useBattleSocket() {
     if (!userId || !battleId) return;
 
     const newSocket = io(import.meta.env.VITE_API_URL, {
-      transports: ['websocket']
+      transports: ['websocket'],
+      auth: { userId }
     });
 
     setSocket(newSocket);
@@ -72,9 +73,10 @@ export function useBattleSocket() {
         if (currentVoteList?.length) {
           const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
           setDiscussions(
-            currentVoteList.map(({ discussionId, authorId, content, upvotes, votes }) => ({
+            currentVoteList.map(({ discussionId, author, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
-              user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
+              // user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
+              user: author.authorId === userId ? 'You' : author.nickname,
               team: team as 'A' | 'B',
               content,
               votes: upvotes,
