@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
+import VoteChart from './components/VoteChartSector';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -113,6 +114,18 @@ export default function BattleResultPage() {
         teamBPercentage={result.teamB.percentage}
         teamBVotes={result.teamB.votes}
       />
+
+      {/* 투표 차트 섹션 */}
+      <div className="max-w-7xl mx-auto mb-12">
+        <VoteChart
+          teamAPercentage={result.teamA.percentage}
+          teamAVotes={result.teamA.votes}
+          teamBPercentage={result.teamB.percentage}
+          teamBVotes={result.teamB.votes}
+          neutralPercentage={result.neutral.percentage}
+          neutralVotes={result.neutral.votes}
+        />
+      </div>
     </div>
   );
 }
