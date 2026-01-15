@@ -59,9 +59,8 @@ export const BATTLE_CATEGORY = {
 } as const
 
 export const BATTLE_PLAYTIME = {
-  FIVE_MIN: { name: 'FIVE_MIN', time: 5, rounds: 1 },
-  TEN_MIN: { name: 'TEN_MIN', time: 10, rounds: 2 },
-  THIRTY_MIN: { name: 'THIRTY_MIN', time: 30, rounds: 6 },
+  FIFTEEN_MIN: { name: 'FIFTEEN_MIN', time: 15, rounds: 1 },
+  THIRTY_MIN: { name: 'THIRTY_MIN', time: 30, rounds: 2 },
 } as const
 
 export const BATTLE_CHAT_SCOPE = {

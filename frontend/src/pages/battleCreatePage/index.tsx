@@ -5,7 +5,7 @@ import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
-type BattlePlayTime = 'FIVE_MIN' | 'TEN_MIN' | 'THIRTY_MIN';
+type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
@@ -14,8 +14,7 @@ const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
 ];
 
 const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime }> = [
-  { label: '5분', value: 'FIVE_MIN' },
-  { label: '10분', value: 'TEN_MIN' },
+  { label: '15분', value: 'FIFTEEN_MIN' },
   { label: '30분', value: 'THIRTY_MIN' }
 ];
 
@@ -43,7 +42,7 @@ export default function BattleCreatePage() {
   const [bCode, setBCode] = useState('');
   const [language, setLanguage] = useState<BattleLanguage>('javascript');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
-  const [playTime, setPlayTime] = useState<BattlePlayTime>('TEN_MIN');
+  const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [type, setType] = useState<BattleType>('PUBLIC');
   const [password, setPassword] = useState('');
 
