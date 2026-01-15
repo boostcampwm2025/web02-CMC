@@ -9,15 +9,15 @@ export const BATTLE_PHASE = {
   },
   ATTACK: {
     name: 'ATTACK',
-    time: 60 * 1000, // 1분
+    time: 3 * 60 * 1000, // 3분
   },
   DEFENSE: {
     name: 'DEFENSE',
-    time: 60 * 1000, // 1분
+    time: 4 * 60 * 1000, // 4분
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
-    time: 15 * 1000, // 15초
+    time: 40 * 1000, // 40초
   },
 } as const
 
@@ -59,9 +59,8 @@ export const BATTLE_CATEGORY = {
 } as const
 
 export const BATTLE_PLAYTIME = {
-  FIVE_MIN: { name: 'FIVE_MIN', time: 5, rounds: 1 },
-  TEN_MIN: { name: 'TEN_MIN', time: 10, rounds: 2 },
-  THIRTY_MIN: { name: 'THIRTY_MIN', time: 30, rounds: 6 },
+  FIFTEEN_MIN: { name: 'FIFTEEN_MIN', time: 15, rounds: 1 },
+  THIRTY_MIN: { name: 'THIRTY_MIN', time: 30, rounds: 2 },
 } as const
 
 export const BATTLE_CHAT_SCOPE = {

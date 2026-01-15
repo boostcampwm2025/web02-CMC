@@ -6,7 +6,7 @@ import BattleTopicInput from './components/BattleTopicInput';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
-export type BattlePlayTime = 'FIVE_MIN' | 'TEN_MIN' | 'THIRTY_MIN';
+type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
@@ -14,10 +14,9 @@ const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'Python', value: 'python' }
 ];
 
-const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: number }> = [
-  { label: '5분', value: 'FIVE_MIN', rounds: 1 },
-  { label: '10분', value: 'TEN_MIN', rounds: 2 },
-  { label: '30분', value: 'THIRTY_MIN', rounds: 6 }
+const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime }> = [
+  { label: '15분', value: 'FIFTEEN_MIN', rounds: 1 },
+  { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
 
 const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
@@ -44,7 +43,7 @@ export default function BattleCreatePage() {
   const [bCode, setBCode] = useState('');
   const [language, setLanguage] = useState<BattleLanguage>('javascript');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
-  const [playTime, setPlayTime] = useState<BattlePlayTime>('TEN_MIN');
+  const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PUBLIC');
   const [password, setPassword] = useState('');
