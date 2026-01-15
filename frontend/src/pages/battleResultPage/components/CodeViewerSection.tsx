@@ -1,4 +1,4 @@
-import CodeViewer from '@/pages/battlePage/components/codeview/CodeViewer';
+import CodeViewer from '@/commons/components/CodeViewer';
 
 interface CodeComparisonSectionProps {
   codeA: string;
