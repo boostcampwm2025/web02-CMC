@@ -157,7 +157,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
           />
 
           <div className="flex items-center gap-4 px-4 pt-6">
-            <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[52.8px]">
+            <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
               {getCurrentStageNumber()}
             </div>
             {STAGES.map((stage, index) => (
@@ -166,7 +166,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
                   icon={stage.icon as 'message' | 'battle' | 'shield' | 'switch'}
                   {...getStageColor(stage.phase as BattlePhase)}
                   active={isActiveStage(stage.step)}
-                  small={stage.step !== 1}
+                  small={true}
                 />
                 {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40" />}
               </div>

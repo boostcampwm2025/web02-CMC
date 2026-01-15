@@ -18,9 +18,12 @@ export function StageIcon({
   active?: boolean;
   small?: boolean;
 }) {
-  const size = small ? 'w-[48px] h-[48px]' : 'w-[52.8px] h-[52.8px]';
-  const iconClass = `w-[20px] h-[20px] ${active ? '' : 'opacity-40'}`;
-  const iconStyle = active ? { color: text } : undefined;
+  const baseSize = small ? 48 : 52.8;
+  const activeSize = small ? 56 : 60;
+  const size = active ? activeSize : baseSize;
+
+  const iconClass = `w-[20px] h-[20px] transition-all`;
+  const iconStyle = active ? { color: text } : { color: '#99A1AF' };
 
   const renderIcon = () => {
     switch (icon) {
@@ -41,16 +44,17 @@ export function StageIcon({
     <div className="flex flex-col items-center gap-1">
       <div
         className={`
-          ${size}
           rounded-[12px]
           flex items-center justify-center
           border-[1.333px]
-          transition-all
+          transition-all duration-300 ease-in-out
           ${active ? 'shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.25)]' : ''}
         `}
         style={{
-          background: bg,
-          borderColor: border
+          width: `${size}px`,
+          height: `${size}px`,
+          background: active ? bg : '#0A0A1A',
+          borderColor: active ? border : '#364153'
         }}
       >
         {renderIcon()}
