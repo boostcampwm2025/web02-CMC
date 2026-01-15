@@ -18,9 +18,9 @@ export default function TeamSelectPage() {
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
-  // API 데이터 사용
-  const attacks = battleInfo.timelines.attacks;
-  const defenses = battleInfo.timelines.defenses;
+  // API 데이터 사용 - type 필드 추가
+  const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
+  const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 
   const handleSubmit = () => {
     if (selectedTeam && id) {
