@@ -1,5 +1,6 @@
 import { Logger, OnModuleInit } from '@nestjs/common'
-import { Socket, Server } from 'socket.io'
+import { Server } from 'socket.io'
+import type { SocketWithUserId } from '../types/socket.types'
 
 import {
   WebSocketGateway,
@@ -30,6 +31,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   server: Server
 
   private readonly logger = new Logger(BattlesGateway.name)
+  private readonly userIdToSocketMap = new Map<string, SocketWithUserId>()
 
   constructor(private readonly battlesService: BattlesService) {}
 
@@ -37,29 +39,53 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.bindBattleEvents()
   }
 
-  handleConnection(client: Socket) {
+  private getUserIdFromSocket(client: SocketWithUserId): string {
+    //저장된 userId를 가져옴
+    const userId = client.data.userId
+    if (!userId) {
+      throw new Error('userId가 필요합니다.')
+    }
+    return userId
+  }
+
+  handleConnection(client: SocketWithUserId) {
     this.logger.log(`[소켓 연결] - ${client.id}`)
 
     try {
-      // const token = client.handshake.auth.token
-      // const user = this.authService.verifyToken(token)
-      // client.data.user = user
+      const userId = client.handshake.auth.userId
+      if (!userId) {
+        throw new Error('userId가 필요합니다.')
+      }
+
+      // 인증 성공 시 socket.data.userId에 사용자 정보를 저장
+      client.data.userId = userId
+      this.userIdToSocketMap.set(userId, client)
+      this.logger.log(`[소켓 연결] userId: ${userId}`)
     } catch {
+      this.logger.error(`[소켓 연결 실패] - ${client.id}`)
       client.disconnect()
     }
   }
 
-  handleDisconnect(client: Socket) {
-    this.logger.log(`[소켓 연결 해제] - ${client.id}`)
+  handleDisconnect(client: SocketWithUserId) {
+    const userId = client.data.userId
+    if (userId) {
+      this.userIdToSocketMap.delete(userId)
+      this.logger.log(`[소켓 연결 해제] userId: ${userId}`)
+    } else {
+      this.logger.log(`[소켓 연결 해제] - ${client.id}`)
+    }
 
     client.disconnect()
   }
 
   @SubscribeMessage('battle:join')
-  async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: Socket) {
+  async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
+      const userId = this.getUserIdFromSocket(client)
+
       const { battleId } = battleJoinRequestDto
-      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto)
+      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto, userId)
 
       const res = BattleJoinResponseDto.of(battleState, team)
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -89,10 +115,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:attack')
-  handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: Socket) {
+  handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      const { battleId, authorId, content, team } = dto
-      const attack = this.battlesService.handleAttack(battleId, { authorId, content, team })
+      const userId = this.getUserIdFromSocket(client)
+      const { battleId, content, team } = dto
+      const attack = this.battlesService.handleAttack(battleId, { authorId: userId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:attack:created', attack)
@@ -106,10 +133,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:defense')
-  handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: Socket) {
+  handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      const { battleId, authorId, content, team } = dto
-      const defense = this.battlesService.handleDefense(battleId, { authorId, content, team })
+      const userId = this.getUserIdFromSocket(client)
+      const { battleId, content, team } = dto
+      const defense = this.battlesService.handleDefense(battleId, { authorId: userId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:defense:created', defense)
@@ -123,9 +151,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:attack:vote')
-  handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: Socket) {
+  handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      const { battleId, discussionId, userId, team } = dto
+      const userId = this.getUserIdFromSocket(client)
+      const { battleId, discussionId, team } = dto
       const updates = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
@@ -143,9 +172,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:defense:vote')
-  handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: Socket) {
+  handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      const { battleId, discussionId, userId, team } = dto
+      const userId = this.getUserIdFromSocket(client)
+      const { battleId, discussionId, team } = dto
       const updates = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
@@ -230,10 +260,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:chat')
-  handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: Socket) {
+  handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      const senderId = client.id
-      const saved = this.battlesService.appendChatMessage(battleChatDto, senderId)
+      const userId = this.getUserIdFromSocket(client)
+
+      const saved = this.battlesService.appendChatMessage(battleChatDto, userId)
       const roomId =
         battleChatDto.scope === BATTLE_CHAT_SCOPE.ALL
           ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
@@ -249,9 +280,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:team:vote')
-  handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: Socket) {
+  handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: SocketWithUserId) {
     try {
-      this.battlesService.voteTeam(dto, client.id)
+      const userId = this.getUserIdFromSocket(client)
+
+      this.battlesService.voteTeam(dto, userId)
     } catch (error) {
       if (error instanceof Error) {
         client.emit('battle:team:vote:error', { message: error.message })
@@ -264,7 +297,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
     // 각 클라이언트의 소켓 룸 이동 및 개별 알림
     for (const change of payload.changes) {
-      const socket = this.server.sockets.sockets.get(change.clientId)
+      const socket = this.userIdToSocketMap.get(change.userId)
       if (!socket) continue
 
       const fromRoom = this.battlesService.getBattleRoomId(payload.battleId, change.from)

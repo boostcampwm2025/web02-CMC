@@ -9,10 +9,6 @@ export class AttackRequestDto {
 
   @IsString()
   @IsNotEmpty()
-  authorId!: string
-
-  @IsString()
-  @IsNotEmpty()
   content!: string
 
   @IsEnum(BATTLE_TEAM)
@@ -23,10 +19,6 @@ export class DefenseRequestDto {
   @IsString()
   @IsNotEmpty()
   battleId!: string
-
-  @IsString()
-  @IsNotEmpty()
-  authorId!: string
 
   @IsString()
   @IsNotEmpty()
@@ -45,10 +37,6 @@ export class AttackVoteRequestDto {
   @IsNotEmpty()
   discussionId!: string
 
-  @IsString()
-  @IsNotEmpty()
-  userId!: string
-
   @IsEnum(BATTLE_TEAM)
   team!: BattleTeam
 }
@@ -61,10 +49,6 @@ export class DefenseVoteRequestDto {
   @IsString()
   @IsNotEmpty()
   discussionId!: string
-
-  @IsString()
-  @IsNotEmpty()
-  userId!: string
 
   @IsEnum(BATTLE_TEAM)
   team!: BattleTeam

@@ -4,10 +4,6 @@ import type { BattleTeam } from '../types/battles.types'
 export class BattleJoinRequestDto {
   @IsString()
   @IsNotEmpty()
-  clientId: string
-
-  @IsString()
-  @IsNotEmpty()
   battleId: string
 
   @IsString()

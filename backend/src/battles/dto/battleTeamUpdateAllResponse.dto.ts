@@ -8,7 +8,7 @@ export interface TeamCounts {
 }
 
 export interface TeamChange {
-  clientId: string
+  userId: string
   from: BattleTeam
   to: BattleTeam
 }
