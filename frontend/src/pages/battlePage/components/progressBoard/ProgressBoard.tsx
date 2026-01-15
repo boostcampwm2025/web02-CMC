@@ -104,10 +104,9 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
     return getCurrentPhaseStep() === stageStep;
   };
 
-  // 현재 라운드-페이즈 번호 계산
+  // 현재 라운드 번호 표시
   const getCurrentStageNumber = () => {
-    if (phase === 'PENDING') return '대기중';
-    return `${round} - ${getCurrentPhaseStep()}`;
+    return `Round ${round}`;
   };
 
   const getStageColor = (stage: BattlePhase) => COLOR_MAP[stage] || COLOR_MAP.BASE;
@@ -199,7 +198,7 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
           `}
         >
           <div className="flex items-center gap-4 px-4">
-            <div className="text-[32px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
+            <div className="text-[22px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
               {getCurrentStageNumber()}
             </div>
             {STAGES.map((stage, index) => (
