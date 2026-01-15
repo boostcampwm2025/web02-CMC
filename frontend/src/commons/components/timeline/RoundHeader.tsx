@@ -8,6 +8,7 @@ interface RoundHeaderProps {
   isExpanded: boolean;
   hasContent: boolean;
   onToggle: () => void;
+  showStatus?: boolean; // 상태 표시 여부
 }
 
 export default function RoundHeader({
@@ -17,7 +18,8 @@ export default function RoundHeader({
   isFuture,
   isExpanded,
   hasContent,
-  onToggle
+  onToggle,
+  showStatus = true
 }: RoundHeaderProps) {
   return (
     <button
@@ -50,17 +52,16 @@ export default function RoundHeader({
           {topic}
         </div>
 
-        {/* Status Indicator */}
-        {isActive && (
+        {showStatus && isActive && (
           <div className="flex items-center gap-2 text-orange-400">
             <Flame className="w-5 h-5 animate-pulse" />
             <span className="text-sm font-bold">진행 중</span>
           </div>
         )}
 
-        {!isFuture && !isActive && hasContent && <div className="text-sm text-gray-500">완료</div>}
+        {showStatus && !isFuture && !isActive && hasContent && <div className="text-sm text-gray-500">완료</div>}
 
-        {isFuture && <div className="text-sm text-gray-600">대기 중</div>}
+        {showStatus && isFuture && <div className="text-sm text-gray-600">대기 중</div>}
       </div>
 
       {/* Expand Icon */}

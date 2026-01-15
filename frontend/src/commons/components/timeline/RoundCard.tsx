@@ -1,15 +1,16 @@
 import RoundHeader from './RoundHeader';
 import PhaseSection from './PhaseSection';
-import type { RoundData } from './utils/organizeByRounds';
+import type { RoundData } from '../../utils/organizeByRounds';
 
 interface RoundCardProps {
   roundData: RoundData;
   isExpanded: boolean;
   onToggle: () => void;
   formatTime: (timestamp?: number) => string;
+  showStatus?: boolean;
 }
 
-export default function RoundCard({ roundData, isExpanded, onToggle, formatTime }: RoundCardProps) {
+export default function RoundCard({ roundData, isExpanded, onToggle, formatTime, showStatus }: RoundCardProps) {
   const hasContent = !!(
     roundData.challenge.teamA ||
     roundData.challenge.teamB ||
@@ -35,6 +36,7 @@ export default function RoundCard({ roundData, isExpanded, onToggle, formatTime 
         isExpanded={isExpanded}
         hasContent={hasContent}
         onToggle={onToggle}
+        showStatus={showStatus}
       />
 
       {/* 라운드 */}
