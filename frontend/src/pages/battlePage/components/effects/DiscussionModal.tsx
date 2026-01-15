@@ -63,10 +63,13 @@ export default function DiscussionModal({ isOpen, team, content, type, onClose }
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${animationClass}`}
       onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="discussion-modal-title"
     >
       <div
         className={`relative flex flex-col items-center transition-all duration-500 ${scaleClass}`}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleClose}
       >
         <div className={`absolute inset-0 blur-3xl bg-gradient-to-r ${gradient} opacity-30 animate-pulse`} />
 

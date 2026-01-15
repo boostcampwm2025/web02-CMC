@@ -1,15 +1,17 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, ThumbsUp, Zap, Shield, Flame, ArrowRight, ArrowLeft, Clock } from 'lucide-react';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 
 interface Step3TimelineProps {
   timelines: Array<BattleDiscussion | BattleDefense>;
+  topics: string[];
   currentRound?: number;
   totalRounds?: number;
 }
 
 interface RoundData {
   round: number;
+  topic: string;
   isActive: boolean;
   isFuture: boolean;
   challenge: {
@@ -22,20 +24,18 @@ interface RoundData {
   };
 }
 
-export default function Step3Timeline({
-  timelines,
-  currentRound = 1,
-  totalRounds = 2,
-}: Step3TimelineProps) {
-  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(
-    new Set([currentRound])
-  );
+export default function Step3Timeline({ topics, timelines, currentRound = 1, totalRounds = 2 }: Step3TimelineProps) {
+  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set([currentRound]));
 
   // useRef는 초기화 시에만 호출되므로 Date.now()는 마운트 시 한 번만 실행됨
   const nowRef = useRef<number>(0);
-  if (nowRef.current === 0) {
-    nowRef.current = Date.now();
-  }
+
+  useEffect(() => {
+    if (nowRef.current === 0) {
+      nowRef.current = Date.now();
+    }
+  }, []);
+
   const now = nowRef.current;
 
   // 라운드별로 메시지 그룹화
@@ -43,8 +43,8 @@ export default function Step3Timeline({
     const rounds: RoundData[] = [];
 
     // attacks와 defenses 분리
-    const attacks = timelines.filter(item => item.type === 'ATTACK') as BattleDiscussion[];
-    const defenses = timelines.filter(item => item.type === 'DEFENSE') as BattleDefense[];
+    const attacks = timelines.filter((item) => item.type === 'ATTACK') as BattleDiscussion[];
+    const defenses = timelines.filter((item) => item.type === 'DEFENSE') as BattleDefense[];
 
     for (let i = 1; i <= totalRounds; i++) {
       // 각 라운드는 A팀, B팀 순서로 2개씩 저장됨
@@ -55,21 +55,22 @@ export default function Step3Timeline({
 
       const challengeA = attacks[aAttackIdx] || null;
       const challengeB = attacks[bAttackIdx] || null;
-      const rebuttalA = defenses[aDefenseIdx] as BattleDefense || null;
-      const rebuttalB = defenses[bDefenseIdx] as BattleDefense || null;
+      const rebuttalA = (defenses[aDefenseIdx] as BattleDefense) || null;
+      const rebuttalB = (defenses[bDefenseIdx] as BattleDefense) || null;
 
       rounds.push({
         round: i,
+        topic: topics[i - 1],
         isActive: i === currentRound,
         isFuture: i > currentRound,
         challenge: {
           teamA: challengeA,
-          teamB: challengeB,
+          teamB: challengeB
         },
         rebuttal: {
           teamA: rebuttalA,
-          teamB: rebuttalB,
-        },
+          teamB: rebuttalB
+        }
       });
     }
 
@@ -121,9 +122,11 @@ export default function Step3Timeline({
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-1 rounded text-xs font-bold ${
-              isTeamA ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
-            }`}>
+            <span
+              className={`px-2 py-1 rounded text-xs font-bold ${
+                isTeamA ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
+              }`}
+            >
               {isTeamA ? 'A팀' : 'B팀'}
             </span>
             <span className="text-white font-medium text-sm">
@@ -134,22 +137,16 @@ export default function Step3Timeline({
         </div>
 
         {/* Content */}
-        <p className="text-gray-300 mb-4 leading-relaxed text-sm">
-          {message.content}
-        </p>
+        <p className="text-gray-300 mb-4 leading-relaxed text-sm">{message.content}</p>
 
         {/* Vote Display */}
         <div
           className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 w-fit ${
-            isTeamA
-              ? 'bg-blue-600/20 border-blue-500/30'
-              : 'bg-red-600/20 border-red-500/30'
+            isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'
           }`}
         >
           <ThumbsUp className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
-          <span className={`font-bold ${isTeamA ? 'text-blue-300' : 'text-red-300'}`}>
-            {message.upvotes}
-          </span>
+          <span className={`font-bold ${isTeamA ? 'text-blue-300' : 'text-red-300'}`}>{message.upvotes}</span>
         </div>
       </div>
     );
@@ -203,14 +200,27 @@ export default function Step3Timeline({
                   >
                     <div className="flex items-center gap-3">
                       {/* Round Badge */}
-                      <div className={`px-4 py-2 rounded-lg font-bold ${
-                        roundData.isActive
-                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30'
-                          : roundData.isFuture
-                            ? 'bg-gray-700/30 text-gray-600'
-                            : 'bg-gray-700/50 text-gray-400'
-                      }`}>
+                      <div
+                        className={`px-4 py-2 rounded-lg font-bold ${
+                          roundData.isActive
+                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30'
+                            : roundData.isFuture
+                              ? 'bg-gray-700/30 text-gray-600'
+                              : 'bg-gray-700/50 text-gray-400'
+                        }`}
+                      >
                         Round {roundData.round}
+                      </div>
+                      <div
+                        className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                          roundData.isActive
+                            ? 'bg-gradient-to-r from-purple-400 to-purple-500 text-white shadow-md shadow-purple-400/20'
+                            : roundData.isFuture
+                              ? 'bg-gray-700/20 text-gray-500'
+                              : 'bg-gray-700/40 text-gray-400'
+                        }`}
+                      >
+                        {roundData.topic}
                       </div>
 
                       {/* Status Indicator */}
@@ -222,26 +232,16 @@ export default function Step3Timeline({
                       )}
 
                       {!roundData.isFuture && !roundData.isActive && hasContent && (
-                        <div className="text-sm text-gray-500">
-                          완료
-                        </div>
+                        <div className="text-sm text-gray-500">완료</div>
                       )}
 
-                      {roundData.isFuture && (
-                        <div className="text-sm text-gray-600">
-                          대기 중
-                        </div>
-                      )}
+                      {roundData.isFuture && <div className="text-sm text-gray-600">대기 중</div>}
                     </div>
 
                     {/* Expand Icon */}
                     {!roundData.isFuture && (
                       <div className="text-gray-400">
-                        {isExpanded ? (
-                          <ChevronUp className="w-5 h-5" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5" />
-                        )}
+                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                       </div>
                     )}
                   </button>
@@ -263,9 +263,7 @@ export default function Step3Timeline({
                             <ArrowRight className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
                               <Shield className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">
-                                B 반론
-                              </span>
+                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
                             </div>
                           </div>
                         </div>
@@ -301,9 +299,7 @@ export default function Step3Timeline({
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
                               <Shield className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">
-                                A 반론
-                              </span>
+                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
                             </div>
                             <ArrowLeft className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">

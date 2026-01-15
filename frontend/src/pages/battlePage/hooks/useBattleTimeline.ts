@@ -48,11 +48,12 @@ export function useBattleTimeline() {
         battleId,
         scope: 'ALL',
         messageId: `${type}-${entry.id}`,
-        sender: 'SYSTEM',
+        sender: entry.ownerId ?? 'SYSTEM',
         team,
         text: entry.text,
         createdAt: new Date(),
-        type
+        type,
+        votes: entry.count ?? 0
       };
       useBattleStore.getState().addChat(chatMessage);
     };
@@ -94,6 +95,21 @@ export function useBattleTimeline() {
         showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'attack');
       }
 
+      if (selectedTeam !== 'NONE') {
+        const noticeChat: BattleChat = {
+          battleId: data.battleId,
+          scope: 'ALL',
+          messageId: `notice-attack-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
+          sender: opponentEntry?.ownerId ?? 'SYSTEM',
+          team: opponentEntry?.team ?? opponentTeam,
+          text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
+          createdAt: new Date(),
+          type: 'attack',
+          votes: opponentEntry?.count ?? 0
+        };
+        useBattleStore.getState().setOpponentNoticePending(noticeChat);
+      }
+
       // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)
       if (aTeam?.team) {
         pushTimelineAndChat(data.battleId, aTeam.team, aTeam, 'attack');
@@ -122,6 +138,21 @@ export function useBattleTimeline() {
       } else if (!opponentEntry?.id) {
         // null인 경우: 투표된 의견이 없을 때
         showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'defense');
+      }
+
+      if (selectedTeam !== 'NONE') {
+        const noticeChat: BattleChat = {
+          battleId: data.battleId,
+          scope: 'ALL',
+          messageId: `notice-defense-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
+          sender: opponentEntry?.ownerId ?? 'SYSTEM',
+          team: opponentEntry?.team ?? opponentTeam,
+          text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
+          createdAt: new Date(),
+          type: 'defense',
+          votes: opponentEntry?.count ?? 0
+        };
+        useBattleStore.getState().setOpponentNoticePending(noticeChat);
       }
 
       // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)

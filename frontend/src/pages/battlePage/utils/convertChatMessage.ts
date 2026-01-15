@@ -7,6 +7,7 @@ export interface Message {
   content: string;
   timestamp: string;
   type?: 'chat' | 'attack' | 'defense';
+  votes?: number;
 }
 
 export const convertBattleChatToMessage = (chat: BattleChat, userId: string): Message => ({
@@ -15,5 +16,6 @@ export const convertBattleChatToMessage = (chat: BattleChat, userId: string): Me
   team: chat.team,
   content: chat.text,
   timestamp: new Date(chat.createdAt).toISOString().replace('T', ' ').substring(0, 19),
-  type: chat.type || 'chat'
+  type: chat.type || 'chat',
+  votes: chat.votes
 });

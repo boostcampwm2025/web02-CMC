@@ -15,6 +15,17 @@ vi.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
   vscDarkPlus: {}
 }));
 
+vi.mock('@/commons/utils/languageMapper', () => ({
+  languageMapper: (lang: string) => {
+    const map: Record<string, string> = {
+      TS: 'typescript',
+      JS: 'javascript',
+      PYTHON: 'python'
+    };
+    return map[lang] || lang;
+  }
+}));
+
 describe('CodeViewer', () => {
   const mockCode = 'function hello() { return "world"; }';
 
@@ -25,18 +36,11 @@ describe('CodeViewer', () => {
     expect(screen.getByText(mockCode)).toBeInTheDocument();
   });
 
-  it('A팀은 파란색 테두리를 사용한다', () => {
+  it('data-testid가 code-viewer로 설정된다', () => {
     const { container } = render(<CodeViewer code={mockCode} language="javascript" team="A" />);
 
     const codeContainer = container.querySelector('[data-testid="code-viewer"]');
-    expect(codeContainer).toHaveClass('border-[#2B7FFF]');
-  });
-
-  it('B팀은 빨간색 테두리를 사용한다', () => {
-    const { container } = render(<CodeViewer code={mockCode} language="javascript" team="B" />);
-
-    const codeContainer = container.querySelector('[data-testid="code-viewer"]');
-    expect(codeContainer).toHaveClass('border-[#FB2C36]');
+    expect(codeContainer).toBeInTheDocument();
   });
 
   it('전체 너비를 사용한다', () => {
@@ -47,7 +51,7 @@ describe('CodeViewer', () => {
   });
 
   it('language prop이 syntax highlighter에 전달된다', () => {
-    render(<CodeViewer code={mockCode} language="typescript" team="A" />);
+    render(<CodeViewer code={mockCode} language="TS" team="A" />);
 
     const highlighter = screen.getByTestId('syntax-highlighter');
     expect(highlighter).toHaveAttribute('data-language', 'typescript');

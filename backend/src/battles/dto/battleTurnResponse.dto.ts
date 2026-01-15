@@ -29,13 +29,15 @@ export class BattlePhaseResponseDto {
 export class BattleRoundResponseDto {
   battleId: string
   round: number
+  topic: string
 
   static fromEntity(payload: BattleRoundResponseDto): BattleRoundResponseDto {
     const res = new BattleRoundResponseDto()
-    const { battleId, round } = payload
+    const { battleId, round, topic } = payload
 
     res.battleId = battleId
     res.round = round
+    res.topic = topic
 
     return res
   }

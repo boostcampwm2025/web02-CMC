@@ -14,6 +14,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
   playTime: BATTLE_PLAYTIME.TEN_MIN,
+  topics: ['효율성', '가독성'],
   status: BATTLE_STATUS.OPEN,
   createdAt: new Date('2024-01-01T00:00:00Z'),
   updatedAt: new Date('2024-01-01T00:00:00Z'),
@@ -49,6 +50,10 @@ describe('BattlesService', () => {
   })
 
   describe('initBattleState', () => {
+    beforeEach(() => {
+      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
+    })
+
     it('battleId가 없으면 BadRequestException을 던진다', () => {
       expect(() => service['initBattleState']('')).toThrow(BadRequestException)
     })
@@ -77,6 +82,7 @@ describe('BattlesService', () => {
 
   describe('addParticipant', () => {
     beforeEach(() => {
+      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
       service['initBattleState']('battle-1')
     })
 
@@ -275,6 +281,7 @@ describe('BattlesService', () => {
 
   describe('updatePhase', () => {
     beforeEach(() => {
+      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
       service['initBattleState']('battle-1')
     })
 
@@ -596,6 +603,7 @@ describe('BattlesService', () => {
 
   describe('appendChatMessage', () => {
     beforeEach(() => {
+      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
       service['initBattleState']('battle-1')
     })
 

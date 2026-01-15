@@ -40,9 +40,9 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
 
   // 모든 배틀 관련 훅 초기화
   useBattleSocket();
-  useBattleProgress();
 
   const { handleVote, handleDiscussionSubmit } = useBattleDiscussions();
+  const { roundModal, hideRoundEffect } = useBattleProgress();
   const { effectModal, hideEffect } = useBattleTimeline();
   const { handleTeamChange } = useBattleTeam({
     onOpenTeamChangeModal,
@@ -52,8 +52,10 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
   return {
     handleVote,
     handleDiscussionSubmit,
+    roundModal,
     effectModal,
     hideEffect,
+    hideRoundEffect,
     handleTeamChange
   };
 }

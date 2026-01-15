@@ -8,6 +8,7 @@ interface Step1BattleInfoProps {
   language: string;
   currentRound: number;
   totalRounds: number;
+  topics: string[];
   totalParticipants: number;
   currentPhase?: BattlePhase;
   phaseCount?: number;
@@ -59,6 +60,7 @@ export default function Step1BattleInfo({
   language,
   currentRound,
   totalRounds,
+  topics,
   totalParticipants,
   currentPhase,
   phaseCount
@@ -129,21 +131,31 @@ export default function Step1BattleInfo({
                 <p className="text-white text-3xl font-bold mb-2 text-left">
                   라운드 {currentPhase === 'PENDING' ? 0 : currentRound} / {totalRounds}
                 </p>
-                {phaseConfig && PhaseIcon && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <div
-                      className={`px-3 py-1 ${phaseConfig.bgColor} border ${phaseConfig.borderColor} rounded-lg flex items-center gap-1.5`}
-                    >
-                      <PhaseIcon className={`w-4 h-4 ${phaseConfig.color}`} />
-                      <span className={`${phaseConfig.color} text-sm font-bold`}>
-                        {phaseConfig.label}
-                        {(currentPhase === 'ATTACK' || currentPhase === 'DEFENSE') && phaseCount && (
-                          <span className="ml-1.5 text-xs opacity-80">{phaseCount === 1 ? '1차' : '2차'}</span>
-                        )}
-                      </span>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {currentPhase !== 'PENDING' && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="px-3 py-1 rounded-lg font-bold flex items-center gap-1.5 text-orange-400 bg-orange-500/20 border-orange-500/50">
+                        {topics[currentRound - 1]}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {phaseConfig && PhaseIcon && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div
+                        className={`px-3 py-1 ${phaseConfig.bgColor} border ${phaseConfig.borderColor} rounded-lg flex items-center gap-1.5`}
+                      >
+                        <PhaseIcon className={`w-4 h-4 ${phaseConfig.color}`} />
+                        <span className={`${phaseConfig.color} text-sm font-bold`}>
+                          {phaseConfig.label}
+                          {(currentPhase === 'ATTACK' || currentPhase === 'DEFENSE') && phaseCount && (
+                            <span className="ml-1.5 text-xs opacity-80">{phaseCount === 1 ? '1차' : '2차'}</span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2.5 overflow-hidden">

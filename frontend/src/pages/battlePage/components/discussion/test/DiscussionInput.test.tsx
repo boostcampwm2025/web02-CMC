@@ -5,8 +5,10 @@ import DiscussionInput from '@/pages/battlePage/components/discussion/Discussion
 
 let mockBattleProgress: {
   phase: string;
+  round?: number;
 } = {
-  phase: 'ATTACK'
+  phase: 'ATTACK',
+  round: 1
 };
 let mockSelectedTeam: 'A' | 'B' = 'A';
 
@@ -18,7 +20,7 @@ vi.mock('@/pages/battlePage/stores/battleStore', () => ({
     };
     return selector(state);
   }),
-  selectBattleProgress: (state: { battleProgress: { phase: string } }) => state.battleProgress,
+  selectBattleProgress: (state: { battleProgress: { phase: string; round?: number } }) => state.battleProgress,
   selectSelectedTeam: (state: { selectedTeam: 'A' | 'B' }) => state.selectedTeam
 }));
 
@@ -28,28 +30,31 @@ describe('DiscussionInput', () => {
   beforeEach(() => {
     mockOnSubmit.mockClear();
     mockBattleProgress = {
-      phase: 'ATTACK'
+      phase: 'ATTACK',
+      round: 1
     };
     mockSelectedTeam = 'A';
   });
 
-  it('공격 팀일 때 "상대 진영에 이의제기..." placeholder 표시', () => {
+  it('공격 팀일 때 올바른 placeholder와 라벨 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'ATTACK' };
+    mockBattleProgress = { phase: 'ATTACK', round: 1 };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    expect(screen.getByPlaceholderText('상대 진영에 이의제기...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('상대 코드의 허점을 찾아 이의 제기하세요')).toBeInTheDocument();
+    expect(screen.getByText('1R 이의제기')).toBeInTheDocument();
     expect(screen.getByText('이의제기')).toBeInTheDocument();
   });
 
-  it('방어 팀일 때 "상대 진영에 반론..." placeholder 표시', () => {
+  it('방어 팀일 때 올바른 placeholder와 라벨 표시', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'DEFENSE' };
+    mockBattleProgress = { phase: 'DEFENSE', round: 1 };
 
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    expect(screen.getByPlaceholderText('상대 진영에 반론...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('상대 주장에 논리적으로 반박해 보세요')).toBeInTheDocument();
+    expect(screen.getByText('1R 반론')).toBeInTheDocument();
     expect(screen.getByText('반론')).toBeInTheDocument();
   });
 
@@ -57,7 +62,7 @@ describe('DiscussionInput', () => {
     const user = userEvent.setup();
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/);
+    const input = screen.getByPlaceholderText('상대 코드의 허점을 찾아 이의 제기하세요');
     await user.type(input, '버튼 클릭 테스트');
 
     const button = screen.getByRole('button');
@@ -70,7 +75,7 @@ describe('DiscussionInput', () => {
     const user = userEvent.setup();
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/) as HTMLInputElement;
+    const input = screen.getByPlaceholderText('상대 코드의 허점을 찾아 이의 제기하세요') as HTMLInputElement;
     await user.type(input, '초기화 테스트');
     await user.click(screen.getByRole('button'));
 
@@ -81,35 +86,33 @@ describe('DiscussionInput', () => {
     const user = userEvent.setup();
     render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/);
+    const input = screen.getByPlaceholderText('상대 코드의 허점을 찾아 이의 제기하세요');
     await user.type(input, '   {Enter}'); // 공백만 입력
 
     expect(mockOnSubmit).not.toHaveBeenCalled();
   });
 
-  it('OPINION_SHARE 단계에서 input 비활성화', () => {
-    mockBattleProgress = { phase: 'OPINION_SHARE' };
+  it('OPINION_SHARE 단계에서 컴포넌트가 렌더링되지 않음', () => {
+    mockBattleProgress = { phase: 'OPINION_SHARE', round: 1 };
 
-    render(<DiscussionInput onSubmit={mockOnSubmit} />);
+    const { container } = render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText('의견을 공유하세요...');
-    expect(input).toBeDisabled();
+    expect(container.firstChild).toBeNull();
   });
 
-  it('ATTACK/DEFENSE 외 페이즈에서는 input 비활성화', () => {
+  it('ATTACK/DEFENSE 외 페이즈에서는 컴포넌트가 렌더링되지 않음', () => {
     mockSelectedTeam = 'A';
-    mockBattleProgress = { phase: 'TEAM_SWITCH' };
+    mockBattleProgress = { phase: 'TEAM_SWITCH', round: 1 };
 
-    render(<DiscussionInput onSubmit={mockOnSubmit} />);
+    const { container } = render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/);
-    expect(input).toBeDisabled();
+    expect(container.firstChild).toBeNull();
   });
 
-  it('disabled prop이 true일 때 input 비활성화', () => {
-    render(<DiscussionInput onSubmit={mockOnSubmit} disabled={true} />);
+  it('라운드 번호가 라벨에 표시됨', () => {
+    mockBattleProgress = { phase: 'ATTACK', round: 2 };
+    render(<DiscussionInput onSubmit={mockOnSubmit} />);
 
-    const input = screen.getByPlaceholderText(/상대 진영에/);
-    expect(input).toBeDisabled();
+    expect(screen.getByText(/2R/)).toBeInTheDocument();
   });
 });

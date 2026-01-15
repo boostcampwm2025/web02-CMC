@@ -26,7 +26,7 @@ export function useBattleDiscussions() {
       const targetDiscussion = discussions?.find((obj) => obj.id === discussionId);
       if (targetDiscussion?.hasVoted) return;
 
-      const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
+      const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
       const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
 
       socket.emit(eventName, {
@@ -43,7 +43,7 @@ export function useBattleDiscussions() {
     (content: string) => {
       if (team === 'NONE' || !socket) return;
 
-      const { isAttacking } = getDiscussionConfig(team, battleProgress?.phase);
+      const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
       const canSubmit = !isInputDisabled(team, battleProgress?.phase);
 
       if (!canSubmit) {

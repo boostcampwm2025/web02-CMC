@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { BattleProgressState } from '@/commons/types/battle';
 import { useBattleStore, selectSocket } from '../stores/battleStore';
+import { useRoundUpdateModal } from './useRoundUpdateModal';
 
 export function useBattleProgress() {
   const socket = useBattleStore(selectSocket);
   const { setCurrentStage, updateBattleProgress } = useBattleStore();
+  const { roundModal, showEffect, hideEffect } = useRoundUpdateModal();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,13 +25,17 @@ export function useBattleProgress() {
 
       // 페이즈가 변경되면 투표 리스트 초기화
       useBattleStore.getState().setDiscussions([]);
+      useBattleStore.getState().commitOpponentNotice();
     };
 
     // Round 변경 이벤트 구독
-    const handleRoundUpdate = (data: { battleId: string; round: number }) => {
+    const handleRoundUpdate = (data: { battleId: string; round: number; topic: string }) => {
       updateBattleProgress({
-        round: data.round
+        round: data.round,
+        topic: data.topic
       });
+
+      showEffect(data.round, data.topic);
     };
 
     socket.on('battle:phase:updated', handlePhaseUpdate);
@@ -46,5 +52,7 @@ export function useBattleProgress() {
       socket.off('battle:round:updated', handleRoundUpdate);
       socket.off('battle:closed', handleBattleClosed);
     };
-  }, [socket, setCurrentStage, updateBattleProgress, navigate]);
+  }, [socket, setCurrentStage, updateBattleProgress, navigate, showEffect]);
+
+  return { roundModal, hideRoundEffect: hideEffect };
 }

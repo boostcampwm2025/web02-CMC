@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattle } from './hooks/useBattle';
@@ -6,6 +6,8 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
+import { isInputDisabled } from './utils/battlePhase';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -20,12 +22,14 @@ import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
+import RoundUpdateModal from './components/effects/RoundUpdateModal';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+  const sidebarOpenedForTutorial = useRef(false);
 
   // 튜토리얼 관리
   const {
@@ -45,24 +49,50 @@ export default function BattlePage() {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
   }, []);
 
+  useEffect(() => {
+    const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
+
+    if (shouldOpenSidebar && !isSidebarOpen) {
+      handleOpenSidebar();
+      sidebarOpenedForTutorial.current = true;
+      return;
+    }
+
+    if (!shouldOpenSidebar && sidebarOpenedForTutorial.current) {
+      handleCloseSidebar();
+      sidebarOpenedForTutorial.current = false;
+    }
+  }, [currentStep, isSidebarOpen, isTutorialOpen, handleCloseSidebar, handleOpenSidebar]);
+
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: handleOpenTeamChangeModal,
     closeModal: handleCloseTeamChangeModal
   } = useModal(false);
 
-  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, handleTeamChange } = useBattle({
-    battleId,
-    onOpenTeamChangeModal: handleOpenTeamChangeModal,
-    onCloseTeamChangeModal: handleCloseTeamChangeModal
-  });
+  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, hideRoundEffect, roundModal, handleTeamChange } =
+    useBattle({
+      battleId,
+      onOpenTeamChangeModal: handleOpenTeamChangeModal,
+      onCloseTeamChangeModal: handleCloseTeamChangeModal
+    });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
+
+  // Phase와 Team 정보 가져오기
+  const battleProgress = useBattleStore(selectBattleProgress);
+  const team = useBattleStore(selectSelectedTeam);
+  const phase = battleProgress?.phase;
+  const shouldShowInput = !isInputDisabled(team, phase);
 
   return (
     <div className="text-white relative min-h-screen">
       {/* 책갈피 버튼 */}
-      <BookmarkButton onOpen={handleOpenSidebar} isOpen={isSidebarOpen} />
+      <BookmarkButton
+        onOpen={handleOpenSidebar}
+        isOpen={isSidebarOpen}
+        highlight={isTutorialOpen && currentStep === 'sidebar'}
+      />
 
       {/* 사이드바 */}
       <BattleSidebar
@@ -72,6 +102,7 @@ export default function BattlePage() {
         description={battleInfo.description}
         language={battleInfo.language}
         category={battleInfo.category}
+        raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
       />
 
       {/* 메인 콘텐츠 */}
@@ -82,13 +113,13 @@ export default function BattlePage() {
       >
         <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <div className="-mb-[10px]">
-            <BattleProgressBoard />
+            <BattleProgressBoard raiseZIndex={isTutorialOpen && currentStep === 'progressBoard'} />
           </div>
           <BattleHeader />
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
           <div className="flex gap-2 py-4">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <CodeSection
                 onViewChange={setViewMode}
                 currentView={viewMode}
@@ -105,9 +136,13 @@ export default function BattlePage() {
         </main>
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
-        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4">
+        <div
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4 transition-all duration-500 ease-out ${
+            shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          }`}
+        >
           <div className="w-[590px]">
-            <DiscussionInput onSubmit={handleDiscussionSubmit} />
+            {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
 
@@ -138,6 +173,10 @@ export default function BattlePage() {
             leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
             onClose={closeVoteResultModal}
           />
+        )}
+
+        {roundModal.isPending && !isVoteResultModalOpen && (
+          <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
 
         <TutorialModal
