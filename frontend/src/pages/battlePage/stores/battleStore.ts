@@ -31,6 +31,7 @@ interface BattleStore {
   teamChats: BattleChat[];
   allChats: BattleChat[];
   selectedTeam: 'A' | 'B' | 'NONE';
+  chatInitialized: boolean;
   opponentNotice: BattleChat | null;
   opponentNoticePending: BattleChat | null;
 
@@ -51,6 +52,7 @@ interface BattleStore {
   setAllChats: (chats: BattleChat[]) => void;
   addChat: (chat: BattleChat) => void;
   setSelectedTeam: (team: 'A' | 'B' | 'NONE') => void;
+  setChatInitialized: (initialized: boolean) => void;
   setOpponentNoticePending: (notice: BattleChat | null) => void;
   commitOpponentNotice: () => void;
 }
@@ -69,10 +71,11 @@ export const useBattleStore = create<BattleStore>((set) => ({
   teamChats: [],
   allChats: [],
   selectedTeam: 'NONE',
+  chatInitialized: false,
   opponentNotice: null,
   opponentNoticePending: null,
 
-  initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId }),
+  initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
   setCurrentStage: (stage) => set({ currentStage: stage }),
@@ -145,6 +148,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
       }
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team }),
+  setChatInitialized: (initialized) => set({ chatInitialized: initialized })
   setOpponentNoticePending: (notice) => set({ opponentNoticePending: notice }),
   commitOpponentNotice: () =>
     set((state) => ({
@@ -165,4 +169,5 @@ export const selectTimelines = (state: BattleStore) => state.timelines;
 export const selectTeamChats = (state: BattleStore) => state.teamChats;
 export const selectAllChats = (state: BattleStore) => state.allChats;
 export const selectSelectedTeam = (state: BattleStore) => state.selectedTeam;
+export const selectChatInitialized = (state: BattleStore) => state.chatInitialized;
 export const selectOpponentNotice = (state: BattleStore) => state.opponentNotice;
