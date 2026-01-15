@@ -139,7 +139,12 @@ export default function BattleResultPage() {
       </div>
 
       {/* 코드 섹션 */}
-      <CodeViewerSection codeA={battleData.aCode} codeB={battleData.bCode} language={battleData.language} />
+      <CodeViewerSection
+        codeA={battleData.aCode}
+        codeB={battleData.bCode}
+        language={battleData.language}
+        winner={result.winner}
+      />
     </div>
   );
 }
