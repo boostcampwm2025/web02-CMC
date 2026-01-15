@@ -193,6 +193,11 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('이미 참여한 사용자입니다.')
     }
 
+    // Guest 등록 확인
+    if (!battleState.guestInfoMap.has(userId)) {
+      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 POST /api/auth/guest/:battleId로 닉네임을 등록해주세요.')
+    }
+
     this.addParticipant(battleId, userId, team)
 
     return { battleState, team }
@@ -322,10 +327,15 @@ export class BattlesService extends EventEmitter {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
+    const nickname = this.getNicknameByUserId(battleId, userId) || ''
+
     const chat = {
       messageId: this.generateId(),
       team,
-      sender: userId,
+      sender: {
+        userId,
+        nickname,
+      },
       text: text.trim(),
       createdAt: new Date(),
     }
@@ -702,9 +712,14 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
     }
 
+    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+
     const attack: BattleDiscussion = {
       discussionId: this.generateId(),
-      authorId,
+      author: {
+        authorId,
+        nickname,
+      },
       type: BATTLE_DISCUSSION_TYPE.ATTACK,
       content: content.trim(),
       upvotes: 0,
@@ -732,9 +747,14 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
     }
 
+    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+
     const defense: BattleDefense = {
       discussionId: this.generateId(),
-      authorId,
+      author: {
+        authorId,
+        nickname,
+      },
       type: BATTLE_DISCUSSION_TYPE.DEFENSE,
       content: content.trim(),
       upvotes: 0,
@@ -922,7 +942,10 @@ export class BattlesService extends EventEmitter {
     const now = Date.now()
     const placeholder: BattleDiscussion = {
       discussionId: `null-${team}-${type}-${now}`,
-      authorId: '',
+      author: {
+        authorId: '',
+        nickname: '',
+      },
       content: '투표로 선정된 의견이 없습니다',
       upvotes: 0,
       votes: [],
