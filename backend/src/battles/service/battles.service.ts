@@ -675,17 +675,12 @@ export class BattlesService extends EventEmitter {
     battleState.guestInfoMap.set(guest.id, guest.nickname)
   }
 
-  // 닉네임 중복 체크
-  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+  // 배틀 방의 모든 clientId 조회
+  getBattleClientIds(battleId: string): string[] {
     const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return false
+    if (!battleState) return []
 
-    for (const value of battleState.guestInfoMap.values()) {
-      if (value === nickname) {
-        return true
-      }
-    }
-    return false
+    return Array.from(battleState.guestInfoMap.keys())
   }
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {

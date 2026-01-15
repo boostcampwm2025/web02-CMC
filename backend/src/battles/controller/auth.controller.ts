@@ -14,9 +14,9 @@ export class AuthController {
   @Post('guest/:battleId')
   @HttpCode(200)
   createGuest(@Param('battleId') battleId: string, @Body() dto: CreateGuestDto): GuestAccount {
-    const nickname = dto.nickname.trim()
+    const trimmedNickname = dto.nickname.trim()
 
-    if (!nickname) {
+    if (!trimmedNickname) {
       throw new BadRequestException('닉네임이 필요합니다.')
     }
 
@@ -27,12 +27,13 @@ export class AuthController {
     }
 
     // 배틀 방 내 닉네임 중복 체크
-    if (this.battlesService.isNicknameDuplicate(battleId, nickname)) {
+    const battleClientIds = this.battlesService.getBattleClientIds(battleId)
+    if (this.authService.isNicknameDuplicateInBattle(battleClientIds, trimmedNickname)) {
       throw new BadRequestException('이미 사용 중인 닉네임입니다.')
     }
 
     // Guest 생성
-    const guest = this.authService.createGuest(nickname)
+    const guest = this.authService.createGuest(trimmedNickname)
 
     // 배틀 방에 Guest 등록
     this.battlesService.registerGuest(battleId, guest)
