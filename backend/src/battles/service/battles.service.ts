@@ -40,6 +40,7 @@ import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
+import { GuestAccount } from '../types/auth.types'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -258,6 +259,8 @@ export class BattlesService extends EventEmitter {
       },
       participants: new Map(),
       teamVotes: new Map(),
+
+      guestInfoMap: new Map(),
 
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
@@ -659,11 +662,30 @@ export class BattlesService extends EventEmitter {
     // return battle.type === BATTLE_TYPE.PUBLIC &&  battle.status === BATTLE_STATUS.CLOSED
   }
 
-  private getBattleState(battleId: string) {
+  getBattleState(battleId: string) {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
     return battleState
+  }
+
+  // Guest 등록
+  registerGuest(battleId: string, guest: GuestAccount): void {
+    const battleState = this.getBattleState(battleId)
+    battleState.guestInfoMap.set(guest.id, guest.nickname)
+  }
+
+  // 닉네임 중복 체크
+  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return false
+
+    for (const value of battleState.guestInfoMap.values()) {
+      if (value === nickname) {
+        return true
+      }
+    }
+    return false
   }
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {

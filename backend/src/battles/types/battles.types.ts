@@ -96,6 +96,8 @@ export interface ActiveBattleState {
   participants: Map<string, BattleTeam>
   teamVotes: Map<string, BattleTeam>
 
+  guestInfoMap: Map<string, string>
+
   round: number
   topics: string[]
   phase: BattlePhaseName
