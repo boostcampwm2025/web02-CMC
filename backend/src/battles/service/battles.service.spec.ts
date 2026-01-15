@@ -13,7 +13,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   language: BATTLE_LANGUAGE.TS,
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
-  playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+  playTime: BATTLE_PLAYTIME.FIFTEEN_MIN,
   topics: ['효율성', '가독성'],
   status: BATTLE_STATUS.OPEN,
   createdAt: new Date('2024-01-01T00:00:00Z'),
@@ -265,6 +265,10 @@ describe('BattlesService', () => {
       service.setBattlesForTest([publicBattle, privateBattle, closedBattle])
       service['initBattleState']('public-battle')
       service['initBattleState']('private-battle')
+
+      // Guest 등록
+      service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
     })
 
     it('battleId가 없으면 BadRequestException을 던진다', () => {
@@ -297,6 +301,7 @@ describe('BattlesService', () => {
     })
 
     it('비공개 배틀에 올바른 비밀번호로 입장한다', () => {
+      service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
       const result = service.joinBattle(
         {
           battleId: 'private-battle',
@@ -336,6 +341,7 @@ describe('BattlesService', () => {
     })
 
     it('이미 참여한 userId로 재접속하면 BadRequestException을 던진다', () => {
+      service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
       service.joinBattle(
         {
           battleId: 'public-battle',
@@ -363,6 +369,7 @@ describe('BattlesService', () => {
       })
       service.setBattlesForTest([...service['battles'], battle2])
       service['initBattleState']('public-battle-2')
+      service.registerGuest('public-battle-2', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
 
       service.joinBattle(
         {
@@ -429,7 +436,8 @@ describe('BattlesService', () => {
     it('TEAM_SWITCH 이후 round가 증가한다', () => {
       const battle = createBattle({
         id: 'battle-1',
-        playTime: { ...BATTLE_PLAYTIME.THIRTY_MIN },
+        playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+        topics: ['주제1', '주제2'],
       })
       service.setBattlesForTest([battle])
 
@@ -448,7 +456,8 @@ describe('BattlesService', () => {
     it('마지막 라운드 이후 finishBattle가 호출된다', () => {
       const battle = createBattle({
         id: 'battle-1',
-        playTime: { ...BATTLE_PLAYTIME.THIRTY_MIN },
+        playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+        topics: ['주제1', '주제2'],
       })
       service.setBattlesForTest([battle])
 
@@ -472,6 +481,7 @@ describe('BattlesService', () => {
       service.setBattlesForTest([battle])
       service['initBattleState']('battle-1')
 
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
       service.joinBattle(
         {
           battleId: 'battle-1',
@@ -715,6 +725,7 @@ describe('BattlesService', () => {
     beforeEach(() => {
       service.setBattlesForTest([createBattle({ id: 'battle-1' })])
       service['initBattleState']('battle-1')
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
     })
 
     it('배틀이 없으면 NotFoundException을 던진다', () => {
@@ -749,7 +760,7 @@ describe('BattlesService', () => {
           battleId: 'battle-1',
           scope: 'TEAM',
           team: BATTLE_TEAM.A,
-          sender: 'user-1',
+          sender: { userId: 'user-1', nickname: expect.any(String) },
           text: 'hello',
           messageId: expect.any(String),
         }),
@@ -775,7 +786,7 @@ describe('BattlesService', () => {
         expect.objectContaining({
           battleId: 'battle-1',
           scope: 'ALL',
-          sender: 'user-1',
+          sender: { userId: 'user-1', nickname: expect.any(String) },
           text: 'hello all',
           messageId: expect.any(String),
         }),

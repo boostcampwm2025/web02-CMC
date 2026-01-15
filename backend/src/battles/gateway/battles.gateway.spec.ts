@@ -74,7 +74,10 @@ describe('BattlesGateway - Discussion Events', () => {
 
       const mockAttack: BattleDiscussion = {
         discussionId: 'attack-1',
-        authorId: 'user-1',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.ATTACK,
         content: '퀵소트가 더 빠릅니다',
         upvotes: 0,
@@ -127,7 +130,10 @@ describe('BattlesGateway - Discussion Events', () => {
 
       const mockDefense: BattleDefense = {
         discussionId: 'defense-1',
-        authorId: 'user-1',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
         content: '하지만 최악의 경우 O(n²)입니다',
         upvotes: 0,
@@ -180,7 +186,10 @@ describe('BattlesGateway - Discussion Events', () => {
 
       const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'attack-1',
-        authorId: 'user-1',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.ATTACK,
         content: '퀵소트가 더 빠릅니다',
         upvotes: 1,
@@ -214,7 +223,10 @@ describe('BattlesGateway - Discussion Events', () => {
 
       const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'defense-1',
-        authorId: 'user-2',
+        author: {
+          authorId: 'user-2',
+          nickname: 'test-user-2',
+        },
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
         content: '반론',
         upvotes: 1,
