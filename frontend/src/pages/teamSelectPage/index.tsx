@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLoaderData } from 'react-router-dom';
+import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useStepFlow } from './hooks/useStepFlow';
@@ -13,6 +13,7 @@ import type { Team } from '@/commons/types/battle';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -22,8 +23,8 @@ export default function TeamSelectPage() {
   const defenses = battleInfo.timelines.defenses;
 
   const handleSubmit = () => {
-    if (selectedTeam) {
-      navigate(`/battle/${battleInfo.title}`, { state: { selectedTeam } });
+    if (selectedTeam && id) {
+      navigate(`/battle/${id}`, { state: { selectedTeam } });
     }
   };
 
