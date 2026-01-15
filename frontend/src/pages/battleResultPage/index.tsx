@@ -156,7 +156,7 @@ export default function BattleResultPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 to-slate-950 text-white p-6 md:p-10">
+    <div className="min-h-screen text-white p-6 md:p-10">
       {/* 헤더 */}
       <header className="text-center mb-10">
         <div className="flex justify-center items-center gap-2">
