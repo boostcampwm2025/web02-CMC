@@ -83,6 +83,11 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
 
   const { round, phase, phaseCount } = battleProgress;
 
+  // PENDING 상태일 때는 아예 렌더링하지 않음
+  if ((phase as string) === 'PENDING') {
+    return null;
+  }
+
   // 현재 페이즈의 step 번호 계산 (1-6)
   const getCurrentPhaseStep = () => {
     // phaseCount는 ATTACK/DEFENSE 반복 횟수 (1~BATTLE_MAX_PHASE_COUNT)
@@ -113,8 +118,8 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         sticky top-0 z-10
         flex justify-center
         pointer-events-none
-        ${raiseZIndex ? 'z-[110]' : 'z-0'}
-      `}
+        animate-slideDown
+      "
     >
       <div
         data-tutorial="progress-board"
@@ -227,6 +232,19 @@ export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgr
         @keyframes shrink {
           from { width: 100%; }
           to { width: 0%; }
+        }
+        @keyframes slideDown {
+          from {
+            transform: translateY(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        .animate-slideDown {
+          animation: slideDown 0.5s ease-out;
         }
       `}</style>
     </div>
