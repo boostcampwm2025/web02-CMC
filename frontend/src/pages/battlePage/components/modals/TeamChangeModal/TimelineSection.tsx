@@ -17,7 +17,7 @@ export default function TimelineSection({ currentRound, timelines }: TimelineSec
 
   return (
     <div>
-      <h3 className="text-[18px] font-bold text-center mb-4">Round {currentRound} 타임라인</h3>
+      <h3 className="text-[18px] font-bold text-center mb-4">Round {currentRound} 진영 선택</h3>
 
       {/* 1차 공수: A 이의제기 → B 반론 */}
       <PhaseFlowCard
