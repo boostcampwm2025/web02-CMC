@@ -14,7 +14,7 @@ const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'Python', value: 'python' }
 ];
 
-const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime }> = [
+const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: number }> = [
   { label: '15분', value: 'FIFTEEN_MIN', rounds: 1 },
   { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
