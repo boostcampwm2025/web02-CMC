@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import BattleIcon from '@/assets/icon/battle.svg?react';
@@ -17,12 +17,6 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
   const PhaseIcon = phase === 'ATTACK' ? BattleIcon : ShieldIcon;
-
-  // Phase 변경 시 input 초기화 및 focus
-  useEffect(() => {
-    setInputValue('');
-    inputRef.current?.focus();
-  }, [phase]);
 
   const handleSubmit = () => {
     if (inputValue.trim()) {
@@ -73,6 +67,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={config.placeholderText}
+              autoFocus
               className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-colors focus:outline-none focus:ring-2 ${
                 isFocused ? config.colors.focusBorder : config.colors.border
               } ${config.colors.focusRing} disabled:opacity-50 disabled:cursor-not-allowed`}

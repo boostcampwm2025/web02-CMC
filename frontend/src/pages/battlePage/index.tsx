@@ -118,7 +118,9 @@ export default function BattlePage() {
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
-          <div className="w-[590px]">{shouldShowInput && <DiscussionInput onSubmit={handleDiscussionSubmit} />}</div>
+          <div className="w-[590px]">
+            {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
+          </div>
         </div>
 
         {isTeamChangeModalOpen && (
