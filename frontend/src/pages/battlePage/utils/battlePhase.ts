@@ -21,7 +21,7 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
     return {
       label: '이의제기',
       placeholderText: '상대 코드의 허점을 찾아 이의 제기하세요',
-      buttonText: '이의제기하기',
+      buttonText: '이의제기',
       isAttacking: true,
       isActive: true,
       colors: {
@@ -42,7 +42,7 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
     return {
       label: '반론',
       placeholderText: '상대 주장에 논리적으로 반박해 보세요',
-      buttonText: '반론하기',
+      buttonText: '반론',
       isAttacking: false,
       isActive: true,
       colors: {
