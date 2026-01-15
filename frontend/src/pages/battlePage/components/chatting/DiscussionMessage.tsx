@@ -18,8 +18,8 @@ const TEAM_TEXT_COLORS = {
 };
 
 const TEAM_GRADIENTS = {
-  A: 'bg-gradient-to-r from-blue-600/10 via-blue-500/5 to-transparent',
-  B: 'bg-gradient-to-r from-red-600/10 via-red-500/5 to-transparent',
+  A: 'bg-gradient-to-r from-blue-600/25 via-blue-500/10 to-transparent',
+  B: 'bg-gradient-to-r from-red-600/25 via-red-500/10 to-transparent',
   NONE: 'bg-gradient-to-r from-gray-600/10 via-gray-500/5 to-transparent'
 };
 
@@ -49,7 +49,7 @@ export default function DiscussionMessage({ user, team, content, type, votes }: 
             <span className={`text-xs font-bold ${TEAM_TEXT_COLORS[team]}`}>{label}</span>
             <span className="text-gray-500 text-xs">by {displayUser}</span>
           </div>
-          <p className="text-gray-300 text-sm truncate text-left">{content}</p>
+          <p className="text-gray-300 text-sm text-left whitespace-pre-wrap break-words">{content}</p>
         </div>
 
         {typeof votes === 'number' && (
