@@ -11,19 +11,22 @@ let mockTeamCounts = { teamACount: 5, teamBCount: 3 };
 let mockTeamMessages: Message[] = [];
 let mockAllMessages: Message[] = [];
 let mockOpponentNotice: Message | null = null;
+let mockChatInitialized = true;
 
 vi.mock('@/pages/battlePage/stores/battleStore', () => ({
   useBattleStore: vi.fn((selector) => {
     const state = {
       userId: mockUserId,
       selectedTeam: mockSelectedTeam,
-      teamCounts: mockTeamCounts
+      teamCounts: mockTeamCounts,
+      chatInitialized: mockChatInitialized
     };
     return selector(state);
   }),
   selectUserId: (state: { userId: string }) => state.userId,
   selectSelectedTeam: (state: { selectedTeam: Team }) => state.selectedTeam,
-  selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts
+  selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts,
+  selectChatInitialized: (state: { chatInitialized: boolean }) => state.chatInitialized
 }));
 
 vi.mock('@/pages/battlePage/hooks/useBattleChat', () => ({
@@ -44,6 +47,7 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
     mockUserId = 'user-123';
     mockSelectedTeam = 'A';
     mockTeamCounts = { teamACount: 5, teamBCount: 3 };
+    mockChatInitialized = true;
 
     mockTeamMessages = [
       { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'chat' }
