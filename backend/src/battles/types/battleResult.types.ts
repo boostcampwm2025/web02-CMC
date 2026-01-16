@@ -14,6 +14,7 @@ export interface Metrics {
   totalParticipants: number
   totalViews: number
   strategiesCount: number
+  totalChats: number
 }
 
 export interface VoteTimeline {
