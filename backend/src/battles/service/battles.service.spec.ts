@@ -1,5 +1,5 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle } from '../types/battles.types'
+import { Battle, FinishedBattleState } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
 
@@ -13,7 +13,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   language: BATTLE_LANGUAGE.TS,
   type: BATTLE_TYPE.PUBLIC,
   category: BATTLE_CATEGORY.ALGORITHM,
-  playTime: BATTLE_PLAYTIME.TEN_MIN,
+  playTime: BATTLE_PLAYTIME.THIRTY_MIN,
   topics: ['효율성', '가독성'],
   status: BATTLE_STATUS.OPEN,
   createdAt: new Date('2024-01-01T00:00:00Z'),
@@ -23,6 +23,67 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
     round: 1,
     phase: BATTLE_PHASE.OPINION_SHARE.name,
     timeRemainingSeconds: 600,
+  },
+  ...overrides,
+})
+
+const createFinishedBattleState = (overrides: Partial<FinishedBattleState> = {}): FinishedBattleState => ({
+  battleId: 'battle-1',
+  authorId: 'user-1',
+  title: '배열 정렬 최적화 배틀',
+  description: '퀵소트 vs 머지소트, 어떤 정렬 알고리즘이 더 효율적일까?',
+  status: 'CLOSED',
+  language: 'javascript',
+  category: '성능',
+  playTime: 30,
+  createdAt: '2025-12-15T10:00:00Z',
+  finishedAt: '2025-12-15T10:30:00Z',
+  codeA: 'code-a',
+  codeB: 'code-b',
+  result: {
+    winner: 'A',
+    teamA: { votes: 44, percentage: 44 },
+    teamB: { votes: 40, percentage: 40 },
+    neutral: { votes: 16, percentage: 16 },
+  },
+  metrics: {
+    totalParticipants: 100,
+    totalViews: 1247,
+    strategiesCount: 12,
+    totalChats: 0,
+  },
+  voteTimeline: [
+    { turn: 1, teamAVotes: 10, teamBVotes: 8, neutralVotes: 2, timestamp: '2025-12-15T10:10:00Z' },
+    { turn: 2, teamAVotes: 25, teamBVotes: 18, neutralVotes: 7, timestamp: '2025-12-15T10:20:00Z' },
+    { turn: 3, teamAVotes: 44, teamBVotes: 40, neutralVotes: 16, timestamp: '2025-12-15T10:30:00Z' },
+  ],
+  timeline: [
+    {
+      id: 'attack-1',
+      type: 'ATTACK',
+      author: { id: 'user-1', nickname: 'CodeMaster' },
+      team: 'A',
+      content: '퀵소트는 평균 O(n log n)으로 대부분의 경우 더 빠릅니다!',
+      turn: 1,
+      upvotes: 25,
+      createdAt: '2025-12-15T10:05:00Z',
+    },
+    {
+      id: 'defense-1',
+      type: 'DEFENSE',
+      author: { id: 'user-2', nickname: 'AlgoExpert' },
+      team: 'B',
+      content: '머지소트는 항상 O(n log n)을 보장합니다.',
+      turn: 1,
+      upvotes: 10,
+      createdAt: '2025-12-15T10:06:00Z',
+    },
+  ],
+  mvp: {
+    userId: 'user-1',
+    nickname: 'CodeMaster',
+    team: 'A',
+    totalVotes: 25,
   },
   ...overrides,
 })
@@ -323,7 +384,7 @@ describe('BattlesService', () => {
     it('TEAM_SWITCH 이후 round가 증가한다', () => {
       const battle = createBattle({
         id: 'battle-1',
-        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+        playTime: { ...BATTLE_PLAYTIME.THIRTY_MIN },
       })
       service.setBattlesForTest([battle])
 
@@ -342,7 +403,7 @@ describe('BattlesService', () => {
     it('마지막 라운드 이후 finishBattle가 호출된다', () => {
       const battle = createBattle({
         id: 'battle-1',
-        playTime: { ...BATTLE_PLAYTIME.TEN_MIN },
+        playTime: { ...BATTLE_PLAYTIME.THIRTY_MIN },
       })
       service.setBattlesForTest([battle])
 
@@ -544,6 +605,10 @@ describe('BattlesService', () => {
   })
 
   describe('getBattleResult', () => {
+    beforeEach(() => {
+      service['finishedBattles'].set('battle-1', createFinishedBattleState())
+    })
+
     it('종료된 배틀의 결과를 반환해야 함', () => {
       const result = service.getBattleResult('battle-1')
       expect(result.battleId).toBe('battle-1')
@@ -562,6 +627,7 @@ describe('BattlesService', () => {
     })
 
     it('진행 중인 배틀 조회 시 BadRequestException을 던져야 함', () => {
+      service.setBattlesForTest([createBattle({ id: 'battle-open-1', status: BATTLE_STATUS.OPEN })])
       expect(() => service.getBattleResult('battle-open-1')).toThrow(BadRequestException)
     })
 
