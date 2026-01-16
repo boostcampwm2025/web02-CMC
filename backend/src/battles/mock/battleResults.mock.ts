@@ -23,6 +23,7 @@ export interface BattleResultMock {
     totalParticipants: number
     totalViews: number
     strategiesCount: number
+    totalChats: number
   }
 
   voteTimeline: Array<{
@@ -102,6 +103,7 @@ function merge(left, right) {
       totalParticipants: 100,
       totalViews: 1247,
       strategiesCount: 12,
+      totalChats: 0,
     },
 
     voteTimeline: [
@@ -209,6 +211,7 @@ const [user, dispatch] = useReducer(userReducer, initialUser)`,
       totalParticipants: 100,
       totalViews: 892,
       strategiesCount: 15,
+      totalChats: 0,
     },
 
     voteTimeline: [
@@ -309,6 +312,7 @@ const [user, dispatch] = useReducer(userReducer, initialUser)`,
       totalParticipants: 100,
       totalViews: 523,
       strategiesCount: 8,
+      totalChats: 0,
     },
 
     voteTimeline: [
@@ -393,6 +397,7 @@ const [user, dispatch] = useReducer(userReducer, initialUser)`,
       totalParticipants: 0,
       totalViews: 0,
       strategiesCount: 0,
+      totalChats: 0,
     },
 
     voteTimeline: [],
