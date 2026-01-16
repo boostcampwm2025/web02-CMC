@@ -646,8 +646,8 @@ export class BattlesService extends EventEmitter {
         id: discussion.discussionId,
         type,
         author: {
-          id: discussion.authorId || 'unknown',
-          nickname: discussion.authorId || 'unknown',
+          id: discussion.author.authorId,
+          nickname: discussion.author.nickname,
         },
         team: discussion.team === BATTLE_TEAM.A ? 'A' : discussion.team === BATTLE_TEAM.B ? 'B' : 'A',
         content: discussion.content,
