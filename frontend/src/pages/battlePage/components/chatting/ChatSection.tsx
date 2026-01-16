@@ -6,18 +6,13 @@ import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import {
-  useBattleStore,
-  selectUserId,
-  selectSelectedTeam,
-  selectTeamCounts,
-  selectChatInitialized
-} from '../../stores/battleStore';
+import { useBattleStore, selectSelectedTeam, selectTeamCounts, selectChatInitialized } from '../../stores/battleStore';
 import { useBattleChat } from '../../hooks/useBattleChat';
 import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
+import { selectUser, useAuthStore } from '../../stores/authStore';
 
 export default function ChatSection() {
-  const userId = useBattleStore(selectUserId);
+  const user = useAuthStore(selectUser);
   const team = useBattleStore(selectSelectedTeam);
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const chatInitialized = useBattleStore(selectChatInitialized);
@@ -132,7 +127,7 @@ export default function ChatSection() {
               content={message.content}
               timestamp={message.timestamp}
               showTeamBadge={currentTab === 'all'}
-              currentUserId={userId}
+              currentUserId={user?.id}
             />
           )
         )}

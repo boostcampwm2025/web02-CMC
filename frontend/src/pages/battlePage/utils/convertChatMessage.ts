@@ -12,7 +12,7 @@ export interface Message {
 
 export const convertBattleChatToMessage = (chat: BattleChat, userId: string): Message => ({
   id: chat.messageId,
-  user: chat.sender === userId ? 'You' : chat.sender,
+  user: chat.sender.userId === userId ? 'You' : chat.sender.nickname,
   team: chat.team,
   content: chat.text,
   timestamp: new Date(chat.createdAt).toISOString().replace('T', ' ').substring(0, 19),
