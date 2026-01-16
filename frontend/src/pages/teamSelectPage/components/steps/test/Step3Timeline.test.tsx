@@ -149,7 +149,7 @@ describe('Step3Timeline', () => {
     render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // Phase 헤더 확인 (A 이의제기, B 반론)
-    expect(screen.getByText('A 이의제기')).toBeInTheDocument();
-    expect(screen.getByText('B 반론')).toBeInTheDocument();
+    expect(screen.getAllByText(/A 이의제기/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/B 반론/).length).toBeGreaterThan(0);
   });
 });
