@@ -10,6 +10,7 @@ export class BattleResultResponseDto {
   language: string
   category: string
   playTime: number
+  topics: string[]
   createdAt: string
   finishedAt: string
 
@@ -32,6 +33,7 @@ export class BattleResultResponseDto {
     dto.language = battle.language
     dto.category = battle.category
     dto.playTime = battle.playTime
+    dto.topics = battle.topics
     dto.createdAt = battle.createdAt
     dto.finishedAt = battle.finishedAt
     dto.codeA = battle.codeA

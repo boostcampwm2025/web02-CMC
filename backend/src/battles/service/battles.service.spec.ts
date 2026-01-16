@@ -36,6 +36,7 @@ const createFinishedBattleState = (overrides: Partial<FinishedBattleState> = {})
   language: 'javascript',
   category: '성능',
   playTime: 30,
+  topics: ['효율성', '가독성'],
   createdAt: '2025-12-15T10:00:00Z',
   finishedAt: '2025-12-15T10:30:00Z',
   codeA: 'code-a',

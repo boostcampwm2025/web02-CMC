@@ -602,6 +602,7 @@ export class BattlesService extends EventEmitter {
       language: battle.language,
       category: battle.category,
       playTime: battle.playTime.time,
+      topics: [...battle.topics],
       createdAt: battle.createdAt.toISOString(),
       finishedAt: finishedAt.toISOString(),
       codeA: battle.aCode,

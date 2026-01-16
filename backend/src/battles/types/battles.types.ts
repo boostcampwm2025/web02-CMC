@@ -114,6 +114,7 @@ export interface FinishedBattleState {
   language: string
   category: string
   playTime: number
+  topics: string[]
   createdAt: string
   finishedAt: string
 
