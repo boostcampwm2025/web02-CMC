@@ -22,6 +22,7 @@ const createBattle = (overrides: Partial<Battle>): Battle => ({
   initialState: {
     round: 1,
     phase: BATTLE_PHASE.OPINION_SHARE.name,
+    phaseCount: 1,
     timeRemainingSeconds: 600,
   },
   ...overrides,

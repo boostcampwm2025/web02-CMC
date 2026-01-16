@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronUp, ThumbsUp, Zap, Shield, Flame, ArrowRight, ArrowLeft, Clock } from 'lucide-react';
+import { ChevronDown, ChevronUp, ThumbsUp, Zap, Shield, Flame, ArrowRight, Clock } from 'lucide-react';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 
 interface Step3TimelineProps {
@@ -14,13 +14,21 @@ interface RoundData {
   topic: string;
   isActive: boolean;
   isFuture: boolean;
-  challenge: {
+  challenge1: {
     teamA: BattleDiscussion | null;
-    teamB: BattleDiscussion | null;
-  };
-  rebuttal: {
-    teamA: BattleDefense | null;
     teamB: BattleDefense | null;
+  };
+  challenge2: {
+    teamB: BattleDiscussion | null;
+    teamA: BattleDefense | null;
+  };
+  challenge3: {
+    teamA: BattleDiscussion | null;
+    teamB: BattleDefense | null;
+  };
+  challenge4: {
+    teamB: BattleDiscussion | null;
+    teamA: BattleDefense | null;
   };
 }
 
@@ -47,29 +55,45 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
     const defenses = timelines.filter((item) => item.type === 'DEFENSE') as BattleDefense[];
 
     for (let i = 1; i <= totalRounds; i++) {
-      // 각 라운드는 A팀, B팀 순서로 2개씩 저장됨
-      const aAttackIdx = (i - 1) * 2;
-      const bAttackIdx = (i - 1) * 2 + 1;
-      const aDefenseIdx = (i - 1) * 2;
-      const bDefenseIdx = (i - 1) * 2 + 1;
+      // 각 라운드는 4개의 토론으로 구성됨
+      // 1. A 공격 -> B 수비
+      // 2. B 공격 -> A 수비
+      // 3. A 공격 -> B 수비 (2차)
+      // 4. B 공격 -> A 수비 (2차)
+      const baseIdx = (i - 1) * 4;
 
-      const challengeA = attacks[aAttackIdx] || null;
-      const challengeB = attacks[bAttackIdx] || null;
-      const rebuttalA = (defenses[aDefenseIdx] as BattleDefense) || null;
-      const rebuttalB = (defenses[bDefenseIdx] as BattleDefense) || null;
+      const aAttack1 = attacks[baseIdx] || null;
+      const bDefense1 = (defenses[baseIdx] as BattleDefense) || null;
+
+      const bAttack1 = attacks[baseIdx + 1] || null;
+      const aDefense1 = (defenses[baseIdx + 1] as BattleDefense) || null;
+
+      const aAttack2 = attacks[baseIdx + 2] || null;
+      const bDefense2 = (defenses[baseIdx + 2] as BattleDefense) || null;
+
+      const bAttack2 = attacks[baseIdx + 3] || null;
+      const aDefense2 = (defenses[baseIdx + 3] as BattleDefense) || null;
 
       rounds.push({
         round: i,
         topic: topics[i - 1],
         isActive: i === currentRound,
         isFuture: i > currentRound,
-        challenge: {
-          teamA: challengeA,
-          teamB: challengeB
+        challenge1: {
+          teamA: aAttack1,
+          teamB: bDefense1
         },
-        rebuttal: {
-          teamA: rebuttalA,
-          teamB: rebuttalB
+        challenge2: {
+          teamB: bAttack1,
+          teamA: aDefense1
+        },
+        challenge3: {
+          teamA: aAttack2,
+          teamB: bDefense2
+        },
+        challenge4: {
+          teamB: bAttack2,
+          teamA: aDefense2
         }
       });
     }
@@ -176,10 +200,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
             {roundsData.map((roundData) => {
               const isExpanded = expandedRounds.has(roundData.round);
               const hasContent =
-                roundData.challenge.teamA ||
-                roundData.challenge.teamB ||
-                roundData.rebuttal.teamA ||
-                roundData.rebuttal.teamB;
+                roundData.challenge1.teamA ||
+                roundData.challenge1.teamB ||
+                roundData.challenge2.teamA ||
+                roundData.challenge2.teamB ||
+                roundData.challenge3.teamA ||
+                roundData.challenge3.teamB ||
+                roundData.challenge4.teamA ||
+                roundData.challenge4.teamB;
 
               return (
                 <div
@@ -249,15 +277,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                   {/* Round Content */}
                   {isExpanded && !roundData.isFuture && (
                     <div className="border-t border-[#2d2d3f]">
-                      {/* Challenge Phase: A 이의제기 → B 반론 */}
+                      {/* Challenge 1: A 이의제기 → B 반론 (1차) */}
                       <div className="relative">
-                        {/* Phase Header */}
                         <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
                               <Zap className="w-4 h-4 text-orange-400" />
                               <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
-                                A 이의제기
+                                A 이의제기 (1차)
                               </span>
                             </div>
                             <ArrowRight className="w-5 h-5 text-gray-500" />
@@ -267,15 +294,10 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                             </div>
                           </div>
                         </div>
-
-                        {/* VS Layout */}
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          {/* Team A Challenge */}
                           <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-                            {renderMessage(roundData.challenge.teamA, 'A', 'challenge')}
+                            {renderMessage(roundData.challenge1.teamA, 'A', 'challenge')}
                           </div>
-
-                          {/* Arrow Badge */}
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
                               <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
@@ -284,53 +306,113 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                               </div>
                             </div>
                           </div>
-
-                          {/* Team B Rebuttal */}
                           <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.rebuttal.teamB, 'B', 'rebuttal')}
+                            {renderMessage(roundData.challenge1.teamB, 'B', 'rebuttal')}
                           </div>
                         </div>
                       </div>
 
-                      {/* Rebuttal Phase: B 이의제기 → A 반론 */}
+                      {/* Challenge 2: B 이의제기 → A 반론 (1차) */}
                       <div className="relative border-t-2 border-[#2d2d3f]">
-                        {/* Phase Header */}
-                        <div className="px-6 py-3 bg-gradient-to-r from-blue-900/20 to-red-900/20 border-b border-[#2d2d3f]">
+                        <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-red-400" />
+                              <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
+                                B 이의제기 (1차)
+                              </span>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
                               <Shield className="w-4 h-4 text-blue-400" />
                               <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
                             </div>
-                            <ArrowLeft className="w-5 h-5 text-gray-500" />
-                            <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-red-400" />
-                              <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
-                                B 이의제기
-                              </span>
-                            </div>
                           </div>
                         </div>
-
-                        {/* VS Layout */}
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          {/* Team A Rebuttal */}
-                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-blue-500/5 to-transparent">
-                            {renderMessage(roundData.rebuttal.teamA, 'A', 'rebuttal')}
+                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
+                            {renderMessage(roundData.challenge2.teamB, 'B', 'challenge')}
                           </div>
-
-                          {/* Arrow Badge */}
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
                               <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
-                              <div className="relative bg-gradient-to-l from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
-                                <ArrowLeft className="w-5 h-5 text-white font-bold" />
+                              <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
+                                <ArrowRight className="w-5 h-5 text-white font-bold" />
                               </div>
                             </div>
                           </div>
+                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
+                            {renderMessage(roundData.challenge2.teamA, 'A', 'rebuttal')}
+                          </div>
+                        </div>
+                      </div>
 
-                          {/* Team B Challenge */}
-                          <div className="bg-gradient-to-l from-red-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.challenge.teamB, 'B', 'challenge')}
+                      {/* Challenge 3: A 이의제기 → B 반론 (2차) */}
+                      <div className="relative border-t-2 border-[#2d2d3f]">
+                        <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-orange-400" />
+                              <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
+                                A 이의제기 (2차)
+                              </span>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <div className="flex items-center gap-2">
+                              <Shield className="w-4 h-4 text-blue-400" />
+                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
+                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
+                            {renderMessage(roundData.challenge3.teamA, 'A', 'challenge')}
+                          </div>
+                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
+                              <div className="relative bg-gradient-to-r from-orange-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-orange-400/50 shadow-lg">
+                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
+                            {renderMessage(roundData.challenge3.teamB, 'B', 'rebuttal')}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Challenge 4: B 이의제기 → A 반론 (2차) */}
+                      <div className="relative border-t-2 border-[#2d2d3f]">
+                        <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
+                          <div className="flex items-center justify-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-red-400" />
+                              <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
+                                B 이의제기 (2차)
+                              </span>
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <div className="flex items-center gap-2">
+                              <Shield className="w-4 h-4 text-blue-400" />
+                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
+                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
+                            {renderMessage(roundData.challenge4.teamB, 'B', 'challenge')}
+                          </div>
+                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
+                              <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
+                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
+                            {renderMessage(roundData.challenge4.teamA, 'A', 'rebuttal')}
                           </div>
                         </div>
                       </div>

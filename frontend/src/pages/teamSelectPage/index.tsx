@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { BattleInfo } from '@/commons/types/battle';
@@ -10,12 +10,6 @@ import Step2CodeCompare from './components/steps/Step2CodeCompare';
 import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
 import type { Team } from '@/commons/types/battle';
-import {
-  useBattleStore,
-  selectTimelines,
-  selectTeamCounts,
-  selectBattleProgress
-} from '@/pages/battlePage/stores/battleStore';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
@@ -24,41 +18,12 @@ export default function TeamSelectPage() {
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
 
-  // WebSocket을 통해 실시간 타임라인과 참여자 수 가져오기
-  const timelines = useBattleStore(selectTimelines);
-  const teamCounts = useBattleStore(selectTeamCounts);
-  const battleProgress = useBattleStore(selectBattleProgress);
-
-  // 배틀 스토어 초기화 (NONE 팀으로 연결)
-  useEffect(() => {
-    if (!id) return;
-
-    let userId = sessionStorage.getItem('testUserId');
-    if (!userId) {
-      userId = `user-${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('testUserId', userId);
-    }
-
-    useBattleStore.getState().initializeBattle({
-      userId,
-      battleId: id
-    });
-
-    // 진영 선택 전이므로 NONE으로 설정
-    useBattleStore.getState().setSelectedTeam('NONE');
-  }, [id]);
-
-  // @TODO : 타임라인 데이터 가져오는 API 추가필요
-
-  const attacks = timelines?.attacks || battleInfo.timelines.attacks;
-  const defenses = timelines?.defenses || battleInfo.timelines.defenses;
-
-  // 실시간 참여자 수 계산
-  const totalParticipants = (teamCounts?.teamACount || 0) + (teamCounts?.teamBCount || 0);
+  // API 데이터 사용 - type 필드 추가
+  const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
+  const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 
   const handleSubmit = () => {
     if (selectedTeam && id) {
-      useBattleStore.getState().setSelectedTeam(selectedTeam);
       navigate(`/battle/${id}`, { state: { selectedTeam } });
     }
   };
@@ -75,9 +40,9 @@ export default function TeamSelectPage() {
             currentRound={battleInfo.currentRound}
             totalRounds={battleInfo.totalRounds}
             topics={battleInfo.topics}
-            totalParticipants={totalParticipants || battleInfo.participantCount}
-            currentPhase={battleProgress?.phase}
-            phaseCount={battleProgress?.phaseCount}
+            totalParticipants={battleInfo.participantCount}
+            currentPhase={battleInfo.currentPhase}
+            phaseCount={battleInfo.phaseCount}
           />
         );
       case 2:

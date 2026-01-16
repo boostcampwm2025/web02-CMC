@@ -42,6 +42,7 @@ export interface Battle {
   initialState: {
     round: number
     phase: BattlePhaseName
+    phaseCount: number
     timeRemainingSeconds: number
   }
 
