@@ -111,10 +111,10 @@ export default function BattlePage() {
           isSidebarOpen ? 'ml-sidebar' : 'ml-0'
         }`}
       >
-        <div className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
-          <div className="-mb-[10px]">
-            <BattleProgressBoard raiseZIndex={isTutorialOpen && currentStep === 'progressBoard'} />
-          </div>
+        <BattleProgressBoard />
+        <div
+          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-[10px]`}
+        >
           <BattleHeader />
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
