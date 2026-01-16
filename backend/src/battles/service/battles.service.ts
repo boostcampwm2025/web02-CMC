@@ -3,8 +3,7 @@ import { EventEmitter } from 'node:events'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
-import { mockBattleResults } from '../mock/battleResults.mock'
-import { TimelineItem, Mvp } from '../types/battleResult.types'
+import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
 import {
   ActiveBattleState,
   Battle,
@@ -15,6 +14,7 @@ import {
   BattlePlayTime,
   BattleTopOpinions,
   BattlePlayTimeName,
+  FinishedBattleState,
 } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
@@ -46,6 +46,7 @@ export class BattlesService extends EventEmitter {
   private battles: Battle[] = [...MOCK_BATTLES]
   private activeBattles: Map<string, ActiveBattleState> = new Map()
   private battleTimers: Map<string, NodeJS.Timeout> = new Map()
+  private finishedBattles: Map<string, FinishedBattleState> = new Map()
 
   constructor() {
     super()
@@ -119,10 +120,10 @@ export class BattlesService extends EventEmitter {
     //   .sort((a, b) => b.createdAt.getTime() - a.expiresAt.getTime() )
     //   .slice(offset, offset + limit)
 
-    const battles = Object.values(mockBattleResults)
+    const battles = Array.from(this.finishedBattles.values())
       .sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime())
       .slice(offset, offset + limit)
-      .map(mock => ClosedBattleResponseDto.fromMock(mock))
+      .map(mock => ClosedBattleResponseDto.fromFinished(mock))
 
     return {
       battles,
@@ -136,8 +137,12 @@ export class BattlesService extends EventEmitter {
 
   getBattleResult(battleId: string): BattleResultResponseDto {
     // 1. 목데이터에서 배틀 조회
-    const battle = mockBattleResults[battleId]
+    const battle = this.finishedBattles.get(battleId)
     if (!battle) {
+      const activeOrPending = this.battles.find(candidate => candidate.id === battleId)
+      if (activeOrPending && activeOrPending.status !== BATTLE_STATUS.CLOSED) {
+        throw new BadRequestException('배틀이 아직 진행 중입니다.')
+      }
       throw new NotFoundException(`배틀을 찾을 수 없습니다: ${battleId}`)
     }
 
@@ -537,10 +542,112 @@ export class BattlesService extends EventEmitter {
 
     battle.status = BATTLE_STATUS.CLOSED
 
+    const finishedAt = new Date()
+    const finishedBattle = this.battles.find(b => b.id === battle.id)
+    const state = this.activeBattles.get(battle.id)
+
+    if (finishedBattle && state) {
+      const snapshot = this.buildFinishedBattleState(finishedBattle, state, finishedAt)
+      this.finishedBattles.set(battle.id, snapshot)
+    }
+
     this.activeBattles.delete(battle.id)
     this.battles = this.battles.filter(b => b.id !== battle.id)
 
     this.emit('battle:closed', BattleClosedResponseDto.of({ battleId: battle.id }))
+  }
+
+  private buildFinishedBattleState(battle: Battle, state: ActiveBattleState, finishedAt: Date): FinishedBattleState {
+    const totalParticipants = state.participants.size
+    const teamAVotes = state.teamA.users.length
+    const teamBVotes = state.teamB.users.length
+    const neutralVotes = Math.max(totalParticipants - teamAVotes - teamBVotes, 0)
+    const totalVotes = teamAVotes + teamBVotes + neutralVotes
+
+    const percentage = (votes: number) => (totalVotes === 0 ? 0 : Math.round((votes / totalVotes) * 100))
+
+    const result: BattleResult = {
+      winner: teamAVotes === teamBVotes ? 'DRAW' : teamAVotes > teamBVotes ? 'A' : 'B',
+      teamA: { votes: teamAVotes, percentage: percentage(teamAVotes) },
+      teamB: { votes: teamBVotes, percentage: percentage(teamBVotes) },
+      neutral: { votes: neutralVotes, percentage: percentage(neutralVotes) },
+    }
+
+    const voteTimeline: VoteTimeline[] = [
+      {
+        turn: 1,
+        teamAVotes,
+        teamBVotes,
+        neutralVotes,
+        timestamp: finishedAt.toISOString(),
+      },
+    ]
+
+    const timeline = this.buildTimeline(state)
+    const calculatedMvp = this.calculateMVP(timeline)
+
+    const metrics: Metrics = {
+      totalParticipants,
+      totalViews: totalParticipants,
+      strategiesCount: timeline.length,
+      totalChats: state.all.chats.length + state.teamA.chats.length + state.teamB.chats.length,
+    }
+
+    return {
+      battleId: battle.id,
+      authorId: battle.authorId,
+      title: battle.title,
+      description: battle.description,
+      status: BATTLE_STATUS.CLOSED,
+      language: battle.language,
+      category: battle.category,
+      playTime: battle.playTime.time,
+      topics: [...battle.topics],
+      createdAt: battle.createdAt.toISOString(),
+      finishedAt: finishedAt.toISOString(),
+      codeA: battle.aCode,
+      codeB: battle.bCode,
+      result,
+      metrics,
+      voteTimeline,
+      timeline,
+      mvp:
+        calculatedMvp ||
+        ({
+          userId: '',
+          nickname: 'unknown',
+          team: 'A',
+          totalVotes: 0,
+        } as Mvp),
+    }
+  }
+
+  private buildTimeline(state: ActiveBattleState): TimelineItem[] {
+    const toTimelineItem = (discussion: BattleDiscussion, index: number, type: 'ATTACK' | 'DEFENSE'): TimelineItem => {
+      const createdAt = new Date(discussion.selectedAt ?? Date.now()).toISOString()
+      return {
+        id: discussion.discussionId,
+        type,
+        author: {
+          id: discussion.authorId || 'unknown',
+          nickname: discussion.authorId || 'unknown',
+        },
+        team: discussion.team === BATTLE_TEAM.A ? 'A' : discussion.team === BATTLE_TEAM.B ? 'B' : 'A',
+        content: discussion.content,
+        turn: Math.floor(index / 2) + 1,
+        upvotes: discussion.upvotes,
+        createdAt,
+      }
+    }
+
+    const attacks = state.all.attacks
+      .filter((discussion): discussion is BattleDiscussion => discussion !== null)
+      .map((discussion, index) => toTimelineItem(discussion, index, 'ATTACK'))
+    const defenses = state.all.defenses
+      .filter((discussion): discussion is BattleDiscussion => discussion !== null)
+      .map((discussion, index) => toTimelineItem(discussion, index, 'DEFENSE'))
+
+    return [...attacks, ...defenses].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   }
 
   private isPublicAndWaitingOrOpen(battle: Battle): boolean {

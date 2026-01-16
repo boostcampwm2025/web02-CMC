@@ -1,6 +1,5 @@
-import { Battle, BattleStatus } from '../types/battles.types'
+import { Battle, BattleStatus, FinishedBattleState } from '../types/battles.types'
 import { BattleResult } from '../types/battleResult.types'
-import { BattleResultMock } from '../mock/battleResults.mock'
 
 export class ClosedBattleResponseDto {
   id: string
@@ -32,7 +31,7 @@ export class ClosedBattleResponseDto {
   }
 
   //임시
-  static fromMock(mock: BattleResultMock) {
+  static fromFinished(mock: FinishedBattleState) {
     const dto = new ClosedBattleResponseDto()
 
     dto.id = mock.battleId
