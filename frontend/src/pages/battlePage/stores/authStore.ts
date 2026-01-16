@@ -22,8 +22,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   loginGuest: async (battleId, nickname) => {
     set({ isLoggingIn: true });
+    const trimmedNickname = nickname.trim();
 
     try {
+      if (trimmedNickname.length > 8) throw Error('닉네임을 8글자까지 가능합니다.');
+
       const data = await fetchPostGuestLogin(battleId, nickname);
 
       const user = {
