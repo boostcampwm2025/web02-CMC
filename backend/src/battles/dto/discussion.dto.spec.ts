@@ -15,7 +15,6 @@ describe('AttackRequestDto', () => {
   it('유효한 값이면 통과한다', async () => {
     const value = {
       battleId: 'battle-123',
-      authorId: 'user-123',
       content: '퀵소트가 더 빠릅니다',
       team: 'A',
     }
@@ -26,25 +25,19 @@ describe('AttackRequestDto', () => {
   })
 
   it('battleId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: '', authorId: 'user-1', content: '내용', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
-  })
-
-  it('authorId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: '', content: '내용', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: '', content: '내용', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('content가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: 'battle-1', content: '', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('team이 유효하지 않은 값이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '내용', team: 'INVALID' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: 'battle-1', content: '내용', team: 'INVALID' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('battleId가 없으면 BadRequestException', async () => {
-    await expect(pipe.transform({ authorId: 'user-1', content: '내용', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ content: '내용', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
   })
 })
 
@@ -62,7 +55,6 @@ describe('DefenseRequestDto', () => {
   it('유효한 값이면 통과한다', async () => {
     const value = {
       battleId: 'battle-456',
-      authorId: 'user-456',
       content: '병합 정렬이 안정적입니다',
       team: 'B',
     }
@@ -73,17 +65,15 @@ describe('DefenseRequestDto', () => {
   })
 
   it('battleId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: '', authorId: 'user-1', content: '내용', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: '', content: '내용', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('content가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: 'battle-1', content: '', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('team이 유효하지 않은 값이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', authorId: 'user-1', content: '내용', team: 'INVALID' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: 'battle-1', content: '내용', team: 'INVALID' }, meta)).rejects.toThrow(BadRequestException)
   })
 })
 
@@ -102,7 +92,6 @@ describe('AttackVoteRequestDto', () => {
     const value = {
       battleId: 'battle-789',
       discussionId: 'attack-1',
-      userId: 'user-789',
       team: 'A',
     }
 
@@ -112,21 +101,15 @@ describe('AttackVoteRequestDto', () => {
   })
 
   it('battleId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: '', discussionId: 'attack-1', userId: 'user-1', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: '', discussionId: 'attack-1', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('discussionId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: '', userId: 'user-1', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
-  })
-
-  it('userId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'attack-1', userId: '', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: 'battle-1', discussionId: '', team: 'A' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('team이 유효하지 않은 값이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'attack-1', userId: 'user-1', team: 'INVALID' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'attack-1', team: 'INVALID' }, meta)).rejects.toThrow(BadRequestException)
   })
 })
 
@@ -145,7 +128,6 @@ describe('DefenseVoteRequestDto', () => {
     const value = {
       battleId: 'battle-999',
       discussionId: 'defense-1',
-      userId: 'user-999',
       team: 'B',
     }
 
@@ -155,22 +137,14 @@ describe('DefenseVoteRequestDto', () => {
   })
 
   it('battleId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: '', discussionId: 'defense-1', userId: 'user-1', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
+    await expect(pipe.transform({ battleId: '', discussionId: 'defense-1', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('discussionId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: '', userId: 'user-1', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
-  })
-
-  it('userId가 빈 문자열이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'defense-1', userId: '', team: 'B' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: 'battle-1', discussionId: '', team: 'B' }, meta)).rejects.toThrow(BadRequestException)
   })
 
   it('team이 유효하지 않은 값이면 BadRequestException', async () => {
-    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'defense-1', userId: 'user-1', team: 'INVALID' }, meta)).rejects.toThrow(
-      BadRequestException,
-    )
+    await expect(pipe.transform({ battleId: 'battle-1', discussionId: 'defense-1', team: 'INVALID' }, meta)).rejects.toThrow(BadRequestException)
   })
 })

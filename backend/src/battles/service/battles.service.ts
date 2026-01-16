@@ -40,6 +40,7 @@ import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
+import { GuestAccount } from '../types/auth.types'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -170,7 +171,7 @@ export class BattlesService extends EventEmitter {
     return BattleJoinInfoResponseDto.of(battle, activeBattleState)
   }
 
-  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, clientId: string) {
+  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
     const { battleId, password, team } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
@@ -187,9 +188,18 @@ export class BattlesService extends EventEmitter {
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
-    this.addParticipant(battleId, clientId, team)
-
+    //  이미 참여한 userId인지 확인
     const battleState = this.getBattleState(battleId)
+    if (battleState.participants.has(userId)) {
+      return { battleState, team }
+    }
+
+    // Guest 등록 확인
+    if (!battleState.guestInfoMap.has(userId)) {
+      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 닉네임을 등록해주세요.')
+    }
+
+    this.addParticipant(battleId, userId, team)
 
     return { battleState, team }
   }
@@ -260,6 +270,8 @@ export class BattlesService extends EventEmitter {
       participants: new Map(),
       teamVotes: new Map(),
 
+      guestInfoMap: new Map(),
+
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
       topics: [...battle.topics],
@@ -308,7 +320,7 @@ export class BattlesService extends EventEmitter {
     return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
   }
 
-  appendChatMessage(dto: BattleChatDto, senderId: string) {
+  appendChatMessage(dto: BattleChatDto, userId: string) {
     const { battleId, scope, team, text } = dto
     if (!battleId || !scope) throw new BadRequestException('잘못된 요청입니다.')
     if (!text.trim()) throw new BadRequestException('메시지가 비어 있습니다.')
@@ -316,10 +328,15 @@ export class BattlesService extends EventEmitter {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
+    const nickname = this.getNicknameByUserId(battleId, userId) || ''
+
     const chat = {
       messageId: this.generateId(),
       team,
-      sender: senderId,
+      sender: {
+        userId,
+        nickname,
+      },
       text: text.trim(),
       createdAt: new Date(),
     }
@@ -341,13 +358,13 @@ export class BattlesService extends EventEmitter {
     return { battleId, scope, ...chat }
   }
 
-  private addParticipant(battleId: string, clientId: string, team: string): void {
-    if (!battleId || !clientId || !team) throw new BadRequestException('잘못된 요청입니다.')
+  private addParticipant(battleId: string, userId: string, team: string): void {
+    if (!battleId || !userId || !team) throw new BadRequestException('잘못된 요청입니다.')
     const battleState = this.activeBattles.get(battleId)
 
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
-    battleState.participants.set(clientId, team as BattleTeam)
+    battleState.participants.set(userId, team as BattleTeam)
     this.rebuildTeamUsers(battleState)
 
     const counts = {
@@ -382,24 +399,24 @@ export class BattlesService extends EventEmitter {
     state.teamA.users = []
     state.teamB.users = []
 
-    for (const [clientId, team] of state.participants.entries()) {
-      if (team === BATTLE_TEAM.A) state.teamA.users.push(clientId)
-      if (team === BATTLE_TEAM.B) state.teamB.users.push(clientId)
+    for (const [userId, team] of state.participants.entries()) {
+      if (team === BATTLE_TEAM.A) state.teamA.users.push(userId)
+      if (team === BATTLE_TEAM.B) state.teamB.users.push(userId)
     }
   }
 
-  voteTeam(dto: BattleTeamVoteDto, clientId: string) {
+  voteTeam(dto: BattleTeamVoteDto, userId: string) {
     const state = this.getBattleState(dto.battleId)
 
     if (state.phase !== BATTLE_PHASE.TEAM_SWITCH.name) {
       throw new BadRequestException('팀 변경 투표는 TEAM_SWITCH 페이즈에서만 가능합니다.')
     }
 
-    if (!state.participants.has(clientId)) {
+    if (!state.participants.has(userId)) {
       throw new BadRequestException('배틀 참가자만 팀 변경 투표를 할 수 있습니다.')
     }
 
-    state.teamVotes.set(clientId, dto.team)
+    state.teamVotes.set(userId, dto.team)
   }
 
   private updatePhase(battleId: string): void {
@@ -487,7 +504,7 @@ export class BattlesService extends EventEmitter {
   }
 
   private applyTeamVotes(state: ActiveBattleState) {
-    const changes: Array<{ clientId: string; from: BattleTeam; to: BattleTeam }> = []
+    const changes: Array<{ userId: string; from: BattleTeam; to: BattleTeam }> = []
 
     // 변경 전 인원 수 저장
     const beforeCounts = {
@@ -496,13 +513,13 @@ export class BattlesService extends EventEmitter {
       teamNone: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
     }
 
-    for (const [clientId, desiredTeam] of state.teamVotes.entries()) {
-      const currentTeam = state.participants.get(clientId)
+    for (const [userId, desiredTeam] of state.teamVotes.entries()) {
+      const currentTeam = state.participants.get(userId)
       if (!currentTeam) continue
       if (currentTeam === desiredTeam) continue
 
-      state.participants.set(clientId, desiredTeam)
-      changes.push({ clientId, from: currentTeam, to: desiredTeam })
+      state.participants.set(userId, desiredTeam)
+      changes.push({ userId, from: currentTeam, to: desiredTeam })
     }
 
     state.teamVotes.clear()
@@ -630,8 +647,8 @@ export class BattlesService extends EventEmitter {
         id: discussion.discussionId,
         type,
         author: {
-          id: discussion.authorId || 'unknown',
-          nickname: discussion.authorId || 'unknown',
+          id: discussion.author.authorId,
+          nickname: discussion.author.nickname,
         },
         team: discussion.team === BATTLE_TEAM.A ? 'A' : discussion.team === BATTLE_TEAM.B ? 'B' : 'A',
         content: discussion.content,
@@ -660,11 +677,31 @@ export class BattlesService extends EventEmitter {
     // return battle.type === BATTLE_TYPE.PUBLIC &&  battle.status === BATTLE_STATUS.CLOSED
   }
 
-  private getBattleState(battleId: string) {
+  getBattleState(battleId: string) {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
 
     return battleState
+  }
+
+  // Guest 등록
+  registerGuest(battleId: string, guest: GuestAccount): void {
+    const battleState = this.getBattleState(battleId)
+    battleState.guestInfoMap.set(guest.id, guest.nickname)
+  }
+
+  // userId로 닉네임 조회
+  getNicknameByUserId(battleId: string, userId: string): string | null {
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return null
+    return battleState.guestInfoMap.get(userId) || null
+  }
+
+  // 배틀 방 내 닉네임 중복 체크
+  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+    const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return false
+    return Array.from(battleState.guestInfoMap.values()).some(existingNickname => existingNickname === nickname)
   }
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
@@ -676,9 +713,14 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
     }
 
+    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+
     const attack: BattleDiscussion = {
       discussionId: this.generateId(),
-      authorId,
+      author: {
+        authorId,
+        nickname,
+      },
       type: BATTLE_DISCUSSION_TYPE.ATTACK,
       content: content.trim(),
       upvotes: 0,
@@ -706,9 +748,14 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
     }
 
+    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+
     const defense: BattleDefense = {
       discussionId: this.generateId(),
-      authorId,
+      author: {
+        authorId,
+        nickname,
+      },
       type: BATTLE_DISCUSSION_TYPE.DEFENSE,
       content: content.trim(),
       upvotes: 0,
@@ -896,7 +943,10 @@ export class BattlesService extends EventEmitter {
     const now = Date.now()
     const placeholder: BattleDiscussion = {
       discussionId: `null-${team}-${type}-${now}`,
-      authorId: '',
+      author: {
+        authorId: '',
+        nickname: '',
+      },
       content: '투표로 선정된 의견이 없습니다',
       upvotes: 0,
       votes: [],

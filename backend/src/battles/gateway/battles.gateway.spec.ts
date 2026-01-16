@@ -46,6 +46,14 @@ describe('BattlesGateway - Discussion Events', () => {
       id: 'client-123',
       emit: jest.fn(),
       to: jest.fn().mockReturnThis(),
+      data: {
+        userId: 'user-1',
+      },
+      handshake: {
+        auth: {
+          userId: 'user-1',
+        },
+      },
     }
 
     mockServer = {
@@ -60,19 +68,22 @@ describe('BattlesGateway - Discussion Events', () => {
     it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
-        authorId: 'user-1',
         content: '퀵소트가 더 빠릅니다',
         team: BATTLE_TEAM.A,
       }
 
       const mockAttack: BattleDiscussion = {
         discussionId: 'attack-1',
-        authorId: 'user-1',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.ATTACK,
         content: '퀵소트가 더 빠릅니다',
         upvotes: 0,
         votes: [],
         status: 'PENDING',
+        team: BATTLE_TEAM.A,
       }
 
       jest.spyOn(service, 'handleAttack').mockReturnValue(mockAttack)
@@ -93,7 +104,6 @@ describe('BattlesGateway - Discussion Events', () => {
     it('공격 등록 실패 시 에러 이벤트를 emit한다', () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
-        authorId: 'user-1',
         content: '내용',
         team: BATTLE_TEAM.A,
       }
@@ -114,19 +124,22 @@ describe('BattlesGateway - Discussion Events', () => {
     it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
-        authorId: 'user-2',
         content: '하지만 최악의 경우 O(n²)입니다',
         team: BATTLE_TEAM.B,
       }
 
       const mockDefense: BattleDefense = {
         discussionId: 'defense-1',
-        authorId: 'user-2',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
         content: '하지만 최악의 경우 O(n²)입니다',
         upvotes: 0,
         votes: [],
         status: 'PENDING',
+        team: BATTLE_TEAM.B,
       }
 
       jest.spyOn(service, 'handleDefense').mockReturnValue(mockDefense)
@@ -135,7 +148,7 @@ describe('BattlesGateway - Discussion Events', () => {
       gateway.handleDefense(dto, mockClient)
 
       expect(service.handleDefense).toHaveBeenCalledWith('battle-1', {
-        authorId: 'user-2',
+        authorId: 'user-1',
         content: '하지만 최악의 경우 O(n²)입니다',
         team: BATTLE_TEAM.B,
       })
@@ -147,7 +160,6 @@ describe('BattlesGateway - Discussion Events', () => {
     it('반론 등록 실패 시 에러 이벤트를 emit한다', () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
-        authorId: 'user-2',
         content: '반론',
         team: BATTLE_TEAM.B,
       }
@@ -169,18 +181,21 @@ describe('BattlesGateway - Discussion Events', () => {
       const dto: AttackVoteRequestDto = {
         battleId: 'battle-1',
         discussionId: 'attack-1',
-        userId: 'user-3',
         team: BATTLE_TEAM.A,
       }
 
       const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'attack-1',
-        authorId: 'user-1',
+        author: {
+          authorId: 'user-1',
+          nickname: 'test-user',
+        },
         type: BATTLE_DISCUSSION_TYPE.ATTACK,
         content: '퀵소트가 더 빠릅니다',
         upvotes: 1,
-        votes: ['user-3'],
+        votes: ['user-1'],
         status: 'PENDING',
+        team: BATTLE_TEAM.A,
       })
 
       jest.spyOn(service, 'handleAttackVote').mockReturnValue([mockResponse])
@@ -189,7 +204,7 @@ describe('BattlesGateway - Discussion Events', () => {
       gateway.handleAttackVote(dto, mockClient)
 
       expect(service.handleAttackVote).toHaveBeenCalledWith('battle-1', 'attack-1', {
-        userId: 'user-3',
+        userId: 'user-1',
         team: BATTLE_TEAM.A,
       })
 
@@ -203,18 +218,21 @@ describe('BattlesGateway - Discussion Events', () => {
       const dto: DefenseVoteRequestDto = {
         battleId: 'battle-1',
         discussionId: 'defense-1',
-        userId: 'user-4',
         team: BATTLE_TEAM.B,
       }
 
       const mockResponse = DiscussionVoteResponseDto.of('battle-1', {
         discussionId: 'defense-1',
-        authorId: 'user-2',
+        author: {
+          authorId: 'user-2',
+          nickname: 'test-user-2',
+        },
         type: BATTLE_DISCUSSION_TYPE.DEFENSE,
         content: '반론',
         upvotes: 1,
-        votes: ['user-4'],
+        votes: ['user-1'],
         status: 'PENDING',
+        team: BATTLE_TEAM.B,
       })
 
       jest.spyOn(service, 'handleDefenseVote').mockReturnValue([mockResponse])
@@ -223,7 +241,7 @@ describe('BattlesGateway - Discussion Events', () => {
       gateway.handleDefenseVote(dto, mockClient)
 
       expect(service.handleDefenseVote).toHaveBeenCalledWith('battle-1', 'defense-1', {
-        userId: 'user-4',
+        userId: 'user-1',
         team: BATTLE_TEAM.B,
       })
 
@@ -265,16 +283,12 @@ describe('BattlesGateway - Discussion Events', () => {
         emit: jest.fn(),
       }
 
-      mockServer.sockets = {
-        sockets: new Map([
-          ['client-1', mockSocket1],
-          ['client-2', mockSocket2],
-        ]),
-      }
+      gateway['userIdToSocketMap'].set('user-1', mockSocket1 as any)
+      gateway['userIdToSocketMap'].set('user-2', mockSocket2 as any)
 
       const payload = BattleTeamUpdateAllResponseDto.of('battle-1', 1, { teamA: 5, teamB: 3, teamNone: 2 }, { teamA: 4, teamB: 4, teamNone: 2 }, [
-        { clientId: 'client-1', from: BATTLE_TEAM.A, to: BATTLE_TEAM.B },
-        { clientId: 'client-2', from: BATTLE_TEAM.B, to: BATTLE_TEAM.A },
+        { userId: 'user-1', from: BATTLE_TEAM.A, to: BATTLE_TEAM.B },
+        { userId: 'user-2', from: BATTLE_TEAM.B, to: BATTLE_TEAM.A },
       ])
 
       jest.spyOn(service, 'getBattleRoomId').mockImplementation((battleId, team) => {

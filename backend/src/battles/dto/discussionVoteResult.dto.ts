@@ -4,6 +4,7 @@ export class DiscussionVoteResultItemDto {
   id: string | null
   text: string | null
   ownerId: string | null
+  nickname: string | null
   count: number | null
   team: BattleTeam | null
 
@@ -12,7 +13,8 @@ export class DiscussionVoteResultItemDto {
 
     dto.id = discussion?.discussionId || null
     dto.text = discussion?.content || null
-    dto.ownerId = discussion?.authorId || null
+    dto.ownerId = discussion?.author?.authorId || null
+    dto.nickname = discussion?.author?.nickname || null
     dto.count = discussion?.upvotes || null
     dto.team = discussion?.team || null
 

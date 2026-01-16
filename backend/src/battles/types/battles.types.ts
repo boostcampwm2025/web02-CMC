@@ -52,14 +52,20 @@ export interface Battle {
 export interface BattleChat {
   messageId: string
   team: BattleTeam
-  sender: string
+  sender: {
+    userId: string
+    nickname: string
+  }
   text: string
   createdAt: Date
 }
 
 export interface BattleDiscussion {
   discussionId: string
-  authorId: string
+  author: {
+    authorId: string
+    nickname: string
+  }
   type: BattleDiscussionType
   content: string
   upvotes: number
@@ -96,6 +102,8 @@ export interface ActiveBattleState {
 
   participants: Map<string, BattleTeam>
   teamVotes: Map<string, BattleTeam>
+
+  guestInfoMap: Map<string, string>
 
   round: number
   topics: string[]
