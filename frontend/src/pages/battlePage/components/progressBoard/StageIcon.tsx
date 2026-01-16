@@ -74,6 +74,17 @@ export function StageIcon({
           "
         >
           {tooltip}
+          {/* 테두리용 화살표 (더 크게) */}
+          <div
+            className="
+              absolute bottom-full left-1/2 -translate-x-1/2 translate-y-[0.5px]
+              w-0 h-0
+              border-l-[8px] border-l-transparent
+              border-r-[8px] border-r-transparent
+              border-b-[8px] border-b-[#364153]
+            "
+          />
+          {/* 배경색 화살표 (작게, 위에 겹침) */}
           <div
             className="
               absolute bottom-full left-1/2 -translate-x-1/2
