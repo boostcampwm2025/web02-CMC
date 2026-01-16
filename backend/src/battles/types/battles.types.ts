@@ -9,6 +9,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 
+import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
 export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
 export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
@@ -102,4 +103,26 @@ export interface ActiveBattleState {
 
   startedAt: number | null
   expiredAt: number | null
+}
+
+export interface FinishedBattleState {
+  battleId: string
+  authorId: string
+  title: string
+  description: string
+  status: 'CLOSED'
+  language: string
+  category: string
+  playTime: number
+  createdAt: string
+  finishedAt: string
+
+  codeA: string
+  codeB: string
+
+  result: BattleResult
+  metrics: Metrics
+  voteTimeline: VoteTimeline[]
+  timeline: TimelineItem[]
+  mvp: Mvp
 }
