@@ -4,6 +4,6 @@ export class CreateGuestRequestDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(10)
+  @MaxLength(8)
   nickname!: string
 }
