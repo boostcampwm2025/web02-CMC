@@ -1,8 +1,9 @@
-import { BattleResultMock } from '../mock/battleResults.mock'
+import { FinishedBattleState } from '../types/battles.types'
 import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
 
 export class BattleResultResponseDto {
   battleId: string
+  authorId: string
   title: string
   description: string
   status: 'CLOSED'
@@ -21,9 +22,10 @@ export class BattleResultResponseDto {
   timeline: TimelineItem[]
   mvp: Mvp
 
-  static fromEntity(battle: BattleResultMock, calculatedMvp: Mvp | null): BattleResultResponseDto {
+  static fromEntity(battle: FinishedBattleState, calculatedMvp: Mvp | null): BattleResultResponseDto {
     const dto = new BattleResultResponseDto()
     dto.battleId = battle.battleId
+    dto.authorId = battle.authorId
     dto.title = battle.title
     dto.description = battle.description
     dto.status = 'CLOSED'
