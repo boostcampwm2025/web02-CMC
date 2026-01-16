@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit } from '@nestjs/common'
+import { Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../types/socket.types'
 import {
@@ -47,7 +47,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     //저장된 userId를 가져옴
     const userId = client.data.userId
     if (!userId) {
-      throw new Error('userId가 필요합니다.')
+      throw new UnauthorizedException('userId가 필요합니다.')
     }
     return userId
   }
@@ -58,7 +58,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     try {
       const userId = client.handshake.auth.userId
       if (!userId) {
-        throw new Error('userId가 필요합니다.')
+        throw new UnauthorizedException('userId가 필요합니다.')
       }
 
       // 인증 성공 시 socket.data.userId에 사용자 정보를 저장

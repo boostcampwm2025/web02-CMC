@@ -195,7 +195,7 @@ export class BattlesService extends EventEmitter {
 
     // Guest 등록 확인
     if (!battleState.guestInfoMap.has(userId)) {
-      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 POST /api/auth/guest/:battleId로 닉네임을 등록해주세요.')
+      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 닉네임을 등록해주세요.')
     }
 
     this.addParticipant(battleId, userId, team)
