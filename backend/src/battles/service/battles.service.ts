@@ -190,7 +190,7 @@ export class BattlesService extends EventEmitter {
     //  이미 참여한 userId인지 확인
     const battleState = this.getBattleState(battleId)
     if (battleState.participants.has(userId)) {
-      throw new BadRequestException('이미 참여한 사용자입니다.')
+      return { battleState, team }
     }
 
     // Guest 등록 확인

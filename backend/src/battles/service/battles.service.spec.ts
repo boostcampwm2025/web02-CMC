@@ -340,9 +340,9 @@ describe('BattlesService', () => {
       expect(result.battleState.teamA.users).toContain('user-1')
     })
 
-    it('이미 참여한 userId로 재접속하면 BadRequestException을 던진다', () => {
+    it('이미 참여한 userId로 재접속하면 기존 상태를 반환한다', () => {
       service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
-      service.joinBattle(
+      const firstResult = service.joinBattle(
         {
           battleId: 'public-battle',
           team: 'A',
@@ -350,15 +350,23 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      expect(() =>
-        service.joinBattle(
-          {
-            battleId: 'public-battle',
-            team: 'B',
-          },
-          'user-1',
-        ),
-      ).toThrow(BadRequestException)
+      const secondResult = service.joinBattle(
+        {
+          battleId: 'public-battle',
+          team: 'A',
+        },
+        'user-1',
+      )
+
+      // 재접속 시 기존 상태가 같다는 것을 확인
+      expect(secondResult.battleState).toBe(firstResult.battleState)
+      expect(secondResult.team).toBe(firstResult.team)
+
+      const battleState = service.getBattleState('public-battle')
+
+      expect(battleState.participants.get('user-1')).toBe('A')
+      expect(battleState.teamA.users).toContain('user-1')
+      expect(battleState.teamB.users).not.toContain('user-1')
     })
 
     it('다른 배틀에는 같은 userId로 참여할 수 있다', () => {
