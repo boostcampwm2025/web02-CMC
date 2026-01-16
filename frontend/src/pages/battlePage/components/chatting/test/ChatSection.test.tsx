@@ -11,7 +11,7 @@ let mockTeamCounts = { teamACount: 5, teamBCount: 3 };
 let mockTeamMessages: Message[] = [];
 let mockAllMessages: Message[] = [];
 let mockOpponentNotice: Message | null = null;
-const mockChatInitialized = false;
+let mockChatInitialized = true;
 
 vi.mock('@/pages/battlePage/stores/battleStore', () => ({
   useBattleStore: vi.fn((selector) => {
@@ -47,6 +47,7 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
     mockUserId = 'user-123';
     mockSelectedTeam = 'A';
     mockTeamCounts = { teamACount: 5, teamBCount: 3 };
+    mockChatInitialized = true;
 
     mockTeamMessages = [
       { id: '1', user: 'You', team: 'A', content: 'A팀 메시지', timestamp: '2026-01-04 10:00:00', type: 'chat' }
