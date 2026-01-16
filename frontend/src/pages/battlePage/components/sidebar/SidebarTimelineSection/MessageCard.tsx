@@ -26,9 +26,7 @@ export default function MessageCard({ message, team, type }: MessageCardProps) {
           >
             {isTeamA ? 'A팀' : 'B팀'}
           </span>
-          <span className="text-white font-medium text-[11px] break-all">
-            {message.authorId ? message.authorId : '익명'}
-          </span>
+          <span className="text-white font-medium text-[11px] break-all">{message.author?.nickname ?? 'SYSTEM'}</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="text-gray-500 text-[10px]">{message.upvotes}명 지지</span>

@@ -7,7 +7,10 @@ import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 describe('Step3Timeline', () => {
   const mockAttackA: BattleDiscussion = {
     discussionId: '1',
-    authorId: 'user-alice',
+    author: {
+      authorId: 'user-alice',
+      nickname: 'alice'
+    },
     content: '구현 A의 Set 사용이 더 효율적입니다.',
     upvotes: 15,
     votes: [],
@@ -19,7 +22,10 @@ describe('Step3Timeline', () => {
 
   const mockAttackB: BattleDiscussion = {
     discussionId: '2',
-    authorId: 'user-bob',
+    author: {
+      authorId: 'user-bob',
+      nickname: 'bob'
+    },
     content: '구현 B의 Map 사용이 더 효율적입니다.',
     upvotes: 13,
     votes: [],
@@ -31,7 +37,10 @@ describe('Step3Timeline', () => {
 
   const mockDefenseA: BattleDefense = {
     discussionId: '3',
-    authorId: 'user-charlie',
+    author: {
+      authorId: 'user-charlie',
+      nickname: 'charlie'
+    },
     content: 'Map은 메모리를 더 많이 사용합니다.',
     upvotes: 10,
     votes: [],
@@ -44,7 +53,10 @@ describe('Step3Timeline', () => {
 
   const mockDefenseB: BattleDefense = {
     discussionId: '4',
-    authorId: 'user-david',
+    author: {
+      authorId: 'user-david',
+      nickname: 'david'
+    },
     content: 'Set은 순서를 보장하지 않습니다.',
     upvotes: 12,
     votes: [],

@@ -6,6 +6,7 @@ import { useBattleProgress } from './useBattleProgress';
 import { useBattleDiscussions } from './useBattleDiscussions';
 import { useBattleTimeline } from './useBattleTimeline';
 import { useBattleTeam } from './useBattleTeam';
+import { useAuthStore } from '../stores/authStore';
 
 interface UseBattle {
   battleId?: string;
@@ -16,16 +17,11 @@ interface UseBattle {
 export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattle) {
   const location = useLocation();
   const selectedTeamFromState = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
+  const user = useAuthStore((state) => state.user);
 
   // 배틀 초기화 (selectedTeam 먼저 설정)
   useEffect(() => {
-    if (!battleId) return;
-
-    let userId = sessionStorage.getItem('testUserId');
-    if (!userId) {
-      userId = `user-${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('testUserId', userId);
-    }
+    if (!battleId || !user) return;
 
     // selectedTeam을 먼저 설정
     if (selectedTeamFromState) {
@@ -33,10 +29,10 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
     }
 
     useBattleStore.getState().initializeBattle({
-      userId,
+      userId: user.id,
       battleId
     });
-  }, [battleId, selectedTeamFromState]);
+  }, [battleId, selectedTeamFromState, user]);
 
   // 모든 배틀 관련 훅 초기화
   useBattleSocket();

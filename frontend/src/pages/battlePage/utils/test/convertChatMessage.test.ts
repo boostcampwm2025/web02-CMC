@@ -6,7 +6,7 @@ describe('메시지 변환', () => {
   const mockChat: BattleChat = {
     messageId: 'msg-123',
     battleId: 'battle-1',
-    sender: 'user-abc',
+    sender: { userId: 'user-abc', nickname: 'testNick' },
     team: 'A',
     scope: 'ALL',
     text: 'Hello World',
@@ -20,6 +20,6 @@ describe('메시지 변환', () => {
 
   it('다른 사용자 메시지는 ID 그대로 표시', () => {
     const result = convertBattleChatToMessage(mockChat, 'different-user');
-    expect(result.user).toBe('user-abc');
+    expect(result.user).toBe('testNick');
   });
 });

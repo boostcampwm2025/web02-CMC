@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useLoaderData } from 'react-router-dom';
+import { useNavigate, useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
@@ -23,13 +23,23 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
+import { selectUser, useAuthStore } from './stores/authStore';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const sidebarOpenedForTutorial = useRef(false);
+  const user = useAuthStore(selectUser);
+
+  useEffect(() => {
+    if (!user) {
+      alert('잘못된 진입입니다.');
+      navigate(`/battle/${battleId}/team-select`, { replace: true });
+    }
+  }, [user, navigate, battleId]);
 
   // 튜토리얼 관리
   const {

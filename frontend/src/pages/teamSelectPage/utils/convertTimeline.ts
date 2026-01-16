@@ -14,7 +14,7 @@ export function convertToTimelineItems(attacks: BattleDiscussion[], defenses: Ba
       id: attack.discussionId,
       type: 'ATTACK',
       team: 'A',
-      author: attack.authorId,
+      author: attack.author.nickname,
       content: attack.content,
       upvotes: attack.upvotes,
       timestamp: attack.selectedAt || 0 // SELECTED로 변경된 실제 시간 사용
@@ -27,7 +27,7 @@ export function convertToTimelineItems(attacks: BattleDiscussion[], defenses: Ba
       id: defense.discussionId,
       type: 'DEFENSE',
       team: 'B',
-      author: defense.authorId,
+      author: defense.author.nickname,
       content: defense.content,
       upvotes: defense.upvotes,
       timestamp: defense.selectedAt || 0, // SELECTED로 변경된 실제 시간 사용

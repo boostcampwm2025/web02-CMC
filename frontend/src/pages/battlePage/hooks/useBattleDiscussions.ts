@@ -4,15 +4,15 @@ import {
   selectBattleProgress,
   selectDiscussions,
   selectSocket,
-  selectUserId,
   selectBattleId,
   selectSelectedTeam
 } from '../stores/battleStore';
 import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
+import { selectUser, useAuthStore } from '../stores/authStore';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);
-  const userId = useBattleStore(selectUserId);
+  const user = useAuthStore(selectUser);
   const battleId = useBattleStore(selectBattleId);
   const team = useBattleStore(selectSelectedTeam);
   const { updateDiscussionVote, addDiscussion } = useBattleStore();
@@ -21,7 +21,7 @@ export function useBattleDiscussions() {
 
   const handleVote = useCallback(
     (discussionId: number) => {
-      if (!socket || team === 'NONE') return;
+      if (!socket || team === 'NONE' || !user) return;
 
       const targetDiscussion = discussions?.find((obj) => obj.id === discussionId);
       if (targetDiscussion?.hasVoted) return;
@@ -32,16 +32,16 @@ export function useBattleDiscussions() {
       socket.emit(eventName, {
         battleId,
         discussionId: String(discussionId),
-        userId,
+        userId: user.id,
         team
       });
     },
-    [socket, team, discussions, battleProgress, battleId, userId]
+    [socket, team, discussions, battleProgress, battleId, user]
   );
 
   const handleDiscussionSubmit = useCallback(
     (content: string) => {
-      if (team === 'NONE' || !socket) return;
+      if (team === 'NONE' || !socket || !user) return;
 
       const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
       const canSubmit = !isInputDisabled(team, battleProgress?.phase);
@@ -52,26 +52,27 @@ export function useBattleDiscussions() {
 
       socket.emit(isAttacking ? 'battle:attack' : 'battle:defense', {
         battleId,
-        authorId: userId,
+        authorId: user.id,
         content,
         team
       });
     },
-    [socket, team, battleProgress, battleId, userId]
+    [socket, team, battleProgress, battleId, user]
   );
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !user) return;
 
     // 투표 업데이트 이벤트
     const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
-      updateDiscussionVote(data.discussionId, data.upvotes, data.votes, userId);
+      if (!user) return;
+      updateDiscussionVote(data.discussionId, data.upvotes, data.votes, user.id);
     };
 
     // 새 이의제기/반론 추가
     const handleNewDiscussion = (data: {
       discussionId: string;
-      authorId: string;
+      author: { authorId: string; nickname: string };
       content: string;
       upvotes: number;
       votes: string[];
@@ -80,12 +81,12 @@ export function useBattleDiscussions() {
 
       addDiscussion({
         id: data.discussionId as unknown as number,
-        user: data.authorId === userId ? 'You' : `User-${data.authorId.slice(0, 4)}`,
+        user: data.author.authorId === user.id ? 'You' : data.author.nickname,
         team: team as 'A' | 'B',
         content: data.content,
         votes: data.upvotes,
         totalVotes: 0,
-        hasVoted: data.votes.includes(userId)
+        hasVoted: data.votes.includes(user.id)
       });
     };
 
@@ -100,7 +101,7 @@ export function useBattleDiscussions() {
       socket.off('battle:attack:created', handleNewDiscussion);
       socket.off('battle:defense:created', handleNewDiscussion);
     };
-  }, [socket, userId, team, updateDiscussionVote, addDiscussion]);
+  }, [socket, user, team, updateDiscussionVote, addDiscussion]);
 
   return { handleVote, handleDiscussionSubmit };
 }
