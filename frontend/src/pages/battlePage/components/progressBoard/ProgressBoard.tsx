@@ -65,11 +65,7 @@ const STAGES = [
   }
 ] as const;
 
-interface BattleProgressBoardProps {
-  raiseZIndex?: boolean;
-}
-
-export default function BattleProgressBoard({ raiseZIndex = false }: BattleProgressBoardProps) {
+export default function BattleProgressBoard() {
   const [collapsed, setCollapsed] = useState(false);
   const battleProgress = useBattleStore(selectBattleProgress);
 
