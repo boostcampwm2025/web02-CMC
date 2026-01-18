@@ -39,18 +39,21 @@ export default function RoundCard({ roundData, isExpanded, onToggle, formatTime,
         showStatus={showStatus}
       />
 
-      {/* 라운드 */}
       {isExpanded && !roundData.isFuture && (
         <div className="border-t border-[#2d2d3f]">
+          {/* A팀 공격 → B팀 수비 */}
           <PhaseSection
-            teamAMessage={roundData.challenge.teamA}
-            teamBMessage={roundData.rebuttal.teamB}
+            attackMessage={roundData.challenge.teamA}
+            defenseMessage={roundData.rebuttal.teamB}
+            attackingTeam="A"
             formatTime={formatTime}
           />
 
+          {/* B팀 공격 → A팀 수비 */}
           <PhaseSection
-            teamAMessage={roundData.rebuttal.teamA}
-            teamBMessage={roundData.challenge.teamB}
+            attackMessage={roundData.challenge.teamB}
+            defenseMessage={roundData.rebuttal.teamA}
+            attackingTeam="B"
             formatTime={formatTime}
             showBorder={true}
           />

@@ -5,9 +5,7 @@ import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
 import CodeViewerSection from './components/CodeViewerSection';
-import { getTimeAgo } from '@/commons/utils/getTimeAgo';
-import RoundCard from '@/commons/components/timeline/RoundCard';
-import { organizeByRounds } from '@/commons/utils/organizeByRounds';
+import TimelineSection from './components/TimelineSection';
 import { Trophy, Activity } from 'lucide-react';
 import { getBattleResult } from './apis/getBattleResult';
 import type { BattleResultApiResponse } from './types';
@@ -29,33 +27,13 @@ export default function BattleResultPage() {
   }, [id]);
 
   if (!battleData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white text-2xl">로딩 중...</div>
-    );
+    return <div>로딩 중...</div>;
   }
 
   const { result } = battleData;
 
-  const roundsData = organizeByRounds({
-    timelines: battleData.timeline,
-    topics: battleData.topics,
-    currentRound: 0,
-    totalRounds: battleData.timeline.length / 4
-  }).map((round) => ({
-    ...round,
-    isActive: true,
-    isFuture: false
-  }));
-
-  // 시간 포맷 함수
-  const formatTime = (timestamp?: number) => {
-    if (!timestamp) return '알 수 없음';
-    return getTimeAgo(new Date(timestamp).toISOString());
-  };
-
   return (
     <div className="min-h-screen text-white p-6 md:p-10">
-      {/* 헤더 */}
       <header className="text-center mb-10">
         <div className="flex justify-center items-center gap-2">
           <TrophyIcon />
@@ -64,7 +42,6 @@ export default function BattleResultPage() {
         <p className="text-slate-400">배틀 종료! 최종 결과를 확인하세요</p>
       </header>
 
-      {/* 승자 섹션 */}
       <WinnerSection
         winner={result.winner}
         teamAPercentage={result.teamA.percentage}
@@ -73,7 +50,6 @@ export default function BattleResultPage() {
         teamBVotes={result.teamB.votes}
       />
 
-      {/* 투표 차트 & 통계 섹션 */}
       <div className="max-w-7xl mx-auto mb-12 flex gap-6 items-stretch">
         <div className="flex-1">
           <VoteChart
@@ -94,7 +70,6 @@ export default function BattleResultPage() {
         </div>
       </div>
 
-      {/* 코드 섹션 */}
       <CodeViewerSection
         codeA={battleData.aCode}
         codeB={battleData.bCode}
@@ -102,29 +77,8 @@ export default function BattleResultPage() {
         winner={result.winner}
       />
 
-      {/* 타임라인 섹션 */}
-      <div className="max-w-7xl mx-auto mb-12">
-        <div className="w-full bg-[#0d0d1a]/50 rounded-2xl p-8 border border-[#1a1a2e]">
-          <div className="flex gap-2 items-center mb-6">
-            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-            <h2 className="text-2xl font-bold">배틀 타임라인</h2>
-          </div>
-          <div className="space-y-4">
-            {roundsData.map((roundData) => (
-              <RoundCard
-                key={roundData.round}
-                roundData={roundData}
-                isExpanded={true}
-                onToggle={() => {}}
-                formatTime={formatTime}
-                showStatus={false}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      <TimelineSection timelines={battleData.timeline} topics={battleData.topics} />
 
-      {/* 하단 버튼 섹션 */}
       <div className="max-w-7xl mx-auto mb-12 flex gap-4 justify-center">
         <button
           onClick={() => navigate('/')}

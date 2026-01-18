@@ -1,8 +1,8 @@
 import { ThumbsUp } from 'lucide-react';
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { TimelineItem } from '@/pages/battleResultPage/types';
 
 interface MessageCardProps {
-  message: BattleDiscussion | BattleDefense | null;
+  message: TimelineItem | null;
   team: 'A' | 'B';
   formatTime: (timestamp?: number) => string;
 }
@@ -31,7 +31,7 @@ export default function MessageCard({ message, team, formatTime }: MessageCardPr
           </span>
           <span className="text-white font-medium text-sm">{message.author ? message.author.nickname : '익명'}</span>
         </div>
-        <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
+        <span className="text-gray-500 text-xs">{formatTime(new Date(message.createdAt).getTime())}</span>
       </div>
 
       <p className="text-gray-300 mb-4 leading-relaxed text-sm">{message.content}</p>
