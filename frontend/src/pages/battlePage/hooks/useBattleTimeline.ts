@@ -34,7 +34,7 @@ export function useBattleTimeline() {
 
       const discussion: BattleDiscussion | BattleDefense = {
         discussionId: entry.id,
-        author: { authorId: entry.ownerId, nickname: entry.nickname },
+        author: { id: entry.ownerId, nickname: entry.nickname },
         content: entry.text,
         upvotes: entry.count ?? 0,
         votes: [],
@@ -71,7 +71,7 @@ export function useBattleTimeline() {
       // null인 경우 placeholder 데이터 추가
       const placeholder: BattleDiscussion | BattleDefense = {
         discussionId: `null-${team}-${type}-${Date.now()}`,
-        author: { authorId: '', nickname: '' },
+        author: { id: '', nickname: '' },
         content: '투표로 선정된 의견이 없습니다',
         upvotes: 0,
         votes: [],

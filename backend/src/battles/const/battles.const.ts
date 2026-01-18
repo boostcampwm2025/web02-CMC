@@ -5,19 +5,19 @@ export const BATTLE_PHASE = {
   },
   OPINION_SHARE: {
     name: 'OPINION_SHARE',
-    time: 3 * 1000, // 1분
+    time: 60 * 1000, // 1분
   },
   ATTACK: {
     name: 'ATTACK',
-    time: 3 * 1000, // 3분
+    time: 3 * 60 * 1000, // 3분
   },
   DEFENSE: {
     name: 'DEFENSE',
-    time: 4 * 1000, // 4분
+    time: 4 * 60 * 1000, // 4분
   },
   TEAM_SWITCH: {
     name: 'TEAM_SWITCH',
-    time: 1 * 1000, // 40초
+    time: 40 * 1000, // 40초
   },
 } as const
 

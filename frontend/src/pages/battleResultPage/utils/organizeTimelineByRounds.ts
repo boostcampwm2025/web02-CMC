@@ -1,9 +1,23 @@
 import type { TimelineItem } from '../types';
-import type { RoundData } from '@/commons/utils/organizeByRounds';
 
 interface OrganizeTimelineParams {
   timelines: TimelineItem[];
   topics: string[];
+}
+
+interface RoundData {
+  round: string;
+  topic: string;
+  isActive: boolean;
+  isFuture: boolean;
+  challenge: {
+    teamA: TimelineItem | null;
+    teamB: TimelineItem | null;
+  };
+  rebuttal: {
+    teamA: TimelineItem | null;
+    teamB: TimelineItem | null;
+  };
 }
 
 // 타임라인을 라운드별로 정리하는 함수
