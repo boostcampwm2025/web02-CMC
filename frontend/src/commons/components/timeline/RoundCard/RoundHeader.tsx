@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
 
 interface RoundHeaderProps {
-  round: number;
+  round: string;
   topic: string;
   isActive: boolean;
   isFuture: boolean;
