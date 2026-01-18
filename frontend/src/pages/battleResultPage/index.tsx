@@ -71,8 +71,8 @@ export default function BattleResultPage() {
       </div>
 
       <CodeViewerSection
-        codeA={battleData.aCode}
-        codeB={battleData.bCode}
+        codeA={battleData.codeA}
+        codeB={battleData.codeB}
         language={battleData.language}
         winner={result.winner}
       />
