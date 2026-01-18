@@ -108,6 +108,17 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
+  @SubscribeMessage('battle:leave')
+  handleLeave(@MessageBody() dto: { battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
+    const { battleId } = dto
+    const userId = this.getUserIdFromSocket(client)
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    const result = this.battlesService.leaveBattle(userId, battleId)
+
+    this.server.to(battleRoomId).emit('battle:leaved', result)
+  }
+
   @SubscribeMessage('battle:start')
   handleStart(@MessageBody() dto: BattleStartDto) {
     const { battleId } = dto
