@@ -55,9 +55,10 @@ interface BattleStore {
   setChatInitialized: (initialized: boolean) => void;
   setOpponentNoticePending: (notice: BattleChat | null) => void;
   commitOpponentNotice: () => void;
+  leaveBattle: () => void;
 }
 
-export const useBattleStore = create<BattleStore>((set) => ({
+export const useBattleStore = create<BattleStore>((set, get) => ({
   userId: '',
   battleId: '',
   socket: null,
@@ -154,7 +155,34 @@ export const useBattleStore = create<BattleStore>((set) => ({
     set((state) => ({
       opponentNotice: state.opponentNoticePending,
       opponentNoticePending: null
-    }))
+    })),
+  leaveBattle: () => {
+    const { socket, battleId } = get();
+    socket?.emit('battle:leave', { battleId });
+
+    socket?.removeAllListeners();
+    socket?.disconnect();
+
+    // 기존 Store 초기화 값으로 설정
+    set({
+      userId: '',
+      battleId: '',
+      socket: null,
+      isConnected: false,
+      currentStage: null,
+      battleProgress: null,
+      discussions: [],
+      teamCounts: { teamACount: 0, teamBCount: 0, none: 0 },
+      totalParticipants: 0,
+      timelines: null,
+      teamChats: [],
+      allChats: [],
+      selectedTeam: 'NONE',
+      chatInitialized: false,
+      opponentNotice: null,
+      opponentNoticePending: null
+    });
+  }
 }));
 
 export const selectUserId = (state: BattleStore) => state.userId;
