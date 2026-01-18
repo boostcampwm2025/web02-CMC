@@ -8,7 +8,7 @@ describe('Step3Timeline', () => {
   const mockAttackA: BattleDiscussion = {
     discussionId: '1',
     author: {
-      authorId: 'user-alice',
+      id: 'user-alice',
       nickname: 'alice'
     },
     content: '구현 A의 Set 사용이 더 효율적입니다.',
@@ -23,7 +23,7 @@ describe('Step3Timeline', () => {
   const mockAttackB: BattleDiscussion = {
     discussionId: '2',
     author: {
-      authorId: 'user-bob',
+      id: 'user-bob',
       nickname: 'bob'
     },
     content: '구현 B의 Map 사용이 더 효율적입니다.',
@@ -38,7 +38,7 @@ describe('Step3Timeline', () => {
   const mockDefenseA: BattleDefense = {
     discussionId: '3',
     author: {
-      authorId: 'user-charlie',
+      id: 'user-charlie',
       nickname: 'charlie'
     },
     content: 'Map은 메모리를 더 많이 사용합니다.',
@@ -54,7 +54,7 @@ describe('Step3Timeline', () => {
   const mockDefenseB: BattleDefense = {
     discussionId: '4',
     author: {
-      authorId: 'user-david',
+      id: 'user-david',
       nickname: 'david'
     },
     content: 'Set은 순서를 보장하지 않습니다.',

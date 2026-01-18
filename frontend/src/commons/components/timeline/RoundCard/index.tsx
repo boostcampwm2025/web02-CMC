@@ -1,9 +1,23 @@
 import RoundHeader from './RoundHeader';
 import PhaseSection from './PhaseSection';
-import type { RoundData } from '@/commons/utils/organizeByRounds';
+
+interface RoundCardData {
+  round: string;
+  topic: string;
+  isActive: boolean;
+  isFuture: boolean;
+  challenge?: {
+    teamA: any;
+    teamB: any;
+  };
+  rebuttal?: {
+    teamA: any;
+    teamB: any;
+  };
+}
 
 interface RoundCardProps {
-  roundData: RoundData;
+  roundData: RoundCardData;
   isExpanded: boolean;
   onToggle: () => void;
   formatTime: (timestamp?: number) => string;
@@ -12,10 +26,10 @@ interface RoundCardProps {
 
 export default function RoundCard({ roundData, isExpanded, onToggle, formatTime, showStatus }: RoundCardProps) {
   const hasContent = !!(
-    roundData.challenge.teamA ||
-    roundData.challenge.teamB ||
-    roundData.rebuttal.teamA ||
-    roundData.rebuttal.teamB
+    roundData.challenge?.teamA ||
+    roundData.challenge?.teamB ||
+    roundData.rebuttal?.teamA ||
+    roundData.rebuttal?.teamB
   );
 
   return (
@@ -43,16 +57,16 @@ export default function RoundCard({ roundData, isExpanded, onToggle, formatTime,
         <div className="border-t border-[#2d2d3f]">
           {/* A팀 공격 → B팀 수비 */}
           <PhaseSection
-            attackMessage={roundData.challenge.teamA}
-            defenseMessage={roundData.rebuttal.teamB}
+            attackMessage={roundData.challenge?.teamA}
+            defenseMessage={roundData.rebuttal?.teamB}
             attackingTeam="A"
             formatTime={formatTime}
           />
 
           {/* B팀 공격 → A팀 수비 */}
           <PhaseSection
-            attackMessage={roundData.challenge.teamB}
-            defenseMessage={roundData.rebuttal.teamA}
+            attackMessage={roundData.challenge?.teamB}
+            defenseMessage={roundData.rebuttal?.teamA}
             attackingTeam="B"
             formatTime={formatTime}
             showBorder={true}
