@@ -1,6 +1,6 @@
 import RoundHeader from './RoundHeader';
 import PhaseSection from './PhaseSection';
-import type { RoundData } from '../../utils/organizeByRounds';
+import type { RoundData } from '@/commons/utils/organizeByRounds';
 
 interface RoundCardProps {
   roundData: RoundData;
