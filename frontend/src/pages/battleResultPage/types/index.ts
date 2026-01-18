@@ -49,8 +49,8 @@ export interface BattleResultApiResponse {
   author: string;
   title: string;
   description: string;
-  aCode: string;
-  bCode: string;
+  codeA: string;
+  codeB: string;
   language: string;
   type: string;
   status: 'CLOSED';
