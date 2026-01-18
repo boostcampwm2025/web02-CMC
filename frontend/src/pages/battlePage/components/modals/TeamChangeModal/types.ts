@@ -24,6 +24,7 @@ export interface PhaseFlowCardProps {
  */
 export interface TimelineSectionProps {
   currentRound: number;
+  topic: string;
   timelines: {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];

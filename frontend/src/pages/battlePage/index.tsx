@@ -112,6 +112,7 @@ export default function BattlePage() {
         description={battleInfo.description}
         language={battleInfo.language}
         category={battleInfo.category}
+        topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
       />
 
@@ -157,7 +158,11 @@ export default function BattlePage() {
         </div>
 
         {isTeamChangeModalOpen && (
-          <TeamChangeModal handleTeamChange={handleTeamChange} onClose={handleCloseTeamChangeModal} />
+          <TeamChangeModal
+            topics={battleInfo.topics}
+            handleTeamChange={handleTeamChange}
+            onClose={handleCloseTeamChangeModal}
+          />
         )}
 
         {effectModal.isOpen && effectModal.team !== 'NONE' && (
