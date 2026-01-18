@@ -28,7 +28,6 @@ export default function RoundHeader({
       className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-[#16162a] to-[#1a1a2e] hover:from-[#1a1a2e] hover:to-[#1e1e2f] transition-all disabled:cursor-not-allowed"
     >
       <div className="flex items-center gap-3">
-        {/* Round Badge */}
         <div
           className={`px-4 py-2 rounded-lg font-bold ${
             isActive
@@ -64,7 +63,6 @@ export default function RoundHeader({
         {showStatus && isFuture && <div className="text-sm text-gray-600">대기 중</div>}
       </div>
 
-      {/* Expand Icon */}
       {!isFuture && (
         <div className="text-gray-400">
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}

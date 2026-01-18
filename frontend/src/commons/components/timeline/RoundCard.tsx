@@ -43,17 +43,16 @@ export default function RoundCard({ roundData, isExpanded, onToggle, formatTime,
       {isExpanded && !roundData.isFuture && (
         <div className="border-t border-[#2d2d3f]">
           <PhaseSection
-            type="challenge"
             teamAMessage={roundData.challenge.teamA}
             teamBMessage={roundData.rebuttal.teamB}
             formatTime={formatTime}
           />
 
           <PhaseSection
-            type="rebuttal"
             teamAMessage={roundData.rebuttal.teamA}
             teamBMessage={roundData.challenge.teamB}
             formatTime={formatTime}
+            showBorder={true}
           />
         </div>
       )}

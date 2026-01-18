@@ -93,7 +93,7 @@ export default function BattleResultPage() {
         {
           id: '3',
           type: 'DEFENSE',
-          author: { id: 'user1', nickname: '개발자A' },
+          author: { id: 'user2', nickname: '개발자B' },
           team: 'B',
           content: '코드 B는 메모리를 너무 많이 사용합니다.',
           turn: 1,
@@ -103,7 +103,7 @@ export default function BattleResultPage() {
         {
           id: '4',
           type: 'DEFENSE',
-          author: { id: 'user2', nickname: '개발자B' },
+          author: { id: 'user1', nickname: '개발자A' },
           team: 'A',
           content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
           turn: 1,
@@ -164,18 +164,35 @@ export default function BattleResultPage() {
   const { result } = battleData;
 
   // 타임라인 데이터 변환
-  const convertedTimeline = battleData.timeline.map((item) => ({
-    discussionId: item.id,
-    authorId: item.author.id,
-    type: item.type,
-    content: item.content,
-    upvotes: item.upvotes,
-    votes: [],
-    status: 'SELECTED' as const,
-    selectedAt: new Date(item.createdAt).getTime(),
-    team: item.team,
-    ...(item.type === 'DEFENSE' && { attackId: '' })
-  }));
+  const convertedTimeline = battleData.timeline.map((item) => {
+    const baseTimeline = {
+      discussionId: item.id,
+      author: {
+        authorId: item.author.id,
+        nickname: item.author.nickname
+      },
+      type: item.type as 'ATTACK' | 'DEFENSE',
+      content: item.content,
+      upvotes: item.upvotes,
+      votes: [],
+      status: 'SELECTED' as const,
+      selectedAt: new Date(item.createdAt).getTime(),
+      team: item.team
+    };
+
+    if (item.type === 'DEFENSE') {
+      return {
+        ...baseTimeline,
+        type: 'DEFENSE' as const,
+        attackId: ''
+      };
+    }
+
+    return {
+      ...baseTimeline,
+      type: 'ATTACK' as const
+    };
+  });
 
   // 라운드별로 데이터 구성
   const roundsData = organizeByRounds({
