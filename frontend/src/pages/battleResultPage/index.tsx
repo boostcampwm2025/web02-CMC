@@ -9,6 +9,7 @@ import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import RoundCard from '@/commons/components/timeline/RoundCard';
 import { organizeByRounds } from '@/commons/utils/organizeByRounds';
 import { Trophy, Activity } from 'lucide-react';
+import { getBattleResult } from './apis/getBattleResult';
 import type { BattleResultApiResponse } from './types';
 
 export default function BattleResultPage() {
@@ -17,142 +18,14 @@ export default function BattleResultPage() {
   const [battleData, setBattleData] = useState<BattleResultApiResponse | null>(null);
 
   useEffect(() => {
-    // TODO: API 호출로 실제 데이터 가져오기
-    // 임시 목 데이터
-    setBattleData({
-      battleId: id || '1',
-      author: 'user123',
-      title: '운동복 서자',
-      description: '빠른 호흡 최종 결과를 축하합니다',
-      aCode: `function fibonacci(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
-}`,
-      bCode: `function fibonacci(n) {
-  const dp = [0, 1];
-  for (let i = 2; i <= n; i++) {
-    dp[i] = dp[i - 1] + dp[i - 2];
-  }
-  return dp[n];
-}`,
-      language: 'JS',
-      type: 'NORMAL',
-      status: 'CLOSED',
-      category: 'ALGORITHM',
-      playTime: '30',
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      finishedAt: new Date().toISOString(),
-      result: {
-        winner: 'A',
-        teamA: { votes: 60, percentage: 50 },
-        teamB: { votes: 56, percentage: 47 },
-        neutral: { votes: 2, percentage: 3 }
-      },
-      metrics: {
-        totalParticipants: 118,
-        totalViews: 1247,
-        strategiesCount: 12
-      },
-      voteTimeline: [
-        {
-          turn: 1,
-          teamAVotes: 30,
-          teamBVotes: 28,
-          neutralVotes: 60,
-          timestamp: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          turn: 2,
-          teamAVotes: 60,
-          teamBVotes: 56,
-          neutralVotes: 2,
-          timestamp: new Date().toISOString()
-        }
-      ],
-      timeline: [
-        {
-          id: '1',
-          type: 'ATTACK',
-          author: { id: 'user1', nickname: '개발자A' },
-          team: 'A',
-          content: '코드 B는 메모리를 너무 많이 사용합니다.',
-          turn: 1,
-          upvotes: 15,
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '2',
-          type: 'ATTACK',
-          author: { id: 'user2', nickname: '개발자B' },
-          team: 'B',
-          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
-          turn: 1,
-          upvotes: 20,
-          createdAt: new Date(Date.now() - 1800000).toISOString()
-        },
-        {
-          id: '3',
-          type: 'DEFENSE',
-          author: { id: 'user2', nickname: '개발자B' },
-          team: 'B',
-          content: '코드 B는 메모리를 너무 많이 사용합니다.',
-          turn: 1,
-          upvotes: 15,
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '4',
-          type: 'DEFENSE',
-          author: { id: 'user1', nickname: '개발자A' },
-          team: 'A',
-          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
-          turn: 1,
-          upvotes: 20,
-          createdAt: new Date(Date.now() - 1800000).toISOString()
-        },
-        {
-          id: '1',
-          type: 'ATTACK',
-          author: { id: 'user1', nickname: '개발자A' },
-          team: 'A',
-          content: '코드 B는 메모리를 너무 많이 사용합니다.',
-          turn: 1,
-          upvotes: 15,
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '2',
-          type: 'ATTACK',
-          author: { id: 'user2', nickname: '개발자B' },
-          team: 'B',
-          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
-          turn: 1,
-          upvotes: 20,
-          createdAt: new Date(Date.now() - 1800000).toISOString()
-        },
-        {
-          id: '3',
-          type: 'DEFENSE',
-          author: { id: 'user1', nickname: '개발자A' },
-          team: 'B',
-          content: '코드 B는 메모리를 너무 많이 사용합니다.',
-          turn: 1,
-          upvotes: 15,
-          createdAt: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '4',
-          type: 'DEFENSE',
-          author: { id: 'user2', nickname: '개발자B' },
-          team: 'A',
-          content: '시간 복잡도 측면에서 훨씬 효율적입니다.',
-          turn: 1,
-          upvotes: 20,
-          createdAt: new Date(Date.now() - 1800000).toISOString()
-        }
-      ],
-      topics: ['메모리 효율성', '시간 복잡도']
-    });
+    const fetchBattleResult = async () => {
+      if (!id) return;
+
+      const data = await getBattleResult(id);
+      setBattleData(data);
+    };
+
+    fetchBattleResult();
   }, [id]);
 
   if (!battleData) {
@@ -163,40 +36,8 @@ export default function BattleResultPage() {
 
   const { result } = battleData;
 
-  // 타임라인 데이터 변환
-  const convertedTimeline = battleData.timeline.map((item) => {
-    const baseTimeline = {
-      discussionId: item.id,
-      author: {
-        authorId: item.author.id,
-        nickname: item.author.nickname
-      },
-      type: item.type as 'ATTACK' | 'DEFENSE',
-      content: item.content,
-      upvotes: item.upvotes,
-      votes: [],
-      status: 'SELECTED' as const,
-      selectedAt: new Date(item.createdAt).getTime(),
-      team: item.team
-    };
-
-    if (item.type === 'DEFENSE') {
-      return {
-        ...baseTimeline,
-        type: 'DEFENSE' as const,
-        attackId: ''
-      };
-    }
-
-    return {
-      ...baseTimeline,
-      type: 'ATTACK' as const
-    };
-  });
-
-  // 라운드별로 데이터 구성
   const roundsData = organizeByRounds({
-    timelines: convertedTimeline,
+    timelines: battleData.timeline,
     topics: battleData.topics,
     currentRound: 0,
     totalRounds: battleData.timeline.length / 4
