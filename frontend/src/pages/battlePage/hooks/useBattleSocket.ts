@@ -88,6 +88,14 @@ export function useBattleSocket() {
       }
     });
 
+    newSocket.on('battle:leaved', (data) => {
+      setTeamCounts({
+        teamACount: data.counts.teamA,
+        teamBCount: data.counts.teamB,
+        none: data.counts.teamNone
+      });
+    });
+
     return () => {
       newSocket.off('connect');
       newSocket.off('battle:joined');
