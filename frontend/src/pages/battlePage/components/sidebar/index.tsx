@@ -11,12 +11,21 @@ interface BattleSidebarProps {
   description: string;
   language: string;
   category: string;
+  topics: string[];
   raiseZIndex?: boolean;
 }
 
 type Tab = 'info' | 'timeline';
 
-export default function BattleSidebar({ isOpen, onClose, title, description, language, category }: BattleSidebarProps) {
+export default function BattleSidebar({
+  isOpen,
+  onClose,
+  title,
+  description,
+  language,
+  category,
+  topics
+}: BattleSidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const { width, isResizing, setIsResizing } = useResize({
     initialWidth: 400
@@ -51,7 +60,7 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
           {activeTab === 'info' ? (
             <BattleInfoSection title={title} description={description} language={language} category={category} />
           ) : (
-            <SidebarTimelineSection isWide={isWideLayout} />
+            <SidebarTimelineSection isWide={isWideLayout} topics={topics} />
           )}
         </div>
         <div className="relative h-[calc(100vh-65px)]">

@@ -2,12 +2,13 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface RoundHeaderProps {
   round: string;
+  topic: string;
   isActive: boolean;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
-export default function RoundHeader({ round, isActive, isExpanded, onToggle }: RoundHeaderProps) {
+export default function RoundHeader({ round, topic, isActive, isExpanded, onToggle }: RoundHeaderProps) {
   return (
     <button
       onClick={onToggle}
@@ -18,6 +19,12 @@ export default function RoundHeader({ round, isActive, isExpanded, onToggle }: R
           className={`px-2 py-1 rounded text-[10px] font-bold ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-700/50 text-gray-400'}`}
         >
           Round {round}
+        </div>
+
+        <div
+          className={`px-2 py-1 rounded text-[10px] font-bold ${isActive ? 'bg-purple-500 text-white' : 'bg-gray-700/50 text-gray-400'}`}
+        >
+          {topic}
         </div>
       </div>
       <div className="text-gray-400">

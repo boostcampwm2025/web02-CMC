@@ -6,6 +6,7 @@ import PhaseDivider from './PhaseDivider';
 
 interface SidebarTimelineSectionProps {
   isWide?: boolean;
+  topics: string[];
 }
 
 const FIRST_SUB_ROUND = 1;
@@ -14,7 +15,7 @@ const SUB_ROUNDS_PER_ROUND = [FIRST_SUB_ROUND, SECOND_SUB_ROUND];
 const TEAMS_PER_SUB_ROUND = 2;
 const DEFAULT_EXPANDED_ROUND = '1-1';
 
-export default function SidebarTimelineSection({ isWide = false }: SidebarTimelineSectionProps) {
+export default function SidebarTimelineSection({ isWide = false, topics }: SidebarTimelineSectionProps) {
   const timelines = useBattleStore(selectTimelines);
   const battleProgress = useBattleStore(selectBattleProgress);
   const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set([DEFAULT_EXPANDED_ROUND]));
@@ -49,6 +50,7 @@ export default function SidebarTimelineSection({ isWide = false }: SidebarTimeli
 
         return {
           round: `${round}-${subIndex}`,
+          topic: topics[round - 1],
           attackA: attackList[pairIndex] || null,
           attackB: attackList[pairIndex + 1] || null,
           defenseB: defenseList[pairIndex] || null,
@@ -56,7 +58,7 @@ export default function SidebarTimelineSection({ isWide = false }: SidebarTimeli
         };
       });
     }).flat();
-  }, [attackList, defenseList, currentRound]);
+  }, [attackList, defenseList, currentRound, topics]);
 
   const toggleRound = (round: string) => {
     const newExpanded = new Set(expandedRounds);
@@ -85,6 +87,7 @@ export default function SidebarTimelineSection({ isWide = false }: SidebarTimeli
             >
               <RoundHeader
                 round={subRound.round}
+                topic={subRound.topic}
                 isActive={isActive}
                 isExpanded={isExpanded}
                 onToggle={() => toggleRound(subRound.round)}
