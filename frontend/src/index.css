@@ -183,6 +183,16 @@
   --team-card-padding: 1rem;
   --team-card-title-size: 1.125rem;
   --team-card-desc-size: 0.75rem;
+  
+  --battle-info-icon-size: 40px;
+  --battle-info-title-size: 1.25rem;
+  --battle-info-desc-size: 0.875rem;
+  --battle-info-card-padding: 1rem;
+  --battle-info-stat-icon-size: 48px;
+  --battle-info-stat-value-size: 2rem;
+  --battle-info-swords-size: 20px;
+  --battle-info-users-size: 24px;
+  --battle-info-target-size: 20px;
 }
 
 @media (min-width: 1600px) {
@@ -209,7 +219,17 @@
     --team-card-gap: 1rem;
     --team-card-padding: 1.25rem;
     --team-card-title-size: 1.25rem;
-    --team-card-desc-size: 0.875rem;  }
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 48px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 1.5rem;
+    --battle-info-stat-icon-size: 56px;
+    --battle-info-stat-value-size: 2.5rem;
+    --battle-info-swords-size: 22px;
+    --battle-info-users-size: 28px;
+    --battle-info-target-size: 24px;  }
 }
 
 @media (min-width: 1920px) {
@@ -236,7 +256,17 @@
     --team-card-gap: 1.5rem;
     --team-card-padding: 1.5rem;
     --team-card-title-size: 1.5rem;
-    --team-card-desc-size: 0.875rem;  }
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 64px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 2rem;
+    --battle-info-stat-icon-size: 64px;
+    --battle-info-stat-value-size: 2.25rem;
+    --battle-info-swords-size: 24px;
+    --battle-info-users-size: 32px;
+    --battle-info-target-size: 28px;  }
 }
 
 @layer components {
@@ -336,6 +366,47 @@
 
   .team-card-desc-size {
     font-size: var(--team-card-desc-size);
+  }
+
+  .battle-info-icon-size {
+    width: var(--battle-info-icon-size);
+    height: var(--battle-info-icon-size);
+  }
+
+  .battle-info-title-size {
+    font-size: var(--battle-info-title-size);
+  }
+
+  .battle-info-desc-size {
+    font-size: var(--battle-info-desc-size);
+  }
+
+  .battle-info-card-padding {
+    padding: var(--battle-info-card-padding);
+  }
+
+  .battle-info-stat-icon-size {
+    width: var(--battle-info-stat-icon-size);
+    height: var(--battle-info-stat-icon-size);
+  }
+
+  .battle-info-stat-value-size {
+    font-size: var(--battle-info-stat-value-size);
+  }
+
+  .battle-info-swords-size {
+    width: var(--battle-info-swords-size);
+    height: var(--battle-info-swords-size);
+  }
+
+  .battle-info-users-size {
+    width: var(--battle-info-users-size);
+    height: var(--battle-info-users-size);
+  }
+
+  .battle-info-target-size {
+    width: var(--battle-info-target-size);
+    height: var(--battle-info-target-size);
   }
 }
 
