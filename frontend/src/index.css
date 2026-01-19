@@ -193,6 +193,12 @@
   --battle-info-swords-size: 20px;
   --battle-info-users-size: 24px;
   --battle-info-target-size: 20px;
+  
+  --code-compare-icon-size: 40px;
+  --code-compare-title-size: 1.25rem;
+  --code-compare-desc-size: 0.875rem;
+  --code-compare-container-padding: 1rem;
+  --code-compare-min-height: 300px;
 }
 
 @media (min-width: 1600px) {
@@ -229,7 +235,13 @@
     --battle-info-stat-value-size: 2.5rem;
     --battle-info-swords-size: 22px;
     --battle-info-users-size: 28px;
-    --battle-info-target-size: 24px;  }
+    --battle-info-target-size: 24px;
+    
+    --code-compare-icon-size: 48px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 1.5rem;
+    --code-compare-min-height: 400px;  }
 }
 
 @media (min-width: 1920px) {
@@ -266,7 +278,13 @@
     --battle-info-stat-value-size: 2.25rem;
     --battle-info-swords-size: 24px;
     --battle-info-users-size: 32px;
-    --battle-info-target-size: 28px;  }
+    --battle-info-target-size: 28px;
+    
+    --code-compare-icon-size: 64px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 2rem;
+    --code-compare-min-height: 500px;  }
 }
 
 @layer components {
@@ -407,6 +425,27 @@
   .battle-info-target-size {
     width: var(--battle-info-target-size);
     height: var(--battle-info-target-size);
+  }
+
+  .code-compare-icon-size {
+    width: var(--code-compare-icon-size);
+    height: var(--code-compare-icon-size);
+  }
+
+  .code-compare-title-size {
+    font-size: var(--code-compare-title-size);
+  }
+
+  .code-compare-desc-size {
+    font-size: var(--code-compare-desc-size);
+  }
+
+  .code-compare-container-padding {
+    padding: var(--code-compare-container-padding);
+  }
+
+  .code-compare-min-height {
+    min-height: var(--code-compare-min-height);
   }
 }
 
