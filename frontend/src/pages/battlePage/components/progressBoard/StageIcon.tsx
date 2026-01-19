@@ -20,8 +20,8 @@ export function StageIcon({
   small?: boolean;
   tooltip?: string;
 }) {
-  const baseSize = small ? 3 : 3.3; // rem
-  const activeSize = small ? 3.5 : 3.75; // rem
+  const baseSize = small ? 3 : 3.3;
+  const activeSize = small ? 3.5 : 3.75;
   const size = active ? activeSize : baseSize;
 
   const iconClass = `w-5 h-5 transition-all`;
@@ -74,26 +74,8 @@ export function StageIcon({
           "
         >
           {tooltip}
-          {/* 테두리용 화살표 (더 크게) */}
-          <div
-            className="
-              absolute bottom-full left-1/2 -translate-x-1/2 translate-y-[0.5px]
-              w-0 h-0
-              border-l-8 border-l-transparent
-              border-r-8 border-r-transparent
-              border-b-8 border-b-[#364153]
-            "
-          />
-          {/* 배경색 화살표 (작게, 위에 겹침) */}
-          <div
-            className="
-              absolute bottom-full left-1/2 -translate-x-1/2
-              w-0 h-0
-              border-l-[1.5rem] border-l-transparent
-              border-r-[1.5rem] border-r-transparent
-              border-b-[1.5rem] border-b-[#1E1E2F]
-            "
-          />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 translate-y-[0.5px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-b-8 border-b-[#364153]" />
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[1.5rem] border-l-transparent border-r-[1.5rem] border-r-transparent border-b-[1.5rem] border-b-[#1E1E2F]" />
         </div>
       )}
     </div>

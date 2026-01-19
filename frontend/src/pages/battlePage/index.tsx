@@ -131,7 +131,6 @@ export default function BattlePage() {
         }`}
       >
         <BattleProgressBoard />
-
         <div
           className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-2.5`}
         >
