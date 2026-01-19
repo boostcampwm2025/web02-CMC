@@ -46,7 +46,7 @@ export default function ChatSection() {
   };
 
   return (
-    <section className="w-full flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden" data-tutorial="chat">
+    <section className="w-full chat-height flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden" data-tutorial="chat">
       <div className="px-4 pt-3 pb-2 border-b border-[#2D2D3F]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

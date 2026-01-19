@@ -156,6 +156,9 @@
   --main-open: 960px;
   --lounge-closed: 420px;
   --lounge-open: 340px;
+  --header-height: 10rem;
+  --chat-height: 30rem;
+  --code-height: 30rem;
 }
 
 @media (min-width: 1600px) {
@@ -166,7 +169,9 @@
     --main-closed: 1500px;
     --main-open: 1240px;
     --lounge-closed: 520px;
-    --lounge-open: 400px;
+    --lounge-open: 400px;    --header-height: 11.1875rem;    --header-height: 10.5rem;
+    --chat-height: 33rem;
+    --code-height: 33rem;
   }
 }
 
@@ -179,6 +184,9 @@
     --main-open: 1400px;
     --lounge-closed: 590px;
     --lounge-open: 450px;
+    --header-height: 11.1875rem;
+    --chat-height: 36rem;
+    --code-height: 36rem;
   }
 }
 
@@ -201,6 +209,22 @@
 
   .lounge-width-open {
     width: var(--lounge-open);
+  }
+
+  .header-height {
+    height: var(--header-height);
+  }
+
+  .chat-height {
+    height: var(--chat-height);
+  }
+
+  .code-height {
+    height: var(--code-height);
+  }
+
+  .min-code-height {
+    min-height: var(--code-height);
   }
 
   .ml-sidebar {

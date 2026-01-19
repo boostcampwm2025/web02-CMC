@@ -32,7 +32,7 @@ export default function BattleHeader() {
 
   return (
     <header
-      className="h-[11rem] main-width-closed bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
+      className="header-height main-width-closed bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
       data-tutorial="phase-guide"
     >
       <div className="px-8 flex-1 grid grid-cols-3 items-center">

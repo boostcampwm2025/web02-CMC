@@ -16,7 +16,7 @@ export default function CodeViewer({
   code,
   language,
   containerClassName,
-  minHeight = '460px',
+  minHeight = '300px',
   maxHeight = '600px',
   'data-testid': dataTestId
 }: CodeViewerProps) {
