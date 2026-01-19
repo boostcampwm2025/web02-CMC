@@ -168,6 +168,7 @@
   --header-height: 10rem;
   --chat-height: 30rem;
   --code-height: 30rem;
+  --discussion-input-width: 500px;
 }
 
 @media (min-width: 1600px) {
@@ -181,13 +182,13 @@
     --lounge-open: 400px;    --header-height: 11.1875rem;    --header-height: 10.5rem;
     --chat-height: 33rem;
     --code-height: 33rem;
+    --discussion-input-width: 580px;
   }
 }
 
 @media (min-width: 1920px) {
   :root {
   font-size: 16px;
-
     --sidebar-width: 400px;
     --main-closed: 1800px;
     --main-open: 1400px;
@@ -196,6 +197,7 @@
     --header-height: 11.1875rem;
     --chat-height: 36rem;
     --code-height: 36rem;
+    --discussion-input-width: 650px;
   }
 }
 
@@ -238,6 +240,10 @@
 
   .ml-sidebar {
     margin-left: var(--sidebar-width);
+  }
+
+  .discussion-input-width {
+    width: var(--discussion-input-width);
   }
 }
 

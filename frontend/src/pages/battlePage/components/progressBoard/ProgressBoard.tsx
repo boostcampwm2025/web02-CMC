@@ -14,7 +14,7 @@ export default function BattleProgressBoard() {
     (battleProgress.phase as string) !== 'PENDING' &&
     battleProgress.expiredAt != null &&
     battleProgress.startedAt != null;
-  console.log(battleProgress);
+
   return (
     <div className="fixed top-0 left-0 right-0 z-10 flex justify-center pointer-events-none">
       {shouldShow && (

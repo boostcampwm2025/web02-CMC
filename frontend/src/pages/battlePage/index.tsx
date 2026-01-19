@@ -185,7 +185,7 @@ export default function BattlePage() {
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
-          <div className="w-full max-w-xl">
+          <div className="discussion-input-width">
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
