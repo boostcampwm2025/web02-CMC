@@ -12,20 +12,22 @@ import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
 import { useUnreadMessages } from '../../hooks/useUnreadMessages';
 
 export default function ChatSection() {
+  // Store 상태
   const team = useBattleStore(selectSelectedTeam);
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const chatInitialized = useBattleStore(selectChatInitialized);
 
+  // 로컬 상태
   const [activeTab, setActiveTab] = useState<'team' | 'all'>('team');
-
-  const { teamMessages, allMessages, opponentNotice, sendMessage } = useBattleChat();
-
   const currentTab = team === 'NONE' ? 'all' : activeTab;
 
+  // 채팅 데이터
+  const { teamMessages, allMessages, opponentNotice, sendMessage } = useBattleChat();
   const currentMessages = useMemo(() => {
     return currentTab === 'team' ? teamMessages : allMessages;
   }, [currentTab, teamMessages, allMessages]);
 
+  // 읽지 않은 메시지
   const { unreadTeamCount, unreadAllCount } = useUnreadMessages({
     teamMessages,
     allMessages,
@@ -33,15 +35,11 @@ export default function ChatSection() {
     chatInitialized
   });
 
+  // UI 상태
   const chatContainerRef = useAutoScrollDown([currentMessages]);
+  const currentMemberCount = currentTab === 'all' ? teamACount + teamBCount : team === 'A' ? teamACount : teamBCount;
 
-  const currentMemberCount = useMemo(() => {
-    if (currentTab === 'all') {
-      return teamACount + teamBCount;
-    }
-    return team === 'A' ? teamACount : teamBCount;
-  }, [currentTab, team, teamACount, teamBCount]);
-
+  // 이벤트 핸들러
   const handleSendMessage = (content: string) => {
     const scope = currentTab === 'team' ? 'TEAM' : 'ALL';
     sendMessage(content, scope);
