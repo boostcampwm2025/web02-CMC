@@ -5,10 +5,11 @@ import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useBattleStore, selectSelectedTeam, selectTeamCounts, selectChatInitialized } from '../../stores/battleStore';
 import { useBattleChat } from '../../hooks/useBattleChat';
 import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
+import { useUnreadMessages } from '../../hooks/useUnreadMessages';
 
 export default function ChatSection() {
   const team = useBattleStore(selectSelectedTeam);
@@ -25,40 +26,12 @@ export default function ChatSection() {
     return currentTab === 'team' ? teamMessages : allMessages;
   }, [currentTab, teamMessages, allMessages]);
 
-  const initializedRef = useRef(false);
-  const [lastReadIds, setLastReadIds] = useState({ team: '', all: '' });
-
-  useEffect(() => {
-    if (initializedRef.current || !chatInitialized) return;
-    setLastReadIds({
-      team: teamMessages[teamMessages.length - 1]?.id ?? '',
-      all: allMessages[allMessages.length - 1]?.id ?? ''
-    });
-    initializedRef.current = true;
-  }, [teamMessages, allMessages, chatInitialized]);
-
-  useEffect(() => {
-    const lastId = currentMessages[currentMessages.length - 1]?.id ?? '';
-    if (!lastId) return;
-    setLastReadIds((prev) => (prev[currentTab] === lastId ? prev : { ...prev, [currentTab]: lastId }));
-  }, [currentMessages, currentTab]);
-
-  const getUnreadCount = useCallback((messages: typeof teamMessages, lastReadId: string) => {
-    if (messages.length === 0) return 0;
-    const lastReadIndex = lastReadId ? messages.findIndex((message) => message.id === lastReadId) : -1;
-    return messages.slice(lastReadIndex + 1).length;
-  }, []);
-
-  const unreadTeamCount = useMemo(
-    () => getUnreadCount(teamMessages, lastReadIds.team),
-    [teamMessages, lastReadIds.team, getUnreadCount]
-  );
-  const unreadAllCount = useMemo(
-    () => getUnreadCount(allMessages, lastReadIds.all),
-    [allMessages, lastReadIds.all, getUnreadCount]
-  );
-  const unreadTeamDisplay = currentTab === 'team' ? 0 : unreadTeamCount;
-  const unreadAllDisplay = currentTab === 'all' ? 0 : unreadAllCount;
+  const { unreadTeamCount, unreadAllCount } = useUnreadMessages({
+    teamMessages,
+    allMessages,
+    currentTab,
+    chatInitialized
+  });
 
   const chatContainerRef = useAutoScrollDown([currentMessages]);
 
@@ -92,8 +65,8 @@ export default function ChatSection() {
           activeTab={currentTab}
           onTabChange={setActiveTab}
           team={team}
-          unreadTeamCount={unreadTeamDisplay}
-          unreadAllCount={unreadAllDisplay}
+          unreadTeamCount={unreadTeamCount}
+          unreadAllCount={unreadAllCount}
         />
       </div>
 
