@@ -131,14 +131,10 @@ export default function BattlePage() {
       />
 
       {/* 메인 콘텐츠 */}
-      <div
-        className={`flex flex-col items-center transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'ml-sidebar' : 'ml-0'
-        }`}
-      >
+      <div className="flex flex-col items-center">
         <BattleProgressBoard />
         <div
-          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} ${
+          className={`transition-all duration-300 main-width-closed ${
             battleProgress &&
             (battleProgress.phase as string) !== 'PENDING' &&
             battleProgress.expiredAt != null &&
@@ -159,7 +155,7 @@ export default function BattlePage() {
           </div>
           <BattleHeader />
         </div>
-        <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
+        <main className="main-width-closed">
           <div className="flex gap-2 py-4">
             <div className="flex-1 min-w-0">
               <CodeSection
