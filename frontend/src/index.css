@@ -169,6 +169,11 @@
   --chat-height: 30rem;
   --code-height: 30rem;
   --discussion-input-width: 450px;
+  --create-max-width: 960px;
+  --create-padding: 1.5rem;
+  --create-title-size: 1.5rem;
+  --create-input-height: 2.75rem;
+  --create-textarea-height: 14rem;
 }
 
 @media (min-width: 1600px) {
@@ -182,8 +187,11 @@
     --lounge-open: 400px;    --header-height: 11.1875rem;    --header-height: 10.5rem;
     --chat-height: 33rem;
     --code-height: 33rem;
-    --discussion-input-width: 580px;
-  }
+    --discussion-input-width: 580px;    --create-max-width: 1120px;
+    --create-padding: 1.75rem;
+    --create-title-size: 1.75rem;
+    --create-input-height: 3rem;
+    --create-textarea-height: 16rem;  }
 }
 
 @media (min-width: 1920px) {
@@ -197,8 +205,11 @@
     --header-height: 11.1875rem;
     --chat-height: 36rem;
     --code-height: 36rem;
-    --discussion-input-width: 650px;
-  }
+    --discussion-input-width: 650px;    --create-max-width: 1280px;
+    --create-padding: 2rem;
+    --create-title-size: 2rem;
+    --create-input-height: 3.25rem;
+    --create-textarea-height: 18rem;  }
 }
 
 @layer components {
@@ -245,14 +256,33 @@
   .discussion-input-width {
     width: var(--discussion-input-width);
   }
+
+  .create-max-width {
+    max-width: var(--create-max-width);
+  }
+
+  .create-padding {
+    padding: var(--create-padding);
+  }
+
+  .create-title-size {
+    font-size: var(--create-title-size);
+  }
+
+  .create-input-height {
+    height: var(--create-input-height);
+  }
+
+  .create-textarea-height {
+    height: var(--create-textarea-height);
+  }
 }
 
 body {
   background-color: #0a0a1a;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  height: 100vh;
+  overflow-x: hidden;
 
   font-size: 14px;
   font-weight: 400;
@@ -260,8 +290,7 @@ body {
 }
 
 #root {
-  height: 100vh;
-  overflow-y: auto;
+  min-height: 100vh;
 }
 
 /* Custom scrollbar styles */
