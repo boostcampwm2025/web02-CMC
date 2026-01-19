@@ -168,7 +168,7 @@
   --header-height: 10rem;
   --chat-height: 30rem;
   --code-height: 30rem;
-  --discussion-input-width: 500px;
+  --discussion-input-width: 450px;
 }
 
 @media (min-width: 1600px) {
@@ -251,7 +251,8 @@ body {
   background-color: #0a0a1a;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100vh;
 
   font-size: 14px;
   font-weight: 400;
@@ -259,7 +260,8 @@ body {
 }
 
 #root {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Custom scrollbar styles */
