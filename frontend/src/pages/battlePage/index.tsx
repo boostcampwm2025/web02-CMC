@@ -155,7 +155,7 @@ export default function BattlePage() {
                 codeB={battleInfo.bCode}
               />
             </div>
-            <aside className="flex flex-col gap-4 aside-width">
+            <aside className="flex flex-col gap-4 w-[590px]">
               <DiscussionVote onVote={handleVote} />
               <ChatSection />
             </aside>

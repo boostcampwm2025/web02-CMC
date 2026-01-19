@@ -49,21 +49,6 @@ export default function BattleProgressBoard() {
           <ProgressBar expiredAt={expiredAt} startedAt={startedAt} />
         </div>
       </div>
-      <style>{`
-        @keyframes slideDown {
-          from {
-            transform: translateY(-100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-        .animate-slideDown {
-          animation: slideDown 0.5s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

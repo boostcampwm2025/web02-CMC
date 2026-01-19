@@ -149,18 +149,31 @@
 /* Custom styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 12px;
 
-  /* 배틀 페이지 레이아웃 크기 */
   --sidebar-width: 320px;
-  --main-closed: 1440px;
-  --main-open: 1120px;
-  --lounge-closed: 472px;
-  --lounge-open: 360px;
+  --main-closed: 1220px;
+  --main-open: 960px;
+  --lounge-closed: 420px;
+  --lounge-open: 340px;
 }
 
-/* FHD 모니터 */
+@media (min-width: 1600px) {
+  :root {
+  font-size: 14px;
+
+    --sidebar-width: 360px;
+    --main-closed: 1500px;
+    --main-open: 1240px;
+    --lounge-closed: 520px;
+    --lounge-open: 400px;
+  }
+}
+
 @media (min-width: 1920px) {
   :root {
+  font-size: 16px;
+
     --sidebar-width: 400px;
     --main-closed: 1800px;
     --main-open: 1400px;
