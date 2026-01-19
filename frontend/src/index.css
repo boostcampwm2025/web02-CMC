@@ -174,6 +174,15 @@
   --create-title-size: 1.5rem;
   --create-input-height: 2.75rem;
   --create-textarea-height: 14rem;
+  
+  --team-card-width: 255px;
+  --team-card-height: 215px;
+  --team-card-icon-size: 64px;
+  --team-card-icon-inner-size: 32px;
+  --team-card-gap: 0.75rem;
+  --team-card-padding: 1rem;
+  --team-card-title-size: 1.125rem;
+  --team-card-desc-size: 0.75rem;
 }
 
 @media (min-width: 1600px) {
@@ -191,7 +200,16 @@
     --create-padding: 1.75rem;
     --create-title-size: 1.75rem;
     --create-input-height: 3rem;
-    --create-textarea-height: 16rem;  }
+    --create-textarea-height: 16rem;
+    
+    --team-card-width: 290px;
+    --team-card-height: 290px;
+    --team-card-icon-size: 80px;
+    --team-card-icon-inner-size: 40px;
+    --team-card-gap: 1rem;
+    --team-card-padding: 1.25rem;
+    --team-card-title-size: 1.25rem;
+    --team-card-desc-size: 0.875rem;  }
 }
 
 @media (min-width: 1920px) {
@@ -209,7 +227,16 @@
     --create-padding: 2rem;
     --create-title-size: 2rem;
     --create-input-height: 3.25rem;
-    --create-textarea-height: 18rem;  }
+    --create-textarea-height: 18rem;
+    
+    --team-card-width: 330px;
+    --team-card-height: 350px;
+    --team-card-icon-size: 96px;
+    --team-card-icon-inner-size: 48px;
+    --team-card-gap: 1.5rem;
+    --team-card-padding: 1.5rem;
+    --team-card-title-size: 1.5rem;
+    --team-card-desc-size: 0.875rem;  }
 }
 
 @layer components {
@@ -275,6 +302,40 @@
 
   .create-textarea-height {
     height: var(--create-textarea-height);
+  }
+
+  .team-card-width {
+    width: var(--team-card-width);
+  }
+
+  .team-card-height {
+    height: var(--team-card-height);
+  }
+
+  .team-card-icon-size {
+    width: var(--team-card-icon-size);
+    height: var(--team-card-icon-size);
+  }
+
+  .team-card-icon-inner-size {
+    width: var(--team-card-icon-inner-size);
+    height: var(--team-card-icon-inner-size);
+  }
+
+  .team-card-gap {
+    gap: var(--team-card-gap);
+  }
+
+  .team-card-padding {
+    padding: var(--team-card-padding);
+  }
+
+  .team-card-title-size {
+    font-size: var(--team-card-title-size);
+  }
+
+  .team-card-desc-size {
+    font-size: var(--team-card-desc-size);
   }
 }
 
