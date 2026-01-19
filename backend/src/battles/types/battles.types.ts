@@ -73,6 +73,7 @@ export interface BattleDiscussion {
   status: BattleDiscussionStatus
   selectedAt?: number // SELECTED로 변경된 시간 (timestamp)
   team: BattleTeam // 어느 팀의 토론인지
+  voterCountAtPhase?: number // 해당 페이즈 종료 시 팀 투표 참가자 수
 }
 
 export interface BattleTopOpinions {
