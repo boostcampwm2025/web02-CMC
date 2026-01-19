@@ -5,14 +5,12 @@ import ChatTabs from './ChatTabs';
 import PeoplesIcons from '@/assets/icon/peoples.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useBattleStore, selectSelectedTeam, selectTeamCounts, selectChatInitialized } from '../../stores/battleStore';
 import { useBattleChat } from '../../hooks/useBattleChat';
 import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
-import { selectUser, useAuthStore } from '../../stores/authStore';
 
 export default function ChatSection() {
-  const user = useAuthStore(selectUser);
   const team = useBattleStore(selectSelectedTeam);
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const chatInitialized = useBattleStore(selectChatInitialized);
@@ -45,17 +43,20 @@ export default function ChatSection() {
     setLastReadIds((prev) => (prev[currentTab] === lastId ? prev : { ...prev, [currentTab]: lastId }));
   }, [currentMessages, currentTab]);
 
-  const getUnreadCount = (messages: typeof teamMessages, lastReadId: string) => {
+  const getUnreadCount = useCallback((messages: typeof teamMessages, lastReadId: string) => {
     if (messages.length === 0) return 0;
     const lastReadIndex = lastReadId ? messages.findIndex((message) => message.id === lastReadId) : -1;
     return messages.slice(lastReadIndex + 1).length;
-  };
+  }, []);
 
   const unreadTeamCount = useMemo(
     () => getUnreadCount(teamMessages, lastReadIds.team),
-    [teamMessages, lastReadIds.team]
+    [teamMessages, lastReadIds.team, getUnreadCount]
   );
-  const unreadAllCount = useMemo(() => getUnreadCount(allMessages, lastReadIds.all), [allMessages, lastReadIds.all]);
+  const unreadAllCount = useMemo(
+    () => getUnreadCount(allMessages, lastReadIds.all),
+    [allMessages, lastReadIds.all, getUnreadCount]
+  );
   const unreadTeamDisplay = currentTab === 'team' ? 0 : unreadTeamCount;
   const unreadAllDisplay = currentTab === 'all' ? 0 : unreadAllCount;
 
@@ -127,7 +128,6 @@ export default function ChatSection() {
               content={message.content}
               timestamp={message.timestamp}
               showTeamBadge={currentTab === 'all'}
-              currentUserId={user?.id}
             />
           )
         )}

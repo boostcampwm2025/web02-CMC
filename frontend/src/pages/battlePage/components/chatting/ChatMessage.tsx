@@ -1,4 +1,5 @@
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
+import { useAuthStore, selectUser } from '../../stores/authStore';
 
 interface ChatMessageProps {
   user: string;
@@ -7,7 +8,6 @@ interface ChatMessageProps {
   timestamp: string;
   showTeamBadge?: boolean;
   type?: 'normal' | 'objection' | 'rebuttal';
-  currentUserId?: string;
 }
 
 const TEAM_NICKNAME_COLORS = {
@@ -28,25 +28,23 @@ const TEAM_LABELS = {
   NONE: '중립'
 };
 
-export default function ChatMessage({
-  user,
-  team,
-  content,
-  timestamp,
-  showTeamBadge = false,
-  currentUserId
-}: ChatMessageProps) {
+export default function ChatMessage({ user, team, content, timestamp, showTeamBadge = false }: ChatMessageProps) {
+  const currentUser = useAuthStore(selectUser);
   const nickNameColor = TEAM_NICKNAME_COLORS[team];
-  const isYou = user === currentUserId;
+  const isYou = currentUser?.nickname === user;
 
   return (
     <div className={`flex ${isYou ? 'flex-col items-end' : 'flex-col items-start'} mb-3`}>
       <div className="flex items-center gap-2 mb-1">
-        <span className={`text-[13px] font-medium ${nickNameColor}`}>{user}</span>
-        {showTeamBadge && (
-          <span className={`px-1.5 py-0.5 ${TEAM_BADGE_COLORS[team]} rounded text-[10px] font-medium text-white`}>
-            {TEAM_LABELS[team]}
-          </span>
+        {!isYou && (
+          <>
+            <span className={`text-[13px] font-medium ${nickNameColor}`}>{user}</span>
+            {showTeamBadge && (
+              <span className={`px-1.5 py-0.5 ${TEAM_BADGE_COLORS[team]} rounded text-[10px] font-medium text-white`}>
+                {TEAM_LABELS[team]}
+              </span>
+            )}
+          </>
         )}
         <span className="text-[11px] text-[#666]">{getTimeAgo(timestamp)}</span>
       </div>
