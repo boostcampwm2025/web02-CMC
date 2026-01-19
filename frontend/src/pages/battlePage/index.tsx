@@ -104,7 +104,7 @@ export default function BattlePage() {
   };
 
   return (
-    <div className="text-white relative min-h-screen">
+    <div className="text-white relative">
       {/* 책갈피 버튼 */}
       <BookmarkButton
         onOpen={handleOpenSidebar}
@@ -131,8 +131,9 @@ export default function BattlePage() {
         }`}
       >
         <BattleProgressBoard />
+
         <div
-          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-[10px]`}
+          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-2.5`}
         >
           <div className="flex items-center justify-between mt-10 mb-8">
             <button
@@ -155,7 +156,7 @@ export default function BattlePage() {
                 codeB={battleInfo.bCode}
               />
             </div>
-            <aside className="flex flex-col gap-4 w-[590px]">
+            <aside className="flex flex-col gap-4 aside-width">
               <DiscussionVote onVote={handleVote} />
               <ChatSection />
             </aside>
@@ -168,7 +169,7 @@ export default function BattlePage() {
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
-          <div className="w-[590px]">
+          <div className="w-full max-w-xl">
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>

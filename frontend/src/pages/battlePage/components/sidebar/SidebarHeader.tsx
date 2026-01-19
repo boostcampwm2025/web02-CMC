@@ -15,7 +15,7 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose }: Sideb
         <div className="flex gap-6 flex-1">
           <button
             onClick={() => onTabChange('info')}
-            className={`flex items-center gap-2 px-2 py-2 text-[15px] font-bold transition-colors ${
+            className={`flex items-center gap-2 px-2 py-2 text-base font-bold transition-colors ${
               activeTab === 'info' ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -24,7 +24,7 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose }: Sideb
           </button>
           <button
             onClick={() => onTabChange('timeline')}
-            className={`flex items-center gap-2 px-2 py-2 text-[15px] font-bold transition-colors ${
+            className={`flex items-center gap-2 px-2 py-2 text-base font-bold transition-colors ${
               activeTab === 'timeline' ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -38,7 +38,7 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose }: Sideb
       </div>
       {/* 활성 탭 밑줄 */}
       <div
-        className={`h-[2px] transition-all duration-300 ${
+        className={`h-0.5 transition-all duration-300 ${
           activeTab === 'info'
             ? 'bg-linear-to-r from-[#FF6900] to-[#FF8533]'
             : 'bg-linear-to-r from-[#AD46FF] to-[#6BA3FF]'

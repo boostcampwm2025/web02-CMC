@@ -46,14 +46,14 @@ export default function ChatSection() {
   };
 
   return (
-    <section className="w-full flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden mb-48" data-tutorial="chat">
+    <section className="w-full flex flex-col bg-[#1E1E2F] rounded-lg overflow-hidden" data-tutorial="chat">
       <div className="px-4 pt-3 pb-2 border-b border-[#2D2D3F]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <MessageIcon />
-            <h3 className="text-[14px] font-medium text-white">라운지</h3>
+            <h3 className="text-sm font-medium text-white">라운지</h3>
           </div>
-          <span className="text-[12px] text-[#99A1AF] flex items-center gap-1">
+          <span className="text-xs text-[#99A1AF] flex items-center gap-1">
             <PeoplesIcons />
             {currentMemberCount}
           </span>
@@ -79,7 +79,7 @@ export default function ChatSection() {
         />
       )}
 
-      <div ref={chatContainerRef} className="h-[422px] px-4 py-2 overflow-y-auto scrollbar-thin">
+      <div ref={chatContainerRef} className="h-[26.375rem] px-4 py-2 overflow-y-auto scrollbar-thin">
         {currentMessages.map((message) =>
           message.type === 'attack' || message.type === 'defense' ? (
             <DiscussionMessage

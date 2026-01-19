@@ -26,7 +26,7 @@ export default function BattleTimer() {
 
   return (
     <div
-      className={`text-[72px] font-bold tracking-wider ${isUrgent ? 'text-red-500 animate-timer-shake' : 'text-white'}`}
+      className={`text-8xl font-bold tracking-wider ${isUrgent ? 'text-red-500 animate-timer-shake' : 'text-white'}`}
     >
       {formattedTime}
     </div>

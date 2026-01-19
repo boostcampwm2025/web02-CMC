@@ -20,11 +20,11 @@ export function StageIcon({
   small?: boolean;
   tooltip?: string;
 }) {
-  const baseSize = small ? 48 : 52.8;
-  const activeSize = small ? 56 : 60;
+  const baseSize = small ? 3 : 3.3; // rem
+  const activeSize = small ? 3.5 : 3.75; // rem
   const size = active ? activeSize : baseSize;
 
-  const iconClass = `w-[20px] h-[20px] transition-all`;
+  const iconClass = `w-5 h-5 transition-all`;
   const iconStyle = active ? { color: text } : { color: '#99A1AF' };
 
   const renderIcon = () => {
@@ -46,15 +46,15 @@ export function StageIcon({
     <div className="relative flex flex-col items-center gap-1 group">
       <div
         className={`
-          rounded-[12px]
+          rounded-xl
           flex items-center justify-center
           border-[1.333px]
           transition-all duration-300 ease-in-out
           ${active ? 'shadow-[0px_20px_25px_-5px_rgba(0,0,0,0.25)]' : ''}
         `}
         style={{
-          width: `${size}px`,
-          height: `${size}px`,
+          width: `${size}rem`,
+          height: `${size}rem`,
           background: active ? bg : '#0A0A1A',
           borderColor: active ? border : '#364153'
         }}
@@ -79,9 +79,9 @@ export function StageIcon({
             className="
               absolute bottom-full left-1/2 -translate-x-1/2 translate-y-[0.5px]
               w-0 h-0
-              border-l-[8px] border-l-transparent
-              border-r-[8px] border-r-transparent
-              border-b-[8px] border-b-[#364153]
+              border-l-8 border-l-transparent
+              border-r-8 border-r-transparent
+              border-b-8 border-b-[#364153]
             "
           />
           {/* 배경색 화살표 (작게, 위에 겹침) */}
@@ -89,9 +89,9 @@ export function StageIcon({
             className="
               absolute bottom-full left-1/2 -translate-x-1/2
               w-0 h-0
-              border-l-[6px] border-l-transparent
-              border-r-[6px] border-r-transparent
-              border-b-[6px] border-b-[#1E1E2F]
+              border-l-[1.5rem] border-l-transparent
+              border-r-[1.5rem] border-r-transparent
+              border-b-[1.5rem] border-b-[#1E1E2F]
             "
           />
         </div>

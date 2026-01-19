@@ -10,7 +10,7 @@ export default function TimeProgressBar() {
   }, [battleProgress?.expiredAt, battleProgress?.startedAt]);
 
   return (
-    <div className="h-[6px] bg-gray-700 overflow-hidden">
+    <div className="h-1.5 bg-gray-700 overflow-hidden">
       <div
         key={`${battleProgress?.expiredAt}-${battleProgress?.startedAt}`}
         className="h-full bg-blue-500"

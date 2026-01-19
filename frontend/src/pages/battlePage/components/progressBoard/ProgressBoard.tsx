@@ -121,21 +121,21 @@ export default function BattleProgressBoard() {
         className={`
           pointer-events-auto
           relative
-          w-[750px]
+          max-w-3xl
           rounded-lg
           bg-[#1a1a2ef2]
           border-b-[1.333px] border-b-[#1E2939]
           shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]
           transition-all duration-300 ease-in-out
-          ${collapsed ? '-translate-y-[120px] h-[32px]' : 'h-[100px] pb-3'}
+          ${collapsed ? '-translate-y-[7.5rem] h-8' : 'h-24 pb-3'}
         `}
       >
         {!collapsed && (
           <button
             onClick={() => setCollapsed(true)}
             className="
-              absolute right-[3px] top-[12px]
-              w-[32px] h-[32px]
+              absolute right-1 top-3
+              w-8 h-8
               rounded-full
               bg-[#FF6900]
               shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]
@@ -149,7 +149,7 @@ export default function BattleProgressBoard() {
           >
             <div
               className="
-                w-[10px] h-[10px]
+                w-2.5 h-2.5
                 border-r-2 border-b-2 border-white
                 -rotate-135
               "
@@ -162,7 +162,7 @@ export default function BattleProgressBoard() {
             onClick={() => setCollapsed(false)}
             className="
               absolute left-1/2 -translate-x-1/2 top-[calc(100%+96px)]
-              w-[32px] h-[32px]
+              w-8 h-8
               rounded-full
               bg-[#FF6900]
               shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]
@@ -176,7 +176,7 @@ export default function BattleProgressBoard() {
           >
             <div
               className="
-                w-[10px] h-[10px]
+                w-2.5 h-2.5
                 border-r-2 border-b-2 border-white
                 rotate-45
               "
@@ -186,15 +186,15 @@ export default function BattleProgressBoard() {
 
         <div
           className={`
-            absolute left-[26.21px] top-[12px]
-            w-[700px]
+            absolute left-[1.638rem] top-3
+            max-w-2xl
             flex flex-col gap-1.5
             transition-opacity duration-200
             ${collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}
           `}
         >
           <div className="flex items-center gap-4 px-4">
-            <div className="text-[22px] font-bold text-[#FF6900] min-w-[100px] flex items-center justify-center h-[56px]">
+            <div className="text-2xl font-bold text-[#FF6900] min-w-[6.25rem] flex items-center justify-center h-14">
               {getCurrentStageNumber()}
             </div>
             {STAGES.map((stage, index) => (
@@ -211,7 +211,7 @@ export default function BattleProgressBoard() {
             ))}
           </div>
 
-          <div className="mt-1.5 h-[6px] bg-[#0A0A1A] rounded-full overflow-hidden">
+          <div className="mt-1.5 h-1.5 bg-[#0A0A1A] rounded-full overflow-hidden">
             <div
               key={`${battleProgress?.expiredAt}-${battleProgress?.startedAt}`}
               className="h-full bg-gradient-to-r from-[#FF6900] via-[#FF8904] to-[#F54900]"

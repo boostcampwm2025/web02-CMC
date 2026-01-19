@@ -149,7 +149,8 @@
 /* Custom styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-
+  font-size: 12px;
+  
   --sidebar-width: 320px;
   --main-closed: 1220px;
   --main-open: 960px;
@@ -159,6 +160,8 @@
 
 @media (min-width: 1600px) {
   :root {
+    font-size: 14px;
+
     --sidebar-width: 360px;
     --main-closed: 1500px;
     --main-open: 1240px;
@@ -169,6 +172,8 @@
 
 @media (min-width: 1920px) {
   :root {
+    font-size: 16px;
+
     --sidebar-width: 400px;
     --main-closed: 1800px;
     --main-open: 1400px;
@@ -190,7 +195,7 @@
     width: var(--main-open);
   }
 
-  .lounge-width-closed {
+  .aside-width {
     width: var(--lounge-closed);
   }
 
