@@ -1,10 +1,11 @@
 import { Controller, Get, Req, Res, UseGuards, HttpCode } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
-import type { Request, Response } from 'express'
+import * as express from 'express'
 import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
-import { OAuthProfile } from '../types/oauth.types'
+import type { OAuthProfile } from '../types/oauth.types'
+import { JwtAuthGuard } from '../guard/jwt-auth.guard'
 
 @Controller('auth')
 export class OauthController {
@@ -21,7 +22,7 @@ export class OauthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   @HttpCode(301)
-  githubCallback(@Req() req: Request, @Res() res: Response) {
+  githubCallback(@Req() req: express.Request, @Res() res: express.Response) {
     const profile = req.user as OAuthProfile
     const { accessToken, refreshToken } = this.oauthService.loginWithGithub(profile)
 
@@ -30,5 +31,12 @@ export class OauthController {
 
     // 프론트엔드로 리다이렉트
     res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getMe(@Req() req: express.Request) {
+    const jwtUser = req.user as { id: string }
+    return this.oauthService.findUserById(jwtUser.id)
   }
 }

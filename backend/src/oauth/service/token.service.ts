@@ -75,6 +75,8 @@ export class TokenService {
       path: '/auth',
       maxAge: this.parseExpiresIn(refreshExpiresIn),
     })
+
+    res.cookie('isLoggedIn', true, { httpOnly: false })
   }
 
   /**

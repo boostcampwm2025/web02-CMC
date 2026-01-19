@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { OAuthProfile, User } from '../types/oauth.types'
 import { TokenService } from './token.service'
 
@@ -44,5 +44,17 @@ export class OauthService {
       accessToken,
       refreshToken,
     }
+  }
+
+  /**
+   * ID로 사용자 조회
+   */
+  findUserById(userId: string): User {
+    for (const user of this.oauthMap.values()) {
+      if (user.id === userId) {
+        return user
+      }
+    }
+    throw new NotFoundException('사용자를 찾을 수 없습니다.')
   }
 }
