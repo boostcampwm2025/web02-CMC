@@ -94,6 +94,15 @@
   animation: bounce-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 /* 스크롤바 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;

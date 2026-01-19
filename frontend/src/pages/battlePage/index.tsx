@@ -6,7 +6,12 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
+import {
+  useBattleStore,
+  selectBattleProgress,
+  selectSelectedTeam,
+  selectProgressBoardCollapsed
+} from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 
 import BattleHeader from './components/header';
@@ -34,6 +39,8 @@ export default function BattlePage() {
   const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
+  const progressBoardCollapsed = useBattleStore(selectProgressBoardCollapsed);
+  const battleProgress = useBattleStore(selectBattleProgress);
 
   useEffect(() => {
     if (!user) {
@@ -91,7 +98,6 @@ export default function BattlePage() {
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
   // Phase와 Team 정보 가져오기
-  const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
@@ -132,7 +138,16 @@ export default function BattlePage() {
       >
         <BattleProgressBoard />
         <div
-          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-2.5`}
+          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} ${
+            battleProgress &&
+            (battleProgress.phase as string) !== 'PENDING' &&
+            battleProgress.expiredAt != null &&
+            battleProgress.startedAt != null
+              ? !progressBoardCollapsed
+                ? 'mt-24'
+                : 'mt-6'
+              : 'mt-6'
+          }`}
         >
           <div className="flex items-center justify-between mt-10 mb-8">
             <button
