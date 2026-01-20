@@ -19,7 +19,7 @@ export class OauthService {
 
     const newuUser: User = {
       id: crypto.randomUUID(),
-      provider: 'github',
+      provider: p.provider,
       providerId: p.providerId,
       nickname: p.nickname,
       avatarUrl: p.avatarUrl,
@@ -36,10 +36,21 @@ export class OauthService {
     const loginUser = this.findOrCreateUser(profile)
     const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
 
+    return {
+      accessToken,
+      refreshToken,
+    }
+  }
+
+  loginWithKakao(profile: OAuthProfile): {
+    accessToken: string
+    refreshToken: string
+  } {
+    const loginUser = this.findOrCreateUser(profile)
+    const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
     console.log(loginUser)
     console.log(accessToken)
     console.log(refreshToken)
-
     return {
       accessToken,
       refreshToken,

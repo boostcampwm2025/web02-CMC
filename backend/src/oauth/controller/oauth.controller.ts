@@ -33,6 +33,25 @@ export class OauthController {
     res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
   }
 
+  @Get('kakao')
+  @UseGuards(AuthGuard('kakao'))
+  kakaoLogin() {
+    console.log(process.env.KAKAO_ID)
+  }
+
+  @Get('kakao/callback')
+  @UseGuards(AuthGuard('kakao'))
+  @HttpCode(301)
+  kakaoCallback(@Req() req: express.Request, @Res() res: express.Response) {
+    const profile = req.user as OAuthProfile
+    const { accessToken, refreshToken } = this.oauthService.loginWithKakao(profile)
+
+    this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
+
+    // 프론트엔드로 리다이렉트
+    res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req: express.Request) {

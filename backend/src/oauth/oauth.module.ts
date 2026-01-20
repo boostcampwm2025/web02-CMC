@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport'
 import { OauthController } from './controller/oauth.controller'
 import { OauthService } from './service/oauth.service'
 import { GithubStrategy } from './strategy/github.strategy'
+import { KakaoStrategy } from './strategy/kakao.strategy'
 import { TokenService } from './service/token.service'
 import { JwtStrategy } from './strategy/jwt.strategy'
 
@@ -28,7 +29,7 @@ import { JwtStrategy } from './strategy/jwt.strategy'
     }),
   ],
   controllers: [OauthController],
-  providers: [OauthService, GithubStrategy, JwtStrategy, TokenService],
+  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, TokenService],
   exports: [OauthService],
 })
 export class OauthModule {}
