@@ -16,43 +16,9 @@ interface AuthStore {
 
 const AUTH_KEY = 'CMC_BATTLE_USER';
 
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
-  }
-  return null;
-};
-
-const isLoggedInCookie = (): boolean => {
-  const cookie = getCookie('isLoggedIn');
-  return cookie === 'true';
-};
-
 export const useAuthStore = create<AuthStore>((set, get) => {
-  // 초기 사용자 로드: localStorage에서 id, nickname만 로드
-  const loadInitialUser = (): AuthUser | null => {
-    try {
-      const stored = localStorage.getItem(AUTH_KEY);
-      if (!stored) return null;
-      const data = JSON.parse(stored);
-
-      // localStorage에는 id, nickname만 저장
-      const user: AuthUser = {
-        id: data.id,
-        nickname: data.nickname,
-        type: isLoggedInCookie() ? 'oauth' : 'guest' // 쿠키로 타입 구분
-      };
-
-      return user;
-    } catch {
-      return null;
-    }
-  };
-
   return {
-    user: loadInitialUser(),
+    user: null,
     isLoggingIn: false,
 
     loginGuest: async (battleId, nickname) => {
@@ -90,16 +56,14 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         return currentUser;
       }
 
-      if (!isLoggedInCookie()) {
-        throw new Error('OAuth 인증이 필요합니다.');
-      }
-
       const oauthUser = await getOAuthUser();
       if (!oauthUser) {
         throw new Error('사용자 정보를 가져오는데 실패했습니다.');
       }
 
-      // localStorage에는 id, nickname만 저장
+      // store에 저장
+      set({ user: oauthUser });
+
       localStorage.setItem(
         AUTH_KEY,
         JSON.stringify({
@@ -108,7 +72,6 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         })
       );
 
-      set({ user: oauthUser });
       return oauthUser;
     },
 

@@ -375,7 +375,6 @@ describe('TokenService', () => {
           path: '/auth',
         }),
       )
-      expect(mockCookie).toHaveBeenCalledWith('isLoggedIn', true, { httpOnly: false })
     })
 
     it('프로덕션 환경에서는 secure 플래그가 true이다', async () => {
@@ -427,7 +426,7 @@ describe('TokenService', () => {
 
       service.clearAuthCookies(mockRes)
 
-      expect(mockClearCookie).toHaveBeenCalledTimes(3)
+      expect(mockClearCookie).toHaveBeenCalledTimes(2)
       expect(mockClearCookie).toHaveBeenCalledWith('access_token', {
         httpOnly: true,
         secure: false,
@@ -440,7 +439,6 @@ describe('TokenService', () => {
         sameSite: 'lax',
         path: '/auth',
       })
-      expect(mockClearCookie).toHaveBeenCalledWith('isLoggedIn', { path: '/' })
     })
   })
 })

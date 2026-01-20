@@ -1,5 +1,4 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useEffect } from 'react';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
@@ -8,7 +7,6 @@ import fetchBattleInfo from './commons/apis/getBattleInfo';
 import './App.css';
 import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
-import { useAuthStore } from './commons/stores/authStore';
 
 const router = createBrowserRouter([
   {
@@ -48,15 +46,6 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const getOAuthUser = useAuthStore((state) => state.getOAuthUser);
-
-  // 앱 시작 시 OAuth 인증 상태 확인 (한 번만 실행)
-  useEffect(() => {
-    getOAuthUser().catch(() => {
-      // OAuth 인증 실패는 무시 (비회원일 수 있음)
-    });
-  }, [getOAuthUser]);
-
   return <RouterProvider router={router} />;
 }
 
