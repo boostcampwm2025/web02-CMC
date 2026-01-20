@@ -19,6 +19,7 @@ export class TokenService {
   private readonly ACCESS_TOKEN_SECRET: string
   private readonly REFRESH_TOKEN_SECRET: string
 
+  //TODO: Redis 사용
   private readonly refreshTokenStore = new Map<string, StoredRefreshToken>()
 
   constructor(
@@ -146,7 +147,8 @@ export class TokenService {
 
     // 이미 폐기된(Revoked) 토큰인지 확인
     if (storedToken.isRevoked) {
-      throw new UnauthorizedException('이미 무효화된 Refresh Token입니다')
+      this.revokeAllRefreshTokensForUser(storedToken.userId)
+      throw new UnauthorizedException('Refresh Token 재사용이 감지되었습니다. 다시 로그인해주세요.')
     }
 
     // 만료 기간 확인
@@ -165,11 +167,38 @@ export class TokenService {
     return newTokens
   }
 
+  private revokeAllRefreshTokensForUser(userId: string): void {
+    for (const [token, meta] of this.refreshTokenStore.entries()) {
+      if (meta.userId === userId) this.refreshTokenStore.delete(token)
+    }
+  }
+
   /**
    * Refresh Token 무효화
    */
   revokeRefreshToken(refreshToken: string): void {
     this.refreshTokenStore.delete(refreshToken)
+  }
+
+  clearAuthCookies(res: Response): void {
+    const isSecure = this.config.get<string>('NODE_ENV') === 'production'
+
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'lax',
+      path: '/',
+    })
+
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'lax',
+      path: '/auth',
+    })
+
+    // 프론트 UI용
+    res.clearCookie('isLoggedIn', { path: '/' })
   }
 
   /**

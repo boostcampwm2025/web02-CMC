@@ -61,6 +61,21 @@ export class OauthController {
     return res.json({ success: true })
   }
 
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  logout(@Req() req: express.Request, @Res() res: express.Response): void {
+    const refreshToken = req.cookies?.refresh_token as string | undefined
+
+    // refreshToken이 있으면 무효화
+    if (refreshToken) {
+      this.tokenService.revokeRefreshToken(refreshToken)
+    }
+
+    this.tokenService.clearAuthCookies(res)
+    res.json({ success: true })
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req: express.Request) {

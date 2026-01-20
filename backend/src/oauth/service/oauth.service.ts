@@ -61,6 +61,7 @@ export class OauthService {
     const { accessToken, refreshToken: newRefreshToken } = this.tokenService.refresh(refreshToken)
     return { accessToken, refreshToken: newRefreshToken }
   }
+
   /**
    * ID로 사용자 조회
    */
