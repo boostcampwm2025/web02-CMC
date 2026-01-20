@@ -1,15 +1,33 @@
-// BattleChat 타입
-export interface BattleChat {
+// @cmc/types에서 공통 타입 import
+import type {
+  BattlePhaseName,
+  BattleTeam,
+  BattleChat as BaseBattleChat,
+  BattleDiscussion as BaseBattleDiscussion,
+  BattleDefense as BaseBattleDefense,
+  BattleChatScope
+} from '@cmc/types';
+
+// FE 전용 타입 정의 (기존 이름 유지를 위한 별칭)
+export type BattlePhase = BattlePhaseName;
+export type Team = BattleTeam;
+
+// FE에서 확장한 BattleChat (추가 필드 포함)
+export interface BattleChat extends BaseBattleChat {
   battleId: string;
-  scope: 'TEAM' | 'ALL';
-  messageId: string;
-  sender: { userId: string; nickname: string };
-  team: Team;
-  text: string;
-  createdAt: Date | string;
+  scope: BattleChatScope;
   type?: 'chat' | 'attack' | 'defense';
   votes?: number;
 }
+
+// FE 전용 BattleDiscussion (기본 타입 사용)
+export type BattleDiscussion = BaseBattleDiscussion;
+
+// FE에서 확장한 BattleDefense (attackId 추가)
+export interface BattleDefense extends BaseBattleDefense {
+  attackId: string;
+}
+
 export interface BattleInfo {
   title: string;
   description: string;
@@ -29,32 +47,6 @@ export interface BattleInfo {
   };
 }
 
-// 공통 타입들
-export type BattlePhase = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH';
-export type Team = 'A' | 'B' | 'NONE';
-
-// BattleDiscussion 타입
-export interface BattleDiscussion {
-  discussionId: string;
-  author: {
-    id: string;
-    nickname: string;
-  };
-  type: 'ATTACK' | 'DEFENSE';
-  content: string;
-  upvotes: number;
-  votes: string[];
-  status: 'PENDING' | 'SELECTED' | 'REJECTED';
-  selectedAt?: number; // SELECTED로 변경된 시간 (timestamp)
-  team: 'A' | 'B'; // 어느 팀의 토론인지 (NONE은 불가)
-}
-
-// BattleDefense 타입
-export interface BattleDefense extends BattleDiscussion {
-  attackId: string;
-}
-
-// Socket 이벤트 응답 타입 (공통)
 export interface TeamCounts {
   teamA: number;
   teamB: number;

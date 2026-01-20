@@ -1,6 +1,6 @@
 import { IsIn, IsNotEmpty, IsString } from 'class-validator'
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '../types/battles.types'
+import type { BattleTeam } from '@cmc/types'
 
 export class BattleTeamVoteDto {
   @IsString()

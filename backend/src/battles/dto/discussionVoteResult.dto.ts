@@ -1,4 +1,5 @@
-import { BattleDiscussion, BattleTeam, BattleTopOpinions } from '../types/battles.types'
+import type { BattleDiscussion, BattleTeam } from '@cmc/types'
+import type { BattleTopOpinions } from '../types/battles.types'
 
 export class DiscussionVoteResultItemDto {
   id: string | null

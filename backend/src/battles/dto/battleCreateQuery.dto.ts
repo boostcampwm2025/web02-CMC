@@ -1,5 +1,5 @@
 import { IsArray, IsIn, IsNotEmpty, IsString, ValidateIf } from 'class-validator'
-import type { BattleLanguage, BattleCategory, BattleType, BattlePlayTimeName } from '../types/battles.types'
+import type { BattleLanguage, BattleCategory, BattleType, BattlePlayTimeName } from '@cmc/types'
 
 export class BattleCreateQueryDto {
   @IsString()

@@ -1,5 +1,5 @@
-import { Battle, BattleStatus, FinishedBattleState } from '../types/battles.types'
-import { BattleResult } from '../types/battleResult.types'
+import type { BattleStatus, BattleResult } from '@cmc/types'
+import type { Battle, FinishedBattleState } from '../types/battles.types'
 
 export class ClosedBattleResponseDto {
   id: string

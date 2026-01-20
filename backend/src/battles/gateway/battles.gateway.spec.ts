@@ -8,7 +8,7 @@ import { BattlesGateway } from './battles.gateway'
 import { BattlesService } from '../service/battles.service'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
 import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
-import { BattleDiscussion, BattleDefense } from '../types/battles.types'
+import type { BattleDiscussion, BattleDefense } from '@cmc/types'
 
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'

@@ -1,5 +1,6 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
+import type { BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '@cmc/types'
+import type { ActiveBattleState, Battle } from '../types/battles.types'
 
 export class BattleJoinResponseDto {
   battleId: string

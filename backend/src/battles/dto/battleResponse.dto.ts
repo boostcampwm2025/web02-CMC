@@ -1,4 +1,5 @@
-import { Battle, BattleStatus, BattleCategory, BattleLanguage } from '../types/battles.types'
+import type { BattleStatus, BattleCategory, BattleLanguage } from '@cmc/types'
+import type { Battle } from '../types/battles.types'
 
 export class BattleResponseDto {
   id: string

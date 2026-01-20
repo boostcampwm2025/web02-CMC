@@ -3,19 +3,18 @@ import { EventEmitter } from 'node:events'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
-import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
-import {
-  ActiveBattleState,
-  Battle,
-  BattlePhase,
+import type {
+  TimelineItem,
+  Mvp,
+  BattleResult,
+  VoteTimeline,
+  Metrics,
   BattleTeam,
   BattleDiscussion,
   BattleDefense,
-  BattlePlayTime,
-  BattleTopOpinions,
   BattlePlayTimeName,
-  FinishedBattleState,
-} from '../types/battles.types'
+} from '@cmc/types'
+import { ActiveBattleState, Battle, BattlePhase, BattlePlayTime, BattleTopOpinions, FinishedBattleState } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
 import { BattleResponseDto } from '../dto/battleResponse.dto'

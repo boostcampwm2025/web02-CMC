@@ -1,5 +1,5 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '../types/battles.types'
+import type { BattleTeam } from '@cmc/types'
 
 export interface TeamCounts {
   teamA: number

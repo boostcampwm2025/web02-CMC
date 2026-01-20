@@ -1,4 +1,4 @@
-import { BattleDiscussion } from '../types/battles.types'
+import type { BattleDiscussion } from '@cmc/types'
 
 export class DiscussionVoteResponseDto {
   discussionId: string

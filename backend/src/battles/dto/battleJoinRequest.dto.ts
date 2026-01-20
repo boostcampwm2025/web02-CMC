@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import type { BattleTeam } from '../types/battles.types'
+import type { BattleTeam } from '@cmc/types'
 
 export class BattleJoinRequestDto {
   @IsString()

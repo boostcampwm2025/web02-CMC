@@ -1,4 +1,4 @@
-import { BattlePhaseName } from '../types/battles.types'
+import type { BattlePhaseName } from '@cmc/types'
 
 export class BattlePhaseResponseDto {
   battleId: string
