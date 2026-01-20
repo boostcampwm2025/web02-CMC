@@ -26,6 +26,25 @@ export function applyWinnerBonus(score: number, team: 'A' | 'B', winner: 'A' | '
   return score
 }
 
+/** MVP 비교 함수 타입 */
+type MvpComparator = (a: Mvp, b: Mvp) => number
+
+const compareByScore: MvpComparator = (a, b) => b.score - a.score
+const compareByTotalVotes: MvpComparator = (a, b) => b.totalVotes - a.totalVotes
+const compareByOpinionCount: MvpComparator = (a, b) => b.opinionCount - a.opinionCount
+const compareBySelectedOpinionCount: MvpComparator = (a, b) => b.selectedOpinionCount - a.selectedOpinionCount
+const compareByJoinedAt: MvpComparator = (a, b) => a.joinedAt - b.joinedAt
+
+const compareByWinnerTeam = (winner: 'A' | 'B' | 'DRAW'): MvpComparator => {
+  return (a, b) => {
+    if (winner === 'DRAW') return 0
+    const aIsWinner = a.team === winner
+    const bIsWinner = b.team === winner
+    if (aIsWinner === bIsWinner) return 0
+    return aIsWinner ? -1 : 1
+  }
+}
+
 /**
  * MVP 후보자 비교 함수 (정렬용)
  * 우선순위:
@@ -39,48 +58,29 @@ export function applyWinnerBonus(score: number, team: 'A' | 'B', winner: 'A' | '
  * @returns 음수: a 우선, 양수: b 우선, 0: 동일
  */
 export function compareMvpCandidates(a: Mvp, b: Mvp, winner: 'A' | 'B' | 'DRAW'): number {
-  // 1. 누적 점수
-  if (a.score !== b.score) {
-    return b.score - a.score
-  }
+  const comparators: MvpComparator[] = [
+    compareByScore,
+    compareByTotalVotes,
+    compareByOpinionCount,
+    compareByWinnerTeam(winner),
+    compareBySelectedOpinionCount,
+    compareByJoinedAt,
+  ]
 
-  // 2. 총 좋아요 수
-  if (a.totalVotes !== b.totalVotes) {
-    return b.totalVotes - a.totalVotes
-  }
-
-  // 3. 의견 제출 수
-  if (a.opinionCount !== b.opinionCount) {
-    return b.opinionCount - a.opinionCount
-  }
-
-  // 4. 승리 팀 소속 (무승부면 건너뜀)
-  if (winner !== 'DRAW') {
-    const aIsWinner = a.team === winner
-    const bIsWinner = b.team === winner
-    if (aIsWinner !== bIsWinner) {
-      return aIsWinner ? -1 : 1
-    }
-  }
-
-  // 5. 선정된 의견 수
-  if (a.selectedOpinionCount !== b.selectedOpinionCount) {
-    return b.selectedOpinionCount - a.selectedOpinionCount
-  }
-
-  // 6. 먼저 참여한 순서
-  if (a.joinedAt !== b.joinedAt) {
-    return a.joinedAt - b.joinedAt
+  for (const compare of comparators) {
+    const result = compare(a, b)
+    if (result !== 0) return result
   }
 
   return 0
 }
 
 /**
- * 빈 MVP 객체 생성
+ * MVP 후보 객체 생성 팩토리 메서드
+ * 매개변수가 없으면 초기화된 빈 객체를, 매개변수가 있으면 해당 값으로 채워진 객체를 반환
  */
-export function createEmptyMvp(): Mvp {
-  return {
+export function createMvpCandidate(data?: Partial<Mvp>): Mvp {
+  const defaults: Mvp = {
     userId: '',
     nickname: 'unknown',
     team: 'A',
@@ -90,4 +90,16 @@ export function createEmptyMvp(): Mvp {
     selectedOpinionCount: 0,
     joinedAt: 0,
   }
+
+  if (!data) return defaults
+
+  return { ...defaults, ...data }
+}
+
+/**
+ * 빈 MVP 객체 생성
+ * @deprecated createMvpCandidate() 사용을 권장
+ */
+export function createEmptyMvp(): Mvp {
+  return createMvpCandidate()
 }

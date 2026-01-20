@@ -4,7 +4,7 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
-import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp, applyWinnerBonus } from './utils/mvp.util'
+import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
 import {
   ActiveBattleState,
   Battle,
@@ -242,16 +242,19 @@ export class BattlesService extends EventEmitter {
         }
       } else {
         const joinedAt = this.getParticipantJoinedAt(state.battleId, authorId)
-        candidateMap.set(authorId, {
-          userId: authorId,
-          nickname,
-          team: team === BATTLE_TEAM.A ? 'A' : 'B',
-          score: opinionScore,
-          totalVotes: opinion.upvotes,
-          opinionCount: 1,
-          selectedOpinionCount: opinion.status === 'SELECTED' ? 1 : 0,
-          joinedAt,
-        })
+        candidateMap.set(
+          authorId,
+          createMvpCandidate({
+            userId: authorId,
+            nickname,
+            team: team === BATTLE_TEAM.A ? 'A' : 'B',
+            score: opinionScore,
+            totalVotes: opinion.upvotes,
+            opinionCount: 1,
+            selectedOpinionCount: opinion.status === 'SELECTED' ? 1 : 0,
+            joinedAt,
+          }),
+        )
       }
     })
 
@@ -668,7 +671,7 @@ export class BattlesService extends EventEmitter {
       metrics,
       voteTimeline,
       timeline,
-      mvp: calculatedMvp || createEmptyMvp(),
+      mvp: calculatedMvp || createMvpCandidate(),
     }
   }
 

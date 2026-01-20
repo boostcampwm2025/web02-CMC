@@ -1,5 +1,12 @@
 import { Mvp } from '../../types/battleResult.types'
-import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp, applyWinnerBonus, WINNER_TEAM_BONUS_MULTIPLIER } from './mvp.util'
+import {
+  calculateOpinionScore,
+  compareMvpCandidates,
+  createEmptyMvp,
+  createMvpCandidate,
+  applyWinnerBonus,
+  WINNER_TEAM_BONUS_MULTIPLIER,
+} from './mvp.util'
 
 describe('MVP Utils', () => {
   describe('calculateOpinionScore', () => {
@@ -100,7 +107,50 @@ describe('MVP Utils', () => {
     })
   })
 
-  describe('createEmptyMvp', () => {
+  describe('createMvpCandidate', () => {
+    it('매개변수 없이 호출하면 기본값으로 채워진 객체를 반환한다', () => {
+      const mvp = createMvpCandidate()
+
+      expect(mvp).toEqual({
+        userId: '',
+        nickname: 'unknown',
+        team: 'A',
+        score: 0,
+        totalVotes: 0,
+        opinionCount: 0,
+        selectedOpinionCount: 0,
+        joinedAt: 0,
+      })
+    })
+
+    it('일부 값만 전달하면 나머지는 기본값으로 채워진다', () => {
+      const mvp = createMvpCandidate({ userId: 'user-1', nickname: 'TestUser' })
+
+      expect(mvp.userId).toBe('user-1')
+      expect(mvp.nickname).toBe('TestUser')
+      expect(mvp.team).toBe('A')
+      expect(mvp.score).toBe(0)
+    })
+
+    it('모든 값을 전달하면 해당 값으로 객체가 생성된다', () => {
+      const data: Mvp = {
+        userId: 'user-1',
+        nickname: 'MVP',
+        team: 'B',
+        score: 2.5,
+        totalVotes: 25,
+        opinionCount: 3,
+        selectedOpinionCount: 2,
+        joinedAt: 1000,
+      }
+
+      const mvp = createMvpCandidate(data)
+
+      expect(mvp).toEqual(data)
+    })
+  })
+
+  describe('createEmptyMvp (deprecated)', () => {
     it('빈 MVP 객체를 생성한다', () => {
       const emptyMvp = createEmptyMvp()
 
