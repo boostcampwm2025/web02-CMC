@@ -22,9 +22,8 @@ import { RefreshStrategy } from './strategy/jwt-refresh.strategy'
         return {
           secret: config.get<string>('JWT_ACCESS_SECRET') || 'access_secret',
           signOptions: {
-            // @ts-expect-error - expiresIn accepts string like '15m' but type definition is strict
             expiresIn,
-          },
+          } as JwtModuleOptions['signOptions'],
         }
       },
     }),

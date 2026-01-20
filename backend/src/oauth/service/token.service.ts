@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { Response } from 'express'
-import type { StringValue } from 'ms'
 
 type StoredRefreshToken = {
   userId: string
@@ -36,26 +35,20 @@ export class TokenService {
    * Access Token 발급
    */
   signAccess(userId: string): string {
-    return this.jwtService.sign(
-      { sub: userId },
-      {
-        secret: this.ACCESS_TOKEN_SECRET,
-        expiresIn: this.ACCESS_TOKEN_EXPIRES_IN as StringValue,
-      },
-    )
+    return this.jwtService.sign({ sub: userId }, {
+      secret: this.ACCESS_TOKEN_SECRET,
+      expiresIn: this.ACCESS_TOKEN_EXPIRES_IN,
+    } as Parameters<typeof this.jwtService.sign>[1])
   }
 
   /**
    * Refresh Token 발급
    */
   signRefresh(userId: string): string {
-    return this.jwtService.sign(
-      { sub: userId },
-      {
-        secret: this.REFRESH_TOKEN_SECRET,
-        expiresIn: this.REFRESH_TOKEN_EXPIRES_IN as StringValue,
-      },
-    )
+    return this.jwtService.sign({ sub: userId }, {
+      secret: this.REFRESH_TOKEN_SECRET,
+      expiresIn: this.REFRESH_TOKEN_EXPIRES_IN,
+    } as Parameters<typeof this.jwtService.sign>[1])
   }
 
   /**
