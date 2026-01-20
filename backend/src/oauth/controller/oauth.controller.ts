@@ -35,9 +35,7 @@ export class OauthController {
 
   @Get('kakao')
   @UseGuards(AuthGuard('kakao'))
-  kakaoLogin() {
-    console.log(process.env.KAKAO_ID)
-  }
+  kakaoLogin() {}
 
   @Get('kakao/callback')
   @UseGuards(AuthGuard('kakao'))

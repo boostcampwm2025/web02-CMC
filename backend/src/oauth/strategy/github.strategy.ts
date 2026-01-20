@@ -25,7 +25,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   validate(_accessToken: string, _refreshToken: string, profile: GithubProfile): OAuthProfile {
     const nickname = profile.displayName || profile.username || 'Unknown'
     const avatarUrl = profile?.photos?.[0]?.value
-    console.log(profile)
+
     return {
       provider: 'github',
       providerId: String(profile.id),

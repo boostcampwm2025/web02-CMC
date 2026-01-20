@@ -13,7 +13,6 @@ export class OauthService {
 
     const existed = this.oauthMap.get(key)
     if (existed) {
-      console.log('existed')
       return existed
     }
 
@@ -48,9 +47,7 @@ export class OauthService {
   } {
     const loginUser = this.findOrCreateUser(profile)
     const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
-    console.log(loginUser)
-    console.log(accessToken)
-    console.log(refreshToken)
+
     return {
       accessToken,
       refreshToken,
