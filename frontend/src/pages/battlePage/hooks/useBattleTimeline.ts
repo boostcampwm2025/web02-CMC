@@ -9,7 +9,6 @@ import type {
 } from '@/commons/types/battle';
 import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
 import { useEffectModal } from './useEffectModal';
-import { soundManager } from '@/commons/utils/soundManager';
 
 export function useBattleTimeline() {
   const socket = useBattleStore(selectSocket);
@@ -100,7 +99,6 @@ export function useBattleTimeline() {
       if (opponentEntry?.id && opponentEntry?.team && opponentEntry?.text) {
         // 일반적인 경우: 투표된 의견이 있을 때
         showEffect(opponentEntry.team, opponentEntry.text, 'attack');
-        soundManager.play('swordSlash', 0.6);
       } else if (!opponentEntry?.id) {
         // null인 경우: 투표된 의견이 없을 때
         showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'attack');
@@ -149,7 +147,6 @@ export function useBattleTimeline() {
       if (opponentEntry?.id && opponentEntry?.team && opponentEntry?.text) {
         // 일반적인 경우: 투표된 의견이 있을 때
         showEffect(opponentEntry.team, opponentEntry.text, 'defense');
-        soundManager.play('swordSlash', 0.6);
       } else if (!opponentEntry?.id) {
         // null인 경우: 투표된 의견이 없을 때
         showEffect(opponentTeam, '투표로 선정된 의견이 없습니다', 'defense');
