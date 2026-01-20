@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserIcon from '@/assets/icon/user.svg?react';
+import { useAuthStore } from '@/commons/stores/authStore';
 
 interface UserProfileDropdownProps {
   user: {
@@ -14,6 +15,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -30,6 +32,12 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
+
+  const handleLogout = async () => {
+    await logout();
+    setIsOpen(false);
+    navigate('/');
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -84,7 +92,10 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
 
           {/* 로그아웃 버튼 */}
           <div className="border-t border-[#2D2D3F] py-2">
-            <button className="w-full px-4 py-2 text-left text-red-400 text-sm hover:bg-[#24292e] transition-colors flex items-center gap-2">
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-2 text-left text-red-400 text-sm hover:bg-[#24292e] transition-colors flex items-center gap-2"
+            >
               <span className="text-red-400">로그아웃</span>
             </button>
           </div>

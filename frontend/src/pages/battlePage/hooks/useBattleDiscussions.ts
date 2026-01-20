@@ -8,7 +8,7 @@ import {
   selectSelectedTeam
 } from '../stores/battleStore';
 import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
-import { selectUser, useAuthStore } from '../stores/authStore';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);

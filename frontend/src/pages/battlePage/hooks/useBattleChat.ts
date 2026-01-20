@@ -10,7 +10,7 @@ import {
   selectOpponentNotice
 } from '../stores/battleStore';
 import { convertBattleChatToMessage } from '../utils/convertChatMessage';
-import { selectUser, useAuthStore } from '../stores/authStore';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 export function useBattleChat() {
   const socket = useBattleStore(selectSocket);
   const battleId = useBattleStore(selectBattleId);
