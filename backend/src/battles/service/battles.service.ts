@@ -173,7 +173,7 @@ export class BattlesService extends EventEmitter {
   }
 
   joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
-    const { battleId, password, team } = battleJoinRequestDto
+    const { battleId, password, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
@@ -195,9 +195,9 @@ export class BattlesService extends EventEmitter {
       return { battleState, team }
     }
 
-    // Guest 등록 확인
+    // nickname으로 guestInfoMap에 등록 (OAuth/비회원 모두)
     if (!battleState.guestInfoMap.has(userId)) {
-      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 닉네임을 등록해주세요.')
+      battleState.guestInfoMap.set(userId, nickname)
     }
 
     this.addParticipant(battleId, userId, team)
