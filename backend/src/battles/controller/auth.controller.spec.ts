@@ -47,7 +47,7 @@ describe('AuthController', () => {
       battleId: 'battle-1',
       participants: new Map(),
       teamVotes: new Map(),
-      guestInfoMap: new Map(),
+      userInfoMap: new Map(),
       round: 1,
       phase: BATTLE_PHASE.PENDING.name,
       phaseCount: 1,
