@@ -138,10 +138,9 @@ export default function BattlePage() {
             battleProgress &&
             (battleProgress.phase as string) !== 'PENDING' &&
             battleProgress.expiredAt != null &&
-            battleProgress.startedAt != null
-              ? !progressBoardCollapsed
-                ? 'mt-24'
-                : 'mt-6'
+            battleProgress.startedAt &&
+            !progressBoardCollapsed
+              ? 'mt-24'
               : 'mt-6'
           }`}
         >
