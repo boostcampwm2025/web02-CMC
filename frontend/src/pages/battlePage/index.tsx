@@ -57,6 +57,7 @@ export default function BattlePage() {
   // 사운드 초기화
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
+    soundManager.preload('newVoteListing', '/sounds/notificationPing.mp3');
   }, []);
 
   useEffect(() => {

@@ -9,6 +9,7 @@ import {
 } from '../stores/battleStore';
 import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
 import { selectUser, useAuthStore } from '../stores/authStore';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);
@@ -88,6 +89,8 @@ export function useBattleDiscussions() {
         totalVotes: 0,
         hasVoted: data.votes.includes(user.id)
       });
+
+      soundManager.play('newVoteListing', 0.3);
     };
 
     socket.on('battle:attack:voted', handleVoteUpdate);
