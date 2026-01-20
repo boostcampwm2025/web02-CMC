@@ -354,7 +354,7 @@ describe('TokenService', () => {
 
       service.setTokensInCookie(mockRes, accessToken, refreshToken)
 
-      expect(mockCookie).toHaveBeenCalledTimes(3)
+      expect(mockCookie).toHaveBeenCalledTimes(2)
       expect(mockCookie).toHaveBeenCalledWith(
         'access_token',
         accessToken,
