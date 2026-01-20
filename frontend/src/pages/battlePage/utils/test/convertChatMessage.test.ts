@@ -13,13 +13,12 @@ describe('메시지 변환', () => {
     createdAt: new Date('2026-01-04T10:30:00Z')
   };
 
-  it('자신의 메시지는 "You"로 표시', () => {
-    const result = convertBattleChatToMessage(mockChat, 'user-abc');
-    expect(result.user).toBe('You');
-  });
-
-  it('다른 사용자 메시지는 ID 그대로 표시', () => {
-    const result = convertBattleChatToMessage(mockChat, 'different-user');
+  it('BattleChat을 Message로 변환이 잘되는지', () => {
+    const result = convertBattleChatToMessage(mockChat);
+    expect(result.id).toBe('msg-123');
     expect(result.user).toBe('testNick');
+    expect(result.team).toBe('A');
+    expect(result.content).toBe('Hello World');
+    expect(result.type).toBe('chat');
   });
 });
