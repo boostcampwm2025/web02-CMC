@@ -17,7 +17,7 @@ RUN HUSKY=0 pnpm install --frozen-lockfile
 COPY backend ./backend
 
 # Prisma Client 생성
-RUN pnpm prisma generate --filter backend
+RUN pnpm -c backend prisma:generate
 
 # Build backend
 RUN pnpm -C backend build
