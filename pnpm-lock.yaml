@@ -17,6 +17,9 @@ importers:
 
   backend:
     dependencies:
+      '@cmc/types':
+        specifier: workspace:*
+        version: link:../packages/types
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.9(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -165,6 +168,9 @@ importers:
 
   frontend:
     dependencies:
+      '@cmc/types':
+        specifier: workspace:*
+        version: link:../packages/types
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
@@ -262,6 +268,12 @@ importers:
       vitest:
         specifier: ^4.0.16
         version: 4.0.16(@types/node@24.10.4)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.30.2)(terser@5.44.1)(yaml@2.8.2)
+
+  packages/types:
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
 
 packages:
 
