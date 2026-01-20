@@ -1,5 +1,5 @@
 import { Mvp } from '../../types/battleResult.types'
-import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp } from './mvp.util'
+import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp, applyWinnerBonus, WINNER_TEAM_BONUS_MULTIPLIER } from './mvp.util'
 
 describe('MVP Utils', () => {
   describe('calculateOpinionScore', () => {
@@ -114,6 +114,43 @@ describe('MVP Utils', () => {
         selectedOpinionCount: 0,
         joinedAt: 0,
       })
+    })
+  })
+
+  describe('applyWinnerBonus', () => {
+    it('승리 팀에 1.5배 보너스를 적용한다', () => {
+      const score = applyWinnerBonus(1.0, 'A', 'A')
+      expect(score).toBe(1.0 * WINNER_TEAM_BONUS_MULTIPLIER)
+      expect(score).toBe(1.5)
+    })
+
+    it('패배 팀에는 보너스를 적용하지 않는다', () => {
+      const score = applyWinnerBonus(1.0, 'B', 'A')
+      expect(score).toBe(1.0)
+    })
+
+    it('무승부인 경우 보너스를 적용하지 않는다', () => {
+      const scoreA = applyWinnerBonus(1.0, 'A', 'DRAW')
+      const scoreB = applyWinnerBonus(1.0, 'B', 'DRAW')
+      expect(scoreA).toBe(1.0)
+      expect(scoreB).toBe(1.0)
+    })
+
+    it('B팀이 승리한 경우 B팀에 보너스를 적용한다', () => {
+      const scoreA = applyWinnerBonus(1.0, 'A', 'B')
+      const scoreB = applyWinnerBonus(1.0, 'B', 'B')
+      expect(scoreA).toBe(1.0)
+      expect(scoreB).toBe(1.5)
+    })
+
+    it('점수가 0이면 보너스 적용해도 0이다', () => {
+      const score = applyWinnerBonus(0, 'A', 'A')
+      expect(score).toBe(0)
+    })
+
+    it('소수점 점수에도 정확히 1.5배를 적용한다', () => {
+      const score = applyWinnerBonus(0.7, 'A', 'A')
+      expect(score).toBeCloseTo(1.05)
     })
   })
 })

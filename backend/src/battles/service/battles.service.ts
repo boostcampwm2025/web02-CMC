@@ -4,7 +4,7 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
-import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp } from './utils/mvp.util'
+import { calculateOpinionScore, compareMvpCandidates, createEmptyMvp, applyWinnerBonus } from './utils/mvp.util'
 import {
   ActiveBattleState,
   Battle,
@@ -256,6 +256,11 @@ export class BattlesService extends EventEmitter {
     })
 
     if (candidateMap.size === 0) return null
+
+    // 승리 팀 보너스 적용 (1.5배)
+    candidateMap.forEach(candidate => {
+      candidate.score = applyWinnerBonus(candidate.score, candidate.team, winner)
+    })
 
     // 후보자 정렬 및 MVP 선정
     const candidates = [...candidateMap.values()]

@@ -1,5 +1,5 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState } from '../types/battles.types'
+import { Battle, FinishedBattleState, BattleDefense } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
 
@@ -1206,13 +1206,13 @@ describe('BattlesService', () => {
 
       const mvp = service['calculateMVP'](state, 'A')
 
-      // user-1: score = 0.5 + 0.3 = 0.8, totalVotes = 5
-      // user-2: score = 1.0, totalVotes = 4
-      // user-2가 점수가 높으므로 MVP
+      // user-1 (A팀): score = (0.5 + 0.3) * 1.5 = 1.2, totalVotes = 5
+      // user-2 (B팀): score = 1.0 (보너스 없음), totalVotes = 4
+      // A팀 승리 시 user-1이 보너스를 받아 MVP
       expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-2')
-      expect(mvp!.score).toBeCloseTo(1.0)
-      expect(mvp!.totalVotes).toBe(4)
+      expect(mvp!.userId).toBe('user-1')
+      expect(mvp!.score).toBeCloseTo(1.2)
+      expect(mvp!.totalVotes).toBe(5)
     })
 
     it('voterCountAtPhase가 없으면 점수 0으로 처리한다', () => {
@@ -1247,12 +1247,283 @@ describe('BattlesService', () => {
 
       const mvp = service['calculateMVP'](state, 'A')
 
-      // user-1: voterCountAtPhase 없음 → 점수 0, totalVotes = 10
-      // user-3: score = 1/2 = 0.5, totalVotes = 1
+      // user-1 (A팀): voterCountAtPhase 없음 → 점수 0 * 1.5 = 0, totalVotes = 10
+      // user-3 (A팀): score = 1/2 * 1.5 = 0.75, totalVotes = 1
       // user-3이 점수가 높으므로 MVP
       expect(mvp).not.toBeNull()
       expect(mvp!.userId).toBe('user-3')
-      expect(mvp!.score).toBeCloseTo(0.5)
+      expect(mvp!.score).toBeCloseTo(0.75)
+    })
+  })
+
+  describe('calculateMVP (승리 팀 1.5배 보너스)', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
+
+      state.participants.set('user-a', BATTLE_TEAM.A)
+      state.participants.set('user-b', BATTLE_TEAM.B)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('A팀 70표/100명 vs B팀 5표/5명: 보너스 없이는 B팀이 유리하지만, A팀 승리 시 A팀이 MVP가 된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점 → 1.5배 보너스 → 1.05점
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점 → 보너스 없음 → 1.0점
+      state.teamB.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // A팀 승리 시: user-a = 0.7 * 1.5 = 1.05, user-b = 1.0
+      const mvpWhenAWins = service['calculateMVP'](state, 'A')
+      expect(mvpWhenAWins).not.toBeNull()
+      expect(mvpWhenAWins!.userId).toBe('user-a')
+      expect(mvpWhenAWins!.score).toBeCloseTo(1.05)
+    })
+
+    it('A팀 70표/100명 vs B팀 5표/5명: B팀 승리 시 B팀이 MVP가 된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점 → 보너스 없음 → 0.7점
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점 → 1.5배 보너스 → 1.5점
+      state.teamB.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // B팀 승리 시: user-a = 0.7, user-b = 1.0 * 1.5 = 1.5
+      const mvpWhenBWins = service['calculateMVP'](state, 'B')
+      expect(mvpWhenBWins).not.toBeNull()
+      expect(mvpWhenBWins!.userId).toBe('user-b')
+      expect(mvpWhenBWins!.score).toBeCloseTo(1.5)
+    })
+
+    it('무승부 시 보너스 없이 순수 점수로 비교한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점
+      state.teamB.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // 무승부: user-a = 0.7, user-b = 1.0 → user-b가 MVP
+      const mvpWhenDraw = service['calculateMVP'](state, 'DRAW')
+      expect(mvpWhenDraw).not.toBeNull()
+      expect(mvpWhenDraw!.userId).toBe('user-b')
+      expect(mvpWhenDraw!.score).toBeCloseTo(1.0)
+    })
+
+    it('동일 점수 + 동일 보너스 시 totalVotes로 비교한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 같은 팀, 같은 점수 비율
+      service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
+      state.participants.set('user-a2', BATTLE_TEAM.A)
+      service['rebuildTeamUsers'](state)
+
+      // user-a: 50표 / 100명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 50
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 50,
+        votes: Array(50).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-a2: 10표 / 20명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 10
+      state.teamA.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-a2', nickname: 'UserA2' },
+        type: 'ATTACK',
+        content: 'attack from A2',
+        upvotes: 10,
+        votes: Array(10).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 20,
+      })
+
+      const mvp = service['calculateMVP'](state, 'A')
+      expect(mvp).not.toBeNull()
+      // 점수 동점 → totalVotes로 비교 → user-a가 50표로 MVP
+      expect(mvp!.userId).toBe('user-a')
+      expect(mvp!.totalVotes).toBe(50)
+    })
+
+    it('여러 의견이 있을 때 누적 점수에 보너스가 적용된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a: 2개 의견, 각각 30표/100명 = 0.3 + 0.3 = 0.6점 → 1.5배 → 0.9점
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack 1 from A',
+        upvotes: 30,
+        votes: Array(30).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+      state.teamA.defenses.push({
+        discussionId: 'defense-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'DEFENSE',
+        content: 'defense 1 from A',
+        upvotes: 30,
+        votes: Array(30).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+        attackId: 'attack-x',
+      } as BattleDefense)
+
+      // user-b: 1개 의견, 5표/10명 = 0.5점 → 보너스 없음 → 0.5점
+      state.teamB.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 10,
+      })
+
+      // A팀 승리: user-a = 0.6 * 1.5 = 0.9, user-b = 0.5
+      const mvp = service['calculateMVP'](state, 'A')
+      expect(mvp).not.toBeNull()
+      expect(mvp!.userId).toBe('user-a')
+      expect(mvp!.score).toBeCloseTo(0.9)
+      expect(mvp!.opinionCount).toBe(2)
+    })
+
+    it('소수 인원으로 참여한 팀이 불리하지 않도록 보너스가 적용된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀, 다수): 80표 / 100명 = 0.8점 → 1.5배 → 1.2점
+      state.teamA.attacks.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 80,
+        votes: Array(80).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀, 소수): 3표 / 3명 = 1.0점 → 보너스 없음 → 1.0점
+      state.teamB.attacks.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 3,
+        votes: Array(3).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 3,
+      })
+
+      // A팀 승리: user-a = 0.8 * 1.5 = 1.2 > user-b = 1.0
+      const mvp = service['calculateMVP'](state, 'A')
+      expect(mvp).not.toBeNull()
+      expect(mvp!.userId).toBe('user-a')
+      expect(mvp!.score).toBeCloseTo(1.2)
     })
   })
 })

@@ -1,5 +1,8 @@
 import { Mvp } from '../../types/battleResult.types'
 
+/** 승리 팀 보너스 배율 */
+export const WINNER_TEAM_BONUS_MULTIPLIER = 1.5
+
 /**
  * 의견별 점수를 계산한다
  * 점수 = 좋아요 수 / 해당 팀 투표 참가자 수
@@ -8,6 +11,19 @@ import { Mvp } from '../../types/battleResult.types'
 export function calculateOpinionScore(upvotes: number, voterCount: number): number {
   if (voterCount === 0) return 0
   return upvotes / voterCount
+}
+
+/**
+ * 승리 팀 보너스를 적용한 최종 점수를 계산한다
+ * 승리 팀에 속한 후보자는 누적 점수에 1.5배 보너스를 받는다
+ * 무승부인 경우 보너스 없음
+ */
+export function applyWinnerBonus(score: number, team: 'A' | 'B', winner: 'A' | 'B' | 'DRAW'): number {
+  if (winner === 'DRAW') return score
+  if (team === winner) {
+    return score * WINNER_TEAM_BONUS_MULTIPLIER
+  }
+  return score
 }
 
 /**
