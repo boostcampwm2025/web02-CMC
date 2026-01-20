@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  /* 식별자 */ 
+  id                String              @id @db.Uuid
+
+  /* 정보 */
+  nickname          String              @unique @db.VarChar(10) 
+  tier              String              @db.VarChar(20)
+  rating            Int              
+  avatarUrl         String?             @map("avatar_url")
+
+  /* 시간 */
+  createdAt         DateTime            @default(now()) @map("created_at")
+  deletedAt         DateTime?           @map("deleted_at")
+
+  socialLogins      OAuth[]
+  participations    BattleParticipant[]
+  createdBattles    Battle[]            @relation("BattleCreator")
+
+  @@map("users")
+}
+
+model Battle {
+  /* 식별자 */
+  id                       String    @id @db.Uuid
+  userId                   String    @db.Uuid @map("user_id")
+
+  /* 정보 */
+  title                    String    @db.VarChar(255) @map("title")
+  description              String    @db.VarChar(255)
+  codeA                    String    @db.Text @map("code_a")
+  codeB                    String    @db.Text @map("code_b")
+  playTime                 String    @db.VarChar(20)  @map("play_time")
+  topics                   String[]  
+  category                 String    @db.VarChar(20)
+  language                 String    @db.VarChar(20)
+  password                 String?   @db.VarChar(255)
+  isPrivate                Boolean   @default(false) @map("is_private")
+  status                   String    @db.VarChar(20)
+
+  /* 배틀 결과 */
+  timeline                 Json?      
+  teamACount               Int?       @map("team_a_count")
+  teamBCount               Int?       @map("team_b_count")
+  totalParticipantsCount   Int?       @map("total_participants_count")
+  winningTeam              String?    @db.VarChar(10) @map("winning_team")
+  mvp                      String?    @db.VarChar(10)
+    
+  /* 시간 */
+  createdAt                DateTime   @default(now()) @map("created_at")
+  updatedAt                DateTime?  @updatedAt  @map("updated_at")
+  finishedAt               DateTime?  @map("finished_at")
+
+  creator                  User?      @relation("BattleCreator", fields: [userId], references: [id])
+  participants             BattleParticipant[]
+
+  @@map("battles")
+}
+
+model BattleParticipant {
+  /* 식별자 */
+  userId    String  @db.Uuid @map("user_id")
+  battleId  String  @db.Uuid @map("battle_id")
+  
+  /* 정보 */
+  team      String  @db.VarChar(10)
+  isMvp     Boolean @map("is_mvp")
+
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  battle    Battle  @relation(fields: [battleId], references: [id], onDelete: Cascade)
+
+  /* 복합 키 설정 */
+  @@id([userId, battleId])
+  
+  @@map("battle_participants")
+}
+
+model OAuth {
+  /* 식별자 */
+  id        String   @id @db.Uuid @map("oauth_id") 
+  userId    String   @db.Uuid @map("user_id")
+  
+  /* 정보 */
+  provider  String   @db.VarChar(20)
+  code      String   @db.VarChar(255)
+  
+  /* 시간 */  
+  createdAt DateTime @default(now()) @map("created_at")
+
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("o_auths")
+}
