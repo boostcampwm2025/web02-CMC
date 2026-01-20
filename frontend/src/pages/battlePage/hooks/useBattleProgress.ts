@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { BattleProgressState } from '@/commons/types/battle';
 import { useBattleStore, selectSocket } from '../stores/battleStore';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export function useBattleProgress() {
   const socket = useBattleStore(selectSocket);
@@ -26,6 +27,8 @@ export function useBattleProgress() {
       // 페이즈가 변경되면 투표 리스트 초기화
       useBattleStore.getState().setDiscussions([]);
       useBattleStore.getState().commitOpponentNotice();
+
+      soundManager.play('swoosh', 0.6);
     };
 
     // Round 변경 이벤트 구독

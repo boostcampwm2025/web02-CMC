@@ -58,6 +58,8 @@ export default function BattlePage() {
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
     soundManager.preload('newVoteListing', '/sounds/notificationPing.mp3');
+    soundManager.preload('swoosh', '/sounds/swoosh.mp3');
+    soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
   }, []);
 
   useEffect(() => {
