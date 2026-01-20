@@ -58,7 +58,7 @@ export class OauthController {
     const { accessToken, refreshToken: newRefreshToken } = this.oauthService.refreshToken(user.refreshToken)
     // 새로운 토큰을 쿠키에 설정
     this.tokenService.setTokensInCookie(res, accessToken, newRefreshToken)
-    return { success: true }
+    return res.json({ success: true })
   }
 
   @Get('me')
