@@ -28,7 +28,10 @@ export function useBattleProgress() {
       useBattleStore.getState().setDiscussions([]);
       useBattleStore.getState().commitOpponentNotice();
 
-      soundManager.play('swoosh', 0.6);
+      // DEFENSE와 TEAM_SWITCH를 제외한 페이즈 전환 시 효과음 재생
+      if (data.phase !== 'DEFENSE' && data.phase !== 'TEAM_SWITCH') {
+        soundManager.play('swoosh', 0.6);
+      }
     };
 
     // Round 변경 이벤트 구독
