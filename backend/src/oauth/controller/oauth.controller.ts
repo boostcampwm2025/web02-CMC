@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, UseGuards, HttpCode } from '@nestjs/common'
+import { Controller, Get, Post, Req, Res, UseGuards, HttpCode } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
 import * as express from 'express'
@@ -48,6 +48,17 @@ export class OauthController {
 
     // 프론트엔드로 리다이렉트
     res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
+  }
+
+  @Post('refresh')
+  @UseGuards(AuthGuard('jwt-refresh'))
+  @HttpCode(200)
+  refresh(@Req() req: express.Request, @Res() res: express.Response) {
+    const user = req.user as { userId: string; refreshToken: string }
+    const { accessToken, refreshToken: newRefreshToken } = this.oauthService.refreshToken(user.refreshToken)
+    // 새로운 토큰을 쿠키에 설정
+    this.tokenService.setTokensInCookie(res, accessToken, newRefreshToken)
+    return { success: true }
   }
 
   @Get('me')
