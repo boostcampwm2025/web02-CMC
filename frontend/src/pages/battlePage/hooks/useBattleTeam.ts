@@ -8,6 +8,7 @@ import {
   selectTeamCounts
 } from '../stores/battleStore';
 import type { BattleUserUpdateResponse } from '@/commons/types/battle';
+import { soundManager } from '@/commons/utils/soundManager';
 
 interface UseBattleTeamProps {
   onOpenTeamChangeModal: () => void;
@@ -27,6 +28,8 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
     if (battleProgress?.phase === 'TEAM_SWITCH') {
       const timer = setTimeout(() => {
         onOpenTeamChangeModal();
+
+        soundManager.play('swoosh', 0.5);
       }, 4000);
 
       return () => clearTimeout(timer);

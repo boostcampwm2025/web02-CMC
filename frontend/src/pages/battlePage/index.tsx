@@ -60,6 +60,7 @@ export default function BattlePage() {
     soundManager.preload('newVoteListing', '/sounds/notificationPing.mp3');
     soundManager.preload('swoosh', '/sounds/swoosh.mp3');
     soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
+    soundManager.preload('fanfare', '/sounds/fanfare.mp3');
   }, []);
 
   useEffect(() => {
