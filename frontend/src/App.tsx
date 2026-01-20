@@ -6,11 +6,16 @@ import TeamSelectPage from './pages/teamSelectPage';
 import fetchBattleInfo from './commons/apis/getBattleInfo';
 import './App.css';
 import BattleResultPage from './pages/battleResultPage';
+import LoginPage from './pages/loginPage';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <MainPage />
+  },
+  {
+    path: '/login',
+    element: <LoginPage />
   },
   {
     path: '/battle/:id',
