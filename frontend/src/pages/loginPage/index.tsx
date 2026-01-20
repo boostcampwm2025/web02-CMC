@@ -2,14 +2,15 @@ import BattleIcon from '@/assets/icon/battle.svg?react';
 import GithubIcon from '@/assets/icon/github.svg?react';
 import KakaoIcon from '@/assets/icon/kakao.svg?react';
 import DevIcon from '@/assets/icon/dev.svg?react';
+import { loginWithGitHub, loginWithKakao } from './api/oauth';
 
 export default function LoginPage() {
   const handleGitHubLogin = () => {
-    window.location.href = '/api/auth/github';
+    loginWithGitHub();
   };
 
   const handleKakaoLogin = () => {
-    window.location.href = '/api/auth/kakao';
+    loginWithKakao();
   };
 
   return (
@@ -17,6 +18,8 @@ export default function LoginPage() {
       {/* 로고 및 타이틀 */}
       <div className="flex flex-col gap-3 lg:gap-4 items-center">
         <div className="flex flex-col gap-4 lg:gap-6 items-center relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 translate-y-1 w-12 h-12 lg:w-16 lg:h-16 bg-orange-500 rounded-xl blur-xl opacity-70 -z-10"></div>
+          {/* 오렌지 배경 아이콘 */}
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-orange-500 flex items-center justify-center relative z-10">
             <BattleIcon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
           </div>
