@@ -10,13 +10,13 @@ export class HttpMetricsMiddleware implements NestMiddleware {
     const start = process.hrtime()
 
     res.on('finish', () => {
-      const route = (req as { route?: { path?: unknown } }).route
-      const routePath = typeof route?.path === 'string' ? route.path : undefined
+      const routeInfo = (req as { route?: { path?: unknown } }).route
+      const routePath = typeof routeInfo?.path === 'string' ? routeInfo.path : undefined
       const baseUrl = req.baseUrl ?? ''
-      const route = routePath ? `${baseUrl}${routePath}` : 'unmatched'
+      const routeLabel = routePath ? `${baseUrl}${routePath}` : 'unmatched'
       const durationSeconds = this.getDurationSeconds(start)
 
-      this.metricsService.observeHttpRequest(req.method, route, res.statusCode, durationSeconds)
+      this.metricsService.observeHttpRequest(req.method, routeLabel, res.statusCode, durationSeconds)
     })
 
     next()
