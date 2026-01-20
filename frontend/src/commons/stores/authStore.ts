@@ -30,7 +30,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           throw new Error('닉네임을 8글자까지 가능합니다.');
         }
 
-        const data = await fetchPostGuestLogin(battleId, nickname);
+        const data = await fetchPostGuestLogin(battleId, trimmedNickname);
 
         const user = {
           id: data.id,
@@ -57,9 +57,6 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       }
 
       const oauthUser = await getOAuthUser();
-      if (!oauthUser) {
-        throw new Error('사용자 정보를 가져오는데 실패했습니다.');
-      }
 
       // store에 저장
       set({ user: oauthUser });
