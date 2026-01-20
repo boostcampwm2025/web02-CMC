@@ -12,8 +12,8 @@ type StoredRefreshToken = {
 
 @Injectable()
 export class TokenService {
-  private readonly ACCESS_TOKEN_EXPIRES_IN: string
-  private readonly REFRESH_TOKEN_EXPIRES_IN: string
+  readonly ACCESS_TOKEN_EXPIRES_IN: string
+  readonly REFRESH_TOKEN_EXPIRES_IN: string
 
   private readonly ACCESS_TOKEN_SECRET: string
   private readonly REFRESH_TOKEN_SECRET: string
@@ -57,8 +57,6 @@ export class TokenService {
   generateTokens(userId: string): { accessToken: string; refreshToken: string } {
     const refreshToken = this.signRefresh(userId)
     const accessToken = this.signAccess(userId)
-
-    console.log(refreshToken)
     // Refresh Token만 저장 (RTR을 위해)
     this.storeRefreshToken(refreshToken, userId)
 
@@ -108,7 +106,7 @@ export class TokenService {
   /**
    * Refresh Token 저장
    */
-  private storeRefreshToken(refreshToken: string, userId: string): void {
+  storeRefreshToken(refreshToken: string, userId: string): void {
     const decoded = this.jwtService.verify<{ sub: string; exp: number }>(refreshToken, {
       secret: this.REFRESH_TOKEN_SECRET,
     })
@@ -154,15 +152,16 @@ export class TokenService {
 
     // 새로운 토큰 쌍 생성
     const newTokens = this.generateTokens(storedToken.userId)
-    console.log(newTokens)
 
     // 새로운 Refresh Token 저장
     return newTokens
   }
 
-  private revokeAllRefreshTokensForUser(userId: string): void {
-    for (const [token, meta] of this.refreshTokenStore.entries()) {
-      if (meta.userId === userId) this.refreshTokenStore.delete(token)
+  revokeAllRefreshTokensForUser(userId: string): void {
+    for (const meta of this.refreshTokenStore.values()) {
+      if (meta.userId === userId) {
+        meta.isRevoked = true
+      }
     }
   }
 
@@ -197,7 +196,7 @@ export class TokenService {
   /**
    * expiresIn 문자열을 밀리초로 변환 (예: '15m' -> 900000)
    */
-  private parseExpiresIn(expiresIn: string): number {
+  parseExpiresIn(expiresIn: string): number {
     const match = expiresIn.match(/^(\d+)([smhd])$/)
     if (!match) return 60 * 60 * 1000 // 기본값 1시간
 

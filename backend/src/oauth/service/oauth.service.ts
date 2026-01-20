@@ -8,7 +8,7 @@ export class OauthService {
 
   private readonly oauthMap = new Map<string, User>()
 
-  private findOrCreateUser(p: OAuthProfile): User {
+  findOrCreateUser(p: OAuthProfile): User {
     const key = `${p.provider}-${p.providerId}`
 
     const existed = this.oauthMap.get(key)
