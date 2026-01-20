@@ -90,7 +90,7 @@ export function useBattleDiscussions() {
         hasVoted: data.votes.includes(user.id)
       });
 
-      soundManager.play('newVoteListing', 0.3);
+      soundManager.play('notificationPing', 0.3);
     };
 
     socket.on('battle:attack:voted', handleVoteUpdate);
