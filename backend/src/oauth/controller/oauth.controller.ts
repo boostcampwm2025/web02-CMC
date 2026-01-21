@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Res, UseGuards, HttpCode } from '@nestjs/common'
+import { Controller, Get, Post, Patch, Req, Res, UseGuards, HttpCode, Body } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
 import * as express from 'express'
@@ -6,6 +6,8 @@ import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
 import type { OAuthProfile } from '../types/oauth.types'
 import { JwtAuthGuard } from '../guard/jwt-auth.guard'
+import { UpdateNicknameDto } from '../dto/updateNickname.dto'
+import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 
 @Controller('auth')
 export class OauthController {
@@ -81,5 +83,13 @@ export class OauthController {
   getMe(@Req() req: express.Request) {
     const jwtUser = req.user as { id: string }
     return this.oauthService.findUserById(jwtUser.id)
+  }
+
+  @Patch('nickname')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  updateNickname(@Req() req: express.Request, @Body() dto: UpdateNicknameDto): OAuthUserResponseDto {
+    const jwtUser = req.user as { id: string }
+    return this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
   }
 }

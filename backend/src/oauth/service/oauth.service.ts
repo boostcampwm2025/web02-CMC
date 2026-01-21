@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { OAuthProfile, User } from '../types/oauth.types'
 import { TokenService } from './token.service'
+import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 
 @Injectable()
 export class OauthService {
@@ -20,7 +21,7 @@ export class OauthService {
       id: crypto.randomUUID(),
       provider: p.provider,
       providerId: p.providerId,
-      nickname: p.nickname,
+      nickname: 'anonymous',
       avatarUrl: p.avatarUrl,
     }
 
@@ -62,6 +63,11 @@ export class OauthService {
     return { accessToken, refreshToken: newRefreshToken }
   }
 
+  updateUserNickname(userId: string, nickname: string): OAuthUserResponseDto {
+    const user = this.findUserById(userId)
+    user.nickname = nickname
+    return OAuthUserResponseDto.of(user)
+  }
   /**
    * ID로 사용자 조회
    */
