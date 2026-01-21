@@ -26,7 +26,6 @@ export default function LoginPage() {
           <h1 className="text-white text-4xl lg:text-5xl xl:text-6xl font-extrabold">코문철</h1>
         </div>
         <p className="text-gray-400 text-sm lg:text-base text-center px-4">
-          {' '}
           두 가지 코드 중 당신의 선택은? 코드 리뷰 배틀을 시작해보세요!
         </p>
       </div>

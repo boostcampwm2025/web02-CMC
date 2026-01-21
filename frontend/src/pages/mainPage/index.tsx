@@ -4,7 +4,6 @@ import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './
 import { type BattleCardItem, type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
-import { useAuthStore } from '@/commons/stores/authStore';
 
 import { getOpenBattles, getClosedBattles } from './api/getBattleList';
 
@@ -16,14 +15,6 @@ export default function MainPage() {
 
   const [openTotal, setOpenTotal] = useState(0);
   const [closedTotal, setClosedTotal] = useState(0);
-  const getOAuthUser = useAuthStore((state) => state.getOAuthUser);
-
-  // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-  useEffect(() => {
-    getOAuthUser().catch(() => {
-      // 401 응답이면 비회원/비로그인 상태
-    });
-  }, [getOAuthUser]);
 
   useEffect(() => {
     const fetchBattles = async () => {

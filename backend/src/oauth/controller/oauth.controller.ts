@@ -23,7 +23,7 @@ export class OauthController {
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  @HttpCode(301)
+  @HttpCode(302)
   githubCallback(@Req() req: express.Request, @Res() res: express.Response) {
     const profile = req.user as OAuthProfile
     const { accessToken, refreshToken } = this.oauthService.loginWithGithub(profile)
@@ -32,7 +32,8 @@ export class OauthController {
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
     // 프론트엔드로 리다이렉트
-    res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
+    res.redirect(`${frontendUrl}/auth/callback`)
   }
 
   @Get('kakao')
