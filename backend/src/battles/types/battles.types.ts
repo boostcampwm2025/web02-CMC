@@ -135,5 +135,5 @@ export interface FinishedBattleState {
   metrics: Metrics
   voteTimeline: VoteTimeline[]
   timeline: TimelineItem[]
-  mvp: Mvp
+  mvps: Mvp[]
 }

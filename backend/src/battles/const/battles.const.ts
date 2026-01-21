@@ -67,3 +67,5 @@ export const BATTLE_CHAT_SCOPE = {
   ALL: 'ALL',
   TEAM: 'TEAM',
 } as const
+
+export const MVP_DISPLAY_COUNT = 3

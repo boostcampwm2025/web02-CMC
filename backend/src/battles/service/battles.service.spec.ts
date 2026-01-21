@@ -81,16 +81,18 @@ const createFinishedBattleState = (overrides: Partial<FinishedBattleState> = {})
       createdAt: '2025-12-15T10:06:00Z',
     },
   ],
-  mvp: {
-    userId: 'user-1',
-    nickname: 'CodeMaster',
-    team: 'A',
-    score: 2.5,
-    totalVotes: 25,
-    opinionCount: 2,
-    selectedOpinionCount: 1,
-    joinedAt: 1000,
-  },
+  mvps: [
+    {
+      userId: 'user-1',
+      nickname: 'CodeMaster',
+      team: 'A',
+      score: 2.5,
+      totalVotes: 25,
+      opinionCount: 2,
+      selectedOpinionCount: 1,
+      joinedAt: 1000,
+    },
+  ],
   ...overrides,
 })
 
@@ -686,7 +688,7 @@ describe('BattlesService', () => {
       expect(result).toHaveProperty('metrics')
       expect(result).toHaveProperty('voteTimeline')
       expect(result).toHaveProperty('timeline')
-      expect(result).toHaveProperty('mvp')
+      expect(result).toHaveProperty('mvps')
     })
 
     it('존재하지 않는 배틀 조회 시 NotFoundException을 던져야 함', () => {
@@ -714,9 +716,9 @@ describe('BattlesService', () => {
 
     it('MVP가 올바르게 계산되어야 함 (최다 upvotes)', () => {
       const result = service.getBattleResult('battle-1')
-      expect(result.mvp.nickname).toBe('CodeMaster')
-      expect(result.mvp.totalVotes).toBe(25)
-      expect(result.mvp.team).toBe('A')
+      expect(result.mvps[0].nickname).toBe('CodeMaster')
+      expect(result.mvps[0].totalVotes).toBe(25)
+      expect(result.mvps[0].team).toBe('A')
     })
 
     it('투표 추세가 누적값으로 반환되어야 함', () => {
@@ -892,7 +894,7 @@ describe('BattlesService', () => {
     })
   })
 
-  describe('calculateMVP (새로운 로직)', () => {
+  describe('calculateMVPs (새로운 로직)', () => {
     beforeEach(() => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       service.setBattlesForTest([battle])
@@ -953,14 +955,14 @@ describe('BattlesService', () => {
       })
 
       // 팀별 투표 참가자 수 설정 (A팀: 5명, B팀: 4명)
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // user-1: score = 3/5 + 2/5 = 1.0, totalVotes = 5
       // user-2: score = 4/4 = 1.0, totalVotes = 4
       // 점수 동점 → 좋아요 수 비교 → user-1이 5표로 MVP
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-1')
-      expect(mvp!.totalVotes).toBe(5)
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].totalVotes).toBe(5)
     })
 
     it('중립 팀 사용자는 MVP 후보에서 제외된다', () => {
@@ -995,11 +997,11 @@ describe('BattlesService', () => {
         team: BATTLE_TEAM.A,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // 중립 팀 제외, user-1이 MVP
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-1')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
     })
 
     it('동점일 때 승리 팀 소속이 우선이다', () => {
@@ -1030,14 +1032,14 @@ describe('BattlesService', () => {
       })
 
       // A팀이 승리한 경우
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp!.userId).toBe('user-1')
-      expect(mvp!.team).toBe('A')
+      const mvpsA = service['calculateMVPs'](state, 'A')
+      expect(mvpsA[0].userId).toBe('user-1')
+      expect(mvpsA[0].team).toBe('A')
 
       // B팀이 승리한 경우
-      const mvpB = service['calculateMVP'](state, 'B')
-      expect(mvpB!.userId).toBe('user-2')
-      expect(mvpB!.team).toBe('B')
+      const mvpsB = service['calculateMVPs'](state, 'B')
+      expect(mvpsB[0].userId).toBe('user-2')
+      expect(mvpsB[0].team).toBe('B')
     })
 
     it('선정된 의견 수가 많은 후보가 우선이다', () => {
@@ -1090,11 +1092,11 @@ describe('BattlesService', () => {
         team: BATTLE_TEAM.A,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // 동일 점수, 좋아요, 의견수, 팀 → 선정된 의견 수로 비교
-      expect(mvp!.userId).toBe('user-1')
-      expect(mvp!.selectedOpinionCount).toBe(2)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].selectedOpinionCount).toBe(2)
     })
 
     it('먼저 참여한 사용자가 우선이다', () => {
@@ -1124,17 +1126,17 @@ describe('BattlesService', () => {
         team: BATTLE_TEAM.A,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // 모든 조건 동일 → 먼저 참여한 user-1이 MVP (참가순서 0)
-      expect(mvp!.userId).toBe('user-1')
-      expect(mvp!.joinedAt).toBe(0) // participants Map 삽입 순서 기반
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].joinedAt).toBe(0) // participants Map 삽입 순서 기반
     })
 
-    it('의견이 없으면 null을 반환한다', () => {
+    it('의견이 없으면 빈 배열을 반환한다', () => {
       const state = service['activeBattles'].get('battle-1')!
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp).toBeNull()
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps).toEqual([])
     })
 
     it('투표 참가자가 0명이면 점수는 0이다', () => {
@@ -1153,9 +1155,9 @@ describe('BattlesService', () => {
         team: BATTLE_TEAM.A,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp).not.toBeNull()
-      expect(mvp!.score).toBe(0)
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].score).toBe(0)
     })
 
     it('페이즈별로 기록된 투표 참가자 수를 사용하여 점수를 계산한다', () => {
@@ -1204,15 +1206,15 @@ describe('BattlesService', () => {
         voterCountAtPhase: 4, // B팀 1차 페이즈에서 4명 참여
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // user-1 (A팀): score = (0.5 + 0.3) * 1.5 = 1.2, totalVotes = 5
       // user-2 (B팀): score = 1.0 (보너스 없음), totalVotes = 4
       // A팀 승리 시 user-1이 보너스를 받아 MVP
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-1')
-      expect(mvp!.score).toBeCloseTo(1.2)
-      expect(mvp!.totalVotes).toBe(5)
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].score).toBeCloseTo(1.2)
+      expect(mvps[0].totalVotes).toBe(5)
     })
 
     it('voterCountAtPhase가 없으면 점수 0으로 처리한다', () => {
@@ -1245,18 +1247,18 @@ describe('BattlesService', () => {
         voterCountAtPhase: 2,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
+      const mvps = service['calculateMVPs'](state, 'A')
 
       // user-1 (A팀): voterCountAtPhase 없음 → 점수 0 * 1.5 = 0, totalVotes = 10
       // user-3 (A팀): score = 1/2 * 1.5 = 0.75, totalVotes = 1
       // user-3이 점수가 높으므로 MVP
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-3')
-      expect(mvp!.score).toBeCloseTo(0.75)
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-3')
+      expect(mvps[0].score).toBeCloseTo(0.75)
     })
   })
 
-  describe('calculateMVP (승리 팀 1.5배 보너스)', () => {
+  describe('calculateMVPs (승리 팀 1.5배 보너스)', () => {
     beforeEach(() => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       service.setBattlesForTest([battle])
@@ -1306,10 +1308,10 @@ describe('BattlesService', () => {
       })
 
       // A팀 승리 시: user-a = 0.7 * 1.5 = 1.05, user-b = 1.0
-      const mvpWhenAWins = service['calculateMVP'](state, 'A')
-      expect(mvpWhenAWins).not.toBeNull()
-      expect(mvpWhenAWins!.userId).toBe('user-a')
-      expect(mvpWhenAWins!.score).toBeCloseTo(1.05)
+      const mvpsWhenAWins = service['calculateMVPs'](state, 'A')
+      expect(mvpsWhenAWins.length).toBeGreaterThan(0)
+      expect(mvpsWhenAWins[0].userId).toBe('user-a')
+      expect(mvpsWhenAWins[0].score).toBeCloseTo(1.05)
     })
 
     it('A팀 70표/100명 vs B팀 5표/5명: B팀 승리 시 B팀이 MVP가 된다', () => {
@@ -1345,10 +1347,10 @@ describe('BattlesService', () => {
       })
 
       // B팀 승리 시: user-a = 0.7, user-b = 1.0 * 1.5 = 1.5
-      const mvpWhenBWins = service['calculateMVP'](state, 'B')
-      expect(mvpWhenBWins).not.toBeNull()
-      expect(mvpWhenBWins!.userId).toBe('user-b')
-      expect(mvpWhenBWins!.score).toBeCloseTo(1.5)
+      const mvpsWhenBWins = service['calculateMVPs'](state, 'B')
+      expect(mvpsWhenBWins.length).toBeGreaterThan(0)
+      expect(mvpsWhenBWins[0].userId).toBe('user-b')
+      expect(mvpsWhenBWins[0].score).toBeCloseTo(1.5)
     })
 
     it('무승부 시 보너스 없이 순수 점수로 비교한다', () => {
@@ -1384,10 +1386,10 @@ describe('BattlesService', () => {
       })
 
       // 무승부: user-a = 0.7, user-b = 1.0 → user-b가 MVP
-      const mvpWhenDraw = service['calculateMVP'](state, 'DRAW')
-      expect(mvpWhenDraw).not.toBeNull()
-      expect(mvpWhenDraw!.userId).toBe('user-b')
-      expect(mvpWhenDraw!.score).toBeCloseTo(1.0)
+      const mvpsWhenDraw = service['calculateMVPs'](state, 'DRAW')
+      expect(mvpsWhenDraw.length).toBeGreaterThan(0)
+      expect(mvpsWhenDraw[0].userId).toBe('user-b')
+      expect(mvpsWhenDraw[0].score).toBeCloseTo(1.0)
     })
 
     it('동일 점수 + 동일 보너스 시 totalVotes로 비교한다', () => {
@@ -1427,11 +1429,11 @@ describe('BattlesService', () => {
         voterCountAtPhase: 20,
       })
 
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp).not.toBeNull()
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
       // 점수 동점 → totalVotes로 비교 → user-a가 50표로 MVP
-      expect(mvp!.userId).toBe('user-a')
-      expect(mvp!.totalVotes).toBe(50)
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].totalVotes).toBe(50)
     })
 
     it('여러 의견이 있을 때 누적 점수에 보너스가 적용된다', () => {
@@ -1480,11 +1482,11 @@ describe('BattlesService', () => {
       })
 
       // A팀 승리: user-a = 0.6 * 1.5 = 0.9, user-b = 0.5
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-a')
-      expect(mvp!.score).toBeCloseTo(0.9)
-      expect(mvp!.opinionCount).toBe(2)
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].score).toBeCloseTo(0.9)
+      expect(mvps[0].opinionCount).toBe(2)
     })
 
     it('소수 인원으로 참여한 팀이 불리하지 않도록 보너스가 적용된다', () => {
@@ -1520,10 +1522,10 @@ describe('BattlesService', () => {
       })
 
       // A팀 승리: user-a = 0.8 * 1.5 = 1.2 > user-b = 1.0
-      const mvp = service['calculateMVP'](state, 'A')
-      expect(mvp).not.toBeNull()
-      expect(mvp!.userId).toBe('user-a')
-      expect(mvp!.score).toBeCloseTo(1.2)
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].score).toBeCloseTo(1.2)
     })
   })
 })

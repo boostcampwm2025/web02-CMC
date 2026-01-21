@@ -34,6 +34,7 @@ import {
   BATTLE_TYPE,
   BATTLE_DISCUSSION_TYPE,
   BATTLE_MAX_PHASE_COUNT,
+  MVP_DISPLAY_COUNT,
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
@@ -155,7 +156,7 @@ export class BattlesService extends EventEmitter {
     }
 
     // 3. 저장된 MVP 반환 (배틀 종료 시 계산됨)
-    return BattleResultResponseDto.fromEntity(battle, battle.mvp)
+    return BattleResultResponseDto.fromEntity(battle)
   }
 
   joinBattleInfo(battleId: string): BattleJoinInfoResponseDto {
@@ -207,7 +208,7 @@ export class BattlesService extends EventEmitter {
     this.battles = battles
   }
 
-  private calculateMVP(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp | null {
+  private calculateMVPs(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
     // 모든 의견 수집 (teamA + teamB의 attacks + defenses)
     const allOpinions: BattleDiscussion[] = [
       ...state.teamA.attacks.filter((d): d is BattleDiscussion => d !== null),
@@ -216,7 +217,7 @@ export class BattlesService extends EventEmitter {
       ...state.teamB.defenses.filter((d): d is BattleDiscussion => d !== null),
     ]
 
-    if (allOpinions.length === 0) return null
+    if (allOpinions.length === 0) return []
 
     // 사용자별 MVP 후보 데이터 집계
     const candidateMap = new Map<string, Mvp>()
@@ -258,18 +259,18 @@ export class BattlesService extends EventEmitter {
       }
     })
 
-    if (candidateMap.size === 0) return null
+    if (candidateMap.size === 0) return []
 
     // 승리 팀 보너스 적용 (1.5배)
     candidateMap.forEach(candidate => {
       candidate.score = applyWinnerBonus(candidate.score, candidate.team, winner)
     })
 
-    // 후보자 정렬 및 MVP 선정
+    // 후보자 정렬 및 상위 MVP_DISPLAY_COUNT명 반환
     const candidates = [...candidateMap.values()]
     candidates.sort((a, b) => compareMvpCandidates(a, b, winner))
 
-    return candidates[0]
+    return candidates.slice(0, MVP_DISPLAY_COUNT)
   }
 
   private getParticipantJoinedAt(battleId: string, oderId: string): number {
@@ -644,7 +645,7 @@ export class BattlesService extends EventEmitter {
     ]
 
     const timeline = this.buildTimeline(state)
-    const calculatedMvp = this.calculateMVP(state, result.winner)
+    const calculatedMvps = this.calculateMVPs(state, result.winner)
 
     const metrics: Metrics = {
       totalParticipants,
@@ -671,7 +672,7 @@ export class BattlesService extends EventEmitter {
       metrics,
       voteTimeline,
       timeline,
-      mvp: calculatedMvp || createMvpCandidate(),
+      mvps: calculatedMvps,
     }
   }
 
