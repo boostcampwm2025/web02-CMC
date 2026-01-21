@@ -1,7 +1,7 @@
 import { FinishedBattleState } from '../types/battles.types'
-import type { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '@cmc/types'
+import type { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp, BattleResultResponse } from '@cmc/types'
 
-export class BattleResultResponseDto {
+export class BattleResultResponseDto implements BattleResultResponse {
   battleId: string
   authorId: string
   title: string

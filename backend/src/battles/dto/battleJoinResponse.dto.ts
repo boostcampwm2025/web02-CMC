@@ -1,5 +1,5 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '@cmc/types'
+import type { BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName, BattleJoinInfoResponse } from '@cmc/types'
 import type { ActiveBattleState, Battle } from '../types/battles.types'
 
 export class BattleJoinResponseDto {
@@ -65,7 +65,7 @@ export class BattleJoinResponseDto {
   }
 }
 
-export class BattleJoinInfoResponseDto {
+export class BattleJoinInfoResponseDto implements BattleJoinInfoResponse {
   title: string
   description: string
   aCode: string
