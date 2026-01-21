@@ -3,16 +3,17 @@ import type {
   BattlePhaseName,
   BattleTeam,
   BattleChat as BaseBattleChat,
-  BattleDiscussion as BaseBattleDiscussion,
+  BattleDiscussion,
   BattleDefense as BaseBattleDefense,
-  BattleChatScope
+  BattleChatScope,
+  TeamCounts,
+  TeamChange
 } from '@cmc/types';
 
 // FE 전용 타입 정의 (기존 이름 유지를 위한 별칭)
 export type BattlePhase = BattlePhaseName;
 export type Team = BattleTeam;
 
-// FE에서 확장한 BattleChat (추가 필드 포함)
 export interface BattleChat extends BaseBattleChat {
   battleId: string;
   scope: BattleChatScope;
@@ -20,10 +21,6 @@ export interface BattleChat extends BaseBattleChat {
   votes?: number;
 }
 
-// FE 전용 BattleDiscussion (기본 타입 사용)
-export type BattleDiscussion = BaseBattleDiscussion;
-
-// FE에서 확장한 BattleDefense (attackId 추가)
 export interface BattleDefense extends BaseBattleDefense {
   attackId: string;
 }
@@ -45,18 +42,6 @@ export interface BattleInfo {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
   };
-}
-
-export interface TeamCounts {
-  teamA: number;
-  teamB: number;
-  teamNone: number;
-}
-
-export interface TeamChange {
-  clientId: string;
-  from: Team;
-  to: Team;
 }
 
 // BattleJoinResponseDto 타입

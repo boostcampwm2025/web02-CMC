@@ -23,4 +23,6 @@ export type {
   Mvp,
   Metrics,
   VoteTimeline,
+  TeamCounts,
+  TeamChange,
 } from './interfaces.types';

@@ -1,4 +1,6 @@
-export type Team = 'A' | 'B' | 'NONE';
+import type { BattleTeam } from '@cmc/types';
+
+export type Team = BattleTeam;
 
 export interface TeamColors {
   primary: string;

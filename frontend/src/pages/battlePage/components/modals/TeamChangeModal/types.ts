@@ -1,4 +1,5 @@
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 
 /**
  * 단일 타임라인 메시지 컴포넌트 Props

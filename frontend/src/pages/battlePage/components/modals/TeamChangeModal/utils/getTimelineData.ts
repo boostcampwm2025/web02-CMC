@@ -1,4 +1,5 @@
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 
 /**
  * 한 라운드의 타임라인 데이터 구조

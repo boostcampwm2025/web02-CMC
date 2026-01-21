@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowRight } from 'lucide-react';
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 import PhaseHeader from './PhaseHeader';
 import MessageCard from './MessageCard';
 

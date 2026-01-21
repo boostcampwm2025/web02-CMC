@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, ThumbsUp, Zap, Shield, Flame, ArrowRight, Clock } from 'lucide-react';
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 
 interface Step3TimelineProps {
   timelines: Array<BattleDiscussion | BattleDefense>;

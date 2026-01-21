@@ -1,4 +1,5 @@
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 
 interface MessageCardProps {
   message: BattleDiscussion | BattleDefense | null;

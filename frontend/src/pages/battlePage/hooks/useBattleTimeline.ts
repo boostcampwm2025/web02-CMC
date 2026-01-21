@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
+import type { BattleDiscussion } from '@cmc/types';
 import type {
   BattleAttackedResult,
   BattleDefensedResult,
-  BattleDiscussion,
   BattleDefense,
   BattleChat,
+  DiscussionVoteResultItem,
   Team
 } from '@/commons/types/battle';
 import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
@@ -21,70 +22,82 @@ export function useBattleTimeline() {
     const pushTimelineAndChat = (
       battleId: string,
       team: Team,
-      entry: {
-        id: string | null;
-        text: string | null;
-        ownerId: string | null;
-        nickname: string | null;
-        count: number | null;
-      },
+      voteResult: DiscussionVoteResultItem,
       type: 'attack' | 'defense'
     ) => {
-      if (!entry.id || !entry.text || !team) return;
-
-      const discussion: BattleDiscussion | BattleDefense = {
-        discussionId: entry.id,
-        author: { id: entry.ownerId, nickname: entry.nickname },
-        content: entry.text,
-        upvotes: entry.count ?? 0,
-        votes: [],
-        status: 'SELECTED',
-        type: type === 'attack' ? 'ATTACK' : 'DEFENSE',
-        team: team as 'A' | 'B',
-        ...(type === 'defense' ? { attackId: '' } : {})
-      } as BattleDiscussion | BattleDefense;
+      if (!voteResult.id || !voteResult.text || !team) return;
 
       if (type === 'attack') {
-        useBattleStore.getState().addAttackTimeline(discussion as BattleDiscussion);
+        const discussion: BattleDiscussion = {
+          discussionId: voteResult.id,
+          author: { authorId: voteResult.ownerId || '', nickname: voteResult.nickname || '' },
+          content: voteResult.text,
+          upvotes: voteResult.count ?? 0,
+          votes: [],
+          status: 'SELECTED',
+          type: 'ATTACK',
+          team: team as 'A' | 'B'
+        };
+        useBattleStore.getState().addAttackTimeline(discussion);
       } else {
-        useBattleStore.getState().addDefenseTimeline(discussion as BattleDefense);
+        const defense: BattleDefense = {
+          discussionId: voteResult.id,
+          author: { authorId: voteResult.ownerId || '', nickname: voteResult.nickname || '' },
+          content: voteResult.text,
+          upvotes: voteResult.count ?? 0,
+          votes: [],
+          status: 'SELECTED',
+          type: 'DEFENSE',
+          team: team as 'A' | 'B',
+          attackId: ''
+        };
+        useBattleStore.getState().addDefenseTimeline(defense);
       }
 
       const chatMessage: BattleChat = {
         battleId,
         scope: 'ALL',
-        messageId: `${type}-${entry.id}`,
+        messageId: `${type}-${voteResult.id}`,
         sender: {
-          userId: entry?.ownerId || '',
-          nickname: entry.nickname || 'SYSTEM'
+          userId: voteResult?.ownerId || '',
+          nickname: voteResult.nickname || 'SYSTEM'
         },
         team,
-        text: entry.text,
+        text: voteResult.text,
         createdAt: new Date(),
         type,
-        votes: entry.count ?? 0
+        votes: voteResult.count ?? 0
       };
       useBattleStore.getState().addChat(chatMessage);
     };
 
     const pushNullPlaceholder = (team: 'A' | 'B', type: 'attack' | 'defense') => {
       // null인 경우 placeholder 데이터 추가
-      const placeholder: BattleDiscussion | BattleDefense = {
-        discussionId: `null-${team}-${type}-${Date.now()}`,
-        author: { id: '', nickname: '' },
-        content: '투표로 선정된 의견이 없습니다',
-        upvotes: 0,
-        votes: [],
-        status: 'REJECTED',
-        type: type === 'attack' ? 'ATTACK' : 'DEFENSE',
-        team: team,
-        ...(type === 'defense' ? { attackId: '' } : {})
-      } as BattleDiscussion | BattleDefense;
-
       if (type === 'attack') {
-        useBattleStore.getState().addAttackTimeline(placeholder as BattleDiscussion);
+        const placeholder: BattleDiscussion = {
+          discussionId: `null-${team}-${type}-${Date.now()}`,
+          author: { authorId: '', nickname: '' },
+          content: '투표로 선정된 의견이 없습니다',
+          upvotes: 0,
+          votes: [],
+          status: 'REJECTED',
+          type: 'ATTACK',
+          team: team
+        };
+        useBattleStore.getState().addAttackTimeline(placeholder);
       } else {
-        useBattleStore.getState().addDefenseTimeline(placeholder as BattleDefense);
+        const placeholder: BattleDefense = {
+          discussionId: `null-${team}-${type}-${Date.now()}`,
+          author: { authorId: '', nickname: '' },
+          content: '투표로 선정된 의견이 없습니다',
+          upvotes: 0,
+          votes: [],
+          status: 'REJECTED',
+          type: 'DEFENSE',
+          team: team,
+          attackId: ''
+        };
+        useBattleStore.getState().addDefenseTimeline(placeholder);
       }
     };
 

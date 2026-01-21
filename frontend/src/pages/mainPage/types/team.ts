@@ -1,5 +1,3 @@
-export type BattleTeam = 'A' | 'B' | 'DRAW';
-
 export const TEAM_STYLE = {
   A: {
     label: 'A 승리',

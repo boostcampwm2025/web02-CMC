@@ -1,20 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { BattleType, BattleLanguage, BattlePlayTimeName } from '@cmc/types';
 import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 
-type BattleType = 'PUBLIC' | 'PRIVATE';
-type BattleLanguage = 'javascript' | 'typescript' | 'python';
-type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
-
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'TypeScript', value: 'typescript' },
-  { label: 'Python', value: 'python' }
+  { label: 'JavaScript', value: 'JS' },
+  { label: 'TypeScript', value: 'TS' },
+  { label: 'Python', value: 'PYTHON' }
 ];
 
-const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: number }> = [
+const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTimeName; rounds: number }> = [
   { label: '15분', value: 'FIFTEEN_MIN', rounds: 1 },
   { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
@@ -36,14 +33,18 @@ export default function BattleCreatePage() {
     []
   );
 
+  const isBattlePlayTimeName = (value: string): value is BattlePlayTimeName => {
+    return PLAYTIME_OPTIONS.some((opt) => opt.value === value);
+  };
+
   const [authorId] = useState('user-1');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [aCode, setACode] = useState('');
   const [bCode, setBCode] = useState('');
-  const [language, setLanguage] = useState<BattleLanguage>('javascript');
+  const [language, setLanguage] = useState<BattleLanguage>('JS');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
-  const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
+  const [playTime, setPlayTime] = useState<BattlePlayTimeName>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PUBLIC');
   const [password, setPassword] = useState('');
@@ -212,7 +213,12 @@ export default function BattleCreatePage() {
                   <label className="text-sm text-gray-300">배틀 시간</label>
                   <select
                     value={playTime}
-                    onChange={(e) => setPlayTime(e.target.value as BattlePlayTime)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (isBattlePlayTimeName(value)) {
+                        setPlayTime(value);
+                      }
+                    }}
                     className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   >
                     {PLAYTIME_OPTIONS.map((o) => (

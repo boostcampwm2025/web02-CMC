@@ -2,13 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Step3Timeline from '../Step3Timeline';
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 
 describe('Step3Timeline', () => {
   const mockAttackA: BattleDiscussion = {
     discussionId: '1',
     author: {
-      id: 'user-alice',
+      authorId: 'user-alice',
       nickname: 'alice'
     },
     content: '구현 A의 Set 사용이 더 효율적입니다.',
@@ -23,7 +24,7 @@ describe('Step3Timeline', () => {
   const mockAttackB: BattleDiscussion = {
     discussionId: '2',
     author: {
-      id: 'user-bob',
+      authorId: 'user-bob',
       nickname: 'bob'
     },
     content: '구현 B의 Map 사용이 더 효율적입니다.',
@@ -38,7 +39,7 @@ describe('Step3Timeline', () => {
   const mockDefenseA: BattleDefense = {
     discussionId: '3',
     author: {
-      id: 'user-charlie',
+      authorId: 'user-charlie',
       nickname: 'charlie'
     },
     content: 'Map은 메모리를 더 많이 사용합니다.',
@@ -54,7 +55,7 @@ describe('Step3Timeline', () => {
   const mockDefenseB: BattleDefense = {
     discussionId: '4',
     author: {
-      id: 'user-david',
+      authorId: 'user-david',
       nickname: 'david'
     },
     content: 'Set은 순서를 보장하지 않습니다.',

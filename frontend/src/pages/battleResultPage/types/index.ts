@@ -1,66 +1,22 @@
-import type { Team } from '@/commons/types/battle';
-
-export interface VoteResult {
-  votes: number;
-  percentage: number;
-}
-
-export interface BattleResult {
-  winner: Exclude<Team, 'NONE'> | 'DRAW';
-  teamA: VoteResult;
-  teamB: VoteResult;
-  neutral: VoteResult;
-}
-
-export interface Metrics {
-  totalParticipants: number;
-  totalViews: number;
-  strategiesCount: number;
-}
-
-export interface VoteTimelineItem {
-  turn: number;
-  teamAVotes: number;
-  teamBVotes: number;
-  neutralVotes: number;
-  timestamp: string;
-}
-
-export interface TimelineAuthor {
-  id: string;
-  nickname: string;
-}
-
-export type DiscussionType = 'ATTACK' | 'DEFENSE';
-
-export interface TimelineItem {
-  id: string;
-  type: DiscussionType;
-  author: TimelineAuthor;
-  team: Exclude<Team, 'NONE'>;
-  content: string;
-  turn: number;
-  upvotes: number;
-  createdAt: string;
-}
+import type { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '@cmc/types';
 
 export interface BattleResultApiResponse {
   battleId: string;
-  author: string;
+  authorId: string;
   title: string;
   description: string;
   codeA: string;
   codeB: string;
   language: string;
-  type: string;
   status: 'CLOSED';
   category: string;
-  playTime: string;
+  playTime: number;
   createdAt: string;
   finishedAt: string;
   result: BattleResult;
   metrics: Metrics;
-  voteTimeline: VoteTimelineItem[];
+  voteTimeline: VoteTimeline[];
   timeline: TimelineItem[];
   topics: string[];
+  mvp: Mvp;
 }

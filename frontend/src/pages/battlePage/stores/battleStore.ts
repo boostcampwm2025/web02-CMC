@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
-import type { BattleProgressState, BattleDiscussion, BattleDefense, BattleChat } from '@/commons/types/battle';
+import type { BattleDiscussion } from '@cmc/types';
+import type { BattleProgressState, BattleDefense, BattleChat } from '@/commons/types/battle';
 
 interface BattleStore {
   userId: string;

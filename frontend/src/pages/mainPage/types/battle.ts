@@ -1,6 +1,6 @@
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
+import type { BattleStatus, BattleResult } from '@cmc/types';
 
-export type BattleStatus = 'OPEN' | 'CLOSED' | 'PENDING';
+export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
@@ -72,18 +72,6 @@ export interface BattleCardItem {
   // 추가 필드 (카드 표시용)
   category: BattleCategory;
   timeLabel: string;
-}
-
-export interface VoteResult {
-  votes: number;
-  percentage: number;
-}
-
-export interface BattleResult {
-  winner: 'A' | 'B' | 'DRAW';
-  teamA: VoteResult;
-  teamB: VoteResult;
-  neutral: VoteResult;
 }
 
 export interface ClosedBattleItem {

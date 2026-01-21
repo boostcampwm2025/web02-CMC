@@ -1,17 +1,8 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '@cmc/types'
-
-export interface TeamCounts {
-  teamA: number
-  teamB: number
-  teamNone: number
-}
-
-export interface TeamChange {
-  userId: string
-  from: BattleTeam
-  to: BattleTeam
-}
+import type { BattleTeam, TeamCounts, TeamChange } from '@cmc/types'
 
 export class BattleTeamUpdateAllResponseDto {
   battleId: string

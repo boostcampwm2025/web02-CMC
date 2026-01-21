@@ -106,3 +106,21 @@ export interface VoteTimeline {
   neutralVotes: number;
   timestamp: string;
 }
+
+/**
+ * 팀별 인원 수
+ */
+export interface TeamCounts {
+  teamA: number;
+  teamB: number;
+  teamNone: number;
+}
+
+/**
+ * 팀 변경 정보
+ */
+export interface TeamChange {
+  userId: string;
+  from: BattleTeam;
+  to: BattleTeam;
+}
