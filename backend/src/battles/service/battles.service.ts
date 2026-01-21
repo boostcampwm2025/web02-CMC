@@ -867,6 +867,7 @@ export class BattlesService extends EventEmitter {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
+        this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
       }
     })
@@ -874,6 +875,7 @@ export class BattlesService extends EventEmitter {
     // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
     return updatedDiscussions
@@ -912,6 +914,7 @@ export class BattlesService extends EventEmitter {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
+        this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
       }
     })
@@ -919,6 +922,7 @@ export class BattlesService extends EventEmitter {
     // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
     return updatedDiscussions
@@ -1065,6 +1069,13 @@ export class BattlesService extends EventEmitter {
       ...discussion,
       votes: discussion.votes.filter(id => id !== userId),
       upvotes: discussion.upvotes - 1,
+    }
+  }
+
+  private syncOpinionHistory(battleState: ActiveBattleState, discussionId: string, updated: BattleDiscussion): void {
+    const idx = battleState.opinionHistory.findIndex(o => o.discussionId === discussionId)
+    if (idx !== -1) {
+      battleState.opinionHistory[idx] = updated
     }
   }
 
