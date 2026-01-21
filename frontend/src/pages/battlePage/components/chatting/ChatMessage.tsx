@@ -1,5 +1,5 @@
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
-import { useAuthStore, selectUser } from '../../stores/authStore';
+import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 
 interface ChatMessageProps {
   user: string;

@@ -86,11 +86,9 @@ export class TokenService {
       httpOnly: true,
       secure: isSecure,
       sameSite: 'lax',
-      path: '/auth',
+      path: '/api/auth',
       maxAge: this.parseExpiresIn(this.REFRESH_TOKEN_EXPIRES_IN),
     })
-
-    res.cookie('isLoggedIn', true, { httpOnly: false })
   }
 
   /**
@@ -186,11 +184,8 @@ export class TokenService {
       httpOnly: true,
       secure: isSecure,
       sameSite: 'lax',
-      path: '/auth',
+      path: '/api/auth',
     })
-
-    // 프론트 UI용
-    res.clearCookie('isLoggedIn', { path: '/' })
   }
 
   /**

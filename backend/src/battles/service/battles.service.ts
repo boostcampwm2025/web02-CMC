@@ -173,7 +173,7 @@ export class BattlesService extends EventEmitter {
   }
 
   joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
-    const { battleId, password, team } = battleJoinRequestDto
+    const { battleId, password, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
@@ -195,9 +195,9 @@ export class BattlesService extends EventEmitter {
       return { battleState, team }
     }
 
-    // Guest 등록 확인
-    if (!battleState.guestInfoMap.has(userId)) {
-      throw new BadRequestException('Guest 등록이 필요합니다. 먼저 닉네임을 등록해주세요.')
+    // nickname으로 userInfoMap에 등록 (OAuth/비회원 모두)
+    if (!battleState.userInfoMap.has(userId)) {
+      battleState.userInfoMap.set(userId, nickname)
     }
 
     this.addParticipant(battleId, userId, team)
@@ -324,7 +324,7 @@ export class BattlesService extends EventEmitter {
       participants: new Map(),
       teamVotes: new Map(),
 
-      guestInfoMap: new Map(),
+      userInfoMap: new Map(),
 
       opinionHistory: [],
 
@@ -736,21 +736,21 @@ export class BattlesService extends EventEmitter {
   // Guest 등록
   registerGuest(battleId: string, guest: GuestAccount): void {
     const battleState = this.getBattleState(battleId)
-    battleState.guestInfoMap.set(guest.id, guest.nickname)
+    battleState.userInfoMap.set(guest.id, guest.nickname)
   }
 
   // userId로 닉네임 조회
   getNicknameByUserId(battleId: string, userId: string): string | null {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) return null
-    return battleState.guestInfoMap.get(userId) || null
+    return battleState.userInfoMap.get(userId) || null
   }
 
   // 배틀 방 내 닉네임 중복 체크
   isNicknameDuplicate(battleId: string, nickname: string): boolean {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) return false
-    return Array.from(battleState.guestInfoMap.values()).some(existingNickname => existingNickname === nickname)
+    return Array.from(battleState.userInfoMap.values()).some(existingNickname => existingNickname === nickname)
   }
 
   handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {

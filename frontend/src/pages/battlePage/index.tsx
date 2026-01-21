@@ -28,7 +28,7 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
-import { selectUser, useAuthStore } from './stores/authStore';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
