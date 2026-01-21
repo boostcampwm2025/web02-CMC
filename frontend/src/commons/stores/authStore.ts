@@ -56,20 +56,26 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         return currentUser;
       }
 
-      const oauthUser = await getOAuthUser();
+      try {
+        const oauthUser = await getOAuthUser();
 
-      // store에 저장
-      set({ user: oauthUser });
+        // store에 저장
+        set({ user: oauthUser });
 
-      localStorage.setItem(
-        AUTH_KEY,
-        JSON.stringify({
-          id: oauthUser.id,
-          nickname: oauthUser.nickname
-        })
-      );
+        localStorage.setItem(
+          AUTH_KEY,
+          JSON.stringify({
+            id: oauthUser.id,
+            nickname: oauthUser.nickname
+          })
+        );
 
-      return oauthUser;
+        return oauthUser;
+      } catch (error) {
+        // OAuth 인증 실패 시 (refresh token도 없거나 만료된 경우) 인증 상태 정리
+        get().clearAuth();
+        throw error;
+      }
     },
 
     logout: async () => {

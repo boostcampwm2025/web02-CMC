@@ -437,7 +437,7 @@ describe('TokenService', () => {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
-        path: '/auth',
+        path: '/api/auth',
       })
     })
   })
