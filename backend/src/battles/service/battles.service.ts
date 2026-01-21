@@ -1071,6 +1071,16 @@ export class BattlesService extends EventEmitter {
   private resetDiscussions(battleId: string) {
     const battleState = this.getBattleState(battleId)
 
+    // MVP 계산을 위해 모든 의견을 all에 누적 저장 (이미 all에 있는 의견 제외)
+    const existingAttackIds = new Set(battleState.all.attacks.map(a => a?.discussionId))
+    const existingDefenseIds = new Set(battleState.all.defenses.map(d => d?.discussionId))
+
+    const newAttacks = [...battleState.teamA.attacks, ...battleState.teamB.attacks].filter(a => a && !existingAttackIds.has(a.discussionId))
+    const newDefenses = [...battleState.teamA.defenses, ...battleState.teamB.defenses].filter(d => d && !existingDefenseIds.has(d.discussionId))
+
+    battleState.all.attacks.push(...newAttacks)
+    battleState.all.defenses.push(...newDefenses)
+
     battleState.teamA.attacks = []
     battleState.teamB.attacks = []
     battleState.teamA.defenses = []

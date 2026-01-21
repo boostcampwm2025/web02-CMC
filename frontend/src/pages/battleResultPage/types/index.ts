@@ -44,6 +44,17 @@ export interface TimelineItem {
   createdAt: string;
 }
 
+export interface Mvp {
+  userId: string;
+  nickname: string;
+  team: Exclude<Team, 'NONE'>;
+  score: number;
+  totalVotes: number;
+  opinionCount: number;
+  selectedOpinionCount: number;
+  joinedAt: number;
+}
+
 export interface BattleResultApiResponse {
   battleId: string;
   author: string;
@@ -63,4 +74,5 @@ export interface BattleResultApiResponse {
   voteTimeline: VoteTimelineItem[];
   timeline: TimelineItem[];
   topics: string[];
+  mvp: Mvp | null;
 }
