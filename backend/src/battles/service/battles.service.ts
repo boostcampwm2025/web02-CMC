@@ -41,6 +41,7 @@ import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 import { GuestAccount } from '../types/auth.types'
+import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -202,6 +203,20 @@ export class BattlesService extends EventEmitter {
     this.addParticipant(battleId, userId, team)
 
     return { battleState, team }
+  }
+
+  leaveBattle(userId: string, battleId: string): BattleLeaveResponseDto {
+    if (!userId || !battleId) throw new BadRequestException('유효하지 않은 요청입니다.')
+
+    const battleState = this.getBattleState(battleId)
+    battleState.teamA.users = battleState.teamA.users.filter(id => id !== userId)
+    battleState.teamB.users = battleState.teamB.users.filter(id => id !== userId)
+
+    // battleState.guestInfoMap.delete(userId)
+    battleState.teamVotes.delete(userId)
+    battleState.participants.delete(userId)
+
+    return BattleLeaveResponseDto.of(battleState)
   }
 
   setBattlesForTest(battles: Battle[]) {

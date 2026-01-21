@@ -33,6 +33,7 @@ export default function BattlePage() {
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
+  const leaveBattle = useBattleStore((s) => s.leaveBattle);
 
   useEffect(() => {
     if (!user) {
@@ -95,6 +96,13 @@ export default function BattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
+  const handleLeaveBattle = () => {
+    if (!user) return;
+    // TODO 추후에 서버에서 Disconnect 관리
+    navigate('/');
+    leaveBattle();
+  };
+
   return (
     <div className="text-white relative min-h-screen">
       {/* 책갈피 버튼 */}
@@ -125,6 +133,14 @@ export default function BattlePage() {
         <div
           className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-[10px]`}
         >
+          <div className="flex items-center justify-between mt-10 mb-8">
+            <button
+              onClick={handleLeaveBattle}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
+            >
+              ← 돌아가기
+            </button>
+          </div>
           <BattleHeader />
         </div>
         <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
