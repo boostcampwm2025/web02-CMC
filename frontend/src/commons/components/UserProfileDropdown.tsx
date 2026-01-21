@@ -34,9 +34,14 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   }, [isOpen]);
 
   const handleLogout = async () => {
-    await logout();
-    setIsOpen(false);
-    navigate('/');
+    try {
+      await logout();
+      // 로그아웃 성공했을 때만 드롭다운 닫고 홈으로 이동
+      setIsOpen(false);
+      navigate('/');
+    } catch (error) {
+      console.error('로그아웃 실패:', error);
+    }
   };
 
   return (

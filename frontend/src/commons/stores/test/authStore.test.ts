@@ -162,7 +162,7 @@ describe('authStore', () => {
       expect(localStorage.getItem('CMC_BATTLE_USER')).toBeNull();
     });
 
-    it('로그아웃 API 실패 시에도 clearAuth를 호출한다', async () => {
+    it('로그아웃 API 실패 시에는 에러를 던진다', async () => {
       const mockOAuthUser = {
         id: 'oauth-123',
         nickname: 'OAuth유저',
@@ -174,10 +174,12 @@ describe('authStore', () => {
       vi.mocked(logoutApi).mockRejectedValue(new Error('로그아웃 실패'));
 
       await useAuthStore.getState().getOAuthUser();
-      await useAuthStore.getState().logout();
 
-      expect(useAuthStore.getState().user).toBeNull();
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBeNull();
+      await expect(useAuthStore.getState().logout()).rejects.toThrow('로그아웃 실패');
+
+      // 로그아웃 실패 시에는 clearAuth가 호출되지 않아야 함
+      expect(useAuthStore.getState().user).toEqual(mockOAuthUser);
+      expect(localStorage.getItem('CMC_BATTLE_USER')).not.toBeNull();
     });
   });
 

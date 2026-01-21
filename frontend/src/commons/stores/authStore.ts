@@ -83,9 +83,8 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           await logoutApi();
         }
         get().clearAuth();
-      } catch (e) {
-        get().clearAuth();
-        console.error('로그아웃 실패:', e);
+      } catch {
+        throw new Error('로그아웃 실패');
       }
     },
 
