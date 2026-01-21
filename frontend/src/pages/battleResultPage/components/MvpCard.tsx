@@ -110,7 +110,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
                       className="flex items-center justify-between bg-black/10 rounded-lg px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <Medal className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-amber-600'}`} />
+                        <Medal className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-amber-900'}`} />
                         <span className="text-white/80 text-sm">{index + 2}등</span>
                         <span className="text-white font-medium">{runner.nickname}</span>
                       </div>
