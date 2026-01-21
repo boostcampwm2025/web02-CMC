@@ -42,7 +42,7 @@ export class OauthController {
 
   @Get('kakao/callback')
   @UseGuards(AuthGuard('kakao'))
-  @HttpCode(301)
+  @HttpCode(302)
   kakaoCallback(@Req() req: express.Request, @Res() res: express.Response) {
     const profile = req.user as OAuthProfile
     const { accessToken, refreshToken } = this.oauthService.loginWithKakao(profile)
