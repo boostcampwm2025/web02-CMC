@@ -209,8 +209,8 @@ export class BattlesService extends EventEmitter {
     if (!userId || !battleId) throw new BadRequestException('유효하지 않은 요청입니다.')
 
     const battleState = this.getBattleState(battleId)
-    battleState.teamA.users = [...battleState.teamA.users.filter(id => id !== userId)]
-    battleState.teamB.users = [...battleState.teamB.users.filter(id => id !== userId)]
+    battleState.teamA.users = battleState.teamA.users.filter(id => id !== userId)
+    battleState.teamB.users = battleState.teamB.users.filter(id => id !== userId)
 
     // battleState.guestInfoMap.delete(userId)
     battleState.teamVotes.delete(userId)
