@@ -30,6 +30,8 @@ export function useBattleDiscussions() {
       const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
       const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
 
+      soundManager.play('click2', 0.3);
+
       socket.emit(eventName, {
         battleId,
         discussionId: String(discussionId),

@@ -62,6 +62,7 @@ export default function BattlePage() {
     soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
     soundManager.preload('fanfare', '/sounds/fanfare.mp3');
     soundManager.preload('click', '/sounds/click.mp3');
+    soundManager.preload('click2', '/sounds/click2.mp3');
   }, []);
 
   useEffect(() => {
