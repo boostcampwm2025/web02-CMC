@@ -1,4 +1,6 @@
-export class BattleClosedResponseDto {
+import type { BattleClosedResponse } from '@cmc/types'
+
+export class BattleClosedResponseDto implements BattleClosedResponse {
   battleId: string
 
   static fromEntity(payload: BattleClosedResponseDto): BattleClosedResponseDto {

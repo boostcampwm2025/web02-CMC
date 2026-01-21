@@ -1,6 +1,6 @@
-import type { BattlePhaseName } from '@cmc/types'
+import type { BattlePhaseName, BattlePhaseResponse, BattleRoundResponse } from '@cmc/types'
 
-export class BattlePhaseResponseDto {
+export class BattlePhaseResponseDto implements BattlePhaseResponse {
   battleId: string
   phase: BattlePhaseName
   phaseCount: number
@@ -26,7 +26,7 @@ export class BattlePhaseResponseDto {
   }
 }
 
-export class BattleRoundResponseDto {
+export class BattleRoundResponseDto implements BattleRoundResponse {
   battleId: string
   round: number
   topic: string

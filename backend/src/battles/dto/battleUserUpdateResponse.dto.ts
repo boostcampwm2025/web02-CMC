@@ -1,6 +1,6 @@
-import type { TeamCounts } from '@cmc/types'
+import type { TeamCounts, BattleUserUpdateResponse } from '@cmc/types'
 
-export class BattleUserUpdateResponseDto {
+export class BattleUserUpdateResponseDto implements BattleUserUpdateResponse {
   battleId: string
 
   totalCount: number
