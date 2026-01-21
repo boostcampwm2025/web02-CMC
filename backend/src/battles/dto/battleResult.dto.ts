@@ -21,9 +21,9 @@ export class BattleResultResponseDto {
   metrics: Metrics
   voteTimeline: VoteTimeline[]
   timeline: TimelineItem[]
-  mvp: Mvp
+  mvps: Mvp[]
 
-  static fromEntity(battle: FinishedBattleState, calculatedMvp: Mvp | null): BattleResultResponseDto {
+  static fromEntity(battle: FinishedBattleState): BattleResultResponseDto {
     const dto = new BattleResultResponseDto()
     dto.battleId = battle.battleId
     dto.authorId = battle.authorId
@@ -42,7 +42,7 @@ export class BattleResultResponseDto {
     dto.metrics = battle.metrics
     dto.voteTimeline = battle.voteTimeline
     dto.timeline = battle.timeline
-    dto.mvp = calculatedMvp || battle.mvp
+    dto.mvps = battle.mvps
     return dto
   }
 }

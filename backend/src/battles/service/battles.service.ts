@@ -4,6 +4,7 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
+import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
 import {
   ActiveBattleState,
   Battle,
@@ -33,6 +34,7 @@ import {
   BATTLE_TYPE,
   BATTLE_DISCUSSION_TYPE,
   BATTLE_MAX_PHASE_COUNT,
+  MVP_DISPLAY_COUNT,
 } from '../const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
@@ -154,10 +156,8 @@ export class BattlesService extends EventEmitter {
       throw new BadRequestException('배틀이 아직 진행 중입니다.')
     }
 
-    // 3. MVP 재계산 (검증용)
-    const mvp = this.calculateMVP(battle.timeline)
-
-    return BattleResultResponseDto.fromEntity(battle, mvp)
+    // 3. 저장된 MVP 반환 (배틀 종료 시 계산됨)
+    return BattleResultResponseDto.fromEntity(battle)
   }
 
   joinBattleInfo(battleId: string): BattleJoinInfoResponseDto {
@@ -223,34 +223,73 @@ export class BattlesService extends EventEmitter {
     this.battles = battles
   }
 
-  private calculateMVP(timeline: TimelineItem[]): Mvp | null {
-    if (timeline.length === 0) return null
+  private calculateMVPs(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
+    // 모든 의견 수집 (opinionHistory에 저장된 전체 의견)
+    // teamA/teamB는 resetDiscussions에서 초기화되므로 opinionHistory 사용
+    const allOpinions: BattleDiscussion[] = state.opinionHistory
 
-    // 사용자별 누적 upvotes 집계
-    const userVotes = new Map<string, { nickname: string; team: 'A' | 'B'; votes: number }>()
+    if (allOpinions.length === 0) return []
 
-    timeline.forEach(item => {
-      const current = userVotes.get(item.author.id) || {
-        nickname: item.author.nickname,
-        team: item.team,
-        votes: 0,
+    // 사용자별 MVP 후보 데이터 집계
+    const candidateMap = new Map<string, Mvp>()
+
+    allOpinions.forEach(opinion => {
+      const { authorId, nickname } = opinion.author
+      const team = opinion.team
+
+      // 중립 팀 및 빈 userId(placeholder) 제외
+      if (team === BATTLE_TEAM.NONE || !authorId) return
+
+      // 페이즈별로 기록된 투표 참가자 수 사용 (없으면 0으로 처리)
+      const voterCount = opinion.voterCountAtPhase ?? 0
+      const opinionScore = calculateOpinionScore(opinion.upvotes, voterCount)
+
+      const existing = candidateMap.get(authorId)
+      if (existing) {
+        existing.score += opinionScore
+        existing.totalVotes += opinion.upvotes
+        existing.opinionCount += 1
+        if (opinion.status === 'SELECTED') {
+          existing.selectedOpinionCount += 1
+        }
+      } else {
+        const joinedAt = this.getParticipantJoinedAt(state.battleId, authorId)
+        candidateMap.set(
+          authorId,
+          createMvpCandidate({
+            userId: authorId,
+            nickname,
+            team: team === BATTLE_TEAM.A ? 'A' : 'B',
+            score: opinionScore,
+            totalVotes: opinion.upvotes,
+            opinionCount: 1,
+            selectedOpinionCount: opinion.status === 'SELECTED' ? 1 : 0,
+            joinedAt,
+          }),
+        )
       }
-      current.votes += item.upvotes
-      userVotes.set(item.author.id, current)
     })
 
-    // 최다 득표자 (동점 시 첫 번째)
-    const entries = [...userVotes.entries()].sort((a, b) => b[1].votes - a[1].votes)
-    if (entries.length === 0) return null
+    if (candidateMap.size === 0) return []
 
-    const [userId, data] = entries[0]
+    // 승리 팀 보너스 적용 (1.5배)
+    candidateMap.forEach(candidate => {
+      candidate.score = applyWinnerBonus(candidate.score, candidate.team, winner)
+    })
 
-    return {
-      userId,
-      nickname: data.nickname,
-      team: data.team,
-      totalVotes: data.votes,
-    }
+    // 후보자 정렬 및 상위 MVP_DISPLAY_COUNT명 반환
+    const candidates = [...candidateMap.values()]
+    candidates.sort((a, b) => compareMvpCandidates(a, b, winner))
+
+    return candidates.slice(0, MVP_DISPLAY_COUNT)
+  }
+
+  private getParticipantJoinedAt(battleId: string, oderId: string): number {
+    const state = this.activeBattles.get(battleId)
+    if (!state) return 0
+    // participants Map의 삽입 순서를 기반으로 참가 순서 반환
+    const participantOrder = [...state.participants.keys()].indexOf(oderId)
+    return participantOrder >= 0 ? participantOrder : 0
   }
 
   private initBattleState(battleId: string): void {
@@ -286,6 +325,8 @@ export class BattlesService extends EventEmitter {
       teamVotes: new Map(),
 
       guestInfoMap: new Map(),
+
+      opinionHistory: [],
 
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
@@ -617,7 +658,7 @@ export class BattlesService extends EventEmitter {
     ]
 
     const timeline = this.buildTimeline(state)
-    const calculatedMvp = this.calculateMVP(timeline)
+    const calculatedMvps = this.calculateMVPs(state, result.winner)
 
     const metrics: Metrics = {
       totalParticipants,
@@ -644,14 +685,7 @@ export class BattlesService extends EventEmitter {
       metrics,
       voteTimeline,
       timeline,
-      mvp:
-        calculatedMvp ||
-        ({
-          userId: '',
-          nickname: 'unknown',
-          team: 'A',
-          totalVotes: 0,
-        } as Mvp),
+      mvps: calculatedMvps,
     }
   }
 
@@ -744,7 +778,7 @@ export class BattlesService extends EventEmitter {
       team,
     }
 
-    // battleState.all.attacks.push(attack)
+    battleState.opinionHistory.push(attack)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.attacks.push(attack)
     } else {
@@ -779,7 +813,7 @@ export class BattlesService extends EventEmitter {
       team,
     }
 
-    // battleState.all.defenses.push(defense)
+    battleState.opinionHistory.push(defense)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.defenses.push(defense)
     } else {
@@ -974,31 +1008,59 @@ export class BattlesService extends EventEmitter {
   }
 
   private emitAttackedResult(battleId: string) {
-    const top = this.pickTopVotedAttack(battleId)
-
     const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return
+
+    // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
+    this.recordVoterCountAtPhase(battleState.teamA.attacks, BATTLE_TEAM.A)
+    this.recordVoterCountAtPhase(battleState.teamB.attacks, BATTLE_TEAM.B)
+
+    const top = this.pickTopVotedAttack(battleId)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'ATTACK')
     const bEntry = bTeam ? bTeam : this.createNullPlaceholder('B', 'ATTACK')
-    battleState?.all.attacks.push(aEntry)
-    battleState?.all.attacks.push(bEntry)
+    battleState.all.attacks.push(aEntry)
+    battleState.all.attacks.push(bEntry)
 
     this.emit('battle:attacked', DiscussionVoteResultDto.attacked(battleId, top))
   }
 
   private emitDefensedResult(battleId: string) {
-    const top = this.pickTopVotedDefense(battleId)
-
     const battleState = this.activeBattles.get(battleId)
+    if (!battleState) return
+
+    // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
+    this.recordVoterCountAtPhase(battleState.teamA.defenses, BATTLE_TEAM.A)
+    this.recordVoterCountAtPhase(battleState.teamB.defenses, BATTLE_TEAM.B)
+
+    const top = this.pickTopVotedDefense(battleId)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'DEFENSE')
     const bEntry = bTeam ? bTeam : this.createNullPlaceholder('B', 'DEFENSE')
-    battleState?.all.defenses.push(aEntry)
-    battleState?.all.defenses.push(bEntry)
+    battleState.all.defenses.push(aEntry)
+    battleState.all.defenses.push(bEntry)
 
     this.emit('battle:defensed', DiscussionVoteResultDto.defensed(battleId, top))
+  }
+
+  private recordVoterCountAtPhase(opinions: (BattleDiscussion | null)[], team: BattleTeam): void {
+    // 해당 팀의 이번 페이즈 투표 참가자 수 계산
+    const allVoters = new Set<string>()
+    opinions.forEach(o => {
+      if (o && o.team === team) {
+        o.votes.forEach(v => allVoters.add(v))
+      }
+    })
+    const voterCount = allVoters.size
+
+    // 각 의견에 투표 참가자 수 기록
+    opinions.forEach(o => {
+      if (o && o.team === team) {
+        o.voterCountAtPhase = voterCount
+      }
+    })
   }
 
   private hasAlreadyVoted(votes: readonly string[], userId: string): boolean {
