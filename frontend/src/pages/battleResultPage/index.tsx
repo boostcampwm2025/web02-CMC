@@ -28,8 +28,9 @@ export default function BattleResultPage() {
   }, [id]);
 
   const bestOpinion = useMemo(() => {
-    if (!battleData?.mvp || !battleData.timeline.length) return null;
-    const mvpOpinions = battleData.timeline.filter((item) => item.author.id === battleData.mvp?.userId);
+    if (!battleData?.mvps?.length || !battleData.timeline.length) return null;
+    const topMvp = battleData.mvps[0];
+    const mvpOpinions = battleData.timeline.filter((item) => item.author.id === topMvp.userId);
     if (!mvpOpinions.length) return null;
     return mvpOpinions.reduce((max, current) => (current.upvotes > max.upvotes ? current : max), mvpOpinions[0]);
   }, [battleData]);
@@ -67,8 +68,8 @@ export default function BattleResultPage() {
           neutralPercentage={result.neutral.percentage}
           neutralVotes={result.neutral.votes}
         />
-        {battleData.mvp ? (
-          <MvpCard mvp={battleData.mvp} bestOpinion={bestOpinion} />
+        {battleData.mvps.length > 0 ? (
+          <MvpCard mvpList={battleData.mvps} bestOpinion={bestOpinion} />
         ) : (
           <MetricsCards
             totalParticipants={battleData.metrics.totalParticipants}

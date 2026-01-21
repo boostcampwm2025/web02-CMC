@@ -1,12 +1,16 @@
-import { Crown, Award, ThumbsUp } from 'lucide-react';
+import { Crown, Award, ThumbsUp, Medal } from 'lucide-react';
 import type { Mvp, TimelineItem } from '../types';
 
 interface MvpCardProps {
-  mvp: Mvp;
+  mvpList: Mvp[];
   bestOpinion: TimelineItem | null;
 }
 
-export default function MvpCard({ mvp, bestOpinion }: MvpCardProps) {
+export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
+  const mvp = mvpList[0];
+  const runners = mvpList.slice(1);
+
+  if (!mvp) return null;
   return (
     <div className="rounded-xl overflow-hidden relative shadow-2xl h-full">
       {/* Orange Gradient Background with Pattern */}
@@ -95,6 +99,30 @@ export default function MvpCard({ mvp, bestOpinion }: MvpCardProps) {
                 <div className="text-white font-bold">{mvp.opinionCount}개</div>
               </div>
             </div>
+
+            {/* 2등, 3등 표시 */}
+            {runners.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <div className="flex flex-col gap-2">
+                  {runners.map((runner, index) => (
+                    <div
+                      key={runner.userId}
+                      className="flex items-center justify-between bg-black/10 rounded-lg px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Medal className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-amber-600'}`} />
+                        <span className="text-white/80 text-sm">{index + 2}등</span>
+                        <span className="text-white font-medium">{runner.nickname}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-white/70">
+                        <span>총 좋아요 {runner.totalVotes}</span>
+                        <span>제출 의견 {runner.opinionCount}개</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
