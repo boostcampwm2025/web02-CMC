@@ -74,5 +74,5 @@ export interface BattleResultApiResponse {
   voteTimeline: VoteTimelineItem[];
   timeline: TimelineItem[];
   topics: string[];
-  mvp: Mvp | null;
+  mvps: Mvp[];
 }
