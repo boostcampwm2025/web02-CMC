@@ -13,6 +13,7 @@ import type {
   BattleDiscussion,
   BattleDefense,
   BattlePlayTimeName,
+  BattleChat,
 } from '@cmc/types'
 import { ActiveBattleState, Battle, BattlePhase, BattlePlayTime, BattleTopOpinions, FinishedBattleState } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
@@ -344,7 +345,7 @@ export class BattlesService extends EventEmitter {
 
     const nickname = this.getNicknameByUserId(battleId, userId) || ''
 
-    const chat = {
+    const chat: BattleChat = {
       messageId: this.generateId(),
       team,
       sender: {
@@ -352,12 +353,13 @@ export class BattlesService extends EventEmitter {
         nickname,
       },
       text: text.trim(),
-      createdAt: new Date(),
+      scope,
+      createdAt: new Date().toISOString(),
     }
 
     if (scope === BATTLE_CHAT_SCOPE.ALL) {
       battleState.all.chats.push(chat)
-      return { battleId, scope, ...chat }
+      return chat
     }
 
     if (!team) throw new BadRequestException('진영 채팅은 team 값이 필요합니다.')
@@ -369,7 +371,7 @@ export class BattlesService extends EventEmitter {
     const target = team === BATTLE_TEAM.A ? battleState.teamA : battleState.teamB
     target.chats.push(chat)
 
-    return { battleId, scope, ...chat }
+    return chat
   }
 
   private addParticipant(battleId: string, userId: string, team: string): void {

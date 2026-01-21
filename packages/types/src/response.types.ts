@@ -13,7 +13,7 @@ import type {
   VoteTimeline,
   TimelineItem,
   Mvp
-} from './index';
+} from './index.js';
 
 /**
  * 배틀 참가 응답

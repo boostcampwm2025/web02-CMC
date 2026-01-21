@@ -3,13 +3,12 @@ import type {
   BattleDiscussionType,
   BattleDiscussionStatus,
   BattleChatScope,
-} from './common.types';
+} from './common.types.js';
 
 /**
  * 배틀 채팅 메시지
  */
 export interface BattleChat {
-  battleId: string;
   messageId: string;
   team: BattleTeam;
   sender: {

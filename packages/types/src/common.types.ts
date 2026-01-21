@@ -21,7 +21,7 @@ export type BattleType = 'PUBLIC' | 'PRIVATE';
 /**
  * 배틀 카테고리
  */
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
+export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENT' | 'ETC';
 
 /**
  * 배틀 팀

@@ -10,7 +10,7 @@ export type {
   BattleDiscussionStatus,
   BattleChatScope,
   BattlePlayTimeName,
-} from './common.types';
+} from './common.types.js';
 
 // Entity types
 export type {
@@ -25,7 +25,7 @@ export type {
   VoteTimeline,
   TeamCounts,
   TeamChange,
-} from './interfaces.types';
+} from './interfaces.types.js';
 
 // API Request/Response types
 export type {
@@ -54,4 +54,4 @@ export type {
   DefenseCreateRequest,
   AttackVoteRequest,
   DefenseVoteRequest,
-} from './response.types';
+} from './response.types.js';

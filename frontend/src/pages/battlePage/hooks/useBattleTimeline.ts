@@ -14,7 +14,6 @@ export function useBattleTimeline() {
     if (!socket) return;
 
     const pushTimelineAndChat = (
-      battleId: string,
       team: BattleTeam,
       voteResult: DiscussionVoteResultItem,
       type: 'attack' | 'defense'
@@ -49,7 +48,6 @@ export function useBattleTimeline() {
       }
 
       const chatMessage: BattleChat = {
-        battleId,
         scope: 'ALL',
         messageId: `${type}-${voteResult.id}`,
         sender: {
@@ -113,7 +111,6 @@ export function useBattleTimeline() {
 
       if (selectedTeam !== 'NONE') {
         const noticeChat: BattleChat = {
-          battleId: data.battleId,
           scope: 'ALL',
           messageId: `notice-attack-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
           sender: {
@@ -131,13 +128,13 @@ export function useBattleTimeline() {
 
       // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)
       if (aTeam?.team) {
-        pushTimelineAndChat(data.battleId, aTeam.team, aTeam, 'attack');
+        pushTimelineAndChat(aTeam.team, aTeam, 'attack');
       } else {
         pushNullPlaceholder('A', 'attack');
       }
 
       if (bTeam?.team) {
-        pushTimelineAndChat(data.battleId, bTeam.team, bTeam, 'attack');
+        pushTimelineAndChat(bTeam.team, bTeam, 'attack');
       } else {
         pushNullPlaceholder('B', 'attack');
       }
@@ -161,7 +158,6 @@ export function useBattleTimeline() {
 
       if (selectedTeam !== 'NONE') {
         const noticeChat: BattleChat = {
-          battleId: data.battleId,
           scope: 'ALL',
           messageId: `notice-defense-${opponentEntry?.id ?? opponentTeam}-${Date.now()}`,
           sender: {
@@ -179,13 +175,13 @@ export function useBattleTimeline() {
 
       // 타임라인은 양쪽 모두 추가 (A팀 -> B팀 순서)
       if (aTeam?.team) {
-        pushTimelineAndChat(data.battleId, aTeam.team, aTeam, 'defense');
+        pushTimelineAndChat(aTeam.team, aTeam, 'defense');
       } else {
         pushNullPlaceholder('A', 'defense');
       }
 
       if (bTeam?.team) {
-        pushTimelineAndChat(data.battleId, bTeam.team, bTeam, 'defense');
+        pushTimelineAndChat(bTeam.team, bTeam, 'defense');
       } else {
         pushNullPlaceholder('B', 'defense');
       }

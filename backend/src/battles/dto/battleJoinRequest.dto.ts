@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import type { BattleTeam } from '@cmc/types'
+import type { BattleTeam, BattleJoinRequest } from '@cmc/types'
 
-export class BattleJoinRequestDto {
+export class BattleJoinRequestDto implements BattleJoinRequest {
   @IsString()
   @IsNotEmpty()
   battleId: string

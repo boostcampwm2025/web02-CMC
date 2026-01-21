@@ -70,7 +70,6 @@ export function useBattleChat() {
       };
       const optimisticMessage: BattleChat = {
         messageId: `temp-${Date.now()}`,
-        battleId,
         sender: {
           userId: user.id,
           nickname: user.nickname

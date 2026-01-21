@@ -1,8 +1,8 @@
 import { IsString, IsNotEmpty, IsEnum } from 'class-validator'
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '@cmc/types'
+import type { BattleTeam, AttackCreateRequest, DefenseCreateRequest, AttackVoteRequest, DefenseVoteRequest } from '@cmc/types'
 
-export class AttackRequestDto {
+export class AttackRequestDto implements AttackCreateRequest {
   @IsString()
   @IsNotEmpty()
   battleId!: string
@@ -15,7 +15,7 @@ export class AttackRequestDto {
   team!: BattleTeam
 }
 
-export class DefenseRequestDto {
+export class DefenseRequestDto implements DefenseCreateRequest {
   @IsString()
   @IsNotEmpty()
   battleId!: string
@@ -28,7 +28,7 @@ export class DefenseRequestDto {
   team!: BattleTeam
 }
 
-export class AttackVoteRequestDto {
+export class AttackVoteRequestDto implements AttackVoteRequest {
   @IsString()
   @IsNotEmpty()
   battleId!: string
@@ -41,7 +41,7 @@ export class AttackVoteRequestDto {
   team!: BattleTeam
 }
 
-export class DefenseVoteRequestDto {
+export class DefenseVoteRequestDto implements DefenseVoteRequest {
   @IsString()
   @IsNotEmpty()
   battleId!: string
