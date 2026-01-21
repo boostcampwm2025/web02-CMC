@@ -184,7 +184,7 @@ export class TokenService {
       httpOnly: true,
       secure: isSecure,
       sameSite: 'lax',
-      path: '/auth',
+      path: '/api/auth',
     })
   }
 
