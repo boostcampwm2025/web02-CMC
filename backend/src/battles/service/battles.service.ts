@@ -384,8 +384,8 @@ export class BattlesService extends EventEmitter {
     this.rebuildTeamUsers(battleState)
 
     const counts = {
-      teamACount: battleState.teamA.users.length,
-      teamBCount: battleState.teamB.users.length,
+      teamA: battleState.teamA.users.length,
+      teamB: battleState.teamB.users.length,
       none: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
     }
 
@@ -526,7 +526,7 @@ export class BattlesService extends EventEmitter {
     const beforeCounts = {
       teamA: state.teamA.users.length,
       teamB: state.teamB.users.length,
-      teamNone: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
+      none: [...state.participants.values()].filter(t => t === BATTLE_TEAM.NONE).length,
     }
 
     for (const [userId, desiredTeam] of state.teamVotes.entries()) {
@@ -545,7 +545,7 @@ export class BattlesService extends EventEmitter {
     const afterCounts = {
       teamA: state.teamA.users.length,
       teamB: state.teamB.users.length,
-      teamNone: state.participants.size - (state.teamA.users.length + state.teamB.users.length),
+      none: state.participants.size - (state.teamA.users.length + state.teamB.users.length),
     }
 
     if (changes.length) {
