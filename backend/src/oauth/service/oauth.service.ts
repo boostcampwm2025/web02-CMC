@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { OAuthProfile, User } from '../types/oauth.types'
 import { TokenService } from './token.service'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
+import { isGuestNicknamePattern } from '../../battles/service/utils/nickname.util'
 
 @Injectable()
 export class OauthService {
@@ -65,6 +66,11 @@ export class OauthService {
   }
 
   updateUserNickname(userId: string, nickname: string): OAuthUserResponseDto {
+    // 비회원 닉네임 패턴과 겹치지 않는지 확인
+    if (isGuestNicknamePattern(nickname)) {
+      throw new BadRequestException('다른 닉네임을 사용해주세요.')
+    }
+
     const user = this.findUserById(userId)
     user.nickname = nickname
     return OAuthUserResponseDto.of(user)
