@@ -209,10 +209,12 @@
     --main-closed: 1500px;
     --main-open: 1240px;
     --lounge-closed: 520px;
-    --lounge-open: 400px;    --header-height: 11.1875rem;    --header-height: 10.5rem;
+    --lounge-open: 400px;   
+    --header-height: 10.5rem;
     --chat-height: 33rem;
     --code-height: 33rem;
-    --discussion-input-width: 580px;    --create-max-width: 1120px;
+    --discussion-input-width: 580px;    
+    --create-max-width: 1120px;
     --create-padding: 1.75rem;
     --create-title-size: 1.75rem;
     --create-input-height: 3rem;
@@ -255,7 +257,8 @@
     --header-height: 11.1875rem;
     --chat-height: 36rem;
     --code-height: 36rem;
-    --discussion-input-width: 650px;    --create-max-width: 1280px;
+    --discussion-input-width: 650px;    
+    --create-max-width: 1280px;
     --create-padding: 2rem;
     --create-title-size: 2rem;
     --create-input-height: 3.25rem;
