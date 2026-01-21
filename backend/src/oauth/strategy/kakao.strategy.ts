@@ -6,17 +6,13 @@ import { OAuthProfile } from '../types/oauth.types'
 
 interface KakaoProfile {
   id: string | number
-  username?: string
-  displayName?: string
   _json?: {
     kakao_account?: {
       profile?: {
-        nickname?: string
         profile_image_url?: string
       }
     }
     properties?: {
-      nickname?: string
       profile_image?: string
     }
   }
@@ -34,15 +30,11 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
 
   validate(_accessToken: string, _refreshToken: string, profile: KakaoProfile): OAuthProfile {
     const json = profile._json
-    const nickname = json?.kakao_account?.profile?.nickname || json?.properties?.nickname || profile.displayName || profile.username || 'Unknown'
     const avatarUrl = json?.kakao_account?.profile?.profile_image_url || json?.properties?.profile_image
-
-    console.log(profile)
 
     return {
       provider: 'kakao',
       providerId: String(profile.id),
-      nickname,
       avatarUrl,
     }
   }

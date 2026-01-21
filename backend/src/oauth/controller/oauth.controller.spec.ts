@@ -4,6 +4,7 @@ import { OauthController } from './oauth.controller'
 import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
 import type { OAuthProfile } from '../types/oauth.types'
+import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 import * as express from 'express'
 
 describe('OauthController', () => {
@@ -14,6 +15,7 @@ describe('OauthController', () => {
     loginWithKakao: jest.fn(),
     refreshToken: jest.fn(),
     findUserById: jest.fn(),
+    updateUserNickname: jest.fn(),
   }
 
   const mockTokenService = {
@@ -60,7 +62,6 @@ describe('OauthController', () => {
       const mockProfile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -94,7 +95,6 @@ describe('OauthController', () => {
       const mockProfile: OAuthProfile = {
         provider: 'kakao',
         providerId: '67890',
-        nickname: '카카오유저',
         avatarUrl: 'https://example.com/kakao-avatar.jpg',
       }
 
@@ -204,7 +204,7 @@ describe('OauthController', () => {
         id: 'user-123',
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
+        nickname: 'anonymous',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -218,6 +218,36 @@ describe('OauthController', () => {
 
       expect(mockOauthService.findUserById).toHaveBeenCalledWith(mockJwtUser.id)
       expect(result).toEqual(mockUser)
+    })
+  })
+
+  describe('updateNickname', () => {
+    it('닉네임을 성공적으로 변경하고 사용자 정보를 반환한다', () => {
+      const mockJwtUser = {
+        id: 'user-123',
+      }
+
+      const mockDto = {
+        nickname: 'newNickname',
+      }
+
+      const mockUpdatedUser: OAuthUserResponseDto = {
+        id: 'user-123',
+        nickname: 'newNickname',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      }
+
+      const mockReq = {
+        user: mockJwtUser,
+        body: mockDto,
+      } as unknown as express.Request
+
+      mockOauthService.updateUserNickname.mockReturnValue(mockUpdatedUser)
+
+      const result = controller.updateNickname(mockReq, mockDto)
+
+      expect(mockOauthService.updateUserNickname).toHaveBeenCalledWith(mockJwtUser.id, mockDto.nickname)
+      expect(result).toEqual(mockUpdatedUser)
     })
   })
 })

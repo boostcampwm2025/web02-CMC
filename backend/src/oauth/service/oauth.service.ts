@@ -11,6 +11,7 @@ export class OauthService {
 
   findOrCreateUser(p: OAuthProfile): User {
     const key = `${p.provider}-${p.providerId}`
+    const initialNickname = 'anonymous'
 
     const existed = this.oauthMap.get(key)
     if (existed) {
@@ -21,7 +22,7 @@ export class OauthService {
       id: crypto.randomUUID(),
       provider: p.provider,
       providerId: p.providerId,
-      nickname: 'anonymous',
+      nickname: initialNickname,
       avatarUrl: p.avatarUrl,
     }
 

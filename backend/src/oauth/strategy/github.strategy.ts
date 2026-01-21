@@ -6,8 +6,6 @@ import { OAuthProfile } from '../types/oauth.types'
 
 interface GithubProfile {
   id: string | number
-  displayName?: string
-  username?: string
   photos?: Array<{ value: string }>
 }
 
@@ -23,13 +21,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   }
 
   validate(_accessToken: string, _refreshToken: string, profile: GithubProfile): OAuthProfile {
-    const nickname = profile.displayName || profile.username || 'Unknown'
     const avatarUrl = profile?.photos?.[0]?.value
 
     return {
       provider: 'github',
       providerId: String(profile.id),
-      nickname,
       avatarUrl,
     }
   }

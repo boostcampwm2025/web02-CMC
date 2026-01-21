@@ -33,7 +33,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -42,7 +41,7 @@ describe('OauthService', () => {
       expect(user).toBeDefined()
       expect(user.provider).toBe('github')
       expect(user.providerId).toBe('12345')
-      expect(user.nickname).toBe('testuser')
+      expect(user.nickname).toBe('anonymous')
       expect(user.avatarUrl).toBe('https://example.com/avatar.jpg')
       expect(user.id).toBeDefined()
       expect(typeof user.id).toBe('string')
@@ -52,7 +51,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -67,14 +65,12 @@ describe('OauthService', () => {
       const profile1: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'user1',
         avatarUrl: 'https://example.com/avatar1.jpg',
       }
 
       const profile2: OAuthProfile = {
         provider: 'github',
         providerId: '67890',
-        nickname: 'user2',
         avatarUrl: 'https://example.com/avatar2.jpg',
       }
 
@@ -89,14 +85,12 @@ describe('OauthService', () => {
       const githubProfile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'githubuser',
         avatarUrl: 'https://example.com/github.jpg',
       }
 
       const kakaoProfile: OAuthProfile = {
         provider: 'kakao',
         providerId: '12345',
-        nickname: 'kakaouser',
         avatarUrl: 'https://example.com/kakao.jpg',
       }
 
@@ -113,7 +107,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -134,7 +127,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -164,7 +156,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'kakao',
         providerId: '67890',
-        nickname: '카카오유저',
         avatarUrl: 'https://example.com/kakao-avatar.jpg',
       }
 
@@ -204,7 +195,6 @@ describe('OauthService', () => {
       const profile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'testuser',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
@@ -230,14 +220,12 @@ describe('OauthService', () => {
       const profile1: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
-        nickname: 'user1',
         avatarUrl: 'https://example.com/avatar1.jpg',
       }
 
       const profile2: OAuthProfile = {
         provider: 'github',
         providerId: '67890',
-        nickname: 'user2',
         avatarUrl: 'https://example.com/avatar2.jpg',
       }
 
@@ -258,6 +246,35 @@ describe('OauthService', () => {
       expect(foundUser1.id).toBe(user1.id)
       expect(foundUser2.id).toBe(user2.id)
       expect(foundUser1.id).not.toBe(foundUser2.id)
+    })
+  })
+
+  describe('updateUserNickname', () => {
+    it('존재하는 사용자의 닉네임을 성공적으로 변경한다', () => {
+      const profile: OAuthProfile = {
+        provider: 'github',
+        providerId: '12345',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      }
+
+      mockTokenService.generateTokens.mockReturnValue({
+        accessToken: 'token',
+        refreshToken: 'refresh',
+      })
+
+      service.loginWithGithub(profile)
+      const createdUser = service.findOrCreateUser(profile)
+      const newNickname = 'newNickname'
+
+      const result = service.updateUserNickname(createdUser.id, newNickname)
+
+      expect(result).toBeDefined()
+      expect(result.id).toBe(createdUser.id)
+      expect(result.nickname).toBe(newNickname)
+      expect(result.avatarUrl).toBe(createdUser.avatarUrl || '')
+
+      const updatedUser = service.findUserById(createdUser.id)
+      expect(updatedUser.nickname).toBe(newNickname)
     })
   })
 })
