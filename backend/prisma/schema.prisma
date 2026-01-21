@@ -42,11 +42,11 @@ model Battle {
 
   /* 정보 */
   title                    String    @db.VarChar(255) @map("title")
-  description              String    @db.VarChar(255)
+  description              String    @db.Text
   codeA                    String    @db.Text @map("code_a")
   codeB                    String    @db.Text @map("code_b")
   playTime                 String    @db.VarChar(20)  @map("play_time")
-  topics                   String[]  
+  topics                   String[]  @db.VarChar(20)
   category                 String    @db.VarChar(20)
   language                 String    @db.VarChar(20)
   password                 String?   @db.VarChar(255)
@@ -59,7 +59,7 @@ model Battle {
   teamBCount               Int?       @map("team_b_count")
   totalParticipantsCount   Int?       @map("total_participants_count")
   winningTeam              String?    @db.VarChar(10) @map("winning_team")
-  mvp                      String?    @db.VarChar(10)
+  mvps                     String[]   @db.VarChar(10)
     
   /* 시간 */
   createdAt                DateTime   @default(now()) @map("created_at")
