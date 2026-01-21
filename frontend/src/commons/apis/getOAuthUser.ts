@@ -9,7 +9,29 @@ interface OAuthUserResponse {
   avatarUrl?: string;
 }
 
-// getOAuthUser.ts
+function isOAuthUserResponse(data: unknown): data is OAuthUserResponse {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    !('id' in data) ||
+    !('nickname' in data) ||
+    !('provider' in data) ||
+    !('providerId' in data)
+  ) {
+    return false;
+  }
+
+  const obj = data as OAuthUserResponse;
+  return (
+    typeof obj.id === 'string' &&
+    typeof obj.nickname === 'string' &&
+    typeof obj.provider === 'string' &&
+    (obj.provider === 'github' || obj.provider === 'kakao') &&
+    typeof obj.providerId === 'string' &&
+    (obj.avatarUrl === undefined || typeof obj.avatarUrl === 'string')
+  );
+}
+
 const getOAuthUser = async (): Promise<AuthUser> => {
   const response = await fetch('/api/auth/me', {
     method: 'GET',
@@ -30,16 +52,19 @@ const getOAuthUser = async (): Promise<AuthUser> => {
         throw new Error('사용자 정보를 가져오는데 실패했습니다.');
       }
 
-      const retryData = (await retryResponse.json()) as OAuthUserResponse;
+      const retryData = await retryResponse.json();
 
-      const user: AuthUser = {
-        id: retryData.id,
-        nickname: retryData.nickname,
-        type: 'oauth',
-        avatarUrl: retryData.avatarUrl
-      };
+      if (isOAuthUserResponse(retryData)) {
+        const user: AuthUser = {
+          id: retryData.id,
+          nickname: retryData.nickname,
+          type: 'oauth',
+          avatarUrl: retryData.avatarUrl
+        };
 
-      return user;
+        return user;
+      }
+      throw new Error('잘못된 사용자 정보 형식입니다.');
     } catch (error) {
       // refresh 실패 시 (refresh_token이 없거나 만료된 경우) 에러 던짐
       console.error('사용자 정보를 가져오는데 실패했습니다.', error);
@@ -50,15 +75,18 @@ const getOAuthUser = async (): Promise<AuthUser> => {
     throw new Error('사용자 정보를 가져오는데 실패했습니다.');
   }
 
-  const data = (await response.json()) as OAuthUserResponse;
+  const data = await response.json();
 
-  const user: AuthUser = {
-    id: data.id,
-    nickname: data.nickname,
-    type: 'oauth',
-    avatarUrl: data.avatarUrl
-  };
+  if (isOAuthUserResponse(data)) {
+    const user: AuthUser = {
+      id: data.id,
+      nickname: data.nickname,
+      type: 'oauth',
+      avatarUrl: data.avatarUrl
+    };
 
-  return user;
+    return user;
+  }
+  throw new Error('잘못된 사용자 정보 형식입니다.');
 };
 export default getOAuthUser;
