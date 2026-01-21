@@ -25,7 +25,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
           return cookies?.refresh_token || null
         },
       ]),
-      secretOrKey: config.get<string>('JWT_REFRESH_SECRET') || 'refresh_secret',
+      secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
       passReqToCallback: true,
     })
   }
