@@ -37,7 +37,7 @@ export type Team = 'A' | 'B' | 'NONE';
 export interface BattleDiscussion {
   discussionId: string;
   author: {
-    authorId: string;
+    id: string;
     nickname: string;
   };
   type: 'ATTACK' | 'DEFENSE';

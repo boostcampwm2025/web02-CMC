@@ -76,7 +76,7 @@ export function useBattleSocket() {
             currentVoteList.map(({ discussionId, author, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
               // user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
-              user: author.authorId === userId ? 'You' : author.nickname,
+              user: author.id === userId ? 'You' : author.nickname,
               team: team as 'A' | 'B',
               content,
               votes: upvotes,

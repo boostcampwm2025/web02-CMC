@@ -72,7 +72,7 @@ export function useBattleDiscussions() {
     // 새 이의제기/반론 추가
     const handleNewDiscussion = (data: {
       discussionId: string;
-      author: { authorId: string; nickname: string };
+      author: { id: string; nickname: string };
       content: string;
       upvotes: number;
       votes: string[];
@@ -81,7 +81,7 @@ export function useBattleDiscussions() {
 
       addDiscussion({
         id: data.discussionId as unknown as number,
-        user: data.author.authorId === user.id ? 'You' : data.author.nickname,
+        user: data.author.id === user.id ? 'You' : data.author.nickname,
         team: team as 'A' | 'B',
         content: data.content,
         votes: data.upvotes,
