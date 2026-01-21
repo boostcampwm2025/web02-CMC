@@ -37,8 +37,8 @@ export interface TimelineSectionProps {
  */
 export interface VotingSectionProps {
   currentTeam: 'A' | 'B' | 'NONE';
-  teamACount: number;
-  teamBCount: number;
+  teamA: number;
+  teamB: number;
   noneTeamCount: number;
   remainingTime: string;
   onTeamChange: (team: 'A' | 'B' | 'NONE') => void;

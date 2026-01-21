@@ -207,8 +207,8 @@ export default function BattlePage() {
           <TeamVoteResultModal
             isOpen={isVoteResultModalOpen}
             round={voteResult.round}
-            teamACount={voteResult.after.teamA}
-            teamBCount={voteResult.after.teamB}
+            teamA={voteResult.after.teamA}
+            teamB={voteResult.after.teamB}
             teamABefore={voteResult.before.teamA}
             teamBBefore={voteResult.before.teamB}
             teamAPercentage={(voteResult.after.teamA / (voteResult.after.teamA + voteResult.after.teamB)) * 100}

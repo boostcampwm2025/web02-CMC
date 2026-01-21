@@ -25,7 +25,7 @@ interface TeamChangeModalProps {
  */
 export default function TeamChangeModal({ topics, handleTeamChange, onClose }: TeamChangeModalProps) {
   // 데이터 페칭
-  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
+  const teamCounts = useBattleStore(selectTeamCounts);
   const currentTeam = useBattleStore(selectSelectedTeam);
   const battleProgress = useBattleStore(selectBattleProgress);
   const timelines = useBattleStore(selectTimelines);
@@ -59,8 +59,8 @@ export default function TeamChangeModal({ topics, handleTeamChange, onClose }: T
         {/* 투표 섹션 */}
         <VotingSection
           currentTeam={currentTeam}
-          teamACount={teamACount}
-          teamBCount={teamBCount}
+          teamA={teamCounts.teamA}
+          teamB={teamCounts.teamB}
           noneTeamCount={noneTeamCount}
           remainingTime={remainingTime}
           onTeamChange={handleClick}

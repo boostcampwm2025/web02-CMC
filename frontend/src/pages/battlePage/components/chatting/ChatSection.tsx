@@ -14,7 +14,7 @@ import { useUnreadMessages } from '../../hooks/useUnreadMessages';
 export default function ChatSection() {
   // Store 상태
   const team = useBattleStore(selectSelectedTeam);
-  const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
+  const { teamA, teamB } = useBattleStore(selectTeamCounts);
   const chatInitialized = useBattleStore(selectChatInitialized);
 
   // 로컬 상태
@@ -37,7 +37,7 @@ export default function ChatSection() {
 
   // UI 상태
   const chatContainerRef = useAutoScrollDown([currentMessages]);
-  const currentMemberCount = currentTab === 'all' ? teamACount + teamBCount : team === 'A' ? teamACount : teamBCount;
+  const currentMemberCount = currentTab === 'all' ? teamA + teamB : team === 'A' ? teamA : teamB;
 
   // 이벤트 핸들러
   const handleSendMessage = (content: string) => {

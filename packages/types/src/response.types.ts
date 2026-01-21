@@ -329,7 +329,7 @@ export interface BattleTeamUpdateAllResponse {
   difference: {
     teamA: number;
     teamB: number;
-    teamNone: number;
+    none: number;
   };
   dominantTeam: BattleTeam | null;
 }

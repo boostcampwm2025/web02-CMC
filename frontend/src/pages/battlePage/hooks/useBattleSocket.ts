@@ -58,9 +58,9 @@ export function useBattleSocket() {
 
       // 팀 인원 수, 타임라인, 채팅 데이터 store에 저장
       setTeamCounts({
-        teamACount: data.counts.teamA,
-        teamBCount: data.counts.teamB,
-        none: data.counts.teamNone
+        teamA: data.counts.teamA,
+        teamB: data.counts.teamB,
+        none: data.counts.none
       });
       setTimelines({
         attacks: data.timelines.attacks.filter((item) => item !== null),
@@ -98,9 +98,9 @@ export function useBattleSocket() {
 
     newSocket.on('battle:leaved', (data: BattleLeaveResponse) => {
       setTeamCounts({
-        teamACount: data.counts.teamA,
-        teamBCount: data.counts.teamB,
-        none: data.counts.teamNone
+        teamA: data.counts.teamA,
+        teamB: data.counts.teamB,
+        none: data.counts.none
       });
     });
 

@@ -18,7 +18,7 @@ export class BattleTeamUpdateAllResponseDto implements BattleTeamUpdateAllRespon
   difference: {
     teamA: number
     teamB: number
-    teamNone: number
+    none: number
   }
 
   // 우세한 팀
@@ -36,7 +36,7 @@ export class BattleTeamUpdateAllResponseDto implements BattleTeamUpdateAllRespon
     res.difference = {
       teamA: after.teamA - before.teamA,
       teamB: after.teamB - before.teamB,
-      teamNone: after.teamNone - before.teamNone,
+      none: after.none - before.none,
     }
 
     // 우세한 팀 판단

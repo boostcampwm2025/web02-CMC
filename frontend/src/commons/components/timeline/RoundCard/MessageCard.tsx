@@ -1,5 +1,5 @@
 import { ThumbsUp } from 'lucide-react';
-import type { TimelineItem } from '@/pages/battleResultPage/types';
+import type { TimelineItem } from '@cmc/types';
 
 interface MessageCardProps {
   message: TimelineItem | null;

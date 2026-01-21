@@ -3,8 +3,8 @@ import { useEffect, useState, useCallback } from 'react';
 interface TeamVoteResultModalProps {
   isOpen: boolean;
   round: number;
-  teamACount: number;
-  teamBCount: number;
+  teamA: number;
+  teamB: number;
   teamABefore: number;
   teamBBefore: number;
   teamAPercentage: number;
@@ -16,8 +16,8 @@ interface TeamVoteResultModalProps {
 export default function TeamVoteResultModal({
   isOpen,
   round,
-  teamACount,
-  teamBCount,
+  teamA,
+  teamB,
   teamABefore,
   teamBBefore,
   teamAPercentage,
@@ -92,12 +92,12 @@ export default function TeamVoteResultModal({
                   {leadingTeam === 'A' && <span className="text-xs text-blue-300 font-bold">⚡ Leading</span>}
                 </div>
                 <div className="flex flex-col items-start gap-1">
-                  <div className="text-6xl font-black text-blue-400 leading-none">{teamACount}</div>
+                  <div className="text-6xl font-black text-blue-400 leading-none">{teamA}</div>
                   <div className="text-gray-400">
                     이전 <span className="text-sm">{teamABefore}</span>{' '}
-                    <span className={teamACount - teamABefore >= 0 ? 'text-green-400' : 'text-red-400'}>
-                      {teamACount - teamABefore >= 0 ? '+' : ''}
-                      {teamACount - teamABefore}
+                    <span className={teamA - teamABefore >= 0 ? 'text-green-400' : 'text-red-400'}>
+                      {teamA - teamABefore >= 0 ? '+' : ''}
+                      {teamA - teamABefore}
                     </span>
                   </div>
                 </div>
@@ -129,12 +129,12 @@ export default function TeamVoteResultModal({
                   {leadingTeam === 'B' && <span className="text-xs text-red-300 font-bold">⚡ Leading</span>}
                 </div>
                 <div className="flex flex-col items-start gap-1">
-                  <div className="text-6xl font-black text-red-400 leading-none">{teamBCount}</div>
+                  <div className="text-6xl font-black text-red-400 leading-none">{teamB}</div>
                   <div className="text-gray-400">
                     이전 <span className="text-sm">{teamBBefore}</span>{' '}
-                    <span className={teamBCount - teamBBefore >= 0 ? 'text-green-400' : 'text-red-400'}>
-                      {teamBCount - teamBBefore >= 0 ? '+' : ''}
-                      {teamBCount - teamBBefore}
+                    <span className={teamB - teamBBefore >= 0 ? 'text-green-400' : 'text-red-400'}>
+                      {teamB - teamBBefore >= 0 ? '+' : ''}
+                      {teamB - teamBBefore}
                     </span>
                   </div>
                 </div>
@@ -169,8 +169,8 @@ export default function TeamVoteResultModal({
                   style={{ width: `${teamBPercentage}%` }}
                 />
                 <div className="absolute inset-0 flex justify-between items-center px-4">
-                  <span className="text-white font-bold text-xl">{teamACount}</span>
-                  <span className="text-white font-bold text-xl">{teamBCount}</span>
+                  <span className="text-white font-bold text-xl">{teamA}</span>
+                  <span className="text-white font-bold text-xl">{teamB}</span>
                 </div>
               </div>
               <div className="flex justify-between px-2 text-sm font-bold">

@@ -53,17 +53,11 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
   useEffect(() => {
     if (!socket) return;
 
-    const handleUserUpdate = (data: BattleUserUpdateResponse) => {
-      if (data.battleId !== battleId) return;
+    const handleUserUpdate = ({ counts, battleId, totalCount }: BattleUserUpdateResponse) => {
+      if (battleId !== battleId) return;
+      const { teamA, teamB, none } = counts;
 
-      setTeamCounts(
-        {
-          teamACount: data.counts.teamA,
-          teamBCount: data.counts.teamB,
-          none: data.counts.teamNone
-        },
-        data.totalCount
-      );
+      setTeamCounts({ teamA, teamB, none }, totalCount);
     };
 
     socket.on('battle:user:updated', handleUserUpdate);
@@ -83,13 +77,13 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       const newCounts = { ...teamCounts };
 
       // 이전 팀에서 -1
-      if (selectedTeam === 'A') newCounts.teamACount = Math.max(0, newCounts.teamACount - 1);
-      else if (selectedTeam === 'B') newCounts.teamBCount = Math.max(0, newCounts.teamBCount - 1);
+      if (selectedTeam === 'A') newCounts.teamA = Math.max(0, newCounts.teamA - 1);
+      else if (selectedTeam === 'B') newCounts.teamB = Math.max(0, newCounts.teamB - 1);
       else newCounts.none = Math.max(0, newCounts.none - 1);
 
       // 새 팀에 +1
-      if (team === 'A') newCounts.teamACount++;
-      else if (team === 'B') newCounts.teamBCount++;
+      if (team === 'A') newCounts.teamA++;
+      else if (team === 'B') newCounts.teamB++;
       else newCounts.none++;
 
       setTeamCounts(newCounts);

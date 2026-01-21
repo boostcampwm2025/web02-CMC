@@ -7,7 +7,7 @@ import type { BattleTeam } from '@cmc/types';
 
 let mockUserId = 'user-123';
 let mockSelectedTeam: BattleTeam = 'A';
-let mockTeamCounts = { teamACount: 5, teamBCount: 3 };
+let mockTeamCounts = { teamA: 5, teamB: 3, none: 0 };
 let mockTeamMessages: Message[] = [];
 let mockAllMessages: Message[] = [];
 let mockOpponentNotice: Message | null = null;
@@ -25,7 +25,7 @@ vi.mock('@/pages/battlePage/stores/battleStore', () => ({
   }),
   selectUserId: (state: { userId: string }) => state.userId,
   selectSelectedTeam: (state: { selectedTeam: BattleTeam }) => state.selectedTeam,
-  selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts,
+  selectTeamCounts: (state: { teamCounts: { teamA: number; teamB: number; none: number } }) => state.teamCounts,
   selectChatInitialized: (state: { chatInitialized: boolean }) => state.chatInitialized
 }));
 
@@ -46,7 +46,7 @@ describe('배틀 페이지에 ChatSection 통합 테스트', () => {
   beforeEach(() => {
     mockUserId = 'user-123';
     mockSelectedTeam = 'A';
-    mockTeamCounts = { teamACount: 5, teamBCount: 3 };
+    mockTeamCounts = { teamA: 5, teamB: 3, none: 0 };
     mockChatInitialized = true;
 
     mockTeamMessages = [

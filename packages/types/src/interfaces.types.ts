@@ -115,7 +115,7 @@ export interface VoteTimeline {
 export interface TeamCounts {
   teamA: number;
   teamB: number;
-  teamNone: number;
+  none: number;
 }
 
 /**

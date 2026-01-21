@@ -19,9 +19,9 @@ export function useTeamVoteResult() {
 
       // Store에 최종 인원 수 업데이트
       setTeamCounts({
-        teamACount: data.after.teamA,
-        teamBCount: data.after.teamB,
-        none: data.after.teamNone
+        teamA: data.after.teamA,
+        teamB: data.after.teamB,
+        none: data.after.none
       });
 
       // 모달용 전체 데이터 저장

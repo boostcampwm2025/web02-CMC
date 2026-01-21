@@ -13,8 +13,8 @@ import type { VotingSectionProps } from './types';
  */
 export default function VotingSection({
   currentTeam,
-  teamACount,
-  teamBCount,
+  teamA,
+  teamB,
   noneTeamCount,
   remainingTime,
   onTeamChange
@@ -37,7 +37,7 @@ export default function VotingSection({
         >
           {currentTeam === 'A' && <span className="absolute top-2 right-2 text-[#155DFC] text-2xl">✓</span>}
           <span className="text-lg font-bold">A팀</span>
-          <span>{teamACount}명</span>
+          <span>{teamA}명</span>
         </button>
 
         {/* 중립 버튼 */}
@@ -59,7 +59,7 @@ export default function VotingSection({
         >
           {currentTeam === 'B' && <span className="absolute top-2 right-2 text-[#FB2C36] text-2xl">✓</span>}
           <span className="text-lg font-bold">B팀</span>
-          <span>{teamBCount}명</span>
+          <span>{teamB}명</span>
         </button>
       </div>
 

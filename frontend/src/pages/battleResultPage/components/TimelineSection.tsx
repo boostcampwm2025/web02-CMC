@@ -1,7 +1,7 @@
 import RoundCard from '@/commons/components/timeline/RoundCard';
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import { organizeTimelineByRounds } from '../utils/organizeTimelineByRounds';
-import type { TimelineItem } from '../types';
+import type { TimelineItem } from '@cmc/types';
 
 interface TimelineSectionProps {
   timelines: TimelineItem[];

@@ -10,7 +10,7 @@ export class BattleUserUpdateResponseDto implements BattleUserUpdateResponse {
     const res = new BattleUserUpdateResponseDto()
     res.battleId = battleId
     res.counts = counts
-    res.totalCount = counts.teamA + counts.teamB + counts.teamNone
+    res.totalCount = counts.teamA + counts.teamB + counts.none
     return res
   }
 }

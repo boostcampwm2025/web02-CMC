@@ -13,7 +13,7 @@ export class BattleLeaveResponseDto implements BattleLeaveResponse {
     res.counts = {
       teamA: teamA.users.length,
       teamB: teamB.users.length,
-      teamNone: participants.size - (teamA.users.length + teamB.users.length),
+      none: participants.size - (teamA.users.length + teamB.users.length),
     }
     return res
   }

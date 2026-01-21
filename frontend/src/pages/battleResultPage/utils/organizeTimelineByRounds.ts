@@ -1,4 +1,4 @@
-import type { TimelineItem } from '../types';
+import type { TimelineItem } from '@cmc/types';
 
 interface OrganizeTimelineParams {
   timelines: TimelineItem[];

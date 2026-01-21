@@ -1,7 +1,7 @@
 import PhaseHeader from './PhaseHeader';
 import MessageCard from './MessageCard';
 import ArrowBadge from './ArrowBadge';
-import type { TimelineItem } from '@/pages/battleResultPage/types';
+import type { TimelineItem } from '@cmc/types';
 
 interface PhaseSectionProps {
   attackMessage: TimelineItem | null;

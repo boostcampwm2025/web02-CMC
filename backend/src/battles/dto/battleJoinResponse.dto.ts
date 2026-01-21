@@ -7,7 +7,7 @@ export class BattleJoinResponseDto {
   counts: {
     teamA: number
     teamB: number
-    teamNone: number
+    none: number
   }
 
   // 배틀 전체 타임라인 & 채팅
@@ -38,7 +38,7 @@ export class BattleJoinResponseDto {
     res.counts = {
       teamA: teamA.users.length,
       teamB: teamB.users.length,
-      teamNone: participants.size - (teamA.users.length + teamB.users.length),
+      none: participants.size - (teamA.users.length + teamB.users.length),
     }
     res.timelines = {
       attacks: all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),

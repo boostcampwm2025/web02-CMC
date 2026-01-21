@@ -1,4 +1,4 @@
-import type { BattleStatus, BattleResult, BattleCategory } from '@cmc/types';
+import type { BattleResult, BattleCategory, BattleListItemResponse } from '@cmc/types';
 
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
@@ -58,17 +58,8 @@ export const BATTLE_CATEGORY_CONFIG: Record<BattleCategory, BattleCategoryConfig
   }
 };
 
-export interface BattleCardItem {
-  id: string;
-  title: string;
-  description: string;
-  status: BattleStatus;
-  createdAt: Date;
-  expiresAt: Date;
-  clientCount: number;
-
+export interface BattleCardItem extends BattleListItemResponse {
   // 추가 필드 (카드 표시용)
-  category: BattleCategory;
   timeLabel: string;
 }
 

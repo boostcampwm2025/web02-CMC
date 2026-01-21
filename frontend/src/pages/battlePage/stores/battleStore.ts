@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
-import type { BattleDiscussion } from '@cmc/types';
+import type { BattleDiscussion, TeamCounts } from '@cmc/types';
 import type { BattleProgressState, BattleDefense, BattleChat } from '@/commons/types/battle';
 
 interface BattleStore {
@@ -19,11 +19,7 @@ interface BattleStore {
     totalVotes: number;
     hasVoted: boolean;
   }>;
-  teamCounts: {
-    teamACount: number;
-    teamBCount: number;
-    none: number;
-  };
+  teamCounts: TeamCounts;
   totalParticipants: number;
   timelines: {
     attacks: BattleDiscussion[];
@@ -46,7 +42,7 @@ interface BattleStore {
   setDiscussions: (discussions: BattleStore['discussions']) => void;
   addDiscussion: (discussion: BattleStore['discussions'][0]) => void;
   updateDiscussionVote: (discussionId: string, upvotes: number, votes: string[], userId: string) => void;
-  setTeamCounts: (counts: { teamACount: number; teamBCount: number; none: number }, totalParticipants?: number) => void;
+  setTeamCounts: (counts: TeamCounts, totalParticipants?: number) => void;
   setTimelines: (timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }) => void;
   addAttackTimeline: (attack: BattleDiscussion) => void;
   addDefenseTimeline: (defense: BattleDefense) => void;
@@ -69,7 +65,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   currentStage: null,
   battleProgress: null,
   discussions: [],
-  teamCounts: { teamACount: 0, teamBCount: 0, none: 0 },
+  teamCounts: { teamA: 0, teamB: 0, none: 0 },
   totalParticipants: 0,
   timelines: null,
   teamChats: [],
@@ -110,7 +106,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   setTeamCounts: (counts, totalParticipants) =>
     set({
       teamCounts: counts,
-      totalParticipants: totalParticipants ?? counts.teamACount + counts.teamBCount
+      totalParticipants: totalParticipants ?? counts.teamA + counts.teamB
     }),
   setTimelines: (timelines) => set({ timelines }),
   addAttackTimeline: (attack) =>
@@ -176,7 +172,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       currentStage: null,
       battleProgress: null,
       discussions: [],
-      teamCounts: { teamACount: 0, teamBCount: 0, none: 0 },
+      teamCounts: { teamA: 0, teamB: 0, none: 0 },
       totalParticipants: 0,
       timelines: null,
       teamChats: [],

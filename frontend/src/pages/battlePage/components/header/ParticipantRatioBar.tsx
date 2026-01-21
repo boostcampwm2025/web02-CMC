@@ -1,12 +1,12 @@
 import { useBattleStore, selectTeamCounts } from '@/pages/battlePage/stores/battleStore';
 
 export default function ParticipantRatioBar() {
-  const { teamACount, teamBCount, none } = useBattleStore(selectTeamCounts);
+  const { teamA, teamB, none } = useBattleStore(selectTeamCounts);
 
-  const total = teamACount + teamBCount + none || 1;
-  const teamAProgress = (teamACount / total) * 100;
+  const total = teamA + teamB + none || 1;
+  const teamAProgress = (teamA / total) * 100;
+  const teamBProgress = (teamB / total) * 100;
   const neutralProgress = (none / total) * 100;
-  const teamBProgress = (teamBCount / total) * 100;
 
   return (
     <div className="flex h-3">
