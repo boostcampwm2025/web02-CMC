@@ -1,7 +1,7 @@
 import { IsArray, IsIn, IsNotEmpty, IsString, ValidateIf } from 'class-validator'
-import type { BattleLanguage, BattleCategory, BattleType, BattlePlayTimeName } from '@cmc/types'
+import type { BattleLanguage, BattleCategory, BattleType, BattlePlayTimeName, BattleCreateRequest } from '@cmc/types'
 
-export class BattleCreateQueryDto {
+export class BattleCreateQueryDto implements BattleCreateRequest {
   @IsString()
   @IsNotEmpty()
   authorId!: string
