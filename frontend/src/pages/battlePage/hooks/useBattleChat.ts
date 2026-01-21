@@ -26,7 +26,7 @@ export function useBattleChat() {
     if (!user) return [];
     const myTeamChats = teamChats
       .filter((chat) => chat.team === team && chat.scope === 'TEAM' && (!chat.type || chat.type === 'chat'))
-      .map((chat) => convertBattleChatToMessage(chat, user.id));
+      .map((chat) => convertBattleChatToMessage(chat));
 
     return myTeamChats.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   }, [teamChats, team, user]);
@@ -37,14 +37,14 @@ export function useBattleChat() {
     const filtered = allChats.filter(
       (chat) => !(team !== 'NONE' && chat.team !== team && (chat.type === 'attack' || chat.type === 'defense'))
     );
-    return filtered.map((chat) => convertBattleChatToMessage(chat, user.id));
+    return filtered.map((chat) => convertBattleChatToMessage(chat));
   }, [allChats, team, user]);
 
   const opponentNotice = useMemo(() => {
     if (!user) return null;
 
     if (team === 'NONE' || !opponentNoticeChat) return null;
-    return convertBattleChatToMessage(opponentNoticeChat, user.id);
+    return convertBattleChatToMessage(opponentNoticeChat);
   }, [opponentNoticeChat, team, user]);
   // 실시간 채팅 업데이트 이벤트 구독
 
@@ -78,7 +78,7 @@ export function useBattleChat() {
         team,
         scope,
         text: content.trim(),
-        createdAt: new Date().toISOString() as any
+        createdAt: new Date().toISOString()
       };
       addChat(optimisticMessage);
       socket.emit('battle:chat', chatMessage);
