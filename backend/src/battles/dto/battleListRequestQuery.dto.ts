@@ -1,7 +1,8 @@
 import { Type } from 'class-transformer'
 import { IsInt, Min } from 'class-validator'
+import type { BattleListRequest } from '@cmc/types'
 
-export class BattleListRequestQueryDto {
+export class BattleListRequestQueryDto implements BattleListRequest {
   @Type(() => Number)
   @IsInt()
   @Min(1)

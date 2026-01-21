@@ -1,8 +1,8 @@
 import { IsIn, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator'
 import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '@cmc/types'
+import type { BattleTeam, BattleChatRequest } from '@cmc/types'
 
-export class BattleChatDto {
+export class BattleChatDto implements BattleChatRequest {
   @IsString()
   @IsNotEmpty()
   battleId!: string
