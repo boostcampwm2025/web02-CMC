@@ -384,9 +384,9 @@ export class BattlesService extends EventEmitter {
     this.rebuildTeamUsers(battleState)
 
     const counts = {
-      teamA: battleState.teamA.users.length,
-      teamB: battleState.teamB.users.length,
-      teamNone: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
+      teamACount: battleState.teamA.users.length,
+      teamBCount: battleState.teamB.users.length,
+      none: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
     }
 
     this.emit('battle:user:updated', BattleUserUpdateResponseDto.of(battleId, counts))
