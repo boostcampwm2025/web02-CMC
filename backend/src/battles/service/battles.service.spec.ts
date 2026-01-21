@@ -1652,4 +1652,88 @@ describe('BattlesService', () => {
       expect(mvps[0].opinionCount).toBe(2)
     })
   })
+
+  describe('handleAttack / handleDefense의 opinionHistory 저장', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+
+      state.participants.set('user-1', BATTLE_TEAM.A)
+      state.participants.set('user-2', BATTLE_TEAM.B)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('handleAttack 호출 시 opinionHistory에 의견이 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      expect(state.opinionHistory.length).toBe(0)
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: '공격 의견입니다', team: BATTLE_TEAM.A })
+
+      expect(state.opinionHistory.length).toBe(1)
+      expect(state.opinionHistory[0].content).toBe('공격 의견입니다')
+      expect(state.opinionHistory[0].author.authorId).toBe('user-1')
+      expect(state.opinionHistory[0].status).toBe('PENDING')
+      expect(state.opinionHistory[0].type).toBe('ATTACK')
+    })
+
+    it('handleDefense 호출 시 opinionHistory에 의견이 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.DEFENSE.name
+
+      expect(state.opinionHistory.length).toBe(0)
+
+      service['handleDefense']('battle-1', { authorId: 'user-2', content: '수비 의견입니다', team: BATTLE_TEAM.B })
+
+      expect(state.opinionHistory.length).toBe(1)
+      expect(state.opinionHistory[0].content).toBe('수비 의견입니다')
+      expect(state.opinionHistory[0].author.authorId).toBe('user-2')
+      expect(state.opinionHistory[0].status).toBe('PENDING')
+      expect(state.opinionHistory[0].type).toBe('DEFENSE')
+    })
+
+    it('여러 의견 등록 시 모두 opinionHistory에 누적된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: '첫 번째 공격', team: BATTLE_TEAM.A })
+      service['handleAttack']('battle-1', { authorId: 'user-2', content: '두 번째 공격', team: BATTLE_TEAM.B })
+
+      state.phase = BATTLE_PHASE.DEFENSE.name
+
+      service['handleDefense']('battle-1', { authorId: 'user-1', content: '첫 번째 수비', team: BATTLE_TEAM.A })
+
+      expect(state.opinionHistory.length).toBe(3)
+      expect(state.opinionHistory[0].type).toBe('ATTACK')
+      expect(state.opinionHistory[1].type).toBe('ATTACK')
+      expect(state.opinionHistory[2].type).toBe('DEFENSE')
+    })
+
+    it('opinionHistory와 teamA/teamB 모두에 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: 'A팀 공격', team: BATTLE_TEAM.A })
+      service['handleAttack']('battle-1', { authorId: 'user-2', content: 'B팀 공격', team: BATTLE_TEAM.B })
+
+      // opinionHistory에 모두 저장
+      expect(state.opinionHistory.length).toBe(2)
+
+      // teamA/teamB에도 각각 저장
+      expect(state.teamA.attacks.length).toBe(1)
+      expect(state.teamB.attacks.length).toBe(1)
+
+      // 같은 객체를 참조
+      expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
+      expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
+    })
+  })
 })
