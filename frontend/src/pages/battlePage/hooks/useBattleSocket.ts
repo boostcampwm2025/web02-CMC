@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import type { BattleJoinResponse, BattleDiscussion } from '@cmc/types';
+import type { BattleJoinResponse, BattleJoinRequest, BattleLeaveResponse } from '@cmc/types';
 import type { BattleDefense } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 
@@ -33,11 +33,13 @@ export function useBattleSocket() {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      newSocket.emit('battle:join', {
+      // BattleJoinRequest 타입 사용 (userId는 백엔드가 socket에서 추출)
+      const joinPayload: Omit<BattleJoinRequest, 'password'> & { userId: string } = {
         userId,
         battleId,
         team: selectedTeam
-      });
+      };
+      newSocket.emit('battle:join', joinPayload);
     });
 
     // 배틀 참여 성공시 데이터 수신
@@ -61,7 +63,7 @@ export function useBattleSocket() {
         none: data.counts.teamNone
       });
       setTimelines({
-        attacks: data.timelines.attacks.filter((item)=> item !== null),
+        attacks: data.timelines.attacks.filter((item) => item !== null),
         defenses: data.timelines.defenses
           .filter((item) => item !== null)
           .map((item): BattleDefense => ({ ...item, attackId: '' }))
@@ -94,7 +96,7 @@ export function useBattleSocket() {
       }
     });
 
-    newSocket.on('battle:leaved', (data) => {
+    newSocket.on('battle:leaved', (data: BattleLeaveResponse) => {
       setTeamCounts({
         teamACount: data.counts.teamA,
         teamBCount: data.counts.teamB,

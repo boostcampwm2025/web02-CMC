@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { BattleProgressState } from '@/commons/types/battle';
+import type { BattlePhaseResponse, BattleRoundResponse, BattleClosedResponse } from '@cmc/types';
 import { useBattleStore, selectSocket } from '../stores/battleStore';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
 
@@ -14,7 +14,7 @@ export function useBattleProgress() {
     if (!socket) return;
 
     // Phase 변경 이벤트 구독
-    const handlePhaseUpdate = (data: BattleProgressState) => {
+    const handlePhaseUpdate = (data: BattlePhaseResponse) => {
       updateBattleProgress({
         phase: data.phase,
         phaseCount: data.phaseCount,
@@ -29,7 +29,7 @@ export function useBattleProgress() {
     };
 
     // Round 변경 이벤트 구독
-    const handleRoundUpdate = (data: { battleId: string; round: number; topic: string }) => {
+    const handleRoundUpdate = (data: BattleRoundResponse) => {
       updateBattleProgress({
         round: data.round,
         topic: data.topic
@@ -42,7 +42,7 @@ export function useBattleProgress() {
     socket.on('battle:round:updated', handleRoundUpdate);
 
     // 배틀 종료 이벤트 구독
-    const handleBattleClosed = (data: { battleId: string }) => {
+    const handleBattleClosed = (data: BattleClosedResponse) => {
       navigate(`/battle/${data.battleId}/result`);
     };
     socket.on('battle:closed', handleBattleClosed);

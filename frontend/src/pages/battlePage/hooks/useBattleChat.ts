@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useMemo } from 'react';
-import type { BattleChat } from '@/commons/types/battle';
+import type { BattleChat, BattleChatRequest } from '@cmc/types';
 import {
   useBattleStore,
   selectSocket,
@@ -62,7 +62,7 @@ export function useBattleChat() {
   const sendMessage = useCallback(
     (content: string, scope: 'TEAM' | 'ALL') => {
       if (!socket || !user) return;
-      const chatMessage = {
+      const chatMessage: BattleChatRequest = {
         battleId,
         scope,
         team,

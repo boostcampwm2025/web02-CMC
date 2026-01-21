@@ -1,5 +1,5 @@
 import { TrendingUp, Swords, Users, Target, Clock, MessageSquare, Shield, Shuffle } from 'lucide-react';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@cmc/types';
 
 interface Step1BattleInfoProps {
   title: string;
@@ -10,7 +10,7 @@ interface Step1BattleInfoProps {
   totalRounds: number;
   topics: string[];
   totalParticipants: number;
-  currentPhase?: BattlePhase;
+  currentPhase?: BattlePhaseName;
   phaseCount?: number;
 }
 

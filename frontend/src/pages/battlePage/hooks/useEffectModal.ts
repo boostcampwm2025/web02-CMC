@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 
 interface EffectModalState {
   isOpen: boolean;
-  team: Team;
+  team: BattleTeam;
   content: string;
   type: 'attack' | 'defense';
 }
@@ -16,7 +16,7 @@ export function useEffectModal() {
     type: 'attack'
   });
 
-  const showEffect = useCallback((team: Team, content: string, type: 'attack' | 'defense') => {
+  const showEffect = useCallback((team: BattleTeam, content: string, type: 'attack' | 'defense') => {
     setEffectModal({
       isOpen: true,
       team,

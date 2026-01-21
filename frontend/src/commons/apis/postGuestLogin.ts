@@ -1,10 +1,14 @@
+import type { CreateGuestRequest } from '@cmc/types';
+
 const fetchPostGuestLogin = async (battleId: string, nickname: string) => {
+  const requestBody: CreateGuestRequest = { nickname };
+
   const response = await fetch(`/api/auth/guest/${battleId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ nickname })
+    body: JSON.stringify(requestBody)
   });
 
   if (!response.ok) {

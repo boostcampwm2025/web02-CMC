@@ -1,9 +1,10 @@
-import type { BattleChat, Team } from '@/commons/types/battle';
+import type { BattleChat } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 
 export interface Message {
   id: string;
   user: string;
-  team: Team;
+  team: BattleTeam;
   content: string;
   timestamp: string;
   type?: 'chat' | 'attack' | 'defense';

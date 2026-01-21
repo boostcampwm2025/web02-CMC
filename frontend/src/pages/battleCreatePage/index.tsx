@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { BattleType, BattleLanguage, BattlePlayTimeName } from '@cmc/types';
+import type { BattleType, BattleLanguage, BattlePlayTimeName, BattleCreateRequest } from '@cmc/types';
 import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
@@ -73,22 +73,24 @@ export default function BattleCreatePage() {
     setErrorMessage(null);
 
     try {
+      const requestBody: BattleCreateRequest = {
+        authorId,
+        title: title.trim(),
+        description: description.trim(),
+        aCode,
+        bCode,
+        language,
+        type,
+        password: type === 'PRIVATE' ? password : undefined,
+        category,
+        playTime,
+        topics
+      };
+
       const res = await fetch(`/api/battles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authorId,
-          title: title.trim(),
-          description: description.trim(),
-          aCode,
-          bCode,
-          language,
-          type,
-          password: type === 'PRIVATE' ? password : undefined,
-          category,
-          playTime,
-          topics
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!res.ok) {

@@ -1,11 +1,11 @@
-import type { BattlePhase, Team } from '@/commons/types/battle';
+import type { BattlePhaseName, BattleTeam } from '@cmc/types';
 
-export const isMyTeamAttacking = (team: Team, phase?: BattlePhase): boolean => {
+export const isMyTeamAttacking = (team: BattleTeam, phase?: BattlePhaseName): boolean => {
   if (!phase) return false;
   return phase === 'ATTACK' && team !== 'NONE';
 };
 
-export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = false): boolean => {
+export const isInputDisabled = (team: BattleTeam, phase?: BattlePhaseName, disabled = false): boolean => {
   if (disabled) return true;
   if (!phase) return true;
 
@@ -16,7 +16,7 @@ export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = fals
   return false;
 };
 
-export const getDiscussionConfig = (phase?: BattlePhase) => {
+export const getDiscussionConfig = (phase?: BattlePhaseName) => {
   if (phase === 'ATTACK') {
     return {
       label: '이의제기',

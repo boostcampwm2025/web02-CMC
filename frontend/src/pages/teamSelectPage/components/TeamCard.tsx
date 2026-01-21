@@ -1,9 +1,9 @@
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 import Sheild from '@/assets/icon/shield.svg?react';
 import Scale from '@/assets/icon/scale.svg?react';
 
 interface TeamCardProps {
-  team: Team;
+  team: BattleTeam;
   label: string;
   description: string;
   isSelected: boolean;

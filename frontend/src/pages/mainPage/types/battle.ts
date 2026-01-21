@@ -1,24 +1,22 @@
-import type { BattleStatus, BattleResult } from '@cmc/types';
+import type { BattleStatus, BattleResult, BattleCategory } from '@cmc/types';
 
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import CrownIcon from '@/assets/icon/crown.svg?react';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 
-export const BATTLE_CATEGORY_CONFIG: Record<
-  BattleCategory,
-  {
-    key: BattleCategory;
-    title: string;
-    description: string;
-    text: string; // 아이콘 / 텍스트 컬러
-    bg: string; // 상단 바 / 강조 컬러
-    bgSoft: string; // IconBox 배경
-    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  }
-> = {
+export interface BattleCategoryConfig {
+  key: BattleCategory;
+  title: string;
+  description: string;
+  text: string;
+  bg: string;
+  bgSoft: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+export const BATTLE_CATEGORY_CONFIG: Record<BattleCategory, BattleCategoryConfig> = {
   ALGORITHM: {
     key: 'ALGORITHM',
     title: '⚡ 알고리즘 배틀',

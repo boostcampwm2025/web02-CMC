@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ChatSection from '@/pages/battlePage/components/chatting/ChatSection';
 import type { Message } from '@/pages/battlePage/utils/convertChatMessage';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 
 let mockUserId = 'user-123';
-let mockSelectedTeam: Team = 'A';
+let mockSelectedTeam: BattleTeam = 'A';
 let mockTeamCounts = { teamACount: 5, teamBCount: 3 };
 let mockTeamMessages: Message[] = [];
 let mockAllMessages: Message[] = [];
@@ -24,7 +24,7 @@ vi.mock('@/pages/battlePage/stores/battleStore', () => ({
     return selector(state);
   }),
   selectUserId: (state: { userId: string }) => state.userId,
-  selectSelectedTeam: (state: { selectedTeam: Team }) => state.selectedTeam,
+  selectSelectedTeam: (state: { selectedTeam: BattleTeam }) => state.selectedTeam,
   selectTeamCounts: (state: { teamCounts: { teamACount: number; teamBCount: number } }) => state.teamCounts,
   selectChatInitialized: (state: { chatInitialized: boolean }) => state.chatInitialized
 }));

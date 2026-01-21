@@ -8,9 +8,9 @@ import {
   selectBattleId,
   selectSocket
 } from '@/pages/battlePage/stores/battleStore';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@cmc/types';
 
-const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
+const PHASE_INSTRUCTIONS: Record<BattlePhaseName, string> = {
   PENDING: '',
   OPINION_SHARE: '자유롭게 의견을 작성하고 투표에 참여해주세요',
   ATTACK: '주어진 시간 내에 상대 코드의 문제점을 지적해주세요',
@@ -22,7 +22,7 @@ export default function BattleHeader() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const battleId = useBattleStore(selectBattleId);
   const socket = useBattleStore(selectSocket);
-  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhaseName) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
 
   const handleStart = () => {

@@ -7,7 +7,12 @@ import type {
   BattleCategory,
   BattleLanguage,
   BattleTeam,
-  TeamCounts
+  TeamCounts,
+  BattleResult,
+  Metrics,
+  VoteTimeline,
+  TimelineItem,
+  Mvp
 } from './index';
 
 /**
@@ -76,6 +81,42 @@ export interface BattleListItemResponse {
 }
 
 /**
+ * 배틀 목록 페이지네이션 응답
+ */
+export interface BattleListResponse {
+  battles: BattleListItemResponse[];
+  meta: {
+    offset: number;
+    limit: number;
+    total: number;
+  };
+}
+
+/**
+ * 배틀 결과 응답
+ */
+export interface BattleResultResponse {
+  battleId: string;
+  authorId: string;
+  title: string;
+  description: string;
+  status: 'CLOSED';
+  language: string;
+  category: string;
+  playTime: number;
+  topics: string[];
+  createdAt: string;
+  finishedAt: string;
+  codeA: string;
+  codeB: string;
+  result: BattleResult;
+  metrics: Metrics;
+  voteTimeline: VoteTimeline[];
+  timeline: TimelineItem[];
+  mvp: Mvp;
+}
+
+/**
  * 게스트 로그인 요청
  */
 export interface CreateGuestRequest {
@@ -121,10 +162,60 @@ export interface DiscussionVoteResponse {
 }
 
 /**
+ * 토론 투표 결과 아이템
+ */
+export interface DiscussionVoteResultItem {
+  id: string | null;
+  text: string | null;
+  ownerId: string | null;
+  nickname: string | null;
+  count: number | null;
+  team: BattleTeam | null;
+}
+
+/**
+ * 공격 투표 결과 응답 (battle:attacked)
+ */
+export interface BattleAttackedResponse {
+  battleId: string;
+  attack: {
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
+  };
+}
+
+/**
+ * 방어 투표 결과 응답 (battle:defensed)
+ */
+export interface BattleDefensedResponse {
+  battleId: string;
+  defense: {
+    aTeam: DiscussionVoteResultItem;
+    bTeam: DiscussionVoteResultItem;
+  };
+}
+
+/**
  * 배틀 종료 응답
  */
 export interface BattleClosedResponse {
   battleId: string;
+}
+
+/**
+ * 팀 변경 응답 (개별 사용자)
+ */
+export interface BattleTeamUpdatedResponse {
+  battleId: string;
+  team: BattleTeam;
+}
+
+/**
+ * 배틀 퇴장 응답
+ */
+export interface BattleLeaveResponse {
+  battleId: string;
+  counts: TeamCounts;
 }
 
 /**
@@ -210,4 +301,35 @@ export interface DefenseVoteRequest {
   battleId: string;
   discussionId: string;
   team: BattleTeam;
+}
+
+/**
+ * 채팅 전송 요청 (battle:chat)
+ */
+export interface BattleChatRequest {
+  battleId: string;
+  scope: 'ALL' | 'TEAM';
+  team: BattleTeam;
+  text: string;
+}
+
+/**
+ * 배틀 전체 팀 변경 응답 (battle:all:updated)
+ */
+export interface BattleTeamUpdateAllResponse {
+  battleId: string;
+  round: number;
+  before: TeamCounts;
+  after: TeamCounts;
+  changes: Array<{
+    userId: string;
+    from: BattleTeam;
+    to: BattleTeam;
+  }>;
+  difference: {
+    teamA: number;
+    teamB: number;
+    teamNone: number;
+  };
+  dominantTeam: BattleTeam | null;
 }

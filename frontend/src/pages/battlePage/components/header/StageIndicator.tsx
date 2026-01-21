@@ -4,7 +4,7 @@ import SwitchIcon from '@/assets/icon/switch.svg?react';
 import TimerIcon from '@/assets/icon/timer.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
-import type { BattleInfo, BattlePhase } from '@/commons/types/battle';
+import type { BattleJoinInfoResponse, BattlePhaseName } from '@cmc/types';
 import { useLoaderData } from 'react-router-dom';
 
 interface PhaseStyle {
@@ -15,7 +15,7 @@ interface PhaseStyle {
   IconComponent: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
 }
 
-const PHASE_CONFIG: Record<BattlePhase, PhaseStyle> = {
+const PHASE_CONFIG: Record<BattlePhaseName, PhaseStyle> = {
   PENDING: {
     category: '대기 중',
     message: '배틀이 시작되기를 기다리고 있습니다.',
@@ -56,12 +56,12 @@ const PHASE_CONFIG: Record<BattlePhase, PhaseStyle> = {
 
 export default function StageIndicator() {
   const battleProgress = useBattleStore(selectBattleProgress);
-  const battleInfo = useLoaderData<BattleInfo>();
+  const battleInfo = useLoaderData<BattleJoinInfoResponse>();
   if (!battleProgress) return;
 
   const topics = battleInfo.topics;
   const { round, phaseCount } = battleProgress;
-  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhaseName) || 'PENDING';
   const { IconComponent, category, message, container, icon } = PHASE_CONFIG[phase] || PHASE_CONFIG.PENDING;
   const phaseName = ['ATTACK', 'DEFENSE'].includes(phase) ? `${phaseCount}차 ${category}` : category;
 
@@ -75,17 +75,14 @@ export default function StageIndicator() {
 
       <div className="text-left">
         <div className="flex items-center gap-2">
-          {/* Round */}
           <span className="px-3 py-1 rounded-lg bg-[#253041] text-[#B6BDC9] text-sm font-semibold">{round} Round</span>
 
-          {/* Topic */}
           {topics.length > 0 && (
             <span className="px-3 py-1 rounded-lg bg-[#1E293B] text-[#C7D2FE] text-sm font-semibold">
               {topics[round - 1]}
             </span>
           )}
 
-          {/* Phase (메인) */}
           <span className="px-3 py-1 rounded-lg bg-[#0B1220] text-[#F9FAFB] text-sm font-semibold border border-[#2B7FFF]/30">
             {phaseName}
           </span>

@@ -1,11 +1,8 @@
+import type { BattleListRequest } from '@cmc/types';
 import type { BattleCardItem, ClosedBattleItem } from '../types/battle';
 
-interface GetBattleListParams {
-  offset: number;
-  limit: number;
-}
-
-interface BattleListResponse {
+// 프론트엔드용 응답 타입 (백엔드 BattleListItemResponse를 BattleCardItem으로 변환)
+interface OpenBattleListResponse {
   battles: BattleCardItem[];
   meta: {
     offset: number;
@@ -14,7 +11,7 @@ interface BattleListResponse {
   };
 }
 
-interface BattleResultListResponse {
+interface ClosedBattleListResponse {
   battles: ClosedBattleItem[];
   meta: {
     offset: number;
@@ -23,7 +20,7 @@ interface BattleResultListResponse {
   };
 }
 
-export async function getOpenBattles({ offset, limit }: GetBattleListParams): Promise<BattleListResponse> {
+export async function getOpenBattles({ offset, limit }: BattleListRequest): Promise<OpenBattleListResponse> {
   const res = await fetch(`/api/battles/open?offset=${offset}&limit=${limit}`);
 
   if (!res.ok) {
@@ -33,7 +30,7 @@ export async function getOpenBattles({ offset, limit }: GetBattleListParams): Pr
   return res.json();
 }
 
-export async function getClosedBattles({ offset, limit }: GetBattleListParams): Promise<BattleResultListResponse> {
+export async function getClosedBattles({ offset, limit }: BattleListRequest): Promise<ClosedBattleListResponse> {
   const res = await fetch(`/api/battles/closed?offset=${offset}&limit=${limit}`);
 
   if (!res.ok) {

@@ -1,13 +1,7 @@
 import { useEffect } from 'react';
-import type { BattleDiscussion } from '@cmc/types';
-import type {
-  BattleAttackedResult,
-  BattleDefensedResult,
-  BattleDefense,
-  BattleChat,
-  DiscussionVoteResultItem,
-  Team
-} from '@/commons/types/battle';
+import type { BattleDiscussion, BattleAttackedResponse, BattleDefensedResponse } from '@cmc/types';
+import type { DiscussionVoteResultItem, BattleTeam } from '@cmc/types';
+import type { BattleDefense, BattleChat } from '@/commons/types/battle';
 import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
 import { useEffectModal } from './useEffectModal';
 
@@ -21,7 +15,7 @@ export function useBattleTimeline() {
 
     const pushTimelineAndChat = (
       battleId: string,
-      team: Team,
+      team: BattleTeam,
       voteResult: DiscussionVoteResultItem,
       type: 'attack' | 'defense'
     ) => {
@@ -64,7 +58,7 @@ export function useBattleTimeline() {
         },
         team,
         text: voteResult.text,
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         type,
         votes: voteResult.count ?? 0
       };
@@ -101,7 +95,7 @@ export function useBattleTimeline() {
       }
     };
 
-    const handleAttacked = (data: BattleAttackedResult) => {
+    const handleAttacked = (data: BattleAttackedResponse) => {
       // A팀과 B팀 모두 타임라인에 추가 (A팀 먼저, B팀 나중)
       const { aTeam, bTeam } = data.attack;
 
@@ -128,7 +122,7 @@ export function useBattleTimeline() {
           },
           team: opponentEntry?.team ?? opponentTeam,
           text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           type: 'attack',
           votes: opponentEntry?.count ?? 0
         };
@@ -149,7 +143,7 @@ export function useBattleTimeline() {
       }
     };
 
-    const handleDefensed = (data: BattleDefensedResult) => {
+    const handleDefensed = (data: BattleDefensedResponse) => {
       // A팀과 B팀 모두 타임라인에 추가 (A팀 먼저, B팀 나중)
       const { aTeam, bTeam } = data.defense;
 
@@ -176,7 +170,7 @@ export function useBattleTimeline() {
           },
           team: opponentEntry?.team ?? opponentTeam,
           text: opponentEntry?.text ?? '투표로 선정된 의견이 없습니다',
-          createdAt: new Date(),
+          createdAt: new Date().toISOString(),
           type: 'defense',
           votes: opponentEntry?.count ?? 0
         };

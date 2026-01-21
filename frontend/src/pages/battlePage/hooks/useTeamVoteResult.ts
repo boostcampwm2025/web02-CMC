@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useBattleStore, selectSocket, selectBattleId } from '../stores/battleStore';
-import type { BattleTeamUpdateAllResponse } from '@/commons/types/battle';
+import type { BattleTeamUpdateAllResponse } from '@cmc/types';
 
 export function useTeamVoteResult() {
   const socket = useBattleStore(selectSocket);

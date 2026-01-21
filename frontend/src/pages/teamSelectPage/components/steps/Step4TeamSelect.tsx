@@ -1,10 +1,10 @@
 import { Flag } from 'lucide-react';
 import TeamCard from '../TeamCard';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 
 interface Step4TeamSelectProps {
-  onSelect: (team: Team) => void;
-  selectedTeam?: Team;
+  onSelect: (team: BattleTeam) => void;
+  selectedTeam?: BattleTeam;
 }
 
 export default function Step4TeamSelect({ onSelect, selectedTeam }: Step4TeamSelectProps) {

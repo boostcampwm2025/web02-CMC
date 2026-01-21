@@ -8,12 +8,12 @@ import CodeViewerSection from './components/CodeViewerSection';
 import TimelineSection from './components/TimelineSection';
 import { Trophy, Activity } from 'lucide-react';
 import { getBattleResult } from './apis/getBattleResult';
-import type { BattleResultApiResponse } from './types';
+import type { BattleResultResponse } from '@cmc/types';
 
 export default function BattleResultPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [battleData, setBattleData] = useState<BattleResultApiResponse | null>(null);
+  const [battleData, setBattleData] = useState<BattleResultResponse | null>(null);
 
   useEffect(() => {
     const fetchBattleResult = async () => {

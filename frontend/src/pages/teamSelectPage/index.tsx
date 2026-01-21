@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { selectIsLogginIn, useAuthStore } from '../battlePage/stores/authStore';
 import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { BattleInfo } from '@/commons/types/battle';
+import type { BattleJoinInfoResponse } from '@cmc/types';
 import { useStepFlow } from './hooks/useStepFlow';
 import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
@@ -10,21 +10,20 @@ import Step1BattleInfo from './components/steps/Step1BattleInfo';
 import Step2CodeCompare from './components/steps/Step2CodeCompare';
 import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@cmc/types';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 import GuestLoginModal from './components/GuestLoginModal';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const battleInfo = useLoaderData<BattleInfo>();
+  const battleInfo = useLoaderData<BattleJoinInfoResponse>();
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<BattleTeam | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const loginGuest = useAuthStore((s) => s.loginGuest);
   const isLoggingIn = useAuthStore(selectIsLogginIn);
 
-  // API 데이터 사용 - type 필드 추가
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
   const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 
@@ -109,10 +108,8 @@ export default function TeamSelectPage() {
 
         <p className="text-center text-[#99A1AF] mb-8">배틀 정보를 확인하고 진영을 선택하세요</p>
 
-        {/* Step Indicator */}
         <StepIndicator currentStep={currentStep} />
 
-        {/* Step Content with Side Navigation */}
         <div className="relative mb-8">
           {/* 이전 버튼 - 화면 왼쪽 중앙 고정 */}
 

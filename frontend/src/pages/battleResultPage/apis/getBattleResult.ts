@@ -1,6 +1,6 @@
-import type { BattleResultApiResponse } from '../types';
+import type { BattleResultResponse } from '@cmc/types';
 
-export async function getBattleResult(battleId: string): Promise<BattleResultApiResponse> {
+export async function getBattleResult(battleId: string): Promise<BattleResultResponse> {
   const response = await fetch(`/api/battles/${battleId}/result`);
 
   if (!response.ok) {

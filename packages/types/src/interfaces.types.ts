@@ -17,7 +17,7 @@ export interface BattleChat {
     nickname: string;
   };
   text: string;
-  createdAt: Date;
+  createdAt: string;
   scope: BattleChatScope;
 }
 

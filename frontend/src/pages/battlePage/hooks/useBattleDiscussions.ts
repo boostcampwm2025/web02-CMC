@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import type { DiscussionVoteResponse, BattleDiscussion } from '@cmc/types';
 import {
   useBattleStore,
   selectBattleProgress,
@@ -32,7 +33,6 @@ export function useBattleDiscussions() {
       socket.emit(eventName, {
         battleId,
         discussionId: String(discussionId),
-        userId: user.id,
         team
       });
     },
@@ -52,7 +52,6 @@ export function useBattleDiscussions() {
 
       socket.emit(isAttacking ? 'battle:attack' : 'battle:defense', {
         battleId,
-        authorId: user.id,
         content,
         team
       });
@@ -64,24 +63,18 @@ export function useBattleDiscussions() {
     if (!socket || !user) return;
 
     // 투표 업데이트 이벤트
-    const handleVoteUpdate = (data: { discussionId: string; upvotes: number; votes: string[] }) => {
+    const handleVoteUpdate = (data: DiscussionVoteResponse) => {
       if (!user) return;
       updateDiscussionVote(data.discussionId, data.upvotes, data.votes, user.id);
     };
 
     // 새 이의제기/반론 추가
-    const handleNewDiscussion = (data: {
-      discussionId: string;
-      author: { id: string; nickname: string };
-      content: string;
-      upvotes: number;
-      votes: string[];
-    }) => {
+    const handleNewDiscussion = (data: BattleDiscussion) => {
       if (team === 'NONE') return;
 
       addDiscussion({
         id: data.discussionId as unknown as number,
-        user: data.author.id === user.id ? 'You' : data.author.nickname,
+        user: data.author.authorId === user.id ? 'You' : data.author.nickname,
         team: team as 'A' | 'B',
         content: data.content,
         votes: data.upvotes,

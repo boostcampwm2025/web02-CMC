@@ -1,6 +1,6 @@
 import { StageIcon } from './StageIcon';
 import DownArrowIcon from '@/assets/icon/downArrow.svg?react';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@cmc/types';
 
 const COLOR_MAP = {
   BASE: { bg: '#0A0A1A', border: '#364153', text: '#99A1AF' },
@@ -64,7 +64,7 @@ const STAGES = [
 
 interface StageListProps {
   round: number;
-  phase: BattlePhase;
+  phase: BattlePhaseName;
   phaseCount: number;
 }
 
@@ -81,7 +81,7 @@ export function StageList({ round, phase, phaseCount }: StageListProps) {
     return getCurrentPhaseStep() === stageStep;
   };
 
-  const getStageColor = (stage: BattlePhase) => COLOR_MAP[stage] || COLOR_MAP.BASE;
+  const getStageColor = (stage: BattlePhaseName) => COLOR_MAP[stage] || COLOR_MAP.BASE;
 
   return (
     <div className="flex items-center gap-4 px-4">
@@ -92,7 +92,7 @@ export function StageList({ round, phase, phaseCount }: StageListProps) {
         <div key={stage.step} className="flex items-center gap-3">
           <StageIcon
             icon={stage.icon as 'message' | 'battle' | 'shield' | 'switch'}
-            {...getStageColor(stage.phase as BattlePhase)}
+            {...getStageColor(stage.phase as BattlePhaseName)}
             active={isActiveStage(stage.step)}
             small={true}
             tooltip={stage.description}

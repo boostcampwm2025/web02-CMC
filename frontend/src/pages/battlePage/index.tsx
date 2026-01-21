@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLoaderData } from 'react-router-dom';
-import type { BattleInfo } from '@/commons/types/battle';
+import type { BattleJoinInfoResponse } from '@cmc/types';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
@@ -33,7 +33,7 @@ import { selectUser, useAuthStore } from './stores/authStore';
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const battleInfo = useLoaderData<BattleInfo>();
+  const battleInfo = useLoaderData<BattleJoinInfoResponse>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const sidebarOpenedForTutorial = useRef(false);

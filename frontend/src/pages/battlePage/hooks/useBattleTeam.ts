@@ -7,7 +7,7 @@ import {
   selectBattleId,
   selectTeamCounts
 } from '../stores/battleStore';
-import type { BattleUserUpdateResponse } from '@/commons/types/battle';
+import type { BattleUserUpdateResponse, BattleTeamUpdatedResponse } from '@cmc/types';
 
 interface UseBattleTeamProps {
   onOpenTeamChangeModal: () => void;
@@ -36,7 +36,7 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
   useEffect(() => {
     if (!socket) return;
 
-    const handleChangedTeam = (data: { battleId: string; team: 'A' | 'B' | 'NONE' }) => {
+    const handleChangedTeam = (data: BattleTeamUpdatedResponse) => {
       if (data.battleId !== battleId) return;
 
       setSelectedTeam(data.team);
