@@ -212,7 +212,7 @@ export class BattlesService extends EventEmitter {
     battleState.teamA.users = [...battleState.teamA.users.filter(id => id !== userId)]
     battleState.teamB.users = [...battleState.teamB.users.filter(id => id !== userId)]
 
-    battleState.guestInfoMap.delete(userId)
+    // battleState.guestInfoMap.delete(userId)
     battleState.teamVotes.delete(userId)
     battleState.participants.delete(userId)
 
