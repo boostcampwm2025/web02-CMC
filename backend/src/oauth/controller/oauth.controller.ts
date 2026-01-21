@@ -50,7 +50,8 @@ export class OauthController {
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
     // 프론트엔드로 리다이렉트
-    res.redirect(this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/')
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
+    res.redirect(`${frontendUrl}/auth/callback`)
   }
 
   @Post('refresh')
