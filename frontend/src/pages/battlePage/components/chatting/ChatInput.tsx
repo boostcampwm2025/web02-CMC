@@ -30,7 +30,7 @@ export default function ChatInput({ onSend }: ChatInputProps) {
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="메시지를 입력하세요..."
-          className="flex-1 bg-[#2D2D3F] border border-[#3D3D4F] rounded-md px-3 py-2.5 text-[13px] text-white placeholder-[#666] focus:outline-none focus:border-[#FF6900]"
+          className="flex-1 bg-[#2D2D3F] border border-[#3D3D4F] rounded-md px-3 py-2.5 text-xs text-white placeholder-[#666] focus:outline-none focus:border-[#FF6900]"
         />
         <button onClick={handleSend} className="p-2.5 rounded-md bg-[#3D3D4F] hover:bg-[#4D4D5F] transition-colors">
           <SendIcon />

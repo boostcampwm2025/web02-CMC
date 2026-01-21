@@ -50,7 +50,7 @@ export default function TeamChangeModal({ topics, handleTeamChange, onClose }: T
   return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="w-full max-w-[900px] rounded-lg bg-[#1E1E2F] border-[3px] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8"
+        className="w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 타임라인 섹션 */}

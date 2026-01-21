@@ -8,5 +8,13 @@ interface CodeViewerProps {
 }
 
 export default function TeamSelectCodeViewer({ code, language, team }: CodeViewerProps) {
-  return <CodeViewer code={code} language={language} team={team} minHeight="500px" data-testid="code-viewer" />;
+  return (
+    <CodeViewer
+      code={code}
+      language={language}
+      team={team}
+      minHeight="var(--code-compare-min-height)"
+      data-testid="code-viewer"
+    />
+  );
 }

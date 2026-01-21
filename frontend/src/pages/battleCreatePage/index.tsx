@@ -106,7 +106,7 @@ export default function BattleCreatePage() {
 
   return (
     <div className="min-h-screen w-full px-6 py-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto create-max-width">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -118,10 +118,10 @@ export default function BattleCreatePage() {
         <div className="mt-4 rounded-2xl border border-[#2b2b3e] bg-[#121226] shadow-[0_18px_35px_rgba(0,0,0,0.35)]">
           <div className="h-1 w-full rounded-t-2xl bg-orange-500" />
 
-          <div className="p-6">
+          <div className="create-padding">
             <div className="mb-6">
               <p className="text-xs tracking-[0.24em] text-orange-500">CREATE NEW BATTLE</p>
-              <h1 className="mt-2 text-2xl font-bold text-white">새 배틀 생성</h1>
+              <h1 className="mt-2 create-title-size font-bold text-white">새 배틀 생성</h1>
             </div>
 
             <div className="space-y-6">
@@ -157,7 +157,7 @@ export default function BattleCreatePage() {
                     value={aCode}
                     onChange={(e) => setACode(e.target.value)}
                     placeholder="첫 번째 코드를 입력하세요"
-                    className="h-56 w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   />
                 </div>
 
@@ -172,7 +172,7 @@ export default function BattleCreatePage() {
                     value={bCode}
                     onChange={(e) => setBCode(e.target.value)}
                     placeholder="두 번째 코드를 입력하세요"
-                    className="h-56 w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   />
                 </div>
               </div>

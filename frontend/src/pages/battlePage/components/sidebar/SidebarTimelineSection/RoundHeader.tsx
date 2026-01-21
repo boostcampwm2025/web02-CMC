@@ -16,7 +16,7 @@ export default function RoundHeader({ round, topic, isActive, isExpanded, onTogg
     >
       <div className="flex items-center gap-2">
         <div
-          className={`px-2 py-1 rounded text-[10px] font-bold ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-700/50 text-gray-400'}`}
+          className={`px-2 py-1 rounded text-[0.625rem] font-bold ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-700/50 text-gray-400'}`}
         >
           Round {round}
         </div>

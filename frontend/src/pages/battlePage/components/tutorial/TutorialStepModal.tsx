@@ -40,7 +40,7 @@ export default function TutorialStepModal({
 
       {/* Mock Vote UI - vote 단계에서만 표시 */}
       {currentStep === 'vote' && (
-        <div data-tutorial="vote" className="absolute right-[155px] top-[205px] z-[99]">
+        <div data-tutorial="vote" className="absolute right-[9.688rem] top-[12.813rem] z-[99]">
           <TutorialVoteExample />
         </div>
       )}
@@ -49,11 +49,11 @@ export default function TutorialStepModal({
         className="absolute pointer-events-auto transition-all duration-300"
         style={
           spotlight && spotlight.top > 400
-            ? { top: '80px', left: '50%', transform: 'translateX(-50%)' }
-            : { bottom: '80px', left: '50%', transform: 'translateX(-50%)' }
+            ? { top: '5rem', left: '50%', transform: 'translateX(-50%)' }
+            : { bottom: '5rem', left: '50%', transform: 'translateX(-50%)' }
         }
       >
-        <div className="relative w-[420px] rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
+        <div className="relative max-w-md rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#99A1AF] hover:text-white transition-colors"
@@ -62,19 +62,19 @@ export default function TutorialStepModal({
           </button>
 
           <div className="flex justify-center mb-4">
-            <div className="w-[56px] h-[56px] rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
               <QuestionIcon className="w-8 h-8 text-white" />
             </div>
           </div>
 
           <div className="text-center mb-2">
-            <h3 className="text-[22px] font-bold text-white mb-1">{title}</h3>
-            <span className="text-[13px] font-medium text-[#FF6900]">
+            <h3 className="text-2xl font-bold text-white mb-1">{title}</h3>
+            <span className="text-xs font-medium text-[#FF6900]">
               {stepNumber} / {TOTAL_STEPS}
             </span>
           </div>
 
-          <p className="text-center text-[14px] text-[#99A1AF] leading-relaxed mb-6 px-2">{description}</p>
+          <p className="text-center text-sm text-[#99A1AF] leading-relaxed mb-6 px-2">{description}</p>
 
           <div className="flex justify-center gap-2 mb-6">
             {Array.from({ length: TOTAL_STEPS }, (_, i) => (
@@ -95,20 +95,20 @@ export default function TutorialStepModal({
             <button
               onClick={onPrev}
               disabled={stepNumber === 1}
-              className="px-4 h-[44px] rounded-lg bg-[#2D3648] hover:bg-[#3A4255] disabled:opacity-50 disabled:cursor-not-allowed text-white text-[14px] font-medium transition-colors flex items-center gap-1"
+              className="px-4 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center gap-1"
             >
               <span>←</span>
               <span>이전</span>
             </button>
             <button
               onClick={onSkip}
-              className="flex-1 h-[44px] rounded-lg bg-[#2D3648] hover:bg-[#3A4255] text-white text-[14px] font-medium transition-colors"
+              className="flex-1 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] text-white text-sm font-medium transition-colors"
             >
               건너뛰기
             </button>
             <button
               onClick={onNext}
-              className="px-6 h-[44px] rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-[14px] font-bold transition-all shadow-lg shadow-orange-500/30 flex items-center gap-1"
+              className="px-6 h-11 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-sm font-bold transition-all shadow-lg shadow-orange-500/30 flex items-center gap-1"
             >
               <span>{isLastStep ? '완료' : '다음'}</span>
               <span>→</span>

@@ -94,6 +94,15 @@
   animation: bounce-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 /* 스크롤바 */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -149,25 +158,136 @@
 /* Custom styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  min-width: 1440px;
+  font-size: 12px;
 
-  /* 배틀 페이지 레이아웃 크기 */
   --sidebar-width: 320px;
-  --main-closed: 1440px;
-  --main-open: 1120px;
-  --lounge-closed: 472px;
-  --lounge-open: 360px;
+  --main-closed: 1220px;
+  --main-open: 960px;
+  --lounge-closed: 420px;
+  --lounge-open: 340px;
+  --header-height: 10rem;
+  --chat-height: 30rem;
+  --code-height: 30rem;
+  --discussion-input-width: 450px;
+  --create-max-width: 960px;
+  --create-padding: 1.5rem;
+  --create-title-size: 1.5rem;
+  --create-input-height: 2.75rem;
+  --create-textarea-height: 14rem;
+  
+  --team-card-width: 255px;
+  --team-card-height: 215px;
+  --team-card-icon-size: 64px;
+  --team-card-icon-inner-size: 32px;
+  --team-card-gap: 0.75rem;
+  --team-card-padding: 1rem;
+  --team-card-title-size: 1.125rem;
+  --team-card-desc-size: 0.75rem;
+  
+  --battle-info-icon-size: 40px;
+  --battle-info-title-size: 1.25rem;
+  --battle-info-desc-size: 0.875rem;
+  --battle-info-card-padding: 1rem;
+  --battle-info-stat-icon-size: 48px;
+  --battle-info-stat-value-size: 2rem;
+  --battle-info-swords-size: 20px;
+  --battle-info-users-size: 24px;
+  --battle-info-target-size: 20px;
+  
+  --code-compare-icon-size: 40px;
+  --code-compare-title-size: 1.25rem;
+  --code-compare-desc-size: 0.875rem;
+  --code-compare-container-padding: 1rem;
+  --code-compare-min-height: 300px;
 }
 
-/* FHD 모니터 */
+@media (min-width: 1600px) {
+  :root {
+  font-size: 14px;
+
+    --sidebar-width: 360px;
+    --main-closed: 1500px;
+    --main-open: 1240px;
+    --lounge-closed: 520px;
+    --lounge-open: 400px;   
+    --header-height: 10.5rem;
+    --chat-height: 33rem;
+    --code-height: 33rem;
+    --discussion-input-width: 580px;    
+    --create-max-width: 1120px;
+    --create-padding: 1.75rem;
+    --create-title-size: 1.75rem;
+    --create-input-height: 3rem;
+    --create-textarea-height: 16rem;
+    
+    --team-card-width: 290px;
+    --team-card-height: 290px;
+    --team-card-icon-size: 80px;
+    --team-card-icon-inner-size: 40px;
+    --team-card-gap: 1rem;
+    --team-card-padding: 1.25rem;
+    --team-card-title-size: 1.25rem;
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 48px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 1.5rem;
+    --battle-info-stat-icon-size: 56px;
+    --battle-info-stat-value-size: 2.5rem;
+    --battle-info-swords-size: 22px;
+    --battle-info-users-size: 28px;
+    --battle-info-target-size: 24px;
+    
+    --code-compare-icon-size: 48px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 1.5rem;
+    --code-compare-min-height: 400px;  }
+}
+
 @media (min-width: 1920px) {
   :root {
+  font-size: 16px;
     --sidebar-width: 400px;
     --main-closed: 1800px;
     --main-open: 1400px;
     --lounge-closed: 590px;
     --lounge-open: 450px;
-  }
+    --header-height: 11.1875rem;
+    --chat-height: 36rem;
+    --code-height: 36rem;
+    --discussion-input-width: 650px;    
+    --create-max-width: 1280px;
+    --create-padding: 2rem;
+    --create-title-size: 2rem;
+    --create-input-height: 3.25rem;
+    --create-textarea-height: 18rem;
+    
+    --team-card-width: 330px;
+    --team-card-height: 350px;
+    --team-card-icon-size: 96px;
+    --team-card-icon-inner-size: 48px;
+    --team-card-gap: 1.5rem;
+    --team-card-padding: 1.5rem;
+    --team-card-title-size: 1.5rem;
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 64px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 2rem;
+    --battle-info-stat-icon-size: 64px;
+    --battle-info-stat-value-size: 2.25rem;
+    --battle-info-swords-size: 24px;
+    --battle-info-users-size: 32px;
+    --battle-info-target-size: 28px;
+    
+    --code-compare-icon-size: 64px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 2rem;
+    --code-compare-min-height: 500px;  }
 }
 
 @layer components {
@@ -191,8 +311,144 @@
     width: var(--lounge-open);
   }
 
+  .header-height {
+    height: var(--header-height);
+  }
+
+  .chat-height {
+    height: var(--chat-height);
+  }
+
+  .code-height {
+    height: var(--code-height);
+  }
+
+  .min-code-height {
+    min-height: var(--code-height);
+  }
+
   .ml-sidebar {
     margin-left: var(--sidebar-width);
+  }
+
+  .discussion-input-width {
+    width: var(--discussion-input-width);
+  }
+
+  .create-max-width {
+    max-width: var(--create-max-width);
+  }
+
+  .create-padding {
+    padding: var(--create-padding);
+  }
+
+  .create-title-size {
+    font-size: var(--create-title-size);
+  }
+
+  .create-input-height {
+    height: var(--create-input-height);
+  }
+
+  .create-textarea-height {
+    height: var(--create-textarea-height);
+  }
+
+  .team-card-width {
+    width: var(--team-card-width);
+  }
+
+  .team-card-height {
+    height: var(--team-card-height);
+  }
+
+  .team-card-icon-size {
+    width: var(--team-card-icon-size);
+    height: var(--team-card-icon-size);
+  }
+
+  .team-card-icon-inner-size {
+    width: var(--team-card-icon-inner-size);
+    height: var(--team-card-icon-inner-size);
+  }
+
+  .team-card-gap {
+    gap: var(--team-card-gap);
+  }
+
+  .team-card-padding {
+    padding: var(--team-card-padding);
+  }
+
+  .team-card-title-size {
+    font-size: var(--team-card-title-size);
+  }
+
+  .team-card-desc-size {
+    font-size: var(--team-card-desc-size);
+  }
+
+  .battle-info-icon-size {
+    width: var(--battle-info-icon-size);
+    height: var(--battle-info-icon-size);
+  }
+
+  .battle-info-title-size {
+    font-size: var(--battle-info-title-size);
+  }
+
+  .battle-info-desc-size {
+    font-size: var(--battle-info-desc-size);
+  }
+
+  .battle-info-card-padding {
+    padding: var(--battle-info-card-padding);
+  }
+
+  .battle-info-stat-icon-size {
+    width: var(--battle-info-stat-icon-size);
+    height: var(--battle-info-stat-icon-size);
+  }
+
+  .battle-info-stat-value-size {
+    font-size: var(--battle-info-stat-value-size);
+  }
+
+  .battle-info-swords-size {
+    width: var(--battle-info-swords-size);
+    height: var(--battle-info-swords-size);
+  }
+
+  .battle-info-users-size {
+    width: var(--battle-info-users-size);
+    height: var(--battle-info-users-size);
+  }
+
+  .battle-info-target-size {
+    width: var(--battle-info-target-size);
+    height: var(--battle-info-target-size);
+  }
+
+  .code-compare-icon-size {
+    width: var(--code-compare-icon-size);
+    height: var(--code-compare-icon-size);
+  }
+
+  .code-compare-title-size {
+    font-size: var(--code-compare-title-size);
+  }
+
+  .code-compare-desc-size {
+    font-size: var(--code-compare-desc-size);
+  }
+
+  .code-compare-container-padding {
+    padding: var(--code-compare-container-padding);
+  }
+
+  .code-compare-min-height {
+    min-height: var(--code-compare-min-height);
   }
 }
 

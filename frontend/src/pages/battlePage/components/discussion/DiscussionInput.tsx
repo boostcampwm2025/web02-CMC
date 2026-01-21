@@ -35,7 +35,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
 
   return (
     <section
-      className={`relative w-full rounded-xl overflow-visible border-2 transition-all duration-500 ${config.colors.bg} ${config.colors.glowBorder} ${
+      className={`discussion-input-width relative rounded-xl overflow-visible border-2 transition-all duration-500 ${config.colors.bg} ${config.colors.glowBorder} ${
         isFocused ? 'scale-[1.01]' : ''
       }`}
     >
@@ -48,7 +48,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
         </span>
       </div>
 
-      <div className="relative px-5 py-6 pt-8">
+      <div className=" relative px-5 py-6 pt-8">
         <div className="flex items-center gap-4">
           <div
             className={`rounded-xl flex items-center justify-center shrink-0 w-16 h-16 border-2 ${config.colors.iconBox}

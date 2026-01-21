@@ -40,29 +40,29 @@ export default function TeamCard({ team, label, description, isSelected, onClick
     <button
       onClick={onClick}
       className={`
-        w-[300px] h-[350px]
+        team-card-width team-card-height
         bg-[#1E1E2F]
-        rounded-lg
+        rounded-md xl:rounded-lg
         border-2
         ${getBorderClass()}
         transition-all
         duration-300
         hover:scale-105
         flex flex-col items-center justify-center
-        gap-6
-        p-6
+        team-card-gap
+        team-card-padding
       `}
     >
       {/* 아이콘 */}
-      <div className={`w-24 h-24 rounded-full ${styles.icon} flex items-center justify-center`}>
-        <Icon className="w-12 h-12 text-white" />
+      <div className={`team-card-icon-size rounded-full ${styles.icon} flex items-center justify-center`}>
+        <Icon className="team-card-icon-inner-size text-white" />
       </div>
 
       {/* 라벨 */}
-      <h3 className={`text-2xl font-bold ${styles.title}`}>{label}</h3>
+      <h3 className={`team-card-title-size font-bold ${styles.title}`}>{label}</h3>
 
       {/* 설명 */}
-      <p className="text-[#99A1AF] text-center text-sm">{description}</p>
+      <p className="text-[#99A1AF] text-center team-card-desc-size leading-tight text-[0.7rem]">{description}</p>
     </button>
   );
 }
