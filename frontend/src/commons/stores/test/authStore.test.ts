@@ -112,10 +112,14 @@ describe('authStore', () => {
       expect(vi.mocked(getOAuthUser)).not.toHaveBeenCalled();
     });
 
-    it('API 호출 실패 시 에러를 던진다', async () => {
+    it('API 호출 실패 시 null을 반환하고 clearAuth를 호출한다', async () => {
       vi.mocked(getOAuthUser).mockRejectedValue(new Error('401 Unauthorized'));
 
-      await expect(useAuthStore.getState().getOAuthUser()).rejects.toThrow();
+      const result = await useAuthStore.getState().getOAuthUser();
+
+      expect(result).toBeNull();
+      expect(useAuthStore.getState().user).toBeNull();
+      expect(localStorage.getItem('CMC_BATTLE_USER')).toBeNull();
     });
   });
 

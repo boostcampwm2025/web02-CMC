@@ -9,7 +9,7 @@ interface AuthStore {
   isLoggingIn: boolean;
 
   loginGuest: (battleId: string, nickname: string) => Promise<{ id: string; nickname: string }>;
-  getOAuthUser: () => Promise<AuthUser>;
+  getOAuthUser: () => Promise<AuthUser | null>;
   logout: () => Promise<void>;
   clearAuth: () => void;
 }
@@ -71,10 +71,9 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         );
 
         return oauthUser;
-      } catch (error) {
-        // OAuth 인증 실패 시 (refresh token도 없거나 만료된 경우) 인증 상태 정리
+      } catch {
         get().clearAuth();
-        throw error;
+        return null;
       }
     },
 
