@@ -1,7 +1,7 @@
 import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam, TeamCounts, TeamChange } from '@cmc/types'
+import type { BattleTeam, TeamCounts, TeamChange, BattleTeamUpdateAllResponse } from '@cmc/types'
 
-export class BattleTeamUpdateAllResponseDto {
+export class BattleTeamUpdateAllResponseDto implements BattleTeamUpdateAllResponse {
   battleId: string
   round: number
 

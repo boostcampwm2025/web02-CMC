@@ -1,6 +1,6 @@
-import type { BattleDiscussion } from '@cmc/types'
+import type { BattleDiscussion, DiscussionVoteResponse } from '@cmc/types'
 
-export class DiscussionVoteResponseDto {
+export class DiscussionVoteResponseDto implements DiscussionVoteResponse {
   discussionId: string
   upvotes: number
   votes: string[]

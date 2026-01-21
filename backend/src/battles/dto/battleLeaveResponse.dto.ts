@@ -1,12 +1,9 @@
+import type { BattleLeaveResponse, TeamCounts } from '@cmc/types'
 import { ActiveBattleState } from '../types/battles.types'
 
-export class BattleLeaveResponseDto {
+export class BattleLeaveResponseDto implements BattleLeaveResponse {
   battleId: string
-  counts: {
-    teamA: number
-    teamB: number
-    teamNone: number
-  }
+  counts: TeamCounts
 
   static fromEntity(payload: ActiveBattleState): BattleLeaveResponseDto {
     const res = new BattleLeaveResponseDto()
