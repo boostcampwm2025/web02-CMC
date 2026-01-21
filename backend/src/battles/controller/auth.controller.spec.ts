@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { AuthController } from './auth.controller'
 import { AuthService } from '../service/auth.service'
 import { BattlesService } from '../service/battles.service'
+import { OauthService } from '../../oauth/service/oauth.service'
 import { GuestAccount } from '../types/auth.types'
 import { ActiveBattleState } from '../types/battles.types'
 import { BATTLE_PHASE } from '../const/battles.const'
@@ -20,6 +21,10 @@ describe('AuthController', () => {
     registerGuest: jest.fn(),
   }
 
+  const mockOauthService = {
+    isNicknameExists: jest.fn(),
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuthController],
@@ -31,6 +36,10 @@ describe('AuthController', () => {
         {
           provide: BattlesService,
           useValue: mockBattlesService,
+        },
+        {
+          provide: OauthService,
+          useValue: mockOauthService,
         },
       ],
     }).compile()
@@ -56,7 +65,7 @@ describe('AuthController', () => {
 
     beforeEach(() => {
       mockBattlesService.getBattleState.mockReturnValue(mockBattleState)
-      mockBattlesService.generateGuestNickname.mockReturnValue('심심한 레오')
+      mockOauthService.isNicknameExists.mockReturnValue(false)
     })
 
     it('정상적으로 Guest를 생성한다', () => {
@@ -74,7 +83,7 @@ describe('AuthController', () => {
 
       expect(result).toEqual(mockGuest)
       expect(mockBattlesService.getBattleState).toHaveBeenCalledWith(battleId)
-      expect(mockBattlesService.generateGuestNickname).toHaveBeenCalledWith(battleId)
+      expect(mockBattlesService.generateGuestNickname).toHaveBeenCalledWith(battleId, expect.any(Function))
       expect(mockAuthService.createGuest).toHaveBeenCalledWith(mockNickname)
       expect(mockBattlesService.registerGuest).toHaveBeenCalledWith(battleId, mockGuest)
     })
@@ -86,6 +95,37 @@ describe('AuthController', () => {
       expect(mockBattlesService.generateGuestNickname).not.toHaveBeenCalled()
       expect(mockAuthService.createGuest).not.toHaveBeenCalled()
       expect(mockBattlesService.registerGuest).not.toHaveBeenCalled()
+    })
+
+    it('OAuth 사용자 닉네임과 중복되지 않는 닉네임을 생성한다', () => {
+      const mockNickname = '심심한 레오'
+      const mockGuest: GuestAccount = {
+        id: 'client-id-1',
+        nickname: mockNickname,
+        createdAt: Date.now(),
+      }
+
+      // OAuth 닉네임 체크 함수가 올바르게 전달되는지 확인
+      let capturedIsTaken: ((nickname: string) => boolean) | undefined
+      mockBattlesService.generateGuestNickname.mockImplementation((battleId: string, isTaken: (nickname: string) => boolean) => {
+        capturedIsTaken = isTaken
+        return mockNickname
+      })
+      mockAuthService.createGuest.mockReturnValue(mockGuest)
+
+      controller.createGuest(battleId)
+
+      expect(capturedIsTaken).toBeDefined()
+      if (!capturedIsTaken) {
+        throw new Error('isTaken function was not captured')
+      }
+
+      // isTaken 함수가 OAuth 서비스를 올바르게 호출하는지 확인
+      mockOauthService.isNicknameExists.mockReturnValue(true)
+      expect(capturedIsTaken('existing-nickname')).toBe(true)
+
+      mockOauthService.isNicknameExists.mockReturnValue(false)
+      expect(capturedIsTaken('new-nickname')).toBe(false)
     })
 
     it('Guest 생성 후 배틀에 등록한다', () => {

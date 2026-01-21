@@ -80,4 +80,11 @@ export class OauthService {
     }
     throw new NotFoundException('사용자를 찾을 수 없습니다.')
   }
+
+  /**
+   * 닉네임이 OAuth 사용자 중에 존재하는지 확인
+   */
+  isNicknameExists(nickname: string): boolean {
+    return Array.from(this.oauthMap.values()).some(user => user.nickname === nickname)
+  }
 }
