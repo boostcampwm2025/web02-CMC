@@ -209,13 +209,9 @@ export class BattlesService extends EventEmitter {
   }
 
   private calculateMVPs(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
-    // 모든 의견 수집 (teamA + teamB의 attacks + defenses)
-    const allOpinions: BattleDiscussion[] = [
-      ...state.teamA.attacks.filter((d): d is BattleDiscussion => d !== null),
-      ...state.teamA.defenses.filter((d): d is BattleDiscussion => d !== null),
-      ...state.teamB.attacks.filter((d): d is BattleDiscussion => d !== null),
-      ...state.teamB.defenses.filter((d): d is BattleDiscussion => d !== null),
-    ]
+    // 모든 의견 수집 (opinionHistory에 저장된 전체 의견)
+    // teamA/teamB는 resetDiscussions에서 초기화되므로 opinionHistory 사용
+    const allOpinions: BattleDiscussion[] = state.opinionHistory
 
     if (allOpinions.length === 0) return []
 
@@ -314,6 +310,8 @@ export class BattlesService extends EventEmitter {
       teamVotes: new Map(),
 
       guestInfoMap: new Map(),
+
+      opinionHistory: [],
 
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
@@ -765,7 +763,7 @@ export class BattlesService extends EventEmitter {
       team,
     }
 
-    // battleState.all.attacks.push(attack)
+    battleState.opinionHistory.push(attack)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.attacks.push(attack)
     } else {
@@ -800,7 +798,7 @@ export class BattlesService extends EventEmitter {
       team,
     }
 
-    // battleState.all.defenses.push(defense)
+    battleState.opinionHistory.push(defense)
     if (team === BATTLE_TEAM.A) {
       battleState.teamA.defenses.push(defense)
     } else {

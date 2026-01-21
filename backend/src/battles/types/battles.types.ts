@@ -106,6 +106,8 @@ export interface ActiveBattleState {
 
   guestInfoMap: Map<string, string>
 
+  opinionHistory: BattleDiscussion[]
+
   round: number
   topics: string[]
   phase: BattlePhaseName
