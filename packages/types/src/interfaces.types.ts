@@ -2,12 +2,14 @@ import type {
   BattleTeam,
   BattleDiscussionType,
   BattleDiscussionStatus,
+  BattleChatScope,
 } from './common.types';
 
 /**
  * 배틀 채팅 메시지
  */
 export interface BattleChat {
+  battleId: string;
   messageId: string;
   team: BattleTeam;
   sender: {
@@ -16,6 +18,7 @@ export interface BattleChat {
   };
   text: string;
   createdAt: Date;
+  scope: BattleChatScope;
 }
 
 /**

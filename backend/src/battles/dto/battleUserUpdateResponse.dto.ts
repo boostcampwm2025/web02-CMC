@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import type { TeamCounts } from '@cmc/types'
 
 export class BattleUserUpdateResponseDto {

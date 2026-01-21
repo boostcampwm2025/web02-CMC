@@ -26,3 +26,25 @@ export type {
   TeamCounts,
   TeamChange,
 } from './interfaces.types';
+
+// API Request/Response types
+export type {
+  BattleJoinResponse,
+  BattleJoinInfoResponse,
+  BattleListItemResponse,
+  CreateGuestRequest,
+  BattleUserUpdateResponse,
+  BattlePhaseResponse,
+  BattleRoundResponse,
+  DiscussionVoteResponse,
+  BattleClosedResponse,
+  BattleStartRequest,
+  BattleTeamVoteRequest,
+  BattleCreateRequest,
+  BattleJoinRequest,
+  BattleListRequest,
+  AttackCreateRequest,
+  DefenseCreateRequest,
+  AttackVoteRequest,
+  DefenseVoteRequest,
+} from './response.types';

@@ -7,16 +7,19 @@ import type {
   BattleDefense as BaseBattleDefense,
   BattleChatScope,
   TeamCounts,
-  TeamChange
+  TeamChange,
+  BattleJoinResponse,
+  BattleJoinInfoResponse
 } from '@cmc/types';
 
 // FE 전용 타입 정의 (기존 이름 유지를 위한 별칭)
 export type BattlePhase = BattlePhaseName;
 export type Team = BattleTeam;
 
+// BattleInfo는 BattleJoinInfoResponse로 대체
+export type BattleInfo = BattleJoinInfoResponse;
+
 export interface BattleChat extends BaseBattleChat {
-  battleId: string;
-  scope: BattleChatScope;
   type?: 'chat' | 'attack' | 'defense';
   votes?: number;
 }
@@ -25,47 +28,7 @@ export interface BattleDefense extends BaseBattleDefense {
   attackId: string;
 }
 
-export interface BattleInfo {
-  title: string;
-  description: string;
-  aCode: string;
-  bCode: string;
-  language: string;
-  category: string;
-  participantCount: number;
-  currentRound: number;
-  totalRounds: number;
-  topics: string[];
-  currentPhase: BattlePhase;
-  phaseCount: number;
-  timelines: {
-    attacks: BattleDiscussion[];
-    defenses: BattleDefense[];
-  };
-}
-
-// BattleJoinResponseDto 타입
-export interface BattleJoinData {
-  battleId: string;
-  counts: TeamCounts;
-  timelines: {
-    attacks: BattleDiscussion[];
-    defenses: BattleDefense[];
-  };
-  allChats: BattleChat[];
-  attacks: BattleDiscussion[];
-  defenses: BattleDefense[];
-  chats: BattleChat[];
-  participantId?: string;
-
-  // 배틀 상태 정보
-  round: number;
-  topics: string[];
-  phase: BattlePhase;
-  phaseCount: number;
-  startedAt: number | null;
-  expiredAt: number | null;
-}
+// BattleJoinResponse는 @cmc/types에서 import
 
 export interface UseBattleSocketProps {
   battleId: string;

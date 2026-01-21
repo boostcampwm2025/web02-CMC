@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import type { BattleJoinData } from '@/commons/types/battle';
+import type { BattleJoinResponse, BattleDiscussion } from '@cmc/types';
+import type { BattleDefense } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 
 export function useBattleSocket() {
@@ -40,7 +41,7 @@ export function useBattleSocket() {
     });
 
     // 배틀 참여 성공시 데이터 수신
-    newSocket.once('battle:joined', (data: BattleJoinData) => {
+    newSocket.once('battle:joined', (data: BattleJoinResponse) => {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
@@ -59,7 +60,12 @@ export function useBattleSocket() {
         teamBCount: data.counts.teamB,
         none: data.counts.teamNone
       });
-      setTimelines(data.timelines);
+      setTimelines({
+        attacks: data.timelines.attacks.filter((item)=> item !== null),
+        defenses: data.timelines.defenses
+          .filter((item) => item !== null)
+          .map((item): BattleDefense => ({ ...item, attackId: '' }))
+      });
       setTeamChats(data.chats || []);
       setAllChats(data.allChats || []);
       setChatInitialized(true);
@@ -71,12 +77,12 @@ export function useBattleSocket() {
           data.phase === 'ATTACK' ? data.attacks : data.phase === 'DEFENSE' ? data.defenses : null;
 
         if (currentVoteList?.length) {
-          const totalVotes = currentVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
+          const validVoteList = currentVoteList.filter((item) => item !== null);
+          const totalVotes = validVoteList.reduce((sum, { upvotes }) => sum + upvotes, 0);
           setDiscussions(
-            currentVoteList.map(({ discussionId, author, content, upvotes, votes }) => ({
+            validVoteList.map(({ discussionId, author, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
-              // user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
-              user: author.id === userId ? 'You' : author.nickname,
+              user: author.authorId === userId ? 'You' : author.nickname,
               team: team as 'A' | 'B',
               content,
               votes: upvotes,
