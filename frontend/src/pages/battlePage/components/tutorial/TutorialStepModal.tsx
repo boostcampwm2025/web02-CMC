@@ -3,6 +3,7 @@ import { useSpotlight } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
 import TutorialVoteExample from './TutorialVoteExample';
 import TutorialDiscussionInput from './TutorialDiscussionInput';
+import TutorialProgressBoard from './TutorialProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 
@@ -38,6 +39,13 @@ export default function TutorialStepModal({
   return (
     <div className="fixed inset-0 z-[100]">
       <SpotlightOverlay spotlight={spotlight} onBackdropClick={onSkip} />
+
+      {/* Mock Progress Board - progressBoard 단계에서만 표시 */}
+      {currentStep === 'progressBoard' && (
+        <div className="fixed top-0 left-0 right-0 z-[99] flex justify-center pointer-events-none">
+          <TutorialProgressBoard />
+        </div>
+      )}
 
       {/* Mock Vote UI - vote 단계에서만 표시 */}
       {currentStep === 'vote' && (
