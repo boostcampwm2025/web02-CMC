@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Patch, Req, Res, UseGuards, HttpCode, Body } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ConfigService } from '@nestjs/config'
-import * as express from 'express'
+import type { Request as expressReq, Response as expressRes } from 'express'
 import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
 import type { OAuthProfile } from '../types/oauth.types'
@@ -24,7 +24,7 @@ export class OauthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   @HttpCode(302)
-  githubCallback(@Req() req: express.Request, @Res() res: express.Response) {
+  githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
     const { accessToken, refreshToken } = this.oauthService.loginWithGithub(profile)
 
@@ -43,7 +43,7 @@ export class OauthController {
   @Get('kakao/callback')
   @UseGuards(AuthGuard('kakao'))
   @HttpCode(302)
-  kakaoCallback(@Req() req: express.Request, @Res() res: express.Response) {
+  kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
     const { accessToken, refreshToken } = this.oauthService.loginWithKakao(profile)
 
@@ -57,7 +57,7 @@ export class OauthController {
   @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(200)
-  refresh(@Req() req: express.Request, @Res() res: express.Response) {
+  refresh(@Req() req: expressReq, @Res() res: expressRes) {
     const user = req.user as { userId: string; refreshToken: string }
     const { accessToken, refreshToken: newRefreshToken } = this.oauthService.refreshToken(user.refreshToken)
     // 새로운 토큰을 쿠키에 설정
@@ -68,7 +68,7 @@ export class OauthController {
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  logout(@Req() req: express.Request, @Res() res: express.Response): void {
+  logout(@Req() req: expressReq, @Res() res: expressRes): void {
     const refreshToken = req.cookies?.refresh_token as string | undefined
 
     // refreshToken이 있으면 무효화
@@ -82,7 +82,7 @@ export class OauthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getMe(@Req() req: express.Request) {
+  getMe(@Req() req: expressReq) {
     const jwtUser = req.user as { id: string }
     return this.oauthService.findUserById(jwtUser.id)
   }
@@ -90,7 +90,7 @@ export class OauthController {
   @Patch('nickname')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  updateNickname(@Req() req: express.Request, @Body() dto: UpdateNicknameDto): OAuthUserResponseDto {
+  updateNickname(@Req() req: expressReq, @Body() dto: UpdateNicknameDto): OAuthUserResponseDto {
     const jwtUser = req.user as { id: string }
     return this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
   }
