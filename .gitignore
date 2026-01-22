@@ -17,6 +17,7 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+*/.env.*
 
 # Logs
 npm-debug.log*
@@ -34,3 +35,6 @@ lerna-debug.log*
 
 # OS
 Thumbs.db
+
+# prisma
+/backend/generated/*

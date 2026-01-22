@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { selectIsLogginIn, useAuthStore } from '../battlePage/stores/authStore';
+import { selectIsLoggingIn, selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { BattleInfo } from '@/commons/types/battle';
@@ -22,7 +22,9 @@ export default function TeamSelectPage() {
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const loginGuest = useAuthStore((s) => s.loginGuest);
-  const isLoggingIn = useAuthStore(selectIsLogginIn);
+  const isLoggingIn = useAuthStore(selectIsLoggingIn);
+  const user = useAuthStore(selectUser);
+  const isOAuth = useAuthStore(selectIsOAuth);
 
   // API 데이터 사용 - type 필드 추가
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
@@ -30,9 +32,18 @@ export default function TeamSelectPage() {
 
   const handleSubmit = () => {
     if (selectedTeam && id) {
-      // TODO 로그인 여부확인
+      // OAuth 사용자는 모달 없이 바로 배틀 페이지로 이동
+      if (user && isOAuth) {
+        useBattleStore.getState().initializeBattle({
+          userId: user.id,
+          battleId: id
+        });
+        useBattleStore.getState().setSelectedTeam(selectedTeam);
+        navigate(`/battle/${id}`, { state: { selectedTeam } });
+        return;
+      }
 
-      // 게스트 로그인 진입점
+      // 비회원이거나 로그인 안 된 경우만 게스트 로그인 모달 표시
       setShowLoginModal(true);
     }
   };

@@ -34,6 +34,7 @@ interface BattleStore {
   chatInitialized: boolean;
   opponentNotice: BattleChat | null;
   opponentNoticePending: BattleChat | null;
+  progressBoardCollapsed: boolean;
 
   initializeBattle: (config: { userId: string; battleId: string }) => void;
   setSocket: (socket: Socket | null) => void;
@@ -55,9 +56,11 @@ interface BattleStore {
   setChatInitialized: (initialized: boolean) => void;
   setOpponentNoticePending: (notice: BattleChat | null) => void;
   commitOpponentNotice: () => void;
+  leaveBattle: () => void;
+  setProgressBoardCollapsed: (collapsed: boolean) => void;
 }
 
-export const useBattleStore = create<BattleStore>((set) => ({
+export const useBattleStore = create<BattleStore>((set, get) => ({
   userId: '',
   battleId: '',
   socket: null,
@@ -74,6 +77,7 @@ export const useBattleStore = create<BattleStore>((set) => ({
   chatInitialized: false,
   opponentNotice: null,
   opponentNoticePending: null,
+  progressBoardCollapsed: false,
 
   initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
   setSocket: (socket) => set({ socket }),
@@ -154,7 +158,35 @@ export const useBattleStore = create<BattleStore>((set) => ({
     set((state) => ({
       opponentNotice: state.opponentNoticePending,
       opponentNoticePending: null
-    }))
+    })),
+  leaveBattle: () => {
+    const { socket, battleId } = get();
+    socket?.emit('battle:leave', { battleId });
+
+    socket?.removeAllListeners();
+    socket?.disconnect();
+
+    // 기존 Store 초기화 값으로 설정
+    set({
+      userId: '',
+      battleId: '',
+      socket: null,
+      isConnected: false,
+      currentStage: null,
+      battleProgress: null,
+      discussions: [],
+      teamCounts: { teamACount: 0, teamBCount: 0, none: 0 },
+      totalParticipants: 0,
+      timelines: null,
+      teamChats: [],
+      allChats: [],
+      selectedTeam: 'NONE',
+      chatInitialized: false,
+      opponentNotice: null,
+      opponentNoticePending: null
+    });
+  },
+  setProgressBoardCollapsed: (collapsed) => set({ progressBoardCollapsed: collapsed })
 }));
 
 export const selectUserId = (state: BattleStore) => state.userId;
@@ -171,3 +203,4 @@ export const selectAllChats = (state: BattleStore) => state.allChats;
 export const selectSelectedTeam = (state: BattleStore) => state.selectedTeam;
 export const selectChatInitialized = (state: BattleStore) => state.chatInitialized;
 export const selectOpponentNotice = (state: BattleStore) => state.opponentNotice;
+export const selectProgressBoardCollapsed = (state: BattleStore) => state.progressBoardCollapsed;

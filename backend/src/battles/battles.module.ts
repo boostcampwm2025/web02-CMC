@@ -4,10 +4,11 @@ import { AuthController } from './controller/auth.controller'
 import { BattlesGateway } from './gateway/battles.gateway'
 import { BattlesService } from './service/battles.service'
 import { AuthService } from './service/auth.service'
+import { PrismaService } from 'src/prisma/prisma.service'
 
 @Module({
   controllers: [BattlesController, AuthController],
-  providers: [BattlesGateway, BattlesService, AuthService],
+  providers: [BattlesGateway, BattlesService, PrismaService, AuthService],
   exports: [BattlesService],
 })
 export class BattlesModule {}

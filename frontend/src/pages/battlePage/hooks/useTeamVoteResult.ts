@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useBattleStore, selectSocket, selectBattleId } from '../stores/battleStore';
 import type { BattleTeamUpdateAllResponse } from '@/commons/types/battle';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export function useTeamVoteResult() {
   const socket = useBattleStore(selectSocket);
@@ -27,6 +28,9 @@ export function useTeamVoteResult() {
       // 모달용 전체 데이터 저장
       setVoteResult(data);
       setIsModalOpen(true);
+
+      // 팀 투표 결과 효과음 재생
+      soundManager.play('fanfare', 0.5);
     };
 
     socket.on('battle:all:updated', handleTeamUpdateAll);

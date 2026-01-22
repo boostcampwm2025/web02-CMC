@@ -32,18 +32,18 @@ export default function DiscussionVoteItem({
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className={`text-[13px] font-medium ${team === 'A' ? 'text-[#51A2FF]' : 'text-[#FF5A5F]'}`}>
-            {user}
-          </span>
-          {hasVoted && <span className="text-[10px] px-1.5 py-0.5 bg-[#2ECC71] text-white rounded">✓ 투표완료</span>}
+          <span className={`text-sm font-medium ${team === 'A' ? 'text-[#51A2FF]' : 'text-[#FF5A5F]'}`}>{user}</span>
+          {hasVoted && (
+            <span className="text-[0.625rem] px-1.5 py-0.5 bg-[#2ECC71] text-white rounded">✓ 투표완료</span>
+          )}
         </div>
         <div className="flex items-center gap-1">
-          <span className={`text-[18px] font-bold ${hasVoted ? 'text-[#2ECC71]' : 'text-white'}`}>{votes}</span>
-          <span className="text-[11px] text-[#99A1AF]">표</span>
+          <span className={`text-lg font-bold ${hasVoted ? 'text-[#2ECC71]' : 'text-white'}`}>{votes}</span>
+          <span className="text-xs text-[#99A1AF]">표</span>
         </div>
       </div>
 
-      <p className="text-[13px] text-white mb-3">{content}</p>
+      <p className="text-sm text-white mb-3">{content}</p>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">

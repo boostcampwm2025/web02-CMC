@@ -6,7 +6,7 @@ export interface BattleChat {
   sender: { userId: string; nickname: string };
   team: Team;
   text: string;
-  createdAt: Date;
+  createdAt: Date | string;
   type?: 'chat' | 'attack' | 'defense';
   votes?: number;
 }

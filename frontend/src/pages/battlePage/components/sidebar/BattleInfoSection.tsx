@@ -21,11 +21,11 @@ export default function BattleInfoSection({ title, description, language, catego
       <div className="flex gap-4">
         <div className="bg-[#1E1E2F] rounded-lg px-4 py-3 shadow w-1/2 flex flex-col  gap-2 items-start">
           <h3 className="text-gray-400  text-sm">언어</h3>
-          <p className="text-white text-[14px] font-semibold break-words">{language}</p>
+          <p className="text-white text-sm font-semibold break-words">{language}</p>
         </div>
         <div className="bg-[#1E1E2F] rounded-lg px-4 py-3 shadow w-1/2 flex flex-col  gap-2 items-start">
           <h3 className="text-gray-400  text-sm">카테고리</h3>
-          <p className="text-white text-[14px] font-semibold break-words">{category}</p>
+          <p className="text-white text-sm font-semibold break-words">{category}</p>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { soundManager } from '@/commons/utils/soundManager';
 
 // vote result modal이 먼저 떠야하기에 isPending으로 관리
 interface RoundUpdateState {
@@ -20,6 +21,8 @@ export function useRoundUpdateModal() {
       round,
       topic
     });
+
+    soundManager.play('swoosh', 0.5);
   }, []);
 
   const hideEffect = useCallback(() => {

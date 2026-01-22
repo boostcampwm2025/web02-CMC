@@ -8,7 +8,8 @@ import {
   selectSelectedTeam
 } from '../stores/battleStore';
 import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
-import { selectUser, useAuthStore } from '../stores/authStore';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);
@@ -28,6 +29,8 @@ export function useBattleDiscussions() {
 
       const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
       const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
+
+      soundManager.play('click2', 0.3);
 
       socket.emit(eventName, {
         battleId,
@@ -88,6 +91,8 @@ export function useBattleDiscussions() {
         totalVotes: 0,
         hasVoted: data.votes.includes(user.id)
       });
+
+      soundManager.play('notificationPing', 0.3);
     };
 
     socket.on('battle:attack:voted', handleVoteUpdate);

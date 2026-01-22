@@ -104,7 +104,9 @@ export interface ActiveBattleState {
   participants: Map<string, BattleTeam>
   teamVotes: Map<string, BattleTeam>
 
-  guestInfoMap: Map<string, string>
+  userInfoMap: Map<string, string>
+
+  opinionHistory: BattleDiscussion[]
 
   opinionHistory: BattleDiscussion[]
 

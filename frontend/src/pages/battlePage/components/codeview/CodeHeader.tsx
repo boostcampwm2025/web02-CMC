@@ -10,7 +10,7 @@ export default function CodeHeader({ onViewChange, currentView, currentTab, onTa
     <div className="flex items-center gap-2 px-4 py-3 border-b border-[#2D2D3F]">
       <button
         onClick={() => onViewChange('split')}
-        className={`px-4 py-2 rounded-md text-[14px] transition-colors ${
+        className={`px-4 py-2 rounded-md text-sm transition-colors ${
           currentView === 'split' ? 'bg-[#FF6900] text-white' : 'text-[#99A1AF]'
         }`}
       >
@@ -18,7 +18,7 @@ export default function CodeHeader({ onViewChange, currentView, currentTab, onTa
       </button>
       <button
         onClick={() => onViewChange('tab')}
-        className={`px-4 py-2 rounded-md text-[14px] transition-colors ${
+        className={`px-4 py-2 rounded-md text-sm transition-colors ${
           currentView === 'tab' ? 'bg-[#FF6900] text-white' : 'text-[#99A1AF]'
         }`}
       >
@@ -29,7 +29,7 @@ export default function CodeHeader({ onViewChange, currentView, currentTab, onTa
         <div className="flex items-center gap-2 ml-4 border-l border-[#2D2D3F] pl-4">
           <button
             onClick={() => onTabChange('A')}
-            className={`px-3 py-1.5 rounded-md text-[13px] transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs transition-colors ${
               currentTab === 'A' ? 'bg-[#2B7FFF] text-white' : 'text-[#51A2FF] hover:bg-[#1C2B4A]'
             }`}
           >
@@ -37,7 +37,7 @@ export default function CodeHeader({ onViewChange, currentView, currentTab, onTa
           </button>
           <button
             onClick={() => onTabChange('B')}
-            className={`px-3 py-1.5 rounded-md text-[13px] transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs transition-colors ${
               currentTab === 'B' ? 'bg-[#FB2C36] text-white' : 'text-[#FF5A5F] hover:bg-[#2D1F2B]'
             }`}
           >

@@ -63,30 +63,30 @@ export default function TeamCounter() {
   }, [teamBCount]);
 
   return (
-    <div className="flex items-center gap-8 max-w-[200px]" data-tutorial="team-status">
+    <div className="flex items-center gap-8 max-w-xs" data-tutorial="team-status">
       <div className="text-center">
         <div
-          className={`text-[46px] font-bold text-[#3B82F6] ${
+          className={`text-5xl font-bold text-[#3B82F6] ${
             animateA === 'increase' ? 'animate-bounce-scale' : animateA === 'decrease' ? 'animate-shake-fade-out' : ''
           }`}
         >
           {teamACount}
         </div>
-        <div className="text-[12px] text-[#6A7282]">A팀</div>
+        <div className="text-xs text-[#6A7282]">A팀</div>
       </div>
       <div className="text-center">
-        <div className="text-[46px] font-bold text-[#6A7282]">{teamNoneCount}</div>
-        <div className="text-[12px] text-[#6A7282]">중립</div>
+        <div className="text-5xl font-bold text-[#6A7282]">{teamNoneCount}</div>
+        <div className="text-xs text-[#6A7282]">중립</div>
       </div>
       <div className="text-center">
         <div
-          className={`text-[46px] font-bold text-[#FF6467] ${
+          className={`text-5xl font-bold text-[#FF6467] ${
             animateB === 'increase' ? 'animate-bounce-scale' : animateB === 'decrease' ? 'animate-shake-fade-out' : ''
           }`}
         >
           {teamBCount}
         </div>
-        <div className="text-[12px] text-[#6A7282]">B팀</div>
+        <div className="text-xs text-[#6A7282]">B팀</div>
       </div>
     </div>
   );

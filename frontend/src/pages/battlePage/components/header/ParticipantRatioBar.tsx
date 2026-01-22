@@ -9,7 +9,7 @@ export default function ParticipantRatioBar() {
   const teamBProgress = (teamBCount / total) * 100;
 
   return (
-    <div className="flex h-[12px]">
+    <div className="flex h-3">
       <div className="bg-blue-500 transition-all duration-500 ease-in-out" style={{ width: `${teamAProgress}%` }}></div>
       {none > 0 && (
         <div

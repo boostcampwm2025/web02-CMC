@@ -11,12 +11,21 @@ interface BattleSidebarProps {
   description: string;
   language: string;
   category: string;
+  topics: string[];
   raiseZIndex?: boolean;
 }
 
 type Tab = 'info' | 'timeline';
 
-export default function BattleSidebar({ isOpen, onClose, title, description, language, category }: BattleSidebarProps) {
+export default function BattleSidebar({
+  isOpen,
+  onClose,
+  title,
+  description,
+  language,
+  category,
+  topics
+}: BattleSidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const { width, isResizing, setIsResizing } = useResize({
     initialWidth: 400
@@ -51,15 +60,15 @@ export default function BattleSidebar({ isOpen, onClose, title, description, lan
           {activeTab === 'info' ? (
             <BattleInfoSection title={title} description={description} language={language} category={category} />
           ) : (
-            <SidebarTimelineSection isWide={isWideLayout} />
+            <SidebarTimelineSection isWide={isWideLayout} topics={topics} />
           )}
         </div>
         <div className="relative h-[calc(100vh-65px)]">
           <button
             onMouseDown={() => setIsResizing(true)}
-            className="peer absolute right-0 top-1/2 -translate-y-1/2 w-[4px] h-[80px] bg-orange-400 hover:bg-orange-500 cursor-ew-resize transition-colors z-10"
+            className="peer absolute right-0 top-1/2 -translate-y-1/2 w-1 h-20 bg-orange-400 hover:bg-orange-500 cursor-ew-resize transition-colors z-10"
           />
-          <div className="absolute inset-y-0 right-0 w-[8px] bg-orange-400/30 opacity-0 peer-hover:opacity-100 transition-opacity pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-2 bg-orange-400/30 opacity-0 peer-hover:opacity-100 transition-opacity pointer-events-none" />
         </div>
       </div>
     </aside>
