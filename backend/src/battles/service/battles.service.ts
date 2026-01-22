@@ -2,20 +2,27 @@ import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
 
-import { MOCK_BATTLES } from '../mock/battles.mock'
-import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
+import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
 import {
   ActiveBattleState,
   Battle,
+  BattleCategory,
   BattlePhase,
+  BattlePhaseName,
+  BattleLanguage,
+  BattleStatus,
   BattleTeam,
   BattleDiscussion,
   BattleDefense,
+  BattleChat,
   BattlePlayTime,
   BattleTopOpinions,
   BattlePlayTimeName,
-  FinishedBattleState,
+  ParticipantEntry,
+  TeamVoteEntry,
+  UserInfoEntry,
+  BattleChatSnapshot,
 } from '../types/battles.types'
 import { BattleChatDto } from '../dto/battleChat.dto'
 import type { BattleTeamVoteDto } from '../dto/battleTeamVote.dto'
@@ -45,144 +52,455 @@ import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto
 import { GuestAccount } from '../types/auth.types'
 import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
 import { generateNickname } from './utils/nickname.util'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
-  private battles: Battle[] = [...MOCK_BATTLES]
-  private activeBattles: Map<string, ActiveBattleState> = new Map()
   private battleTimers: Map<string, NodeJS.Timeout> = new Map()
-  private finishedBattles: Map<string, FinishedBattleState> = new Map()
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     super()
-    this.battles.forEach(battle => {
-      if (battle.status === 'OPEN') {
-        this.initBattleState(battle.id)
-      }
-    })
   }
 
   private generateId(): string {
     return uuidv7()
   }
 
-  create(payload: BattleCreateQueryDto): Battle {
-    const now = new Date()
-    const battleId = this.generateId()
-    const playTime: BattlePlayTime = BATTLE_PLAYTIME[payload.playTime]
-    const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
+  private getPlayTime(playTimeName: string): BattlePlayTime {
+    const playTime = BATTLE_PLAYTIME[playTimeName as BattlePlayTimeName]
+    if (!playTime) {
+      throw new BadRequestException('올바르지 않은 배틀 진행 시간입니다.')
+    }
+    return playTime
+  }
 
-    const battle: Battle = {
-      id: battleId,
-      authorId: payload.authorId,
-      title: payload.title.trim(),
-      description: payload.description.trim(),
-      aCode: payload.aCode,
-      bCode: payload.bCode,
-      language: payload.language,
-      type: payload.type,
-      category: payload.category,
+  private toBattleEntity(
+    record: {
+      id: string
+      userId: string
+      title: string
+      description: string
+      codeA: string
+      codeB: string
+      language: string
+      category: string
+      playTime: string
+      topics: string[]
+      password: string | null
+      isPrivate: boolean
+      status: string
+      createdAt: Date
+      updatedAt: Date | null
+    },
+    participantCount: number,
+  ): Battle {
+    const playTime = this.getPlayTime(record.playTime)
+
+    return {
+      id: record.id,
+      authorId: record.userId,
+      title: record.title,
+      description: record.description,
+      aCode: record.codeA,
+      bCode: record.codeB,
+      language: record.language as BattleLanguage,
+      type: record.isPrivate ? BATTLE_TYPE.PRIVATE : BATTLE_TYPE.PUBLIC,
+      category: record.category as BattleCategory,
       playTime,
-      topics: shuffledTopics,
-      password: payload.type === BATTLE_TYPE.PRIVATE ? undefined : payload.password?.trim(),
-      status: BATTLE_STATUS.PENDING,
-      createdAt: now,
-      updatedAt: now,
-      participantCount: 1,
+      topics: record.topics,
+      password: record.password ?? undefined,
+      status: record.status as BattleStatus,
+      participantCount,
       initialState: {
         round: 1,
         phase: BATTLE_PHASE.OPINION_SHARE.name,
         phaseCount: 1,
         timeRemainingSeconds: playTime.time * 60,
       },
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt ?? record.createdAt,
+    }
+  }
+
+  private buildResult(teamACount: number, teamBCount: number, totalParticipantsCount?: number | null, winningTeam?: string | null): BattleResult {
+    const total = totalParticipantsCount ?? teamACount + teamBCount
+    const neutral = Math.max(total - teamACount - teamBCount, 0)
+    const percentage = (votes: number) => (total === 0 ? 0 : Math.round((votes / total) * 100))
+    const winner = winningTeam ?? (teamACount === teamBCount ? 'DRAW' : teamACount > teamBCount ? 'A' : 'B')
+
+    return {
+      winner: winner as BattleResult['winner'],
+      teamA: { votes: teamACount, percentage: percentage(teamACount) },
+      teamB: { votes: teamBCount, percentage: percentage(teamBCount) },
+      neutral: { votes: neutral, percentage: percentage(neutral) },
+    }
+  }
+
+  private normalizeTimeline(timeline: unknown): TimelineItem[] {
+    return Array.isArray(timeline) ? (timeline as TimelineItem[]) : []
+  }
+
+  private parseParticipantsState(value: unknown): Map<string, BattleTeam> {
+    if (!Array.isArray(value)) return new Map()
+    const entries = (value as ParticipantEntry[])
+      .filter(item => item && typeof item.userId === 'string' && typeof item.team === 'string')
+      .map(item => [item.userId, item.team] as [string, BattleTeam])
+    return new Map(entries)
+  }
+
+  private parseTeamVotesState(value: unknown): Map<string, BattleTeam> {
+    if (!Array.isArray(value)) return new Map()
+    const entries = (value as TeamVoteEntry[])
+      .filter(item => item && typeof item.userId === 'string' && typeof item.team === 'string')
+      .map(item => [item.userId, item.team] as [string, BattleTeam])
+    return new Map(entries)
+  }
+
+  private parseUserInfoState(value: unknown): Map<string, string> {
+    if (!Array.isArray(value)) return new Map()
+    const entries = (value as UserInfoEntry[])
+      .filter(item => item && typeof item.userId === 'string' && typeof item.nickname === 'string')
+      .map(item => [item.userId, item.nickname] as [string, string])
+    return new Map(entries)
+  }
+
+  private parseChatState(value: unknown): BattleChat[] {
+    if (!Array.isArray(value)) return []
+    return (value as BattleChatSnapshot[])
+      .filter(item => item && typeof item.createdAt === 'string')
+      .map(item => ({
+        ...item,
+        createdAt: new Date(item.createdAt),
+      }))
+  }
+
+  private serializeChatState(chats: BattleChat[]): BattleChatSnapshot[] {
+    return chats.map(chat => ({
+      ...chat,
+      createdAt: chat.createdAt.toISOString(),
+    }))
+  }
+
+  private serializeParticipantsState(participants: Map<string, BattleTeam>): ParticipantEntry[] {
+    return [...participants.entries()].map(([userId, team]) => ({ userId, team }))
+  }
+
+  private serializeTeamVotesState(teamVotes: Map<string, BattleTeam>): TeamVoteEntry[] {
+    return [...teamVotes.entries()].map(([userId, team]) => ({ userId, team }))
+  }
+
+  private serializeUserInfoState(userInfoMap: Map<string, string>): UserInfoEntry[] {
+    return [...userInfoMap.entries()].map(([userId, nickname]) => ({ userId, nickname }))
+  }
+
+  private parseAttackState(value: unknown): {
+    teamA: (BattleDiscussion | null)[]
+    teamB: (BattleDiscussion | null)[]
+    all: (BattleDiscussion | null)[]
+  } {
+    if (!value || typeof value !== 'object') {
+      return { teamA: [], teamB: [], all: [] }
+    }
+    const obj = value as { teamA?: unknown; teamB?: unknown; all?: unknown }
+    return {
+      teamA: Array.isArray(obj.teamA) ? (obj.teamA as (BattleDiscussion | null)[]) : [],
+      teamB: Array.isArray(obj.teamB) ? (obj.teamB as (BattleDiscussion | null)[]) : [],
+      all: Array.isArray(obj.all) ? (obj.all as (BattleDiscussion | null)[]) : [],
+    }
+  }
+
+  private parseDefenseState(value: unknown): {
+    teamA: (BattleDefense | null)[]
+    teamB: (BattleDefense | null)[]
+    all: (BattleDefense | null)[]
+  } {
+    if (!value || typeof value !== 'object') {
+      return { teamA: [], teamB: [], all: [] }
+    }
+    const obj = value as { teamA?: unknown; teamB?: unknown; all?: unknown }
+    return {
+      teamA: Array.isArray(obj.teamA) ? (obj.teamA as (BattleDefense | null)[]) : [],
+      teamB: Array.isArray(obj.teamB) ? (obj.teamB as (BattleDefense | null)[]) : [],
+      all: Array.isArray(obj.all) ? (obj.all as (BattleDefense | null)[]) : [],
+    }
+  }
+
+  private parseOpinionHistoryState(value: unknown): BattleDiscussion[] {
+    if (!Array.isArray(value)) return []
+    return value.filter(item => item && typeof item === 'object') as BattleDiscussion[]
+  }
+
+  private async loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }> {
+    const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
+    if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
+
+    const participants = this.parseParticipantsState(battle.participantsState)
+    const teamVotes = this.parseTeamVotesState(battle.teamVotesState)
+    const userInfoMap = this.parseUserInfoState(battle.userInfoState)
+    const attackState = this.parseAttackState(battle.attacksState)
+    const defenseState = this.parseDefenseState(battle.defensesState)
+    const opinionHistory = this.parseOpinionHistoryState(battle.opinionHistoryState)
+
+    const state: ActiveBattleState = {
+      battleId,
+      all: {
+        roomId: this.getBattleRoomId(battleId),
+        chats: this.parseChatState(battle.chatsAllState),
+        attacks: attackState.all,
+        defenses: defenseState.all,
+      },
+      teamA: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.A),
+        users: [],
+        chats: this.parseChatState(battle.chatsTeamAState),
+        attacks: attackState.teamA,
+        defenses: defenseState.teamA,
+      },
+      teamB: {
+        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.B),
+        users: [],
+        chats: this.parseChatState(battle.chatsTeamBState),
+        attacks: attackState.teamB,
+        defenses: defenseState.teamB,
+      },
+      participants,
+      teamVotes,
+      userInfoMap,
+      opinionHistory,
+      round: battle.currentRound ?? 1,
+      topics: battle.topics,
+      totalRounds: this.getPlayTime(battle.playTime).rounds,
+      phase: (battle.currentPhase ?? BATTLE_PHASE.PENDING.name) as BattlePhaseName,
+      phaseCount: battle.phaseCount ?? 1,
+      startedAt: battle.startedAt ? battle.startedAt.getTime() : null,
+      expiredAt: battle.expiredAt ? battle.expiredAt.getTime() : null,
     }
 
-    this.battles.push(battle)
-    this.initBattleState(battle.id)
+    this.rebuildTeamUsers(state)
+    return { battle, state }
+  }
+
+  private async saveBattleState(battleId: string, state: ActiveBattleState): Promise<void> {
+    await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        currentRound: state.round,
+        currentPhase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt ? new Date(state.startedAt) : null,
+        expiredAt: state.expiredAt ? new Date(state.expiredAt) : null,
+        participantsState: this.serializeParticipantsState(state.participants) as unknown as Prisma.InputJsonValue,
+        teamVotesState: this.serializeTeamVotesState(state.teamVotes) as unknown as Prisma.InputJsonValue,
+        userInfoState: this.serializeUserInfoState(state.userInfoMap) as unknown as Prisma.InputJsonValue,
+        attacksState: {
+          teamA: state.teamA.attacks,
+          teamB: state.teamB.attacks,
+          all: state.all.attacks,
+        } as unknown as Prisma.InputJsonValue,
+        defensesState: {
+          teamA: state.teamA.defenses,
+          teamB: state.teamB.defenses,
+          all: state.all.defenses,
+        } as unknown as Prisma.InputJsonValue,
+        opinionHistoryState: state.opinionHistory as unknown as Prisma.InputJsonValue,
+        chatsAllState: this.serializeChatState(state.all.chats) as unknown as Prisma.InputJsonValue,
+        chatsTeamAState: this.serializeChatState(state.teamA.chats) as unknown as Prisma.InputJsonValue,
+        chatsTeamBState: this.serializeChatState(state.teamB.chats) as unknown as Prisma.InputJsonValue,
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  async create(payload: BattleCreateQueryDto): Promise<Battle> {
+    const now = new Date()
+    const battleId = this.generateId()
+    const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
+    const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
+
+    const created = await this.prisma.battle.create({
+      data: {
+        id: battleId,
+        userId: payload.authorId,
+        title: payload.title.trim(),
+        description: payload.description.trim(),
+        codeA: payload.aCode,
+        codeB: payload.bCode,
+        language: payload.language,
+        category: payload.category,
+        playTime: payload.playTime,
+        topics: shuffledTopics,
+        password: isPrivate ? (payload.password?.trim() ?? null) : null,
+        isPrivate,
+        status: BATTLE_STATUS.PENDING,
+        createdAt: now,
+        updatedAt: now,
+        currentRound: 1,
+        currentPhase: BATTLE_PHASE.PENDING.name,
+        phaseCount: 1,
+        startedAt: null,
+        expiredAt: null,
+        participantsState: [],
+        teamVotesState: [],
+        userInfoState: [],
+        attacksState: { teamA: [], teamB: [], all: [] },
+        defensesState: { teamA: [], teamB: [], all: [] },
+        opinionHistoryState: [],
+        chatsAllState: [],
+        chatsTeamAState: [],
+        chatsTeamBState: [],
+      },
+    })
+
+    const battle = this.toBattleEntity(created, 1)
 
     return battle
   }
 
   //Todo: 정렬 기준 재설정
   //실시간 배틀 목록 조회
-  getOpenBattles(limit: number, offset: number) {
-    const filtered = this.battles.filter(battle => this.isPublicAndWaitingOrOpen(battle))
-    const battles = filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(offset, offset + limit) // TODO: ORM 적용 시 take/skip
+  async getOpenBattles(limit: number, offset: number) {
+    const where = {
+      isPrivate: false,
+      status: { in: [BATTLE_STATUS.OPEN, BATTLE_STATUS.PENDING] },
+    }
+
+    const [battles, total] = await Promise.all([
+      this.prisma.battle.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.battle.count({ where }),
+    ])
+
+    const mapped = battles.map(battle => this.toBattleEntity(battle, 0))
 
     return {
-      battles: BattleResponseDto.of(battles),
+      battles: BattleResponseDto.of(mapped),
       meta: {
         offset,
         limit,
-        total: filtered.length,
+        total,
       },
     }
   }
 
   //지난 배틀 조회
-  getClosedBattles(limit: number, offset: number) {
-    // const filtered = this.battles.filter(battle => this.isPublicAndClosed(battle))
-    // const battles = filtered
-    //   .sort((a, b) => b.createdAt.getTime() - a.expiresAt.getTime() )
-    //   .slice(offset, offset + limit)
+  async getClosedBattles(limit: number, offset: number) {
+    const where = { status: BATTLE_STATUS.CLOSED }
 
-    const battles = Array.from(this.finishedBattles.values())
-      .sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime())
-      .slice(offset, offset + limit)
-      .map(mock => ClosedBattleResponseDto.fromFinished(mock))
+    const [records, total] = await Promise.all([
+      this.prisma.battle.findMany({
+        where,
+        orderBy: { finishedAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.battle.count({ where }),
+    ])
+
+    const battles = records.map(record => {
+      const teamACount = record.teamACount ?? 0
+      const teamBCount = record.teamBCount ?? 0
+      const result = this.buildResult(teamACount, teamBCount, record.totalParticipantsCount, record.winningTeam)
+      const battle = this.toBattleEntity(record, record.totalParticipantsCount ?? teamACount + teamBCount)
+
+      return ClosedBattleResponseDto.of(battle, result)
+    })
 
     return {
       battles,
       meta: {
         offset,
         limit,
-        total: battles.length,
+        total,
       },
     }
   }
 
-  getBattleResult(battleId: string): BattleResultResponseDto {
-    // 1. 목데이터에서 배틀 조회
-    const battle = this.finishedBattles.get(battleId)
+  async getBattleResult(battleId: string): Promise<BattleResultResponseDto> {
+    const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
     if (!battle) {
-      const activeOrPending = this.battles.find(candidate => candidate.id === battleId)
-      if (activeOrPending && activeOrPending.status !== BATTLE_STATUS.CLOSED) {
-        throw new BadRequestException('배틀이 아직 진행 중입니다.')
-      }
       throw new NotFoundException(`배틀을 찾을 수 없습니다: ${battleId}`)
     }
 
-    // 2. 배틀 상태 검증
     if (battle.status !== BATTLE_STATUS.CLOSED) {
       throw new BadRequestException('배틀이 아직 진행 중입니다.')
     }
 
-    // 3. 저장된 MVP 반환 (배틀 종료 시 계산됨)
-    return BattleResultResponseDto.fromEntity(battle)
+    const playTime = this.getPlayTime(battle.playTime)
+    const teamACount = battle.teamACount ?? 0
+    const teamBCount = battle.teamBCount ?? 0
+    const totalParticipants = battle.totalParticipantsCount ?? teamACount + teamBCount
+    const timeline = this.normalizeTimeline(battle.timeline)
+    const result = this.buildResult(teamACount, teamBCount, battle.totalParticipantsCount, battle.winningTeam)
+
+    const dto = new BattleResultResponseDto()
+    dto.battleId = battle.id
+    dto.authorId = battle.userId
+    dto.title = battle.title
+    dto.description = battle.description
+    dto.status = 'CLOSED'
+    dto.language = battle.language
+    dto.category = battle.category
+    dto.playTime = playTime.time
+    dto.topics = battle.topics
+    dto.createdAt = battle.createdAt.toISOString()
+    dto.finishedAt = battle.finishedAt ? battle.finishedAt.toISOString() : (battle.updatedAt?.toISOString() ?? battle.createdAt.toISOString())
+    dto.codeA = battle.codeA
+    dto.codeB = battle.codeB
+    dto.result = result
+    dto.metrics = {
+      totalParticipants,
+      totalViews: totalParticipants,
+      strategiesCount: timeline.length,
+      totalChats: 0,
+    }
+    dto.voteTimeline = [
+      {
+        turn: 1,
+        teamAVotes: teamACount,
+        teamBVotes: teamBCount,
+        neutralVotes: Math.max(totalParticipants - teamACount - teamBCount, 0),
+        timestamp: dto.finishedAt,
+      },
+    ]
+    dto.timeline = timeline
+    dto.mvps = []
+
+    return dto
   }
 
-  joinBattleInfo(battleId: string): BattleJoinInfoResponseDto {
+  async joinBattleInfo(battleId: string): Promise<BattleJoinInfoResponseDto> {
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
-    const battle = this.battles.find(battle => battle.id === battleId)
+    const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
 
     if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
 
-    const activeBattleState = this.activeBattles.get(battleId)
+    let activeBattleState: ActiveBattleState | undefined
+    let participantCount = battle.totalParticipantsCount ?? 0
+    if (battle.status !== BATTLE_STATUS.CLOSED) {
+      const loaded = await this.loadBattleState(battleId)
+      activeBattleState = loaded.state
+      participantCount = loaded.state.participants.size
+    }
 
-    return BattleJoinInfoResponseDto.of(battle, activeBattleState)
+    const mapped = this.toBattleEntity(battle, participantCount)
+
+    return BattleJoinInfoResponseDto.of(mapped, activeBattleState)
   }
 
-  joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
+  async joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
     const { battleId, password, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
-    const battle = this.battles.find(battle => battle.id === battleId)
+    const { battle, state } = await this.loadBattleState(battleId)
 
-    if (!battle) throw new NotFoundException('존재하지 않는 배틀입니다.')
-
-    if (battle.type === BATTLE_TYPE.PRIVATE && battle.password) {
+    if (battle.isPrivate && battle.password) {
       const isValid = battle.password === password
 
       if (!isValid) throw new UnauthorizedException('잘못된 비밀번호입니다.')
@@ -190,26 +508,38 @@ export class BattlesService extends EventEmitter {
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
-    //  이미 참여한 userId인지 확인
-    const battleState = this.getBattleState(battleId)
-    if (battleState.participants.has(userId)) {
-      return { battleState, team }
-    }
+    const existingTeam = state.participants.get(userId)
 
     // nickname으로 userInfoMap에 등록 (OAuth/비회원 모두)
-    if (!battleState.userInfoMap.has(userId)) {
-      battleState.userInfoMap.set(userId, nickname)
+    if (!state.userInfoMap.has(userId)) {
+      state.userInfoMap.set(userId, nickname)
     }
 
-    this.addParticipant(battleId, userId, team)
+    if (!existingTeam || existingTeam !== team) {
+      this.addParticipant(state, userId, team)
+    }
 
-    return { battleState, team }
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+    if (userExists) {
+      await this.prisma.battleParticipant.upsert({
+        where: { userId_battleId: { userId, battleId } },
+        update: { team, isMvp: false },
+        create: { userId, battleId, team, isMvp: false },
+      })
+    }
+
+    await this.saveBattleState(battleId, state)
+
+    return { battleState: state, team }
   }
 
-  leaveBattle(userId: string, battleId: string): BattleLeaveResponseDto {
+  async leaveBattle(userId: string, battleId: string): Promise<BattleLeaveResponseDto> {
     if (!userId || !battleId) throw new BadRequestException('유효하지 않은 요청입니다.')
 
-    const battleState = this.getBattleState(battleId)
+    const { state: battleState } = await this.loadBattleState(battleId)
     battleState.teamA.users = battleState.teamA.users.filter(id => id !== userId)
     battleState.teamB.users = battleState.teamB.users.filter(id => id !== userId)
 
@@ -217,11 +547,9 @@ export class BattlesService extends EventEmitter {
     battleState.teamVotes.delete(userId)
     battleState.participants.delete(userId)
 
-    return BattleLeaveResponseDto.of(battleState)
-  }
+    await this.saveBattleState(battleId, battleState)
 
-  setBattlesForTest(battles: Battle[]) {
-    this.battles = battles
+    return BattleLeaveResponseDto.of(battleState)
   }
 
   private calculateMVPs(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
@@ -254,7 +582,7 @@ export class BattlesService extends EventEmitter {
           existing.selectedOpinionCount += 1
         }
       } else {
-        const joinedAt = this.getParticipantJoinedAt(state.battleId, authorId)
+        const joinedAt = this.getParticipantJoinedAt(state, authorId)
         candidateMap.set(
           authorId,
           createMvpCandidate({
@@ -285,74 +613,28 @@ export class BattlesService extends EventEmitter {
     return candidates.slice(0, MVP_DISPLAY_COUNT)
   }
 
-  private getParticipantJoinedAt(battleId: string, oderId: string): number {
-    const state = this.activeBattles.get(battleId)
-    if (!state) return 0
+  private getParticipantJoinedAt(state: ActiveBattleState, oderId: string): number {
     // participants Map의 삽입 순서를 기반으로 참가 순서 반환
     const participantOrder = [...state.participants.keys()].indexOf(oderId)
     return participantOrder >= 0 ? participantOrder : 0
   }
 
-  private initBattleState(battleId: string): void {
-    if (!battleId) throw new BadRequestException('잘못된 요청입니다.')
-    const battle = this.battles.find(({ id }) => id == battleId)
-    if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
-
-    if (this.activeBattles.has(battleId)) return
-
-    const activeBattleState: ActiveBattleState = {
-      battleId,
-      all: {
-        roomId: this.getBattleRoomId(battleId),
-        chats: [],
-        attacks: [],
-        defenses: [],
-      },
-      teamA: {
-        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.A),
-        users: [],
-        chats: [],
-        attacks: [],
-        defenses: [],
-      },
-      teamB: {
-        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.B),
-        users: [],
-        chats: [],
-        attacks: [],
-        defenses: [],
-      },
-      participants: new Map(),
-      teamVotes: new Map(),
-
-      userInfoMap: new Map(),
-
-      opinionHistory: [],
-
-      phase: BATTLE_PHASE.PENDING.name,
-      round: 1,
-      topics: [...battle.topics],
-      phaseCount: 1,
-
-      startedAt: null,
-      expiredAt: null,
-    }
-
-    this.activeBattles.set(battleId, activeBattleState)
-  }
-
-  startBattle(battleId: string) {
-    const battleState = this.getBattleState(battleId)
-    const battle = this.battles.find(b => b.id === battleId)
+  async startBattle(battleId: string) {
+    const { battleState } = await this.getBattleState(battleId)
 
     const startedAt = Date.now()
     const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
 
     battleState.startedAt = startedAt
     battleState.expiredAt = expiredAt
-    if (battle) {
-      battle.status = BATTLE_STATUS.OPEN
-    }
+    await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        status: BATTLE_STATUS.OPEN,
+        updatedAt: new Date(),
+      },
+    })
+    await this.saveBattleState(battleId, battleState)
 
     const phaseRes = BattlePhaseResponseDto.of({
       battleId,
@@ -370,22 +652,21 @@ export class BattlesService extends EventEmitter {
 
     this.emit('battle:phase:updated', phaseRes)
     this.emit('battle:round:updated', roundRes)
-    this.scheduleNextTick(battleId)
+    void this.scheduleNextTick(battleId)
   }
 
   getBattleRoomId(battleId: string, team?: BattleTeam): string {
     return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
   }
 
-  appendChatMessage(dto: BattleChatDto, userId: string) {
+  async appendChatMessage(dto: BattleChatDto, userId: string) {
     const { battleId, scope, team, text } = dto
     if (!battleId || !scope) throw new BadRequestException('잘못된 요청입니다.')
     if (!text.trim()) throw new BadRequestException('메시지가 비어 있습니다.')
 
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+    const { battleState } = await this.getBattleState(battleId)
 
-    const nickname = this.getNicknameByUserId(battleId, userId) || ''
+    const nickname = this.getNicknameByUserId(battleState, userId) || ''
 
     const chat = {
       messageId: this.generateId(),
@@ -400,6 +681,7 @@ export class BattlesService extends EventEmitter {
 
     if (scope === BATTLE_CHAT_SCOPE.ALL) {
       battleState.all.chats.push(chat)
+      await this.saveBattleState(battleId, battleState)
       return { battleId, scope, ...chat }
     }
 
@@ -412,14 +694,12 @@ export class BattlesService extends EventEmitter {
     const target = team === BATTLE_TEAM.A ? battleState.teamA : battleState.teamB
     target.chats.push(chat)
 
+    await this.saveBattleState(battleId, battleState)
     return { battleId, scope, ...chat }
   }
 
-  private addParticipant(battleId: string, userId: string, team: string): void {
-    if (!battleId || !userId || !team) throw new BadRequestException('잘못된 요청입니다.')
-    const battleState = this.activeBattles.get(battleId)
-
-    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+  private addParticipant(battleState: ActiveBattleState, userId: string, team: string): void {
+    if (!userId || !team) throw new BadRequestException('잘못된 요청입니다.')
 
     battleState.participants.set(userId, team as BattleTeam)
     this.rebuildTeamUsers(battleState)
@@ -430,7 +710,7 @@ export class BattlesService extends EventEmitter {
       teamNone: battleState.participants.size - (battleState.teamA.users.length + battleState.teamB.users.length),
     }
 
-    this.emit('battle:user:updated', BattleUserUpdateResponseDto.of(battleId, counts))
+    this.emit('battle:user:updated', BattleUserUpdateResponseDto.of(battleState.battleId, counts))
   }
 
   private shuffleTopics(topics: string[], playTime: BattlePlayTimeName): string[] {
@@ -462,8 +742,8 @@ export class BattlesService extends EventEmitter {
     }
   }
 
-  voteTeam(dto: BattleTeamVoteDto, userId: string) {
-    const state = this.getBattleState(dto.battleId)
+  async voteTeam(dto: BattleTeamVoteDto, userId: string) {
+    const { battleState: state } = await this.getBattleState(dto.battleId)
 
     if (state.phase !== BATTLE_PHASE.TEAM_SWITCH.name) {
       throw new BadRequestException('팀 변경 투표는 TEAM_SWITCH 페이즈에서만 가능합니다.')
@@ -474,14 +754,11 @@ export class BattlesService extends EventEmitter {
     }
 
     state.teamVotes.set(userId, dto.team)
+    await this.saveBattleState(dto.battleId, state)
   }
 
-  private updatePhase(battleId: string): void {
-    const state = this.getBattleState(battleId)
-
-    const battle = this.battles.find(battle => battle.id === battleId)
-    if (!battle) return
-    if (battle?.status === BATTLE_STATUS.CLOSED) return
+  private async updatePhase(battleId: string): Promise<void> {
+    const { battleState: state } = await this.getBattleState(battleId)
 
     const prevPhase = state.phase
     const prevRound = state.round
@@ -499,7 +776,7 @@ export class BattlesService extends EventEmitter {
       const res = BattleRoundResponseDto.of({
         battleId,
         round: state.round,
-        topic: battle.topics[state.round - 1],
+        topic: state.topics[state.round - 1],
       })
 
       this.emit('battle:round:updated', res)
@@ -517,7 +794,8 @@ export class BattlesService extends EventEmitter {
       this.emit('battle:phase:updated', res)
     }
 
-    this.scheduleNextTick(battleId)
+    await this.saveBattleState(battleId, state)
+    void this.scheduleNextTick(battleId)
   }
 
   private getNextPhase(state: ActiveBattleState): BattlePhase | null {
@@ -529,14 +807,14 @@ export class BattlesService extends EventEmitter {
         return BATTLE_PHASE.ATTACK
 
       case BATTLE_PHASE.ATTACK.name:
-        this.emitAttackedResult(state.battleId)
-        this.resetDiscussions(state.battleId)
+        this.emitAttackedResult(state)
+        this.resetDiscussions(state)
 
         return BATTLE_PHASE.DEFENSE
 
       case BATTLE_PHASE.DEFENSE.name:
-        this.emitDefensedResult(state.battleId)
-        this.resetDiscussions(state.battleId)
+        this.emitDefensedResult(state)
+        this.resetDiscussions(state)
 
         state.phaseCount++
 
@@ -595,14 +873,11 @@ export class BattlesService extends EventEmitter {
   }
 
   private updateRound(state: ActiveBattleState): boolean {
-    const battle = this.battles.find(battle => battle.id === state.battleId)
-    if (!battle) throw new NotFoundException('해당 배틀이 존재하지 않습니다.')
-
     const nextRound = state.round + 1
-    const maxRounds = battle.playTime.rounds
+    const maxRounds = state.totalRounds
 
     if (maxRounds < nextRound) {
-      this.finishBattle(battle)
+      void this.finishBattle(state)
       return false
     }
 
@@ -610,84 +885,50 @@ export class BattlesService extends EventEmitter {
     return true
   }
 
-  private finishBattle(battle: Battle) {
-    const battleTimer = this.battleTimers.get(battle.id)
+  private async finishBattle(state: ActiveBattleState) {
+    const battleId = state.battleId
+    const battleTimer = this.battleTimers.get(battleId)
     clearTimeout(battleTimer)
-    this.battleTimers.delete(battle.id)
-
-    battle.status = BATTLE_STATUS.CLOSED
+    this.battleTimers.delete(battleId)
 
     const finishedAt = new Date()
-    const finishedBattle = this.battles.find(b => b.id === battle.id)
-    const state = this.activeBattles.get(battle.id)
-
-    if (finishedBattle && state) {
-      const snapshot = this.buildFinishedBattleState(finishedBattle, state, finishedAt)
-      this.finishedBattles.set(battle.id, snapshot)
-    }
-
-    this.activeBattles.delete(battle.id)
-    this.battles = this.battles.filter(b => b.id !== battle.id)
-
-    this.emit('battle:closed', BattleClosedResponseDto.of({ battleId: battle.id }))
-  }
-
-  private buildFinishedBattleState(battle: Battle, state: ActiveBattleState, finishedAt: Date): FinishedBattleState {
     const totalParticipants = state.participants.size
-    const teamAVotes = state.teamA.users.length
-    const teamBVotes = state.teamB.users.length
-    const neutralVotes = Math.max(totalParticipants - teamAVotes - teamBVotes, 0)
-    const totalVotes = teamAVotes + teamBVotes + neutralVotes
-
-    const percentage = (votes: number) => (totalVotes === 0 ? 0 : Math.round((votes / totalVotes) * 100))
-
-    const result: BattleResult = {
-      winner: teamAVotes === teamBVotes ? 'DRAW' : teamAVotes > teamBVotes ? 'A' : 'B',
-      teamA: { votes: teamAVotes, percentage: percentage(teamAVotes) },
-      teamB: { votes: teamBVotes, percentage: percentage(teamBVotes) },
-      neutral: { votes: neutralVotes, percentage: percentage(neutralVotes) },
-    }
-
-    const voteTimeline: VoteTimeline[] = [
-      {
-        turn: 1,
-        teamAVotes,
-        teamBVotes,
-        neutralVotes,
-        timestamp: finishedAt.toISOString(),
-      },
-    ]
-
+    const teamACount = state.teamA.users.length
+    const teamBCount = state.teamB.users.length
+    const winningTeam = teamACount === teamBCount ? 'DRAW' : teamACount > teamBCount ? 'A' : 'B'
     const timeline = this.buildTimeline(state)
-    const calculatedMvps = this.calculateMVPs(state, result.winner)
+    const calculatedMvps = this.calculateMVPs(state, winningTeam)
 
-    const metrics: Metrics = {
-      totalParticipants,
-      totalViews: totalParticipants,
-      strategiesCount: timeline.length,
-      totalChats: state.all.chats.length + state.teamA.chats.length + state.teamB.chats.length,
-    }
+    await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        status: BATTLE_STATUS.CLOSED,
+        finishedAt,
+        teamACount,
+        teamBCount,
+        totalParticipantsCount: totalParticipants,
+        winningTeam,
+        timeline: timeline as unknown as Prisma.InputJsonValue,
+        mvps: calculatedMvps.map(mvp => mvp.nickname),
+        updatedAt: finishedAt,
+        currentRound: null,
+        currentPhase: null,
+        phaseCount: null,
+        startedAt: null,
+        expiredAt: null,
+        participantsState: Prisma.DbNull,
+        teamVotesState: Prisma.DbNull,
+        userInfoState: Prisma.DbNull,
+        attacksState: Prisma.DbNull,
+        defensesState: Prisma.DbNull,
+        opinionHistoryState: Prisma.DbNull,
+        chatsAllState: Prisma.DbNull,
+        chatsTeamAState: Prisma.DbNull,
+        chatsTeamBState: Prisma.DbNull,
+      },
+    })
 
-    return {
-      battleId: battle.id,
-      authorId: battle.authorId,
-      title: battle.title,
-      description: battle.description,
-      status: BATTLE_STATUS.CLOSED,
-      language: battle.language,
-      category: battle.category,
-      playTime: battle.playTime.time,
-      topics: [...battle.topics],
-      createdAt: battle.createdAt.toISOString(),
-      finishedAt: finishedAt.toISOString(),
-      codeA: battle.aCode,
-      codeB: battle.bCode,
-      result,
-      metrics,
-      voteTimeline,
-      timeline,
-      mvps: calculatedMvps,
-    }
+    this.emit('battle:closed', BattleClosedResponseDto.of({ battleId }))
   }
 
   private buildTimeline(state: ActiveBattleState): TimelineItem[] {
@@ -718,36 +959,27 @@ export class BattlesService extends EventEmitter {
     return [...attacks, ...defenses].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   }
 
-  private isPublicAndWaitingOrOpen(battle: Battle): boolean {
-    return battle.type === BATTLE_TYPE.PUBLIC && (battle.status === BATTLE_STATUS.OPEN || battle.status === BATTLE_STATUS.PENDING)
-  }
-
-  private isPublicAndClosed(battle: Battle): boolean {
-    return battle.status === BATTLE_STATUS.CLOSED //임시로 public 조건 제거
-    // return battle.type === BATTLE_TYPE.PUBLIC &&  battle.status === BATTLE_STATUS.CLOSED
-  }
-
-  getBattleState(battleId: string) {
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
-
-    return battleState
+  async getBattleState(battleId: string): Promise<{ battle: PrismaBattle; battleState: ActiveBattleState }> {
+    const { battle, state } = await this.loadBattleState(battleId)
+    if (battle.status === BATTLE_STATUS.CLOSED) throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
+    return { battle, battleState: state }
   }
 
   // Guest 등록
-  registerGuest(battleId: string, guest: GuestAccount): void {
-    const battleState = this.getBattleState(battleId)
+  async registerGuest(battleId: string, guest: GuestAccount): Promise<void> {
+    const { battleState } = await this.getBattleState(battleId)
     battleState.userInfoMap.set(guest.id, guest.nickname)
+    battleState.participants.set(guest.id, BATTLE_TEAM.NONE)
+    this.rebuildTeamUsers(battleState)
+    await this.saveBattleState(battleId, battleState)
   }
 
   // userId로 닉네임 조회
-  getNicknameByUserId(battleId: string, userId: string): string | null {
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return null
-    return battleState.userInfoMap.get(userId) || null
+  private getNicknameByUserId(state: ActiveBattleState, userId: string): string | null {
+    return state.userInfoMap.get(userId) || null
   }
 
-  generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean): string {
+  async generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean): Promise<string> {
     const maxAttempts = 50
     let attempts = 0
 
@@ -755,7 +987,7 @@ export class BattlesService extends EventEmitter {
       const nickname = generateNickname()
 
       // 배틀 방 내 닉네임 체크 + 외부에서 전달받은 중복 체크 함수 실행
-      if (!this.isNicknameDuplicateInBattle(battleId, nickname) && !isTaken(nickname)) {
+      if (!(await this.isNicknameDuplicate(battleId, nickname)) && !isTaken(nickname)) {
         return nickname
       }
       attempts++
@@ -766,22 +998,21 @@ export class BattlesService extends EventEmitter {
   }
 
   // 배틀 방 내 닉네임 중복 체크
-  isNicknameDuplicateInBattle(battleId: string, nickname: string): boolean {
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return false
+  async isNicknameDuplicate(battleId: string, nickname: string): Promise<boolean> {
+    const { battleState } = await this.getBattleState(battleId)
     return Array.from(battleState.userInfoMap.values()).some(existingNickname => existingNickname === nickname)
   }
 
-  handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDiscussion {
+  async handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): Promise<BattleDiscussion> {
     const { authorId, content, team } = data
 
-    const battleState = this.getBattleState(battleId)
+    const { battleState } = await this.getBattleState(battleId)
 
     if (!this.canUserSubmitAttack(battleState, team)) {
       throw new BadRequestException('현재 공격을 등록할 수 없는 단계입니다.')
     }
 
-    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+    const nickname = this.getNicknameByUserId(battleState, authorId) || ''
 
     const attack: BattleDiscussion = {
       discussionId: this.generateId(),
@@ -804,19 +1035,20 @@ export class BattlesService extends EventEmitter {
       battleState.teamB.attacks.push(attack)
     }
 
+    await this.saveBattleState(battleId, battleState)
     return attack
   }
 
-  handleDefense(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): BattleDefense {
+  async handleDefense(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): Promise<BattleDefense> {
     const { authorId, content, team } = data
 
-    const battleState = this.getBattleState(battleId)
+    const { battleState } = await this.getBattleState(battleId)
 
     if (!this.canUserSubmitDefense(battleState, team)) {
       throw new BadRequestException('현재 반론을 등록할 수 없는 단계입니다.')
     }
 
-    const nickname = this.getNicknameByUserId(battleId, authorId) || ''
+    const nickname = this.getNicknameByUserId(battleState, authorId) || ''
 
     const defense: BattleDefense = {
       discussionId: this.generateId(),
@@ -839,6 +1071,7 @@ export class BattlesService extends EventEmitter {
       battleState.teamB.defenses.push(defense)
     }
 
+    await this.saveBattleState(battleId, battleState)
     return defense
   }
 
@@ -867,14 +1100,14 @@ export class BattlesService extends EventEmitter {
     return false
   }
 
-  handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto[] {
+  async handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): Promise<DiscussionVoteResponseDto[]> {
     //Todo: 턴 관리 pr 머지 후 턴 고려
     const { userId, team } = data
 
     if (team === BATTLE_TEAM.NONE) {
       throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
     }
-    const battleState = this.getBattleState(battleId)
+    const { battleState } = await this.getBattleState(battleId)
 
     if (!this.canUserVoteAttack(battleState)) {
       throw new BadRequestException('현재 투표할 수 있는 공격 턴이 아닙니다.')
@@ -912,17 +1145,18 @@ export class BattlesService extends EventEmitter {
     this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
+    await this.saveBattleState(battleId, battleState)
     return updatedDiscussions
   }
 
-  handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): DiscussionVoteResponseDto[] {
+  async handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): Promise<DiscussionVoteResponseDto[]> {
     const { userId, team } = data
 
     if (team === BATTLE_TEAM.NONE) {
       throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
     }
 
-    const battleState = this.getBattleState(battleId)
+    const { battleState } = await this.getBattleState(battleId)
     if (!this.canUserVoteDefense(battleState)) {
       throw new BadRequestException('현재 투표할 수 있는 반론 턴이 아닙니다.')
     }
@@ -959,6 +1193,7 @@ export class BattlesService extends EventEmitter {
     this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
+    await this.saveBattleState(battleId, battleState)
     return updatedDiscussions
   }
 
@@ -993,21 +1228,17 @@ export class BattlesService extends EventEmitter {
     return top
   }
 
-  private pickTopVotedAttack(battleId: string): BattleTopOpinions {
-    const battleState = this.getBattleState(battleId)
-
+  private pickTopVotedAttack(state: ActiveBattleState): BattleTopOpinions {
     return {
-      aTeam: this.getTopOpinion(battleState.teamA.attacks),
-      bTeam: this.getTopOpinion(battleState.teamB.attacks),
+      aTeam: this.getTopOpinion(state.teamA.attacks),
+      bTeam: this.getTopOpinion(state.teamB.attacks),
     }
   }
 
-  private pickTopVotedDefense(battleId: string): BattleTopOpinions {
-    const battleState = this.getBattleState(battleId)
-
+  private pickTopVotedDefense(state: ActiveBattleState): BattleTopOpinions {
     return {
-      aTeam: this.getTopOpinion(battleState.teamA.defenses),
-      bTeam: this.getTopOpinion(battleState.teamB.defenses),
+      aTeam: this.getTopOpinion(state.teamA.defenses),
+      bTeam: this.getTopOpinion(state.teamB.defenses),
     }
   }
 
@@ -1030,15 +1261,12 @@ export class BattlesService extends EventEmitter {
     return placeholder
   }
 
-  private emitAttackedResult(battleId: string) {
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return
-
+  private emitAttackedResult(battleState: ActiveBattleState) {
     // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
     this.recordVoterCountAtPhase(battleState.teamA.attacks, BATTLE_TEAM.A)
     this.recordVoterCountAtPhase(battleState.teamB.attacks, BATTLE_TEAM.B)
 
-    const top = this.pickTopVotedAttack(battleId)
+    const top = this.pickTopVotedAttack(battleState)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'ATTACK')
@@ -1046,18 +1274,15 @@ export class BattlesService extends EventEmitter {
     battleState.all.attacks.push(aEntry)
     battleState.all.attacks.push(bEntry)
 
-    this.emit('battle:attacked', DiscussionVoteResultDto.attacked(battleId, top))
+    this.emit('battle:attacked', DiscussionVoteResultDto.attacked(battleState.battleId, top))
   }
 
-  private emitDefensedResult(battleId: string) {
-    const battleState = this.activeBattles.get(battleId)
-    if (!battleState) return
-
+  private emitDefensedResult(battleState: ActiveBattleState) {
     // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
     this.recordVoterCountAtPhase(battleState.teamA.defenses, BATTLE_TEAM.A)
     this.recordVoterCountAtPhase(battleState.teamB.defenses, BATTLE_TEAM.B)
 
-    const top = this.pickTopVotedDefense(battleId)
+    const top = this.pickTopVotedDefense(battleState)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : this.createNullPlaceholder('A', 'DEFENSE')
@@ -1065,7 +1290,7 @@ export class BattlesService extends EventEmitter {
     battleState.all.defenses.push(aEntry)
     battleState.all.defenses.push(bEntry)
 
-    this.emit('battle:defensed', DiscussionVoteResultDto.defensed(battleId, top))
+    this.emit('battle:defensed', DiscussionVoteResultDto.defensed(battleState.battleId, top))
   }
 
   private recordVoterCountAtPhase(opinions: (BattleDiscussion | null)[], team: BattleTeam): void {
@@ -1113,41 +1338,30 @@ export class BattlesService extends EventEmitter {
     }
   }
 
-  private resetDiscussions(battleId: string) {
-    const battleState = this.getBattleState(battleId)
-
-    // MVP 계산을 위해 모든 의견을 all에 누적 저장 (이미 all에 있는 의견 제외)
-    const existingAttackIds = new Set(battleState.all.attacks.map(a => a?.discussionId))
-    const existingDefenseIds = new Set(battleState.all.defenses.map(d => d?.discussionId))
-
-    const newAttacks = [...battleState.teamA.attacks, ...battleState.teamB.attacks].filter(a => a && !existingAttackIds.has(a.discussionId))
-    const newDefenses = [...battleState.teamA.defenses, ...battleState.teamB.defenses].filter(d => d && !existingDefenseIds.has(d.discussionId))
-
-    battleState.all.attacks.push(...newAttacks)
-    battleState.all.defenses.push(...newDefenses)
-
+  private resetDiscussions(battleState: ActiveBattleState) {
     battleState.teamA.attacks = []
     battleState.teamB.attacks = []
     battleState.teamA.defenses = []
     battleState.teamB.defenses = []
   }
 
-  private scheduleNextTick(battleId: string) {
-    const battle = this.battles.find(battle => battle.id === battleId)
-    if (battle?.status === BATTLE_STATUS.CLOSED) return
+  private async scheduleNextTick(battleId: string) {
+    try {
+      const { battleState: state } = await this.getBattleState(battleId)
+      if (!state.expiredAt) return
 
-    const state = this.getBattleState(battleId)
-    if (!state.expiredAt) return
+      const prevTimer = this.battleTimers.get(battleId)
+      if (prevTimer) clearTimeout(prevTimer)
 
-    const prevTimer = this.battleTimers.get(battleId)
-    if (prevTimer) clearTimeout(prevTimer)
+      const remaining = Math.max(state.expiredAt - Date.now(), 0)
 
-    const remaining = Math.max(state.expiredAt - Date.now(), 0)
+      const battleTimer = setTimeout(() => {
+        void this.updatePhase(battleId)
+      }, remaining)
 
-    const battleTimer = setTimeout(() => {
-      this.updatePhase(battleId)
-    }, remaining)
-
-    this.battleTimers.set(battleId, battleTimer)
+      this.battleTimers.set(battleId, battleTimer)
+    } catch {
+      // ignore if battle not found or closed
+    }
   }
 }

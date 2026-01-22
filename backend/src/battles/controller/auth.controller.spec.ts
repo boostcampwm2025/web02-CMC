@@ -64,11 +64,11 @@ describe('AuthController', () => {
     }
 
     beforeEach(() => {
-      mockBattlesService.getBattleState.mockReturnValue(mockBattleState)
+      mockBattlesService.getBattleState.mockResolvedValue({ battleState: mockBattleState })
       mockOauthService.isNicknameExists.mockReturnValue(false)
     })
 
-    it('정상적으로 Guest를 생성한다', () => {
+    it('정상적으로 Guest를 생성한다', async () => {
       const mockNickname = '심심한 레오'
       const mockGuest: GuestAccount = {
         id: 'client-id-1',
@@ -76,10 +76,10 @@ describe('AuthController', () => {
         createdAt: Date.now(),
       }
 
-      mockBattlesService.generateGuestNickname.mockReturnValue(mockNickname)
+      mockBattlesService.generateGuestNickname.mockResolvedValue(mockNickname)
       mockAuthService.createGuest.mockReturnValue(mockGuest)
 
-      const result = controller.createGuest(battleId)
+      const result = await controller.createGuest(battleId)
 
       expect(result).toEqual(mockGuest)
       expect(mockBattlesService.getBattleState).toHaveBeenCalledWith(battleId)
@@ -88,16 +88,15 @@ describe('AuthController', () => {
       expect(mockBattlesService.registerGuest).toHaveBeenCalledWith(battleId, mockGuest)
     })
 
-    it('배틀이 존재하지 않으면 NotFoundException을 던진다', () => {
-      mockBattlesService.getBattleState.mockReturnValue(null)
+    it('배틀이 존재하지 않으면 NotFoundException을 던진다', async () => {
+      mockBattlesService.getBattleState.mockRejectedValue(new NotFoundException())
 
-      expect(() => controller.createGuest(battleId)).toThrow(NotFoundException)
-      expect(mockBattlesService.generateGuestNickname).not.toHaveBeenCalled()
+      await expect(controller.createGuest(battleId)).rejects.toThrow(NotFoundException)
       expect(mockAuthService.createGuest).not.toHaveBeenCalled()
       expect(mockBattlesService.registerGuest).not.toHaveBeenCalled()
     })
 
-    it('OAuth 사용자 닉네임과 중복되지 않는 닉네임을 생성한다', () => {
+    it('OAuth 사용자 닉네임과 중복되지 않는 닉네임을 생성한다', async () => {
       const mockNickname = '심심한 레오'
       const mockGuest: GuestAccount = {
         id: 'client-id-1',
@@ -107,13 +106,13 @@ describe('AuthController', () => {
 
       // OAuth 닉네임 체크 함수가 올바르게 전달되는지 확인
       let capturedIsTaken: ((nickname: string) => boolean) | undefined
-      mockBattlesService.generateGuestNickname.mockImplementation((battleId: string, isTaken: (nickname: string) => boolean) => {
+      mockBattlesService.generateGuestNickname.mockImplementation(async (battleId: string, isTaken: (nickname: string) => boolean) => {
         capturedIsTaken = isTaken
         return mockNickname
       })
       mockAuthService.createGuest.mockReturnValue(mockGuest)
 
-      controller.createGuest(battleId)
+      await controller.createGuest(battleId)
 
       expect(capturedIsTaken).toBeDefined()
       if (!capturedIsTaken) {
@@ -128,7 +127,7 @@ describe('AuthController', () => {
       expect(capturedIsTaken('new-nickname')).toBe(false)
     })
 
-    it('Guest 생성 후 배틀에 등록한다', () => {
+    it('Guest 생성 후 배틀에 등록한다', async () => {
       const mockNickname = '심심한 레오'
       const mockGuest: GuestAccount = {
         id: 'client-id-1',
@@ -136,10 +135,10 @@ describe('AuthController', () => {
         createdAt: Date.now(),
       }
 
-      mockBattlesService.generateGuestNickname.mockReturnValue(mockNickname)
+      mockBattlesService.generateGuestNickname.mockResolvedValue(mockNickname)
       mockAuthService.createGuest.mockReturnValue(mockGuest)
 
-      controller.createGuest(battleId)
+      await controller.createGuest(battleId)
 
       expect(mockBattlesService.getBattleState).toHaveBeenCalledTimes(1)
       expect(mockBattlesService.generateGuestNickname).toHaveBeenCalledTimes(1)

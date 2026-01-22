@@ -60,6 +60,11 @@ export interface BattleChat {
   createdAt: Date
 }
 
+export type ParticipantEntry = { userId: string; team: BattleTeam }
+export type TeamVoteEntry = { userId: string; team: BattleTeam }
+export type UserInfoEntry = { userId: string; nickname: string }
+export type BattleChatSnapshot = Omit<BattleChat, 'createdAt'> & { createdAt: string }
+
 export interface BattleDiscussion {
   discussionId: string
   author: {
@@ -110,6 +115,7 @@ export interface ActiveBattleState {
 
   round: number
   topics: string[]
+  totalRounds: number
   phase: BattlePhaseName
   phaseCount: number
 
