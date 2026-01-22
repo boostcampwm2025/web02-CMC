@@ -39,6 +39,7 @@ RUN HUSKY=0 pnpm install --filter backend --prod --frozen-lockfile --ignore-scri
 
 # Copy built artifacts
 COPY --from=builder /app/backend/dist ./backend/dist
+COPY backend/prisma ./backend/prisma
 
 EXPOSE 3000
 CMD ["pnpm", "-C", "backend", "start:prod"]
