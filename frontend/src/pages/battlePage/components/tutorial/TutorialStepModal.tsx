@@ -25,10 +25,16 @@ export default function TutorialStepModal({
   onClose
 }: TutorialStepModalProps) {
   const stepContent = TUTORIAL_STEPS[currentStep];
-  const spotlight = useSpotlight({
+  const defaultSpotlight = useSpotlight({
     selector: stepContent?.highlightElement,
     enabled: isOpen && currentStep !== 'welcome' && currentStep !== 'completed'
   });
+
+  // sidebarPanel 단계에서는 sidebar 전체 영역을 spotlight로
+  const spotlight =
+    currentStep === 'sidebarPanel' && defaultSpotlight
+      ? { ...defaultSpotlight, top: 0, height: window.innerHeight }
+      : defaultSpotlight;
 
   if (!isOpen || currentStep === 'welcome' || currentStep === 'completed') return null;
   if (!stepContent) return null;

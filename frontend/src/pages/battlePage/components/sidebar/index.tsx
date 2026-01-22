@@ -24,7 +24,8 @@ export default function BattleSidebar({
   description,
   language,
   category,
-  topics
+  topics,
+  raiseZIndex = false
 }: BattleSidebarProps) {
   const [activeTab, setActiveTab] = useState<Tab>('info');
   const { width, isResizing, setIsResizing } = useResize({
@@ -48,11 +49,12 @@ export default function BattleSidebar({
 
   return (
     <aside
+      data-tutorial="sidebar-panel"
       ref={asideRef}
       style={{ width: `${width}px` }}
-      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] z-100 transform transition-transform duration-300 ease-in-out shadow-2xl ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      } ${isResizing ? 'select-none' : ''}`}
+      className={`fixed top-0 left-0 h-full sidebar-width bg-[#0a0a1a] border-r border-[#1A1A2E] transform transition-transform duration-300 ease-in-out shadow-2xl ${
+        raiseZIndex ? 'z-[101]' : 'z-100'
+      } ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isResizing ? 'select-none' : ''}`}
     >
       <SidebarHeader activeTab={activeTab} onTabChange={setActiveTab} onClose={onClose} />
       <div className="flex justify-between">
