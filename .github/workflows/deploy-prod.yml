@@ -69,6 +69,11 @@ jobs:
           password: ${{ secrets.NCP_PASSWORD_PROD }}
           script: |
             set -e
+
+            echo "${{ secrets.NCP_DEPLOY_PATH }}"
+            pwd
+            cd /root/cmc/web02-CMC
+
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
             cd "${{ secrets.NCP_DEPLOY_PATH_PROD }}"
 
