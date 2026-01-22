@@ -6,7 +6,7 @@ import { useBattleProgress } from './useBattleProgress';
 import { useBattleDiscussions } from './useBattleDiscussions';
 import { useBattleTimeline } from './useBattleTimeline';
 import { useBattleTeam } from './useBattleTeam';
-import { useAuthStore } from '../stores/authStore';
+import { useAuthStore } from '@/commons/stores/authStore';
 
 interface UseBattle {
   battleId?: string;

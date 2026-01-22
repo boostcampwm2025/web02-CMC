@@ -9,17 +9,15 @@ interface Step2CodeCompareProps {
 
 export default function Step2CodeCompare({ aCode, bCode, language }: Step2CodeCompareProps) {
   return (
-    <div className="flex flex-col items-center gap-8 w-full max-w-6xl mx-auto">
-      {/* 상단 섹션 */}
-      <div className="text-center mb-8">
-        <Code2 className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">쟁점</h2>
-        <p className="text-gray-400">두 구현의 코드를 비교하고 분석하세요</p>
+    <div className="flex flex-col items-center gap-4 w-full max-w-6xl mx-auto px-4">
+      <div className="text-center mb-4">
+        <Code2 className="code-compare-icon-size text-orange-500 mx-auto mb-2" />
+        <h2 className="code-compare-title-size font-bold text-white mb-1">쟁점</h2>
+        <p className="code-compare-desc-size text-gray-400">두 구현의 코드를 비교하고 분석하세요</p>
       </div>
 
-      {/* 중앙 컨테이너 */}
-      <div className="w-full bg-[#0d0d1a]/50 rounded-2xl p-8 border border-[#1a1a2e]">
-        <CodeCarousel aCode={aCode} bCode={bCode} language={language} />
+      <div className="w-full bg-[#0d0d1a]/50 rounded-lg border border-[#1a1a2e] code-compare-container-padding">
+        <CodeCarousel aCode={aCode} bCode={bCode} min-Height="var(--code-compare-min-height)" language={language} />
       </div>
     </div>
   );

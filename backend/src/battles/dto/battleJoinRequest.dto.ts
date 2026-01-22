@@ -11,6 +11,10 @@ export class BattleJoinRequestDto {
   team: BattleTeam
 
   @IsString()
+  @IsNotEmpty()
+  nickname: string
+
+  @IsString()
   @IsOptional()
   password?: string
 }

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { io } from 'socket.io-client';
 import type { BattleJoinData } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
+import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 
 export function useBattleSocket() {
   const {
@@ -19,9 +20,10 @@ export function useBattleSocket() {
     setAllChats,
     setChatInitialized
   } = useBattleStore();
+  const user = useAuthStore(selectUser);
 
   useEffect(() => {
-    if (!userId || !battleId) return;
+    if (!userId || !battleId || !user) return;
 
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket'],
@@ -35,7 +37,8 @@ export function useBattleSocket() {
       newSocket.emit('battle:join', {
         userId,
         battleId,
-        team: selectedTeam
+        team: selectedTeam,
+        nickname: user.nickname
       });
     });
 
@@ -76,7 +79,7 @@ export function useBattleSocket() {
             currentVoteList.map(({ discussionId, author, content, upvotes, votes }) => ({
               id: discussionId as unknown as number,
               // user: authorId === userId ? 'You' : `User-${authorId.slice(0, 4)}`,
-              user: author.authorId === userId ? 'You' : author.nickname,
+              user: author.id === userId ? 'You' : author.nickname,
               team: team as 'A' | 'B',
               content,
               votes: upvotes,
@@ -86,6 +89,14 @@ export function useBattleSocket() {
           );
         }
       }
+    });
+
+    newSocket.on('battle:leaved', (data) => {
+      setTeamCounts({
+        teamACount: data.counts.teamA,
+        teamBCount: data.counts.teamB,
+        none: data.counts.teamNone
+      });
     });
 
     return () => {
@@ -107,6 +118,7 @@ export function useBattleSocket() {
   }, [
     userId,
     battleId,
+    user,
     setSocket,
     setIsConnected,
     setCurrentStage,

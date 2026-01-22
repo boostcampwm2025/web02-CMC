@@ -6,7 +6,7 @@ export interface BattleChat {
   sender: { userId: string; nickname: string };
   team: Team;
   text: string;
-  createdAt: Date;
+  createdAt: Date | string;
   type?: 'chat' | 'attack' | 'defense';
   votes?: number;
 }
@@ -37,7 +37,7 @@ export type Team = 'A' | 'B' | 'NONE';
 export interface BattleDiscussion {
   discussionId: string;
   author: {
-    authorId: string;
+    id: string;
     nickname: string;
   };
   type: 'ATTACK' | 'DEFENSE';

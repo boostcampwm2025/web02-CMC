@@ -6,7 +6,12 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
+import {
+  useBattleStore,
+  selectBattleProgress,
+  selectSelectedTeam,
+  selectProgressBoardCollapsed
+} from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 
 import BattleHeader from './components/header';
@@ -23,7 +28,7 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
-import { selectUser, useAuthStore } from './stores/authStore';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
@@ -33,6 +38,9 @@ export default function BattlePage() {
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
+  const leaveBattle = useBattleStore((s) => s.leaveBattle);
+  const progressBoardCollapsed = useBattleStore(selectProgressBoardCollapsed);
+  const battleProgress = useBattleStore(selectBattleProgress);
 
   useEffect(() => {
     if (!user) {
@@ -96,13 +104,19 @@ export default function BattlePage() {
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
   // Phase와 Team 정보 가져오기
-  const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
+  const handleLeaveBattle = () => {
+    if (!user) return;
+    // TODO 추후에 서버에서 Disconnect 관리
+    navigate('/');
+    leaveBattle();
+  };
+
   return (
-    <div className="text-white relative min-h-screen">
+    <div className="text-white relative">
       {/* 책갈피 버튼 */}
       <BookmarkButton
         onOpen={handleOpenSidebar}
@@ -118,22 +132,35 @@ export default function BattlePage() {
         description={battleInfo.description}
         language={battleInfo.language}
         category={battleInfo.category}
+        topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
       />
 
       {/* 메인 콘텐츠 */}
-      <div
-        className={`flex flex-col items-center transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? 'ml-sidebar' : 'ml-0'
-        }`}
-      >
+      <div className="flex flex-col items-center">
         <BattleProgressBoard />
         <div
-          className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'} -mt-[10px]`}
+          className={`transition-all duration-300 main-width-closed ${
+            battleProgress &&
+            (battleProgress.phase as string) !== 'PENDING' &&
+            battleProgress.expiredAt != null &&
+            battleProgress.startedAt &&
+            !progressBoardCollapsed
+              ? 'mt-24'
+              : 'mt-6'
+          }`}
         >
+          <div className="flex items-center justify-between mt-10 mb-8">
+            <button
+              onClick={handleLeaveBattle}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
+            >
+              ← 돌아가기
+            </button>
+          </div>
           <BattleHeader />
         </div>
-        <main className={`transition-all duration-300 ${isSidebarOpen ? 'main-width-open' : 'main-width-closed'}`}>
+        <main className="main-width-closed">
           <div className="flex gap-2 py-4">
             <div className="flex-1 min-w-0">
               <CodeSection
@@ -144,7 +171,9 @@ export default function BattlePage() {
                 codeB={battleInfo.bCode}
               />
             </div>
-            <aside className="flex flex-col gap-4 w-[590px]">
+            <aside
+              className={`flex flex-col gap-4 transition-all duration-300 ${isSidebarOpen ? 'lounge-width-open' : 'lounge-width-closed'}`}
+            >
               <DiscussionVote onVote={handleVote} />
               <ChatSection />
             </aside>
@@ -153,17 +182,21 @@ export default function BattlePage() {
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
-          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-50 px-4 pb-4 transition-all duration-500 ease-out ${
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[9999] px-4 pb-4 transition-all duration-500 ease-out ${
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
-          <div className="w-[590px]">
+          <div className="discussion-input-width">
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
 
         {isTeamChangeModalOpen && (
-          <TeamChangeModal handleTeamChange={handleTeamChange} onClose={handleCloseTeamChangeModal} />
+          <TeamChangeModal
+            topics={battleInfo.topics}
+            handleTeamChange={handleTeamChange}
+            onClose={handleCloseTeamChangeModal}
+          />
         )}
 
         {effectModal.isOpen && effectModal.team !== 'NONE' && (

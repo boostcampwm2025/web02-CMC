@@ -1,5 +1,5 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState } from '../types/battles.types'
+import { Battle, FinishedBattleState, BattleDefense } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
 
@@ -81,12 +81,18 @@ const createFinishedBattleState = (overrides: Partial<FinishedBattleState> = {})
       createdAt: '2025-12-15T10:06:00Z',
     },
   ],
-  mvp: {
-    userId: 'user-1',
-    nickname: 'CodeMaster',
-    team: 'A',
-    totalVotes: 25,
-  },
+  mvps: [
+    {
+      userId: 'user-1',
+      nickname: 'CodeMaster',
+      team: 'A',
+      score: 2.5,
+      totalVotes: 25,
+      opinionCount: 2,
+      selectedOpinionCount: 1,
+      joinedAt: 1000,
+    },
+  ],
   ...overrides,
 })
 
@@ -682,7 +688,7 @@ describe('BattlesService', () => {
       expect(result).toHaveProperty('metrics')
       expect(result).toHaveProperty('voteTimeline')
       expect(result).toHaveProperty('timeline')
-      expect(result).toHaveProperty('mvp')
+      expect(result).toHaveProperty('mvps')
     })
 
     it('존재하지 않는 배틀 조회 시 NotFoundException을 던져야 함', () => {
@@ -710,9 +716,9 @@ describe('BattlesService', () => {
 
     it('MVP가 올바르게 계산되어야 함 (최다 upvotes)', () => {
       const result = service.getBattleResult('battle-1')
-      expect(result.mvp.nickname).toBe('CodeMaster')
-      expect(result.mvp.totalVotes).toBe(25)
-      expect(result.mvp.team).toBe('A')
+      expect(result.mvps[0].nickname).toBe('CodeMaster')
+      expect(result.mvps[0].totalVotes).toBe(25)
+      expect(result.mvps[0].team).toBe('A')
     })
 
     it('투표 추세가 누적값으로 반환되어야 함', () => {
@@ -885,6 +891,849 @@ describe('BattlesService', () => {
           team: BATTLE_TEAM.A,
         }),
       ).toThrow(NotFoundException)
+    })
+  })
+
+  describe('calculateMVPs (새로운 로직)', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      // 참가자 등록 (joinedAt 시간 순서대로)
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+      service.registerGuest('battle-1', { id: 'user-3', nickname: 'User3', createdAt: 3000 })
+
+      state.participants.set('user-1', BATTLE_TEAM.A)
+      state.participants.set('user-2', BATTLE_TEAM.B)
+      state.participants.set('user-3', BATTLE_TEAM.A)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('모든 의견의 투표를 누적하여 MVP를 계산한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-1: 2개 의견, 총 5표
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 1',
+        upvotes: 3,
+        votes: ['voter-1', 'voter-2', 'voter-3'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+      })
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 2',
+        upvotes: 2,
+        votes: ['voter-4', 'voter-5'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      // user-2: 1개 의견, 총 4표
+      state.opinionHistory.push({
+        discussionId: 'attack-3',
+        author: { authorId: 'user-2', nickname: 'User2' },
+        type: 'ATTACK',
+        content: 'attack 3',
+        upvotes: 4,
+        votes: ['voter-1', 'voter-2', 'voter-3', 'voter-4'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+      })
+
+      // 팀별 투표 참가자 수 설정 (A팀: 5명, B팀: 4명)
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // user-1: score = 3/5 + 2/5 = 1.0, totalVotes = 5
+      // user-2: score = 4/4 = 1.0, totalVotes = 4
+      // 점수 동점 → 좋아요 수 비교 → user-1이 5표로 MVP
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].totalVotes).toBe(5)
+    })
+
+    it('중립 팀 사용자는 MVP 후보에서 제외된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 중립 팀 사용자 추가
+      service.registerGuest('battle-1', { id: 'user-none', nickname: 'NeutralUser', createdAt: 500 })
+      state.participants.set('user-none', BATTLE_TEAM.NONE)
+
+      // 중립 팀 사용자가 가장 많은 표를 받았다고 가정 (실제로는 의견 제출 불가하지만 테스트용)
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-none', nickname: 'NeutralUser' },
+        type: 'ATTACK',
+        content: 'neutral attack',
+        upvotes: 100,
+        votes: [],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.NONE,
+        selectedAt: Date.now(),
+      })
+
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 1,
+        votes: ['voter-1'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // 중립 팀 제외, user-1이 MVP
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+    })
+
+    it('동점일 때 승리 팀 소속이 우선이다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 동일한 점수, 좋아요, 의견 수
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 2,
+        votes: ['v1', 'v2'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-2', nickname: 'User2' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 2,
+        votes: ['v3', 'v4'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.B,
+      })
+
+      // A팀이 승리한 경우
+      const mvpsA = service['calculateMVPs'](state, 'A')
+      expect(mvpsA[0].userId).toBe('user-1')
+      expect(mvpsA[0].team).toBe('A')
+
+      // B팀이 승리한 경우
+      const mvpsB = service['calculateMVPs'](state, 'B')
+      expect(mvpsB[0].userId).toBe('user-2')
+      expect(mvpsB[0].team).toBe('B')
+    })
+
+    it('선정된 의견 수가 많은 후보가 우선이다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-1: 2개 의견, 2개 선정됨
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 1',
+        upvotes: 1,
+        votes: ['v1'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+      })
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 2',
+        upvotes: 1,
+        votes: ['v2'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+      })
+
+      // user-3: 2개 의견, 0개 선정됨
+      state.opinionHistory.push({
+        discussionId: 'attack-3',
+        author: { authorId: 'user-3', nickname: 'User3' },
+        type: 'ATTACK',
+        content: 'attack 3',
+        upvotes: 1,
+        votes: ['v3'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+      state.opinionHistory.push({
+        discussionId: 'attack-4',
+        author: { authorId: 'user-3', nickname: 'User3' },
+        type: 'ATTACK',
+        content: 'attack 4',
+        upvotes: 1,
+        votes: ['v4'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // 동일 점수, 좋아요, 의견수, 팀 → 선정된 의견 수로 비교
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].selectedOpinionCount).toBe(2)
+    })
+
+    it('먼저 참여한 사용자가 우선이다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-1 (참가순서: 0)과 user-3 (참가순서: 2) 동일 조건
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 1,
+        votes: ['v1'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-3', nickname: 'User3' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 1,
+        votes: ['v2'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // 모든 조건 동일 → 먼저 참여한 user-1이 MVP (참가순서 0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].joinedAt).toBe(0) // participants Map 삽입 순서 기반
+    })
+
+    it('의견이 없으면 빈 배열을 반환한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps).toEqual([])
+    })
+
+    it('투표 참가자가 0명이면 점수는 0이다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 투표자가 없는 의견
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 0,
+        votes: [],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].score).toBe(0)
+    })
+
+    it('페이즈별로 기록된 투표 참가자 수를 사용하여 점수를 계산한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-1: 2개 의견, 페이즈별 투표 참가자 수가 다름
+      // 1차 페이즈: 2표/4명 = 0.5점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 1',
+        upvotes: 2,
+        votes: ['v1', 'v2'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 4, // 1차 페이즈에서 4명 참여
+      })
+      // 2차 페이즈: 3표/10명 = 0.3점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 2',
+        upvotes: 3,
+        votes: ['v3', 'v4', 'v5'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+        voterCountAtPhase: 10, // 2차 페이즈에서 10명 참여
+      })
+
+      // user-2: 1개 의견
+      // 1차 페이즈: 4표/4명 = 1.0점
+      state.opinionHistory.push({
+        discussionId: 'attack-3',
+        author: { authorId: 'user-2', nickname: 'User2' },
+        type: 'ATTACK',
+        content: 'attack 3',
+        upvotes: 4,
+        votes: ['v1', 'v2', 'v3', 'v4'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 4, // B팀 1차 페이즈에서 4명 참여
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // user-1 (A팀): score = (0.5 + 0.3) * 1.5 = 1.2, totalVotes = 5
+      // user-2 (B팀): score = 1.0 (보너스 없음), totalVotes = 4
+      // A팀 승리 시 user-1이 보너스를 받아 MVP
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].score).toBeCloseTo(1.2)
+      expect(mvps[0].totalVotes).toBe(5)
+    })
+
+    it('voterCountAtPhase가 없으면 점수 0으로 처리한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // voterCountAtPhase가 없는 의견
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack',
+        upvotes: 10,
+        votes: ['v1', 'v2', 'v3', 'v4', 'v5', 'v6', 'v7', 'v8', 'v9', 'v10'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+        // voterCountAtPhase 없음
+      })
+
+      // voterCountAtPhase가 있는 의견
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-3', nickname: 'User3' },
+        type: 'ATTACK',
+        content: 'attack 2',
+        upvotes: 1,
+        votes: ['v1'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.A,
+        voterCountAtPhase: 2,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      // user-1 (A팀): voterCountAtPhase 없음 → 점수 0 * 1.5 = 0, totalVotes = 10
+      // user-3 (A팀): score = 1/2 * 1.5 = 0.75, totalVotes = 1
+      // user-3이 점수가 높으므로 MVP
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-3')
+      expect(mvps[0].score).toBeCloseTo(0.75)
+    })
+  })
+
+  describe('calculateMVPs (승리 팀 1.5배 보너스)', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
+
+      state.participants.set('user-a', BATTLE_TEAM.A)
+      state.participants.set('user-b', BATTLE_TEAM.B)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('A팀 70표/100명 vs B팀 5표/5명: 보너스 없이는 B팀이 유리하지만, A팀 승리 시 A팀이 MVP가 된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점 → 1.5배 보너스 → 1.05점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점 → 보너스 없음 → 1.0점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // A팀 승리 시: user-a = 0.7 * 1.5 = 1.05, user-b = 1.0
+      const mvpsWhenAWins = service['calculateMVPs'](state, 'A')
+      expect(mvpsWhenAWins.length).toBeGreaterThan(0)
+      expect(mvpsWhenAWins[0].userId).toBe('user-a')
+      expect(mvpsWhenAWins[0].score).toBeCloseTo(1.05)
+    })
+
+    it('A팀 70표/100명 vs B팀 5표/5명: B팀 승리 시 B팀이 MVP가 된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점 → 보너스 없음 → 0.7점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점 → 1.5배 보너스 → 1.5점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // B팀 승리 시: user-a = 0.7, user-b = 1.0 * 1.5 = 1.5
+      const mvpsWhenBWins = service['calculateMVPs'](state, 'B')
+      expect(mvpsWhenBWins.length).toBeGreaterThan(0)
+      expect(mvpsWhenBWins[0].userId).toBe('user-b')
+      expect(mvpsWhenBWins[0].score).toBeCloseTo(1.5)
+    })
+
+    it('무승부 시 보너스 없이 순수 점수로 비교한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀): 70표 / 100명 = 0.7점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 70,
+        votes: Array(70).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀): 5표 / 5명 = 1.0점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 5,
+      })
+
+      // 무승부: user-a = 0.7, user-b = 1.0 → user-b가 MVP
+      const mvpsWhenDraw = service['calculateMVPs'](state, 'DRAW')
+      expect(mvpsWhenDraw.length).toBeGreaterThan(0)
+      expect(mvpsWhenDraw[0].userId).toBe('user-b')
+      expect(mvpsWhenDraw[0].score).toBeCloseTo(1.0)
+    })
+
+    it('동일 점수 + 동일 보너스 시 totalVotes로 비교한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 같은 팀, 같은 점수 비율
+      service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
+      state.participants.set('user-a2', BATTLE_TEAM.A)
+      service['rebuildTeamUsers'](state)
+
+      // user-a: 50표 / 100명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 50
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 50,
+        votes: Array(50).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-a2: 10표 / 20명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 10
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-a2', nickname: 'UserA2' },
+        type: 'ATTACK',
+        content: 'attack from A2',
+        upvotes: 10,
+        votes: Array(10).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 20,
+      })
+
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      // 점수 동점 → totalVotes로 비교 → user-a가 50표로 MVP
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].totalVotes).toBe(50)
+    })
+
+    it('여러 의견이 있을 때 누적 점수에 보너스가 적용된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a: 2개 의견, 각각 30표/100명 = 0.3 + 0.3 = 0.6점 → 1.5배 → 0.9점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack 1 from A',
+        upvotes: 30,
+        votes: Array(30).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+      state.opinionHistory.push({
+        discussionId: 'defense-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'DEFENSE',
+        content: 'defense 1 from A',
+        upvotes: 30,
+        votes: Array(30).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+        attackId: 'attack-x',
+      } as BattleDefense)
+
+      // user-b: 1개 의견, 5표/10명 = 0.5점 → 보너스 없음 → 0.5점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 5,
+        votes: Array(5).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 10,
+      })
+
+      // A팀 승리: user-a = 0.6 * 1.5 = 0.9, user-b = 0.5
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].score).toBeCloseTo(0.9)
+      expect(mvps[0].opinionCount).toBe(2)
+    })
+
+    it('소수 인원으로 참여한 팀이 불리하지 않도록 보너스가 적용된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // user-a (A팀, 다수): 80표 / 100명 = 0.8점 → 1.5배 → 1.2점
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: 'ATTACK',
+        content: 'attack from A',
+        upvotes: 80,
+        votes: Array(80).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 100,
+      })
+
+      // user-b (B팀, 소수): 3표 / 3명 = 1.0점 → 보너스 없음 → 1.0점
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-b', nickname: 'UserB' },
+        type: 'ATTACK',
+        content: 'attack from B',
+        upvotes: 3,
+        votes: Array(3).fill('voter'),
+        status: 'SELECTED',
+        team: BATTLE_TEAM.B,
+        selectedAt: Date.now(),
+        voterCountAtPhase: 3,
+      })
+
+      // A팀 승리: user-a = 0.8 * 1.5 = 1.2 > user-b = 1.0
+      const mvps = service['calculateMVPs'](state, 'A')
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-a')
+      expect(mvps[0].score).toBeCloseTo(1.2)
+    })
+  })
+
+  describe('resetDiscussions 후 MVP 계산', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+
+      state.participants.set('user-1', BATTLE_TEAM.A)
+      state.participants.set('user-2', BATTLE_TEAM.B)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('resetDiscussions 호출 후에도 opinionHistory에서 MVP를 정상 계산한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 의견 등록
+      state.opinionHistory.push({
+        discussionId: 'attack-1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'attack 1',
+        upvotes: 5,
+        votes: ['v1', 'v2', 'v3', 'v4', 'v5'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        voterCountAtPhase: 10,
+      })
+      state.teamA.attacks.push(state.opinionHistory[0])
+
+      state.opinionHistory.push({
+        discussionId: 'attack-2',
+        author: { authorId: 'user-2', nickname: 'User2' },
+        type: 'ATTACK',
+        content: 'attack 2',
+        upvotes: 3,
+        votes: ['v1', 'v2', 'v3'],
+        status: 'PENDING',
+        team: BATTLE_TEAM.B,
+        voterCountAtPhase: 10,
+      })
+      state.teamB.attacks.push(state.opinionHistory[1])
+
+      // resetDiscussions 호출 전 상태 확인
+      expect(state.opinionHistory.length).toBe(2)
+      expect(state.teamA.attacks.length).toBe(1)
+      expect(state.teamB.attacks.length).toBe(1)
+
+      // resetDiscussions 호출 (teamA/teamB만 초기화)
+      service['resetDiscussions']('battle-1')
+
+      // resetDiscussions 후 상태 확인
+      expect(state.opinionHistory.length).toBe(2) // opinionHistory는 유지
+      expect(state.teamA.attacks.length).toBe(0) // teamA는 초기화
+      expect(state.teamB.attacks.length).toBe(0) // teamB는 초기화
+
+      // MVP 계산 - opinionHistory에서 읽으므로 정상 동작
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      expect(mvps[0].totalVotes).toBe(5)
+    })
+
+    it('여러 번 resetDiscussions 호출 후에도 누적된 모든 의견으로 MVP를 계산한다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      // 1라운드 의견
+      state.opinionHistory.push({
+        discussionId: 'attack-r1',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'round 1 attack',
+        upvotes: 3,
+        votes: ['v1', 'v2', 'v3'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        voterCountAtPhase: 5,
+      })
+      state.teamA.attacks.push(state.opinionHistory[0])
+
+      // 1라운드 후 reset
+      service['resetDiscussions']('battle-1')
+      expect(state.teamA.attacks.length).toBe(0)
+
+      // 2라운드 의견
+      state.opinionHistory.push({
+        discussionId: 'attack-r2',
+        author: { authorId: 'user-1', nickname: 'User1' },
+        type: 'ATTACK',
+        content: 'round 2 attack',
+        upvotes: 4,
+        votes: ['v1', 'v2', 'v3', 'v4'],
+        status: 'SELECTED',
+        team: BATTLE_TEAM.A,
+        voterCountAtPhase: 5,
+      })
+      state.teamA.attacks.push(state.opinionHistory[1])
+
+      // 2라운드 후 reset
+      service['resetDiscussions']('battle-1')
+      expect(state.teamA.attacks.length).toBe(0)
+
+      // opinionHistory에는 2개 의견이 누적되어 있어야 함
+      expect(state.opinionHistory.length).toBe(2)
+
+      // MVP 계산 - 누적 점수로 계산
+      const mvps = service['calculateMVPs'](state, 'A')
+
+      expect(mvps.length).toBeGreaterThan(0)
+      expect(mvps[0].userId).toBe('user-1')
+      // user-1: score = 3/5 + 4/5 = 1.4, 승리팀 보너스 1.5배 = 2.1
+      expect(mvps[0].score).toBeCloseTo(2.1)
+      expect(mvps[0].totalVotes).toBe(7) // 3 + 4
+      expect(mvps[0].opinionCount).toBe(2)
+    })
+  })
+
+  describe('handleAttack / handleDefense의 opinionHistory 저장', () => {
+    beforeEach(() => {
+      const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
+      service.setBattlesForTest([battle])
+      service['initBattleState']('battle-1')
+
+      const state = service['activeBattles'].get('battle-1')!
+
+      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+
+      state.participants.set('user-1', BATTLE_TEAM.A)
+      state.participants.set('user-2', BATTLE_TEAM.B)
+
+      service['rebuildTeamUsers'](state)
+    })
+
+    it('handleAttack 호출 시 opinionHistory에 의견이 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      expect(state.opinionHistory.length).toBe(0)
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: '공격 의견입니다', team: BATTLE_TEAM.A })
+
+      expect(state.opinionHistory.length).toBe(1)
+      expect(state.opinionHistory[0].content).toBe('공격 의견입니다')
+      expect(state.opinionHistory[0].author.authorId).toBe('user-1')
+      expect(state.opinionHistory[0].status).toBe('PENDING')
+      expect(state.opinionHistory[0].type).toBe('ATTACK')
+    })
+
+    it('handleDefense 호출 시 opinionHistory에 의견이 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.DEFENSE.name
+
+      expect(state.opinionHistory.length).toBe(0)
+
+      service['handleDefense']('battle-1', { authorId: 'user-2', content: '수비 의견입니다', team: BATTLE_TEAM.B })
+
+      expect(state.opinionHistory.length).toBe(1)
+      expect(state.opinionHistory[0].content).toBe('수비 의견입니다')
+      expect(state.opinionHistory[0].author.authorId).toBe('user-2')
+      expect(state.opinionHistory[0].status).toBe('PENDING')
+      expect(state.opinionHistory[0].type).toBe('DEFENSE')
+    })
+
+    it('여러 의견 등록 시 모두 opinionHistory에 누적된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: '첫 번째 공격', team: BATTLE_TEAM.A })
+      service['handleAttack']('battle-1', { authorId: 'user-2', content: '두 번째 공격', team: BATTLE_TEAM.B })
+
+      state.phase = BATTLE_PHASE.DEFENSE.name
+
+      service['handleDefense']('battle-1', { authorId: 'user-1', content: '첫 번째 수비', team: BATTLE_TEAM.A })
+
+      expect(state.opinionHistory.length).toBe(3)
+      expect(state.opinionHistory[0].type).toBe('ATTACK')
+      expect(state.opinionHistory[1].type).toBe('ATTACK')
+      expect(state.opinionHistory[2].type).toBe('DEFENSE')
+    })
+
+    it('opinionHistory와 teamA/teamB 모두에 저장된다', () => {
+      const state = service['activeBattles'].get('battle-1')!
+      state.phase = BATTLE_PHASE.ATTACK.name
+
+      service['handleAttack']('battle-1', { authorId: 'user-1', content: 'A팀 공격', team: BATTLE_TEAM.A })
+      service['handleAttack']('battle-1', { authorId: 'user-2', content: 'B팀 공격', team: BATTLE_TEAM.B })
+
+      // opinionHistory에 모두 저장
+      expect(state.opinionHistory.length).toBe(2)
+
+      // teamA/teamB에도 각각 저장
+      expect(state.teamA.attacks.length).toBe(1)
+      expect(state.teamB.attacks.length).toBe(1)
+
+      // 같은 객체를 참조
+      expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
+      expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
     })
   })
 })

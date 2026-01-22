@@ -45,5 +45,9 @@ export interface Mvp {
   userId: string
   nickname: string
   team: 'A' | 'B'
+  score: number
   totalVotes: number
+  opinionCount: number
+  selectedOpinionCount: number
+  joinedAt: number
 }
