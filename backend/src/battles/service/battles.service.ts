@@ -979,7 +979,10 @@ export class BattlesService extends EventEmitter {
     return state.userInfoMap.get(userId) || null
   }
 
-  async generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean): Promise<string> {
+  async generateGuestNickname(
+    battleId: string,
+    isTaken: (nickname: string) => boolean | Promise<boolean>,
+  ): Promise<string> {
     const maxAttempts = 50
     let attempts = 0
 

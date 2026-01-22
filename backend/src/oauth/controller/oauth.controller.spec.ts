@@ -58,7 +58,7 @@ describe('OauthController', () => {
   })
 
   describe('githubCallback', () => {
-    it('GitHub 콜백에서 프로필을 받아 토큰을 발급하고 쿠키에 설정한다', () => {
+    it('GitHub 콜백에서 프로필을 받아 토큰을 발급하고 쿠키에 설정한다', async () => {
       const mockProfile: OAuthProfile = {
         provider: 'github',
         providerId: '12345',
@@ -80,9 +80,9 @@ describe('OauthController', () => {
         redirect: mockRedirect,
       } as unknown as expressRes
 
-      mockOauthService.loginWithGithub.mockReturnValue(mockTokens)
+      mockOauthService.loginWithGithub.mockResolvedValue(mockTokens)
 
-      controller.githubCallback(mockReq, mockRes)
+      await controller.githubCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
@@ -91,7 +91,7 @@ describe('OauthController', () => {
   })
 
   describe('kakaoCallback', () => {
-    it('Kakao 콜백에서 프로필을 받아 토큰을 발급하고 쿠키에 설정한다', () => {
+    it('Kakao 콜백에서 프로필을 받아 토큰을 발급하고 쿠키에 설정한다', async () => {
       const mockProfile: OAuthProfile = {
         provider: 'kakao',
         providerId: '67890',
@@ -113,9 +113,9 @@ describe('OauthController', () => {
         redirect: mockRedirect,
       } as unknown as expressRes
 
-      mockOauthService.loginWithKakao.mockReturnValue(mockTokens)
+      mockOauthService.loginWithKakao.mockResolvedValue(mockTokens)
 
-      controller.kakaoCallback(mockReq, mockRes)
+      await controller.kakaoCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
@@ -195,7 +195,7 @@ describe('OauthController', () => {
   })
 
   describe('getMe', () => {
-    it('현재 로그인한 사용자 정보를 반환한다', () => {
+    it('현재 로그인한 사용자 정보를 반환한다', async () => {
       const mockJwtUser = {
         id: 'user-123',
       }
@@ -212,9 +212,9 @@ describe('OauthController', () => {
         user: mockJwtUser,
       } as unknown as expressReq
 
-      mockOauthService.findUserById.mockReturnValue(mockUser)
+      mockOauthService.findUserById.mockResolvedValue(mockUser)
 
-      const result = controller.getMe(mockReq)
+      const result = await controller.getMe(mockReq)
 
       expect(mockOauthService.findUserById).toHaveBeenCalledWith(mockJwtUser.id)
       expect(result).toEqual(mockUser)
@@ -222,7 +222,7 @@ describe('OauthController', () => {
   })
 
   describe('updateNickname', () => {
-    it('닉네임을 성공적으로 변경하고 사용자 정보를 반환한다', () => {
+    it('닉네임을 성공적으로 변경하고 사용자 정보를 반환한다', async () => {
       const mockJwtUser = {
         id: 'user-123',
       }
@@ -242,9 +242,9 @@ describe('OauthController', () => {
         body: mockDto,
       } as unknown as expressReq
 
-      mockOauthService.updateUserNickname.mockReturnValue(mockUpdatedUser)
+      mockOauthService.updateUserNickname.mockResolvedValue(mockUpdatedUser)
 
-      const result = controller.updateNickname(mockReq, mockDto)
+      const result = await controller.updateNickname(mockReq, mockDto)
 
       expect(mockOauthService.updateUserNickname).toHaveBeenCalledWith(mockJwtUser.id, mockDto.nickname)
       expect(result).toEqual(mockUpdatedUser)

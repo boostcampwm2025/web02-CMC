@@ -65,7 +65,7 @@ describe('AuthController', () => {
 
     beforeEach(() => {
       mockBattlesService.getBattleState.mockResolvedValue({ battleState: mockBattleState })
-      mockOauthService.isNicknameExists.mockReturnValue(false)
+      mockOauthService.isNicknameExists.mockResolvedValue(false)
     })
 
     it('정상적으로 Guest를 생성한다', async () => {
@@ -105,8 +105,9 @@ describe('AuthController', () => {
       }
 
       // OAuth 닉네임 체크 함수가 올바르게 전달되는지 확인
-      let capturedIsTaken: ((nickname: string) => boolean) | undefined
-      mockBattlesService.generateGuestNickname.mockImplementation(async (battleId: string, isTaken: (nickname: string) => boolean) => {
+      let capturedIsTaken: ((nickname: string) => boolean | Promise<boolean>) | undefined
+      mockBattlesService.generateGuestNickname.mockImplementation(
+        async (battleId: string, isTaken: (nickname: string) => boolean | Promise<boolean>) => {
         capturedIsTaken = isTaken
         return mockNickname
       })
@@ -120,11 +121,11 @@ describe('AuthController', () => {
       }
 
       // isTaken 함수가 OAuth 서비스를 올바르게 호출하는지 확인
-      mockOauthService.isNicknameExists.mockReturnValue(true)
-      expect(capturedIsTaken('existing-nickname')).toBe(true)
+      mockOauthService.isNicknameExists.mockResolvedValue(true)
+      await expect(capturedIsTaken('existing-nickname')).resolves.toBe(true)
 
-      mockOauthService.isNicknameExists.mockReturnValue(false)
-      expect(capturedIsTaken('new-nickname')).toBe(false)
+      mockOauthService.isNicknameExists.mockResolvedValue(false)
+      await expect(capturedIsTaken('new-nickname')).resolves.toBe(false)
     })
 
     it('Guest 생성 후 배틀에 등록한다', async () => {
