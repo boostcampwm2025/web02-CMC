@@ -42,4 +42,4 @@ COPY --from=builder /app/backend/dist ./backend/dist
 COPY backend/prisma ./backend/prisma
 
 EXPOSE 3000
-CMD ["pnpm", "-C", "backend", "start:prod"]
+CMD ["pnpm", "-C", "backend", "start:migrate:prod"]
