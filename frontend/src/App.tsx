@@ -10,15 +10,16 @@ import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { useAuthStore } from './commons/stores/authStore';
+import { useEffect } from 'react';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <MainPage />,
-    loader: async () => {
-      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-      return await useAuthStore.getState().getOAuthUser();
-    }
+    element: <MainPage />
+    // loader: async () => {
+    //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+    //   return await useAuthStore.getState().getOAuthUser();
+    // }
   },
   {
     path: '/auth/callback',
@@ -61,6 +62,14 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  useEffect(() => {
+    async function getUserInfo() {
+      await useAuthStore.getState().getOAuthUser();
+    }
+
+    getUserInfo();
+  }, []);
+
   return <RouterProvider router={router} />;
 }
 
