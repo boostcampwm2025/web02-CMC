@@ -5,7 +5,7 @@ import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
 import type { OAuthProfile } from '../types/oauth.types'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
-import * as express from 'express'
+import type { Request as expressReq, Response as expressRes } from 'express'
 
 describe('OauthController', () => {
   let controller: OauthController
@@ -72,13 +72,13 @@ describe('OauthController', () => {
 
       const mockReq = {
         user: mockProfile,
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       const mockRedirect = jest.fn()
       const mockRes = {
         cookie: jest.fn(),
         redirect: mockRedirect,
-      } as unknown as express.Response
+      } as unknown as expressRes
 
       mockOauthService.loginWithGithub.mockReturnValue(mockTokens)
 
@@ -105,13 +105,13 @@ describe('OauthController', () => {
 
       const mockReq = {
         user: mockProfile,
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       const mockRedirect = jest.fn()
       const mockRes = {
         cookie: jest.fn(),
         redirect: mockRedirect,
-      } as unknown as express.Response
+      } as unknown as expressRes
 
       mockOauthService.loginWithKakao.mockReturnValue(mockTokens)
 
@@ -137,13 +137,13 @@ describe('OauthController', () => {
 
       const mockReq = {
         user: mockUser,
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       const mockJson = jest.fn((data: unknown) => data)
       const mockRes = {
         cookie: jest.fn(),
         json: mockJson,
-      } as unknown as express.Response
+      } as unknown as expressRes
 
       mockOauthService.refreshToken.mockReturnValue(mockNewTokens)
 
@@ -162,12 +162,12 @@ describe('OauthController', () => {
         cookies: {
           refresh_token: 'refresh-token-to-revoke',
         },
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       const mockRes = {
         clearCookie: jest.fn(),
         json: jest.fn(),
-      } as unknown as express.Response
+      } as unknown as expressRes
 
       controller.logout(mockReq, mockRes)
 
@@ -179,12 +179,12 @@ describe('OauthController', () => {
     it('Refresh Token이 없어도 쿠키를 삭제한다', () => {
       const mockReq = {
         cookies: {},
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       const mockRes = {
         clearCookie: jest.fn(),
         json: jest.fn(),
-      } as unknown as express.Response
+      } as unknown as expressRes
 
       controller.logout(mockReq, mockRes)
 
@@ -210,7 +210,7 @@ describe('OauthController', () => {
 
       const mockReq = {
         user: mockJwtUser,
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       mockOauthService.findUserById.mockReturnValue(mockUser)
 
@@ -240,7 +240,7 @@ describe('OauthController', () => {
       const mockReq = {
         user: mockJwtUser,
         body: mockDto,
-      } as unknown as express.Request
+      } as unknown as expressReq
 
       mockOauthService.updateUserNickname.mockReturnValue(mockUpdatedUser)
 
