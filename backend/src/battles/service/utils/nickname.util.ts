@@ -23,14 +23,8 @@ export function isGuestNicknamePattern(nickname: string): boolean {
   }
 
   // 비회원 닉네임에 사용되는 단어가 포함되어 있는지 확인
-  const hasPrefix = GUEST_NICKNAME_PREFIXES.some(prefix => nickname.includes(prefix))
   const hasAdjective = GUEST_NICKNAME_ADJECTIVES.some(adj => nickname.includes(adj))
   const hasNoun = GUEST_NICKNAME_NOUNS.some(noun => nickname.includes(noun))
-
-  // prefix + adjective + noun 패턴이 모두 포함되어 있으면 비회원 닉네임으로 간주
-  if (hasPrefix && hasAdjective && hasNoun) {
-    return true
-  }
 
   // adjective + noun 패턴이 포함되어 있으면 비회원 닉네임으로 간주
   if (hasAdjective && hasNoun) {
