@@ -10,6 +10,7 @@ import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { useAuthStore } from './commons/stores/authStore';
+import { ToastContainer } from './commons/components/toast/ToastContainer';
 
 const router = createBrowserRouter([
   {
@@ -61,7 +62,12 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <ToastContainer />
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;
