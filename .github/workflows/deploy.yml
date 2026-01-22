@@ -1,9 +1,7 @@
 name: deploy
 
 on:
-# 임시
-#  push:
-  pull_request:
+ push:
     branches:
       - dev
 
