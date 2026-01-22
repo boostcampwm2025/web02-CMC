@@ -69,11 +69,6 @@ jobs:
           password: ${{ secrets.NCP_PASSWORD_PROD }}
           script: |
             set -e
-
-            echo "${{ secrets.NCP_DEPLOY_PATH }}"
-            pwd
-            cd /root/cmc/web02-CMC
-
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
             cd "${{ secrets.NCP_DEPLOY_PATH_PROD }}"
 
@@ -84,7 +79,7 @@ jobs:
             docker compose -f docker-compose-prod.yml pull
 
             # === Prisma Migration용 컨테이너 실행 ===
-            docker compose -f docker-compose-prod.yml run --rm backend migrate
+            docker compose -f docker-compose-prod.yml run --rm migrate
 
             # === 오래된 이미지 정리 ===
             docker image prune -f
