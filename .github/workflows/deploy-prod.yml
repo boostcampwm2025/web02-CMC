@@ -70,7 +70,7 @@ jobs:
           script: |
             set -e
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
-            cd "${{ secrets.NCP_DEPLOY_PATH }}"
+            cd "${{ secrets.NCP_DEPLOY_PATH_PROD }}"
 
             # === 기존 컨테이너 종료 ===
             docker compose -f docker-compose-prod.yml down || true
