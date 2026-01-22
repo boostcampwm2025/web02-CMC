@@ -5,7 +5,8 @@ services:
     image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
     profiles:
       - tools
-    command: npx prisma migrate deploy --schema=./backend/prisma/schema.prisma
+    working_dir: /app/backend
+    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
     env_file:
       - ./.env
 
