@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Team } from '@/commons/types/battle';
+import { soundManager } from '@/commons/utils/soundManager';
 
 interface EffectModalState {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export function useEffectModal() {
       content,
       type
     });
+    soundManager.play('swordSlash', 0.6);
   }, []);
 
   const hideEffect = useCallback(() => {

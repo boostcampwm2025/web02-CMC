@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { BattleProgressState } from '@/commons/types/battle';
 import { useBattleStore, selectSocket } from '../stores/battleStore';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
+import { soundManager } from '@/commons/utils/soundManager';
 
 export function useBattleProgress() {
   const socket = useBattleStore(selectSocket);
@@ -15,6 +16,9 @@ export function useBattleProgress() {
 
     // Phase 변경 이벤트 구독
     const handlePhaseUpdate = (data: BattleProgressState) => {
+      // 페이즈 전환 효과음 재생
+      soundManager.play('click', 0.4);
+
       updateBattleProgress({
         phase: data.phase,
         phaseCount: data.phaseCount,
