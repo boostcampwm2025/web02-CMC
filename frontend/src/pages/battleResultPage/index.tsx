@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
@@ -6,6 +6,7 @@ import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
 import CodeViewerSection from './components/CodeViewerSection';
 import TimelineSection from './components/TimelineSection';
+import MvpCard from './components/MvpCard';
 import { Trophy, Activity } from 'lucide-react';
 import { getBattleResult } from './apis/getBattleResult';
 import type { BattleResultApiResponse } from './types';
@@ -25,6 +26,14 @@ export default function BattleResultPage() {
 
     fetchBattleResult();
   }, [id]);
+
+  const bestOpinion = useMemo(() => {
+    if (!battleData?.mvps?.length || !battleData.timeline.length) return null;
+    const topMvp = battleData.mvps[0];
+    const mvpOpinions = battleData.timeline.filter((item) => item.author.id === topMvp.userId);
+    if (!mvpOpinions.length) return null;
+    return mvpOpinions.reduce((max, current) => (current.upvotes > max.upvotes ? current : max), mvpOpinions[0]);
+  }, [battleData]);
 
   if (!battleData) {
     return <div>로딩 중...</div>;
@@ -50,24 +59,24 @@ export default function BattleResultPage() {
         teamBVotes={result.teamB.votes}
       />
 
-      <div className="max-w-7xl mx-auto mb-12 flex gap-6 items-stretch">
-        <div className="flex-1">
-          <VoteChart
-            teamAPercentage={result.teamA.percentage}
-            teamAVotes={result.teamA.votes}
-            teamBPercentage={result.teamB.percentage}
-            teamBVotes={result.teamB.votes}
-            neutralPercentage={result.neutral.percentage}
-            neutralVotes={result.neutral.votes}
-          />
-        </div>
-        <div className="flex-1">
+      <div className="max-w-7xl mx-auto mb-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <VoteChart
+          teamAPercentage={result.teamA.percentage}
+          teamAVotes={result.teamA.votes}
+          teamBPercentage={result.teamB.percentage}
+          teamBVotes={result.teamB.votes}
+          neutralPercentage={result.neutral.percentage}
+          neutralVotes={result.neutral.votes}
+        />
+        {battleData.mvps.length > 0 ? (
+          <MvpCard mvpList={battleData.mvps} bestOpinion={bestOpinion} />
+        ) : (
           <MetricsCards
             totalParticipants={battleData.metrics.totalParticipants}
             totalViews={battleData.metrics.totalViews}
             strategiesCount={battleData.metrics.strategiesCount}
           />
-        </div>
+        )}
       </div>
 
       <CodeViewerSection
