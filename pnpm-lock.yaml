@@ -183,9 +183,15 @@ importers:
 
   frontend:
     dependencies:
+      '@wasm-fmt/ruff_fmt':
+        specifier: ^0.14.13
+        version: 0.14.13
       lucide-react:
         specifier: ^0.562.0
         version: 0.562.0(react@19.2.3)
+      prettier:
+        specifier: ^3.7.4
+        version: 3.7.4
       react:
         specifier: ^19.2.0
         version: 19.2.3
@@ -2037,6 +2043,9 @@ packages:
 
   '@vitest/utils@4.0.16':
     resolution: {integrity: sha512-h8z9yYhV3e1LEfaQ3zdypIrnAg/9hguReGZoS7Gl0aBG5xgA410zBqECqmaF/+RkTggRsfnzc1XaAHA6bmUufA==}
+
+  '@wasm-fmt/ruff_fmt@0.14.13':
+    resolution: {integrity: sha512-zUXx1JfTNqoD8DBXH3yJejRiJTYpHyqni+r5xtmuvtk6OWJ2bUUzRwvpgss7oqp8R5kOqNQVRRIwmQqFw9NgUQ==}
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -7080,6 +7089,8 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 4.0.16
       tinyrainbow: 3.0.3
+
+  '@wasm-fmt/ruff_fmt@0.14.13': {}
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:

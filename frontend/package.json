@@ -14,7 +14,9 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@wasm-fmt/ruff_fmt": "^0.14.13",
     "lucide-react": "^0.562.0",
+    "prettier": "^3.7.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.11.0",
