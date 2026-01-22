@@ -21,7 +21,6 @@ export const useToastStore = create<ToastState>((set) => ({
 
     set((state) => {
       const updatedToasts = [...state.toasts, newToast];
-      // 최대 3개까지만 유지, 오래된 것부터 제거
       return {
         toasts: updatedToasts.slice(-3)
       };
