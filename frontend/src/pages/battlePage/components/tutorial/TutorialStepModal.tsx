@@ -2,6 +2,7 @@ import type { TutorialStep } from '../../hooks/useTutorial';
 import { useSpotlight } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
 import TutorialVoteExample from './TutorialVoteExample';
+import TutorialDiscussionInput from './TutorialDiscussionInput';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 
@@ -42,6 +43,15 @@ export default function TutorialStepModal({
       {currentStep === 'vote' && (
         <div data-tutorial="vote" className="absolute right-[9.688rem] top-[12.813rem] z-[99]">
           <TutorialVoteExample />
+        </div>
+      )}
+
+      {/* Mock Discussion Input - discussionInput 단계에서만 표시 */}
+      {currentStep === 'discussionInput' && (
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[6] px-4 pb-4">
+          <div data-tutorial="discussion-input" className="discussion-input-width">
+            <TutorialDiscussionInput />
+          </div>
         </div>
       )}
 
