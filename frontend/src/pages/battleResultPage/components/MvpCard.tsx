@@ -13,28 +13,16 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
   if (!mvp) return null;
   return (
     <div className="rounded-xl overflow-hidden relative shadow-2xl h-full">
-      {/* Orange Gradient Background with Pattern */}
+      {/* 오렌지 그라데이션 배경 및 패턴 */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-600 via-orange-500 to-orange-400">
-        {/* Shine Animation Overlay */}
+        {/* 빛나는 애니메이션 오버레이 */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shine"></div>
 
-        {/* Pattern Overlay */}
-        <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="mvp-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M0 50 Q 25 25, 50 50 T 100 50" fill="none" stroke="white" strokeWidth="2" opacity="0.3" />
-              <path d="M0 70 Q 25 45, 50 70 T 100 70" fill="none" stroke="white" strokeWidth="2" opacity="0.2" />
-              <circle cx="20" cy="30" r="3" fill="white" opacity="0.2" />
-              <circle cx="60" cy="80" r="4" fill="white" opacity="0.15" />
-              <circle cx="85" cy="45" r="2" fill="white" opacity="0.25" />
-              <circle cx="40" cy="60" r="3" fill="white" opacity="0.2" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#mvp-pattern)" />
-        </svg>
+        {/* 패턴 오버레이 */}
+        <img src="/mvp-pattern.svg" className="absolute inset-0 w-full h-full opacity-10 object-cover" alt="" />
       </div>
 
-      {/* Content */}
+      {/* 컨텐츠 */}
       <div className="relative z-10 p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-2 h-2 bg-yellow-300 rounded-full"></div>
@@ -42,7 +30,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
         </div>
 
         <div className="flex flex-col items-center text-center gap-4">
-          {/* MVP Icon and Badge */}
+          {/* MVP 아이콘 및 뱃지 */}
           <div className="relative">
             <div className="bg-white/20 backdrop-blur-sm p-5 rounded-2xl border-2 border-white/30">
               <Crown className="w-12 h-12 text-yellow-300" />
@@ -52,7 +40,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
             </div>
           </div>
 
-          {/* MVP Info */}
+          {/* MVP 정보 */}
           <div className="w-full">
             <div className="inline-block px-3 py-1 bg-black/30 backdrop-blur-sm rounded-full text-white text-xs mb-2 border border-white/20">
               최고의 전략가
@@ -70,7 +58,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
               </div>
             </div>
 
-            {/* Best Opinion */}
+            {/* 최고 의견 */}
             {bestOpinion && (
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-start gap-2 mb-2">
@@ -88,7 +76,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
               </div>
             )}
 
-            {/* MVP Stats */}
+            {/* MVP 통계 */}
             <div className="mt-4 grid grid-cols-2 gap-2">
               <div className="bg-black/20 backdrop-blur-sm rounded-lg p-2 border border-white/10">
                 <div className="text-white/70 text-xs">총 좋아요</div>
