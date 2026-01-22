@@ -4,6 +4,7 @@ import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
+import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
@@ -37,7 +38,8 @@ export default function BattleCreatePage() {
     []
   );
 
-  const [authorId] = useState('user-1');
+  const user = useAuthStore(selectUser);
+  const authorId = user?.id ?? null;
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [aCode, setACode] = useState('');
@@ -57,6 +59,7 @@ export default function BattleCreatePage() {
   }, [playTime]);
 
   const canSubmit = useMemo(() => {
+    if (!authorId) return false;
     if (!title.trim()) return false;
     if (!description.trim()) return false;
     if (!aCode.trim()) return false;
@@ -65,7 +68,7 @@ export default function BattleCreatePage() {
     if (topics.length !== rounds) return false;
 
     return true;
-  }, [title, description, aCode, bCode, type, password, topics.length, rounds]);
+  }, [authorId, title, description, aCode, bCode, type, password, topics.length, rounds]);
 
   const handleSubmit = async () => {
     if (!canSubmit || isSubmitting) return;
@@ -75,6 +78,9 @@ export default function BattleCreatePage() {
     try {
       const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
 
+      if (!authorId) {
+        throw new Error('로그인이 필요합니다.');
+      }
       const res = await fetch(`/api/battles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
