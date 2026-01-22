@@ -13,7 +13,9 @@ export default function TeamSelectCodeViewer({ code, language, team }: CodeViewe
       code={code}
       language={language}
       team={team}
-      minHeight="var(--code-compare-min-height)"
+      containerClassName="w-full h-full"
+      minHeight="100%"
+      maxHeight="none"
       data-testid="code-viewer"
     />
   );

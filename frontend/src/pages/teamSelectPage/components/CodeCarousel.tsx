@@ -20,7 +20,7 @@ export default function CodeCarousel({ aCode, bCode, language }: CodeCarouselPro
   const { hoveredCode, handleHover, handleLeave } = useCodeHover();
 
   return (
-    <div className="flex items-start justify-center gap-4 w-full">
+    <div className="flex items-stretch justify-center gap-4 w-full">
       {/* A 코드 */}
       <div
         className={`transition-all duration-300 border-2 ${TEAM_STYLES.A.border} rounded-lg overflow-hidden ${hoveredCode === 'A' ? 'w-[60%]' : hoveredCode === 'B' ? 'w-[40%]' : 'w-1/2'}`}
