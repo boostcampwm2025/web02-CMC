@@ -44,6 +44,7 @@ import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllRespon
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 import { GuestAccount } from '../types/auth.types'
 import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
+import { generateNickname } from './utils/nickname.util'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -746,8 +747,26 @@ export class BattlesService extends EventEmitter {
     return battleState.userInfoMap.get(userId) || null
   }
 
+  generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean): string {
+    const maxAttempts = 50
+    let attempts = 0
+
+    while (attempts < maxAttempts) {
+      const nickname = generateNickname()
+
+      // 배틀 방 내 닉네임 체크 + 외부에서 전달받은 중복 체크 함수 실행
+      if (!this.isNicknameDuplicateInBattle(battleId, nickname) && !isTaken(nickname)) {
+        return nickname
+      }
+      attempts++
+    }
+
+    // 최대 시도 횟수 초과 시 숫자 추가하여 강제로 고유하게 만들기
+    return `게스트${Date.now() % 10000}`
+  }
+
   // 배틀 방 내 닉네임 중복 체크
-  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+  isNicknameDuplicateInBattle(battleId: string, nickname: string): boolean {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) return false
     return Array.from(battleState.userInfoMap.values()).some(existingNickname => existingNickname === nickname)

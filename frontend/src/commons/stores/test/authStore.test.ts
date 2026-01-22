@@ -29,45 +29,29 @@ describe('authStore', () => {
     it('비회원 로그인 성공 시 store와 localStorage에 저장한다', async () => {
       const mockGuestData = {
         id: 'guest-123',
-        nickname: '테스트유저'
+        nickname: '심심한 레오'
       };
 
       vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
 
-      const result = await useAuthStore.getState().loginGuest('battle-1', '테스트유저');
+      const result = await useAuthStore.getState().loginGuest('battle-1');
 
       expect(result).toEqual(mockGuestData);
       expect(useAuthStore.getState().user).toEqual({
         id: 'guest-123',
-        nickname: '테스트유저',
+        nickname: '심심한 레오',
         type: 'guest'
       });
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBe(JSON.stringify({ id: 'guest-123', nickname: '테스트유저' }));
-    });
-
-    it('닉네임이 8글자를 초과하면 에러를 던진다', async () => {
-      await expect(useAuthStore.getState().loginGuest('battle-1', '123456789')).rejects.toThrow(
-        '닉네임을 8글자까지 가능합니다.'
+      expect(localStorage.getItem('CMC_BATTLE_USER')).toBe(
+        JSON.stringify({ id: 'guest-123', nickname: '심심한 레오' })
       );
-    });
-
-    it('닉네임 앞뒤 공백을 제거한다', async () => {
-      const mockGuestData = {
-        id: 'guest-123',
-        nickname: '테스트유저'
-      };
-
-      vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
-
-      await useAuthStore.getState().loginGuest('battle-1', '  테스트유저  ');
-
-      expect(vi.mocked(fetchPostGuestLogin)).toHaveBeenCalledWith('battle-1', '테스트유저');
+      expect(vi.mocked(fetchPostGuestLogin)).toHaveBeenCalledWith('battle-1');
     });
 
     it('로그인 실패 시 isLoggingIn을 false로 설정한다', async () => {
       vi.mocked(fetchPostGuestLogin).mockRejectedValue(new Error('로그인 실패'));
 
-      await expect(useAuthStore.getState().loginGuest('battle-1', '테스트유저')).rejects.toThrow();
+      await expect(useAuthStore.getState().loginGuest('battle-1')).rejects.toThrow();
 
       expect(useAuthStore.getState().isLoggingIn).toBe(false);
     });
@@ -146,11 +130,11 @@ describe('authStore', () => {
     it('비회원 로그아웃 시 API 호출 없이 clearAuth만 호출한다', async () => {
       const mockGuestData = {
         id: 'guest-123',
-        nickname: '테스트유저'
+        nickname: '심심한 레오'
       };
 
       vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
-      await useAuthStore.getState().loginGuest('battle-1', '테스트유저');
+      await useAuthStore.getState().loginGuest('battle-1');
 
       // logoutApi 모킹 초기화
       vi.mocked(logoutApi).mockClear();

@@ -8,7 +8,7 @@ interface AuthStore {
   user: AuthUser | null;
   isLoggingIn: boolean;
 
-  loginGuest: (battleId: string, nickname: string) => Promise<{ id: string; nickname: string }>;
+  loginGuest: (battleId: string) => Promise<{ id: string; nickname: string }>;
   getOAuthUser: () => Promise<AuthUser | null>;
   logout: () => Promise<void>;
   clearAuth: () => void;
@@ -21,16 +21,11 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     user: null,
     isLoggingIn: false,
 
-    loginGuest: async (battleId, nickname) => {
+    loginGuest: async (battleId) => {
       set({ isLoggingIn: true });
-      const trimmedNickname = nickname.trim();
 
       try {
-        if (trimmedNickname.length > 8) {
-          throw new Error('닉네임을 8글자까지 가능합니다.');
-        }
-
-        const data = await fetchPostGuestLogin(battleId, trimmedNickname);
+        const data = await fetchPostGuestLogin(battleId);
 
         const user = {
           id: data.id,
