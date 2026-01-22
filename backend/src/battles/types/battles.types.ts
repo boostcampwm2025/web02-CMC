@@ -108,8 +108,6 @@ export interface ActiveBattleState {
 
   opinionHistory: BattleDiscussion[]
 
-  opinionHistory: BattleDiscussion[]
-
   round: number
   topics: string[]
   phase: BattlePhaseName

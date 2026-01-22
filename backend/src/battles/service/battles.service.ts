@@ -328,8 +328,6 @@ export class BattlesService extends EventEmitter {
 
       opinionHistory: [],
 
-      opinionHistory: [],
-
       phase: BATTLE_PHASE.PENDING.name,
       round: 1,
       topics: [...battle.topics],
