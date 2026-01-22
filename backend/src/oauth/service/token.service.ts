@@ -70,7 +70,8 @@ export class TokenService {
    * 쿠키에 토큰 설정
    */
   setTokensInCookie(res: Response, accessToken: string, refreshToken: string): void {
-    const isSecure = this.config.get<string>('NODE_ENV') === 'production'
+    // const isSecure = this.config.get<string>('NODE_ENV') === 'production'
+    const isSecure = false
 
     // Access Token 쿠키 설정
     res.cookie('access_token', accessToken, {
@@ -171,7 +172,8 @@ export class TokenService {
   }
 
   clearAuthCookies(res: Response): void {
-    const isSecure = this.config.get<string>('NODE_ENV') === 'production'
+    // const isSecure = this.config.get<string>('NODE_ENV') === 'production'
+    const isSecure = false
 
     res.clearCookie('access_token', {
       httpOnly: true,
