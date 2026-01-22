@@ -37,9 +37,9 @@ async function formatTypeScript(code: string): Promise<string> {
 }
 
 async function formatPython(code: string): Promise<string> {
-  const ruff = await import('@wasm-fmt/ruff_fmt');
-  await ruff.default();
-  return ruff.format(code);
+  const { default: init, format } = await import('@wasm-fmt/ruff_fmt/vite');
+  await init();
+  return format(code);
 }
 
 export async function formatCode(code: string, language: BattleLanguage): Promise<FormatResult> {
