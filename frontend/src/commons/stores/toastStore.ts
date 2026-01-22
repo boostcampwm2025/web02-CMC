@@ -41,3 +41,8 @@ export const useToastStore = create<ToastState>((set) => ({
     })),
   clearToasts: () => set({ toasts: [] })
 }));
+
+export const selectToasts = (state: ToastState) => state.toasts;
+export const selectAddToast = (state: ToastState) => state.addToast;
+export const selectRemoveToast = (state: ToastState) => state.removeToast;
+export const selectClearToasts = (state: ToastState) => state.clearToasts;
