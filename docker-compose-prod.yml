@@ -7,14 +7,14 @@ services:
       - tools
     command: npx prisma migrate deploy
     env_file:
-      - ./backend/.env
+      - ./.env
 
   backend:
     image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
     environment:
       PORT: 3000
     env_file:
-      - ./backend/.env
+      - ./.env
     ports:
       - "3000:3000"
     restart: unless-stopped
