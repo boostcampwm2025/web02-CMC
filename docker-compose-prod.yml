@@ -1,18 +1,28 @@
-version: '3.9'
+version: "3.9"
 
 services:
+  migrate:
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
+    profiles:
+      - tools
+    command: npx prisma migrate deploy
+    env_file:
+      - ./backend/.env
+
   backend:
     image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
     environment:
       PORT: 3000
+    env_file:
+      - ./backend/.env
     ports:
-      - '3000:3000'
+      - "3000:3000"
     restart: unless-stopped
 
   frontend:
     image: ghcr.io/boostcampwm2025/web02-cmc-frontend:latest
     ports:
-      - '80:80'
+      - "80:80"
     depends_on:
       - backend
     restart: unless-stopped
