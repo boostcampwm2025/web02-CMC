@@ -44,6 +44,7 @@ import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllRespon
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 import { GuestAccount } from '../types/auth.types'
 import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
+import { generateNickname } from './utils/nickname.util'
 
 @Injectable()
 export class BattlesService extends EventEmitter {
@@ -746,8 +747,26 @@ export class BattlesService extends EventEmitter {
     return battleState.userInfoMap.get(userId) || null
   }
 
+  generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean): string {
+    const maxAttempts = 50
+    let attempts = 0
+
+    while (attempts < maxAttempts) {
+      const nickname = generateNickname()
+
+      // 배틀 방 내 닉네임 체크 + 외부에서 전달받은 중복 체크 함수 실행
+      if (!this.isNicknameDuplicateInBattle(battleId, nickname) && !isTaken(nickname)) {
+        return nickname
+      }
+      attempts++
+    }
+
+    // 최대 시도 횟수 초과 시 숫자 추가하여 강제로 고유하게 만들기
+    return `게스트${Date.now() % 10000}`
+  }
+
   // 배틀 방 내 닉네임 중복 체크
-  isNicknameDuplicate(battleId: string, nickname: string): boolean {
+  isNicknameDuplicateInBattle(battleId: string, nickname: string): boolean {
     const battleState = this.activeBattles.get(battleId)
     if (!battleState) return false
     return Array.from(battleState.userInfoMap.values()).some(existingNickname => existingNickname === nickname)
@@ -882,6 +901,7 @@ export class BattlesService extends EventEmitter {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
+        this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
       }
     })
@@ -889,6 +909,7 @@ export class BattlesService extends EventEmitter {
     // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
     return updatedDiscussions
@@ -927,6 +948,7 @@ export class BattlesService extends EventEmitter {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
         const canceled = this.removeVote(discussion, userId)
         discussions[i] = canceled
+        this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, canceled))
       }
     })
@@ -934,6 +956,7 @@ export class BattlesService extends EventEmitter {
     // 새 항목에 투표 적용
     const updated = this.applyVote(target, userId)
     discussions[idx] = updated
+    this.syncOpinionHistory(battleState, discussionId, updated)
     updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, updated))
 
     return updatedDiscussions
@@ -1083,8 +1106,25 @@ export class BattlesService extends EventEmitter {
     }
   }
 
+  private syncOpinionHistory(battleState: ActiveBattleState, discussionId: string, updated: BattleDiscussion): void {
+    const idx = battleState.opinionHistory.findIndex(o => o.discussionId === discussionId)
+    if (idx !== -1) {
+      battleState.opinionHistory[idx] = updated
+    }
+  }
+
   private resetDiscussions(battleId: string) {
     const battleState = this.getBattleState(battleId)
+
+    // MVP 계산을 위해 모든 의견을 all에 누적 저장 (이미 all에 있는 의견 제외)
+    const existingAttackIds = new Set(battleState.all.attacks.map(a => a?.discussionId))
+    const existingDefenseIds = new Set(battleState.all.defenses.map(d => d?.discussionId))
+
+    const newAttacks = [...battleState.teamA.attacks, ...battleState.teamB.attacks].filter(a => a && !existingAttackIds.has(a.discussionId))
+    const newDefenses = [...battleState.teamA.defenses, ...battleState.teamB.defenses].filter(d => d && !existingDefenseIds.has(d.discussionId))
+
+    battleState.all.attacks.push(...newAttacks)
+    battleState.all.defenses.push(...newDefenses)
 
     battleState.teamA.attacks = []
     battleState.teamB.attacks = []

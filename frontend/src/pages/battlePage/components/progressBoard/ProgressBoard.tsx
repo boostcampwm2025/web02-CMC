@@ -1,4 +1,5 @@
-import { selectBattleProgress, selectProgressBoardCollapsed, useBattleStore } from '../../stores/battleStore';
+import { useState } from 'react';
+import { selectBattleProgress, useBattleStore } from '../../stores/battleStore';
 import { CollapseButton } from './CollapseButton';
 import { ExpandButton } from './ExpandButton';
 import { ProgressBar } from './ProgressBar';
@@ -6,8 +7,7 @@ import { StageList } from './StageList';
 
 export default function BattleProgressBoard() {
   const battleProgress = useBattleStore(selectBattleProgress);
-  const collapsed = useBattleStore(selectProgressBoardCollapsed);
-  const setCollapsed = useBattleStore((state) => state.setProgressBoardCollapsed);
+  const [collapsed, setCollapsed] = useState(false);
 
   const shouldShow =
     battleProgress &&

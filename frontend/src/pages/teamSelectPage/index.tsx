@@ -12,7 +12,6 @@ import Step3Timeline from './components/steps/Step3Timeline';
 import Step4TeamSelect from './components/steps/Step4TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
-import GuestLoginModal from './components/GuestLoginModal';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
@@ -20,7 +19,6 @@ export default function TeamSelectPage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const loginGuest = useAuthStore((s) => s.loginGuest);
   const isLoggingIn = useAuthStore(selectIsLoggingIn);
   const user = useAuthStore(selectUser);
@@ -30,9 +28,9 @@ export default function TeamSelectPage() {
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
   const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (selectedTeam && id) {
-      // OAuth 사용자는 모달 없이 바로 배틀 페이지로 이동
+      // OAuth 사용자는 바로 배틀 페이지로 이동
       if (user && isOAuth) {
         useBattleStore.getState().initializeBattle({
           userId: user.id,
@@ -43,28 +41,20 @@ export default function TeamSelectPage() {
         return;
       }
 
-      // 비회원이거나 로그인 안 된 경우만 게스트 로그인 모달 표시
-      setShowLoginModal(true);
-    }
-  };
+      // 비회원이거나 로그인 안 된 경우 서버에서 랜덤 닉네임 생성 후 로그인
+      try {
+        const guestUser = await loginGuest(id);
 
-  const handleLogin = async (nickname: string) => {
-    if (!id || !selectedTeam) return;
+        useBattleStore.getState().initializeBattle({
+          userId: guestUser.id,
+          battleId: id
+        });
 
-    setShowLoginModal(false);
-
-    try {
-      const user = await loginGuest(id, nickname);
-
-      useBattleStore.getState().initializeBattle({
-        userId: user.id,
-        battleId: id
-      });
-
-      useBattleStore.getState().setSelectedTeam(selectedTeam);
-      navigate(`/battle/${id}`, { state: { selectedTeam } });
-    } catch (e) {
-      alert(e);
+        useBattleStore.getState().setSelectedTeam(selectedTeam);
+        navigate(`/battle/${id}`, { state: { selectedTeam } });
+      } catch (e) {
+        alert(e instanceof Error ? e.message : '로그인에 실패했습니다.');
+      }
     }
   };
 
@@ -172,12 +162,9 @@ export default function TeamSelectPage() {
           onNext={goToNext}
           onSubmit={handleSubmit}
           canGoNext={currentStep === 4 ? selectedTeam !== null : canGoNext}
+          isSubmitting={isLoggingIn}
         />
       </div>
-
-      {showLoginModal && (
-        <GuestLoginModal disabled={isLoggingIn} onClose={() => setShowLoginModal(false)} onLogin={handleLogin} />
-      )}
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
+import { formatCode } from '@/commons/utils/codeFormatter';
 
 type BattleType = 'PUBLIC' | 'PRIVATE';
 type BattleLanguage = 'javascript' | 'typescript' | 'python';
@@ -72,6 +73,8 @@ export default function BattleCreatePage() {
     setErrorMessage(null);
 
     try {
+      const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
+
       const res = await fetch(`/api/battles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,8 +82,8 @@ export default function BattleCreatePage() {
           authorId,
           title: title.trim(),
           description: description.trim(),
-          aCode,
-          bCode,
+          aCode: formattedA.code,
+          bCode: formattedB.code,
           language,
           type,
           password: type === 'PRIVATE' ? password : undefined,

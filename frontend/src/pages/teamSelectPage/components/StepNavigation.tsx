@@ -6,11 +6,17 @@ interface StepNavigationProps {
   onNext: () => void;
   onSubmit?: () => void;
   canGoNext: boolean;
+  isSubmitting?: boolean;
 }
 
 const STEP_LABELS = ['상황 요약', '쟁점', '타임라인', '진영 선택'] as const;
 
-export default function StepNavigation({ currentStep, onSubmit, canGoNext }: StepNavigationProps) {
+export default function StepNavigation({
+  currentStep,
+  onSubmit,
+  canGoNext,
+  isSubmitting = false
+}: StepNavigationProps) {
   const isLastStep = currentStep === 4;
 
   return (
@@ -37,17 +43,17 @@ export default function StepNavigation({ currentStep, onSubmit, canGoNext }: Ste
       {isLastStep && (
         <button
           onClick={onSubmit}
-          disabled={!canGoNext}
+          disabled={!canGoNext || isSubmitting}
           className={`
             px-8 py-3 rounded-lg font-medium transition-colors
             ${
-              canGoNext
+              canGoNext && !isSubmitting
                 ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
                 : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
             }
           `}
         >
-          진영 선택 완료
+          {isSubmitting ? '로그인 중...' : '진영 선택 완료'}
         </button>
       )}
     </div>

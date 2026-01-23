@@ -12,16 +12,17 @@ import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { useAuthStore } from './commons/stores/authStore';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
+import { useEffect } from 'react';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <MainPage />,
-    errorElement: <ErrorPage />,
-    loader: async () => {
-      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-      return await useAuthStore.getState().getOAuthUser();
-    }
+    errorElement: <ErrorPage />
+    // loader: async () => {
+    //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+    //   return await useAuthStore.getState().getOAuthUser();
+    // }
   },
   {
     path: '/error',
@@ -75,6 +76,14 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  useEffect(() => {
+    async function getUserInfo() {
+      await useAuthStore.getState().getOAuthUser();
+    }
+
+    getUserInfo();
+  }, []);
+
   return (
     <>
       <ToastContainer />
