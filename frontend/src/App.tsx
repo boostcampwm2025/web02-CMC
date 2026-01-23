@@ -69,7 +69,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />
   },
   {
-    path: '/battle/:id/result',
+    path: '/battles/:id/result',
     element: <BattleResultPage />,
     errorElement: <ErrorPage />
   }
