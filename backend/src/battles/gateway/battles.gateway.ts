@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit, UnauthorizedException } from '@nestjs/common'
+import { Logger, OnModuleInit, UnauthorizedException, NotFoundException } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../types/socket.types'
 import {
@@ -80,10 +80,17 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const userId = client.data.userId
     const battleId = client.data.battleId
     if (userId && battleId) {
-      const result = this.battlesService.leaveBattle(userId, battleId)
-      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
-      this.server.to(battleRoomId).emit('battle:leaved', result)
-      client.data.battleId = undefined
+      try {
+        const result = this.battlesService.leaveBattle(userId, battleId)
+        const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+        this.server.to(battleRoomId).emit('battle:leaved', result)
+      } catch (error) {
+        if (!(error instanceof NotFoundException)) {
+          this.logger.error(`[소켓 연결 해제 처리 실패] userId: ${userId}, battleId: ${battleId}`, error as Error)
+        }
+      } finally {
+        client.data.battleId = undefined
+      }
     }
     if (userId) {
       this.userIdToSocketMap.delete(userId)

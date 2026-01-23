@@ -47,7 +47,7 @@ export function useBattleProgress() {
 
     // 배틀 종료 이벤트 구독
     const handleBattleClosed = (data: { battleId: string }) => {
-      navigate(`/battle/${data.battleId}/result`);
+      navigate(`/battles/${data.battleId}/result`);
     };
     socket.on('battle:closed', handleBattleClosed);
 
