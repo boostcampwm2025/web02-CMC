@@ -1,9 +1,18 @@
 import type { TutorialStep } from '../../hooks/useTutorial';
 import { useSpotlight } from '../../hooks/useSpotlight';
+import type { SpotlightPosition } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
 import TutorialVoteExample from './TutorialVoteExample';
+import TutorialDiscussionInput from './TutorialDiscussionInput';
+import TutorialProgressBoard from './TutorialProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
+
+const MODAL_WIDTH = 448;
+const MODAL_GAP = 32;
+const MODAL_MIN_TOP = 80;
+const MODAL_ESTIMATED_HEIGHT = 400;
+const DISCUSSION_INPUT_MODAL_BOTTOM = '10rem';
 
 interface TutorialStepModalProps {
   isOpen: boolean;
@@ -14,6 +23,62 @@ interface TutorialStepModalProps {
   onClose: () => void;
 }
 
+const getModalPosition = (spotlight: SpotlightPosition | null) => {
+  if (!spotlight) {
+    return { bottom: '5rem', left: '50%', transform: 'translateX(-50%)' };
+  }
+
+  const { top, left, width, height } = spotlight;
+  const rightSpace = window.innerWidth - (left + width);
+  const leftSpace = left;
+  const bottomSpace = window.innerHeight - (top + height);
+  const topSpace = top;
+
+  // 오른쪽에 충분한 공간이 있는 경우
+  if (rightSpace >= MODAL_WIDTH + MODAL_GAP * 2) {
+    return {
+      top: `${Math.max(MODAL_MIN_TOP, top)}px`,
+      left: `${left + width + MODAL_GAP}px`
+    };
+  }
+
+  // 왼쪽에 충분한 공간이 있는 경우
+  if (leftSpace >= MODAL_WIDTH + MODAL_GAP * 2) {
+    return {
+      top: `${Math.max(MODAL_MIN_TOP, top)}px`,
+      left: `${left - MODAL_WIDTH - MODAL_GAP}px`
+    };
+  }
+
+  // 하단에 충분한 공간이 있는 경우
+  if (bottomSpace >= MODAL_ESTIMATED_HEIGHT + MODAL_GAP * 2) {
+    return {
+      top: `${top + height + MODAL_GAP}px`,
+      left: '50%',
+      transform: 'translateX(-50%)'
+    };
+  }
+
+  // 상단에 충분한 공간이 있는 경우
+  if (topSpace >= MODAL_ESTIMATED_HEIGHT + MODAL_GAP) {
+    return {
+      bottom: `${window.innerHeight - top + MODAL_GAP}px`,
+      left: '50%',
+      transform: 'translateX(-50%)'
+    };
+  }
+
+  // 기본: 중앙 하단
+  return { bottom: '5rem', left: '50%', transform: 'translateX(-50%)' };
+};
+
+const getModalStyle = (currentStep: TutorialStep, spotlight: SpotlightPosition | null) => {
+  if (currentStep === 'discussionInput') {
+    return { bottom: DISCUSSION_INPUT_MODAL_BOTTOM, left: '50%', transform: 'translateX(-50%)' };
+  }
+  return getModalPosition(spotlight);
+};
+
 export default function TutorialStepModal({
   isOpen,
   currentStep,
@@ -23,10 +88,15 @@ export default function TutorialStepModal({
   onClose
 }: TutorialStepModalProps) {
   const stepContent = TUTORIAL_STEPS[currentStep];
-  const spotlight = useSpotlight({
+  const defaultSpotlight = useSpotlight({
     selector: stepContent?.highlightElement,
     enabled: isOpen && currentStep !== 'welcome' && currentStep !== 'completed'
   });
+
+  const spotlight =
+    currentStep === 'sidebarPanel' && defaultSpotlight
+      ? { ...defaultSpotlight, top: 0, height: window.innerHeight }
+      : defaultSpotlight;
 
   if (!isOpen || currentStep === 'welcome' || currentStep === 'completed') return null;
   if (!stepContent) return null;
@@ -34,24 +104,39 @@ export default function TutorialStepModal({
   const { title, description, stepNumber } = stepContent;
   const isLastStep = stepNumber === TOTAL_STEPS;
 
-  return (
-    <div className="fixed inset-0 z-[100]">
-      <SpotlightOverlay spotlight={spotlight} onBackdropClick={onSkip} />
+  const renderMockComponents = () => (
+    <>
+      {currentStep === 'progressBoard' && (
+        <div className="fixed top-0 left-0 right-0 z-[99] flex justify-center pointer-events-none">
+          <TutorialProgressBoard />
+        </div>
+      )}
 
-      {/* Mock Vote UI - vote 단계에서만 표시 */}
       {currentStep === 'vote' && (
         <div data-tutorial="vote" className="absolute right-[9.688rem] top-[12.813rem] z-[99]">
           <TutorialVoteExample />
         </div>
       )}
 
+      {currentStep === 'discussionInput' && (
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[6] px-4 pb-4">
+          <div data-tutorial="discussion-input" className="discussion-input-width">
+            <TutorialDiscussionInput />
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div className="fixed inset-0 z-[100]">
+      <SpotlightOverlay spotlight={spotlight} onBackdropClick={onSkip} />
+
+      {renderMockComponents()}
+
       <div
         className="absolute pointer-events-auto transition-all duration-300"
-        style={
-          spotlight && spotlight.top > 400
-            ? { top: '5rem', left: '50%', transform: 'translateX(-50%)' }
-            : { bottom: '5rem', left: '50%', transform: 'translateX(-50%)' }
-        }
+        style={getModalStyle(currentStep, spotlight)}
       >
         <div className="relative max-w-md rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
           <button

@@ -6,12 +6,7 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
-import {
-  useBattleStore,
-  selectBattleProgress,
-  selectSelectedTeam,
-  selectProgressBoardCollapsed
-} from './stores/battleStore';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 
 import BattleHeader from './components/header';
@@ -39,7 +34,6 @@ export default function BattlePage() {
   const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
-  const progressBoardCollapsed = useBattleStore(selectProgressBoardCollapsed);
   const battleProgress = useBattleStore(selectBattleProgress);
 
   useEffect(() => {
@@ -65,12 +59,6 @@ export default function BattlePage() {
   // 사운드 초기화
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
-    soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
-    soundManager.preload('swoosh', '/sounds/swoosh.mp3');
-    soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
-    soundManager.preload('fanfare', '/sounds/fanfare.mp3');
-    soundManager.preload('click', '/sounds/click.mp3');
-    soundManager.preload('click2', '/sounds/click2.mp3');
   }, []);
 
   useEffect(() => {
@@ -144,10 +132,7 @@ export default function BattlePage() {
             battleProgress &&
             (battleProgress.phase as string) !== 'PENDING' &&
             battleProgress.expiredAt != null &&
-            battleProgress.startedAt &&
-            !progressBoardCollapsed
-              ? 'mt-24'
-              : 'mt-6'
+            battleProgress.startedAt
           }`}
         >
           <div className="flex items-center justify-between mt-10 mb-8">
@@ -182,7 +167,7 @@ export default function BattlePage() {
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
-          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[9999] px-4 pb-4 transition-all duration-500 ease-out ${
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[5] px-4 pb-4 transition-all duration-500 ease-out ${
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >
