@@ -78,6 +78,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
   handleDisconnect(client: SocketWithUserId) {
     const userId = client.data.userId
+    const battleId = client.data.battleId
+    if (userId && battleId) {
+      const result = this.battlesService.leaveBattle(userId, battleId)
+      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+      this.server.to(battleRoomId).emit('battle:leaved', result)
+      client.data.battleId = undefined
+    }
     if (userId) {
       this.userIdToSocketMap.delete(userId)
       this.metricsService.setActiveSocketConnections(this.userIdToSocketMap.size)
@@ -102,6 +109,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)
       const battleTeamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
+      client.data.battleId = battleId
       await client.join(battleRoomId)
       await client.join(battleTeamRoom)
 
@@ -124,6 +132,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
     const result = this.battlesService.leaveBattle(userId, battleId)
+    client.data.battleId = undefined
 
     this.server.to(battleRoomId).emit('battle:leaved', result)
   }
