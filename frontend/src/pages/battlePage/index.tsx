@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams, useLoaderData } from 'react-router-dom';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattle } from './hooks/useBattle';
@@ -35,6 +35,13 @@ export default function BattlePage() {
   const user = useAuthStore(selectUser);
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
   const battleProgress = useBattleStore(selectBattleProgress);
+  const hasLeftRef = useRef(false);
+
+  const safeLeaveBattle = useCallback(() => {
+    if (hasLeftRef.current) return;
+    hasLeftRef.current = true;
+    leaveBattle();
+  }, [leaveBattle]);
 
   useEffect(() => {
     if (!user) {
@@ -42,6 +49,25 @@ export default function BattlePage() {
       navigate(`/battle/${battleId}/team-select`, { replace: true });
     }
   }, [user, navigate, battleId]);
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      safeLeaveBattle();
+    };
+
+    const handleBeforeUnload = () => {
+      safeLeaveBattle();
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      safeLeaveBattle();
+    };
+  }, [safeLeaveBattle]);
 
   // 튜토리얼 관리
   const {
@@ -106,7 +132,7 @@ export default function BattlePage() {
     if (!user) return;
     // TODO 추후에 서버에서 Disconnect 관리
     navigate('/');
-    leaveBattle();
+    safeLeaveBattle();
   };
 
   return (
