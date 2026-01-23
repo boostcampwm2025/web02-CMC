@@ -13,6 +13,7 @@ import { BattleDiscussion, BattleDefense } from '../types/battles.types'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
+import { MetricsService } from '../../metrics/metrics.service'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
@@ -34,6 +35,13 @@ describe('BattlesGateway - Discussion Events', () => {
             getBattleRoomId: jest.fn(),
             on: jest.fn(),
             emit: jest.fn(),
+          },
+        },
+        {
+          provide: MetricsService,
+          useValue: {
+            startSocketTimer: jest.fn(() => jest.fn()),
+            setActiveSocketConnections: jest.fn(),
           },
         },
       ],

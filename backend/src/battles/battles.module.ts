@@ -6,9 +6,10 @@ import { BattlesService } from './service/battles.service'
 import { AuthService } from './service/auth.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
+import { MetricsModule } from '../metrics/metrics.module'
 
 @Module({
-  imports: [OauthModule],
+  imports: [OauthModule, MetricsModule],
   controllers: [BattlesController, AuthController],
   providers: [BattlesGateway, BattlesService, PrismaService, AuthService],
   exports: [BattlesService],

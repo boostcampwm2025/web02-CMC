@@ -1,7 +1,7 @@
 name: deploy
 
 on:
- push:
+  push:
     branches:
       - dev
 
@@ -60,6 +60,17 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync monitoring configs to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USER }}
+          password: ${{ secrets.NCP_PASSWORD }}
+          source: "monitoring/**"
+          target: ${{ secrets.NCP_DEPLOY_PATH }}
+
       - name: Deploy on NCP via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:

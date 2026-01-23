@@ -1,0 +1,85 @@
+{
+  "title": "System & Containers",
+  "uid": "cmc-system",
+  "tags": ["cmc", "system", "cadvisor"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "templating": {
+    "list": [
+      {
+        "name": "container_id",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(container_cpu_usage_seconds_total{job=\"cadvisor\"}, id)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "CPU Usage (cores) by container",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "cores" } },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id)",
+          "legendFormat": "{{id}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Memory Working Set by container",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\", id=~\"$container_id\"}) by (id)",
+          "legendFormat": "{{id}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Network RX/TX by container",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "Bps" } },
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id)",
+          "legendFormat": "RX {{id}}"
+        },
+        {
+          "expr": "sum(rate(container_network_transmit_bytes_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id)",
+          "legendFormat": "TX {{id}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Filesystem Usage by container",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        {
+          "expr": "sum(container_fs_usage_bytes{job=\"cadvisor\", id=~\"$container_id\"}) by (id)",
+          "legendFormat": "{{id}}"
+        }
+      ]
+    }
+  ]
+}
