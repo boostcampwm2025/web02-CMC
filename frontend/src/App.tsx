@@ -10,32 +10,43 @@ import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import { useAuthStore } from './commons/stores/authStore';
+import { ToastContainer } from './commons/components/toast/ToastContainer';
+import ErrorPage from './pages/errorPage';
 import { useEffect } from 'react';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <MainPage />
+    element: <MainPage />,
+    errorElement: <ErrorPage />
     // loader: async () => {
     //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
     //   return await useAuthStore.getState().getOAuthUser();
     // }
   },
   {
+    path: '/error',
+    element: <ErrorPage />
+  },
+  {
     path: '/auth/callback',
-    element: <OAuthCallbackPage />
+    element: <OAuthCallbackPage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/nickname',
-    element: <NicknamePage />
+    element: <NicknamePage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/login',
-    element: <LoginPage />
+    element: <LoginPage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/battle/:id',
     element: <BattlePage />,
+    errorElement: <ErrorPage />,
     loader: async ({ params }) => {
       const data = await fetchBattleInfo(params.id!);
       if (!data) throw new Response('Battle not found', { status: 404 });
@@ -45,6 +56,7 @@ const router = createBrowserRouter([
   {
     path: '/battle/:id/team-select/',
     element: <TeamSelectPage />,
+    errorElement: <ErrorPage />,
     loader: async ({ params }) => {
       const data = await fetchBattleInfo(params.id!);
       if (!data) throw new Response('Battle not found', { status: 404 });
@@ -53,11 +65,13 @@ const router = createBrowserRouter([
   },
   {
     path: '/battle/create',
-    element: <BattleCreatePage />
+    element: <BattleCreatePage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/battle/:id/result',
-    element: <BattleResultPage />
+    element: <BattleResultPage />,
+    errorElement: <ErrorPage />
   }
 ]);
 
@@ -70,7 +84,12 @@ function App() {
     getUserInfo();
   }, []);
 
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <ToastContainer />
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;
