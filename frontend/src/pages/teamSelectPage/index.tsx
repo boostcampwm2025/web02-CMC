@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { selectIsLoggingIn, selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
-import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { BattleInfo } from '@/commons/types/battle';
 import { useStepFlow } from './hooks/useStepFlow';
 import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
@@ -14,12 +13,13 @@ import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const battleInfo = useLoaderData<BattleInfo>();
-  const hasReferenceData = !!battleInfo.referenceData;
+  const { battleInfo: battleInfoData, isLoading } = useGetBattleInfo(id!);
+  const hasReferenceData = !!battleInfoData?.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -28,7 +28,17 @@ export default function TeamSelectPage() {
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
-  // API 데이터 사용 - type 필드 추가
+  // Early return after all hooks
+  if (isLoading || !battleInfoData) {
+    return (
+      <main className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
+        <div className="text-white">로딩 중...</div>
+      </main>
+    );
+  }
+
+  const battleInfo = battleInfoData;
+
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
   const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 

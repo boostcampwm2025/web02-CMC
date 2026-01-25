@@ -50,22 +50,12 @@ const router = createBrowserRouter([
   {
     path: '/battle/:id',
     element: <BattlePage />,
-    errorElement: <ErrorPage />,
-    loader: async ({ params }) => {
-      const data = await fetchBattleInfo(params.id!);
-      if (!data) throw new Response('Battle not found', { status: 404 });
-      return data;
-    }
+    errorElement: <ErrorPage />
   },
   {
     path: '/battle/:id/team-select/',
     element: <TeamSelectPage />,
-    errorElement: <ErrorPage />,
-    loader: async ({ params }) => {
-      const data = await fetchBattleInfo(params.id!);
-      if (!data) throw new Response('Battle not found', { status: 404 });
-      return data;
-    }
+    errorElement: <ErrorPage />
   },
   {
     path: '/battle/create',
