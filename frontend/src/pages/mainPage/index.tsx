@@ -1,43 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './components';
-import { type BattleCardItem, type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
+import { type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
-import { useAuthStore } from '@/commons/stores/authStore';
-
-import { getOpenBattles } from './api/getOpenBattles';
+import { useGetOpenBattles } from './hooks/useGetOpenBattles';
 import { getClosedBattles } from './api/getClosedBattles';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
 export default function MainPage() {
-  const [openBattles, setOpenBattles] = useState<BattleCardItem[]>([]);
+  const { data: openData } = useGetOpenBattles({ offset: 0, limit: 3 });
   const [closedBattles, setClosedBattles] = useState<ClosedBattleItem[]>([]);
-
-  const [openTotal, setOpenTotal] = useState(0);
   const [closedTotal, setClosedTotal] = useState(0);
 
-  useEffect(() => {
-    // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-    useAuthStore.getState().getOAuthUser();
-  }, []);
+  const openBattles = openData?.battles ?? [];
+  const openTotal = openData?.meta.total ?? 0;
 
   useEffect(() => {
-    const fetchBattles = async () => {
-      const [openRes, closedRes] = await Promise.all([
-        getOpenBattles({ offset: 0, limit: 3 }),
-        getClosedBattles({ offset: 0, limit: 6 })
-      ]);
-
-      setOpenBattles(openRes.battles);
-      setOpenTotal(openRes.meta.total);
-
+    const fetchClosedBattles = async () => {
+      const closedRes = await getClosedBattles({ offset: 0, limit: 6 });
       setClosedBattles(closedRes.battles);
       setClosedTotal(closedRes.meta.total);
     };
 
-    fetchBattles();
+    fetchClosedBattles();
   }, []);
 
   return (
