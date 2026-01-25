@@ -6,7 +6,8 @@ import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
 import { useAuthStore } from '@/commons/stores/authStore';
 
-import { getOpenBattles, getClosedBattles } from './api/getBattleList';
+import { getOpenBattles } from './api/getOpenBattles';
+import { getClosedBattles } from './api/getClosedBattles';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
