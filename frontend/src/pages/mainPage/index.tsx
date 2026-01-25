@@ -1,31 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './components';
-import { type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
+import { BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
 import { useGetOpenBattles } from './hooks/useGetOpenBattles';
-import { getClosedBattles } from './api/getClosedBattles';
+import { useGetClosedBattles } from './hooks/useGetClosedBattles';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
 export default function MainPage() {
-  const { data: openData } = useGetOpenBattles({ offset: 0, limit: 3 });
-  const [closedBattles, setClosedBattles] = useState<ClosedBattleItem[]>([]);
-  const [closedTotal, setClosedTotal] = useState(0);
-
-  const openBattles = openData?.battles ?? [];
-  const openTotal = openData?.meta.total ?? 0;
-
-  useEffect(() => {
-    const fetchClosedBattles = async () => {
-      const closedRes = await getClosedBattles({ offset: 0, limit: 6 });
-      setClosedBattles(closedRes.battles);
-      setClosedTotal(closedRes.meta.total);
-    };
-
-    fetchClosedBattles();
-  }, []);
+  const { battles: openBattles, total: openTotal } = useGetOpenBattles({ offset: 0, limit: 3 });
+  const { battles: closedBattles, total: closedTotal } = useGetClosedBattles({ offset: 0, limit: 6 });
 
   return (
     <div className="min-h-screen w-full">
