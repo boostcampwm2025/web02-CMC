@@ -1,4 +1,4 @@
-import type { BattleLanguage, BattleType } from '@/pages/battleCreatePage/index';
+import type { BattleLanguage, BattleType } from "@/pages/battleCreatePage/api/types";
 import type { BattleCategory } from '@/pages/mainPage/types/battle';
 
 type BattlePlayTimeName = 'FIFTEEN_MIN' | 'THIRTY_MIN';

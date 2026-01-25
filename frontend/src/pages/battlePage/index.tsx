@@ -165,7 +165,6 @@ export default function BattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
-  // Early return after all hooks
   if (isLoading || !battleInfoData) {
     return <div className="min-h-screen w-full flex items-center justify-center text-white">로딩 중...</div>;
   }

@@ -6,10 +6,8 @@ import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import postCreateBattle from '@/commons/apis/postCreateBattle';
-
-export type BattleType = 'PUBLIC' | 'PRIVATE';
-export type BattleLanguage = 'javascript' | 'typescript' | 'python';
-export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
+import { useCreateBattle } from './hooks/useCreateBattle';
+import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
@@ -29,6 +27,7 @@ const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
 
 export default function BattleCreatePage() {
   const navigate = useNavigate();
+  const { createBattle, isPending } = useCreateBattle();
 
   const categoryOptions = useMemo(
     () =>
@@ -51,7 +50,6 @@ export default function BattleCreatePage() {
   const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PRIVATE');
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const rounds = PLAYTIME_OPTIONS.find(({ value }) => value === playTime)?.rounds ?? 0;
@@ -68,8 +66,7 @@ export default function BattleCreatePage() {
   })();
 
   const handleSubmit = async () => {
-    if (!canSubmit || isSubmitting) return;
-    setIsSubmitting(true);
+    if (!canSubmit || isPending) return;
     setErrorMessage(null);
 
     try {
@@ -95,8 +92,6 @@ export default function BattleCreatePage() {
       navigate(`/battle/${data.battleId}/team-select/`);
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -257,12 +252,11 @@ export default function BattleCreatePage() {
 
                 <button
                   type="button"
-                  disabled={!canSubmit || isSubmitting}
+                  disabled={!canSubmit || isPending}
                   onClick={handleSubmit}
                   className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  {isSubmitting ? '생성 중...' : '배틀 시작'}
                 </button>
               </div>
             </div>
