@@ -60,6 +60,7 @@ model Battle {
   totalParticipantsCount   Int?       @map("total_participants_count")
   winningTeam              String?    @db.VarChar(10) @map("winning_team")
   mvps                     String[]   @db.VarChar(10)
+  mvpsState                Json?      @map("mvps_state")
     
   /* 시간 */
   createdAt                DateTime   @default(now()) @map("created_at")

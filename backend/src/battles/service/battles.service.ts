@@ -52,7 +52,7 @@ import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto
 import { GuestAccount } from '../types/auth.types'
 import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
 import { generateNickname } from './utils/nickname.util'
-import { PrismaService } from 'src/prisma/prisma.service'
+import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 
 @Injectable()
@@ -229,6 +229,44 @@ export class BattlesService extends EventEmitter {
   private parseOpinionHistoryState(value: unknown): BattleDiscussion[] {
     if (!Array.isArray(value)) return []
     return value.filter(item => item && typeof item === 'object') as BattleDiscussion[]
+  }
+
+  private parseMvpsState(value: unknown): Mvp[] {
+    if (!Array.isArray(value)) return []
+    return value
+      .filter(item => item && typeof item === 'object')
+      .map(item => {
+        const mvp = item as Partial<Mvp>
+        const team: 'A' | 'B' = mvp.team === 'B' ? 'B' : 'A'
+        const parsed: Mvp = {
+          userId: typeof mvp.userId === 'string' ? mvp.userId : '',
+          nickname: typeof mvp.nickname === 'string' ? mvp.nickname : '',
+          team,
+          score: typeof mvp.score === 'number' ? mvp.score : 0,
+          totalVotes: typeof mvp.totalVotes === 'number' ? mvp.totalVotes : 0,
+          opinionCount: typeof mvp.opinionCount === 'number' ? mvp.opinionCount : 0,
+          selectedOpinionCount: typeof mvp.selectedOpinionCount === 'number' ? mvp.selectedOpinionCount : 0,
+          joinedAt: typeof mvp.joinedAt === 'number' ? mvp.joinedAt : 0,
+        }
+        return parsed
+      })
+      .filter(mvp => mvp.nickname)
+  }
+
+  private buildLegacyMvpsFromNicknames(nicknames: string[], timeline: TimelineItem[]): Mvp[] {
+    return nicknames.map((nickname, index) => {
+      const fromTimeline = timeline.find(item => item.author.nickname === nickname)
+      return {
+        userId: fromTimeline?.author.id ?? `legacy-mvp-${index}`,
+        nickname,
+        team: fromTimeline?.team === 'B' ? 'B' : 'A',
+        score: 0,
+        totalVotes: 0,
+        opinionCount: 0,
+        selectedOpinionCount: 0,
+        joinedAt: 0,
+      }
+    })
   }
 
   private async loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }> {
@@ -468,7 +506,8 @@ export class BattlesService extends EventEmitter {
       },
     ]
     dto.timeline = timeline
-    dto.mvps = []
+    const mvpsState = this.parseMvpsState((battle as PrismaBattle & { mvpsState?: unknown }).mvpsState)
+    dto.mvps = mvpsState.length > 0 ? mvpsState : this.buildLegacyMvpsFromNicknames(battle.mvps ?? [], timeline)
 
     return dto
   }
@@ -910,6 +949,7 @@ export class BattlesService extends EventEmitter {
         winningTeam,
         timeline: timeline as unknown as Prisma.InputJsonValue,
         mvps: calculatedMvps.map(mvp => mvp.nickname),
+        mvpsState: calculatedMvps as unknown as Prisma.InputJsonValue,
         updatedAt: finishedAt,
         currentRound: null,
         currentPhase: null,
@@ -979,10 +1019,7 @@ export class BattlesService extends EventEmitter {
     return state.userInfoMap.get(userId) || null
   }
 
-  async generateGuestNickname(
-    battleId: string,
-    isTaken: (nickname: string) => boolean | Promise<boolean>,
-  ): Promise<string> {
+  async generateGuestNickname(battleId: string, isTaken: (nickname: string) => boolean | Promise<boolean>): Promise<string> {
     const maxAttempts = 50
     let attempts = 0
 
@@ -990,7 +1027,7 @@ export class BattlesService extends EventEmitter {
       const nickname = generateNickname()
 
       // 배틀 방 내 닉네임 체크 + 외부에서 전달받은 중복 체크 함수 실행
-      if (!(await this.isNicknameDuplicate(battleId, nickname)) && !isTaken(nickname)) {
+      if (!(await this.isNicknameDuplicate(battleId, nickname)) && !(await isTaken(nickname))) {
         return nickname
       }
       attempts++
