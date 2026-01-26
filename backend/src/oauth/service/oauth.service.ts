@@ -3,7 +3,7 @@ import { v7 as uuidv7 } from 'uuid'
 import { OAuthProfile, User } from '../types/oauth.types'
 import { TokenService } from './token.service'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
-import { PrismaService } from 'src/prisma/prisma.service'
+import { PrismaService } from '../../prisma/prisma.service'
 import { isGuestNicknamePattern } from '../../battles/service/utils/nickname.util'
 
 @Injectable()

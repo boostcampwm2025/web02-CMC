@@ -36,8 +36,15 @@ describe('OauthService', () => {
     },
     oAuth: {
       findFirst: jest.fn(({ where }: { where: { provider?: string; code?: string; userId?: string } }) => {
-        if (where.userId) return oauths.find(o => o.userId === where.userId) ?? null
-        if (where.provider && where.code) return oauths.find(o => o.provider === where.provider && o.code === where.code) ?? null
+        if (where.userId) {
+          return oauths.find(o => o.userId === where.userId) ?? null
+        }
+        if (where.provider && where.code) {
+          const oauth = oauths.find(o => o.provider === where.provider && o.code === where.code)
+          if (!oauth) return null
+          const user = users.find(u => u.id === oauth.userId)
+          return { ...oauth, user }
+        }
         return null
       }),
       create: jest.fn(({ data }: { data: { id: string; userId: string; provider: string; code: string } }) => {
@@ -70,6 +77,8 @@ describe('OauthService', () => {
     service = module.get<OauthService>(OauthService)
 
     jest.clearAllMocks()
+    mockTokenService.generateTokens.mockReset()
+    mockTokenService.refresh.mockReset()
   })
 
   describe('findOrCreateUser', () => {
