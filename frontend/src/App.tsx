@@ -10,6 +10,7 @@ import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import OnboardingPage from './pages/onboardingPage';
 import { useAuthStore } from './commons/stores/authStore';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
@@ -24,6 +25,11 @@ const router = createBrowserRouter([
     //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
     //   return await useAuthStore.getState().getOAuthUser();
     // }
+  },
+  {
+    path: '/onboarding',
+    element: <OnboardingPage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/error',
