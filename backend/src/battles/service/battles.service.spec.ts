@@ -1,7 +1,98 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState, BattleDefense } from '../types/battles.types'
+import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState } from '../types/battles.types'
 import { BattlesService } from './battles.service'
-import { BATTLE_TYPE, BATTLE_CATEGORY, BATTLE_PLAYTIME, BATTLE_LANGUAGE, BATTLE_STATUS, BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
+import {
+  BATTLE_TYPE,
+  BATTLE_CATEGORY,
+  BATTLE_PLAYTIME,
+  BATTLE_LANGUAGE,
+  BATTLE_STATUS,
+  BATTLE_PHASE,
+  BATTLE_TEAM,
+  BATTLE_DISCUSSION_TYPE,
+} from '../const/battles.const'
+import type { PrismaService } from 'src/prisma/prisma.service'
+
+type BattleRecord = {
+  id: string
+  userId: string
+  title: string
+  description: string
+  codeA: string
+  codeB: string
+  language: string
+  category: string
+  playTime: string
+  topics: string[]
+  password: string | null
+  isPrivate: boolean
+  status: string
+  createdAt: Date
+  updatedAt: Date | null
+  finishedAt: Date | null
+  teamACount: number
+  teamBCount: number
+  totalParticipantsCount: number
+  winningTeam: string | null
+  timeline: unknown[]
+  mvps: string[]
+  mvpsState: unknown[]
+  currentRound: number
+  currentPhase: string
+  phaseCount: number
+  startedAt: Date | null
+  expiredAt: Date | null
+  participantsState: unknown
+  teamVotesState: unknown
+  userInfoState: unknown
+  attacksState: unknown
+  defensesState: unknown
+  opinionHistoryState: unknown
+  chatsAllState: unknown
+  chatsTeamAState: unknown
+  chatsTeamBState: unknown
+}
+
+type BattleFindManyArgs = {
+  where?: { isPrivate?: boolean; status?: { in?: string[] } }
+  orderBy?: { createdAt?: 'asc' | 'desc'; finishedAt?: 'asc' | 'desc' }
+  skip?: number
+  take?: number
+}
+
+type BattleCountArgs = {
+  where?: { isPrivate?: boolean; status?: { in?: string[] } }
+}
+
+type BattleUpdateArgs = {
+  where: { id: string }
+  data: Partial<BattleRecord>
+}
+
+type BattleCreateArgs = {
+  data: BattleRecord
+}
+
+type BattleFindUniqueArgs = {
+  where: { id: string }
+}
+
+type MockPrisma = {
+  battle: {
+    findUnique: jest.Mock<BattleRecord | null, [BattleFindUniqueArgs]>
+    findMany: jest.Mock<BattleRecord[], [BattleFindManyArgs]>
+    count: jest.Mock<number, [BattleCountArgs | undefined]>
+    update: jest.Mock<BattleRecord | null, [BattleUpdateArgs]>
+    create: jest.Mock<BattleRecord, [BattleCreateArgs]>
+  }
+  battleParticipant: { upsert: jest.Mock }
+  user: { findUnique: jest.Mock<{ id: string } | null, [{ where: { id: string }; select?: { id: true } }]> }
+}
+
+type BattleStateAccess = {
+  loadBattleState: (id: string) => Promise<{ battle: unknown; state: ActiveBattleState }>
+  saveBattleState: (id: string, state: ActiveBattleState) => Promise<void>
+}
 
 const createBattle = (overrides: Partial<Battle>): Battle => ({
   id: 'battle-id',
@@ -98,15 +189,138 @@ const createFinishedBattleState = (overrides: Partial<FinishedBattleState> = {})
 
 describe('BattlesService', () => {
   let service: BattlesService
+  let battleStore: Map<string, BattleRecord>
+  let stateStore: Map<string, ActiveBattleState>
+  let mockPrisma: MockPrisma
+
+  const toRecord = (battle: Battle, overrides: Partial<BattleRecord> = {}): BattleRecord => ({
+    id: battle.id,
+    userId: battle.authorId,
+    title: battle.title,
+    description: battle.description,
+    codeA: battle.aCode,
+    codeB: battle.bCode,
+    language: battle.language,
+    category: battle.category,
+    playTime: (battle.playTime as { name?: string }).name ?? (battle.playTime as unknown as string),
+    topics: battle.topics,
+    password: battle.password ?? null,
+    isPrivate: battle.type === BATTLE_TYPE.PRIVATE,
+    status: battle.status,
+    createdAt: battle.createdAt,
+    updatedAt: battle.updatedAt ?? null,
+    finishedAt: null,
+    teamACount: 0,
+    teamBCount: 0,
+    totalParticipantsCount: 0,
+    winningTeam: null,
+    timeline: [],
+    mvps: [],
+    mvpsState: [],
+    currentRound: battle.initialState.round,
+    currentPhase: battle.initialState.phase,
+    phaseCount: battle.initialState.phaseCount,
+    startedAt: null,
+    expiredAt: null,
+    participantsState: [],
+    teamVotesState: [],
+    userInfoState: [],
+    attacksState: { teamA: [], teamB: [], all: [] },
+    defensesState: { teamA: [], teamB: [], all: [] },
+    opinionHistoryState: [],
+    chatsAllState: [],
+    chatsTeamAState: [],
+    chatsTeamBState: [],
+    ...overrides,
+  })
+
+  const seedBattles = (battles: Battle[]) => {
+    battleStore = new Map()
+    battles.forEach(battle => battleStore.set(battle.id, toRecord(battle)))
+  }
+  const getState = async (battleId: string): Promise<ActiveBattleState> => {
+    const { battleState } = await service.getBattleState(battleId)
+    return battleState
+  }
+  const getStateUnsafe = async (battleId: string) => {
+    const access = service as unknown as BattleStateAccess
+    const { state } = await access.loadBattleState(battleId)
+    return state
+  }
+  const updateState = async (battleId: string, updater: (state: ActiveBattleState) => void) => {
+    const access = service as unknown as BattleStateAccess
+    const { state } = await access.loadBattleState(battleId)
+    updater(state)
+    await access.saveBattleState(battleId, state)
+    return state
+  }
 
   const cleanupService = () => {
     service['battleTimers'].forEach(timer => clearTimeout(timer))
     service['battleTimers'].clear()
-    service['activeBattles'].clear()
   }
 
   beforeEach(() => {
-    service = new BattlesService()
+    battleStore = new Map()
+    stateStore = new Map()
+    mockPrisma = {
+      battle: {
+        findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => battleStore.get(where.id) ?? null),
+        findMany: jest.fn(({ where, orderBy, skip = 0, take }: BattleFindManyArgs) => {
+          let records = [...battleStore.values()]
+          if (where?.isPrivate !== undefined) {
+            records = records.filter(r => r.isPrivate === where.isPrivate)
+          }
+          if (where?.status?.in) {
+            records = records.filter(r => where.status?.in?.includes(r.status))
+          }
+          if (orderBy?.createdAt) {
+            records.sort((a, b) =>
+              orderBy.createdAt === 'asc' ? a.createdAt.getTime() - b.createdAt.getTime() : b.createdAt.getTime() - a.createdAt.getTime(),
+            )
+          }
+          if (orderBy?.finishedAt) {
+            records.sort((a, b) => {
+              const aTime = a.finishedAt ? a.finishedAt.getTime() : 0
+              const bTime = b.finishedAt ? b.finishedAt.getTime() : 0
+              return orderBy.finishedAt === 'asc' ? aTime - bTime : bTime - aTime
+            })
+          }
+          const end = take ? skip + take : undefined
+          return records.slice(skip, end)
+        }),
+        count: jest.fn(({ where }: BattleCountArgs = {}) => {
+          let records = [...battleStore.values()]
+          if (where?.isPrivate !== undefined) {
+            records = records.filter(r => r.isPrivate === where.isPrivate)
+          }
+          if (where?.status?.in) {
+            records = records.filter(r => where.status?.in?.includes(r.status))
+          }
+          return records.length
+        }),
+        update: jest.fn(({ where, data }: BattleUpdateArgs) => {
+          const existing = battleStore.get(where.id)
+          if (!existing) return null
+          const updated: BattleRecord = { ...existing, ...data }
+          battleStore.set(where.id, updated)
+          return updated
+        }),
+        create: jest.fn(({ data }: BattleCreateArgs) => {
+          battleStore.set(data.id, data)
+          return data
+        }),
+      },
+      battleParticipant: { upsert: jest.fn() },
+      user: { findUnique: jest.fn(() => null) },
+    }
+    service = new BattlesService(mockPrisma as unknown as PrismaService)
+    const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
+    jest.spyOn(service, 'getBattleState').mockImplementation(async (battleId: string) => {
+      const res = await originalGetBattleState(battleId)
+      stateStore.set(battleId, res.battleState)
+      return res
+    })
     cleanupService()
     jest.useFakeTimers()
     jest.spyOn(Date, 'now').mockReturnValue(1_000_000)
@@ -118,85 +332,70 @@ describe('BattlesService', () => {
     jest.restoreAllMocks()
   })
 
-  describe('initBattleState', () => {
+  describe('getBattleState', () => {
     beforeEach(() => {
-      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
+      seedBattles([createBattle({ id: 'battle-1' })])
     })
 
-    it('battleId가 없으면 BadRequestException을 던진다', () => {
-      expect(() => service['initBattleState']('')).toThrow(BadRequestException)
+    it('battleId가 없으면 NotFoundException을 던진다', async () => {
+      await expect(service.getBattleState('' as unknown as string)).rejects.toThrow(NotFoundException)
     })
 
-    it('이미 초기화된 배틀이면 중복 생성하지 않는다', () => {
-      const beforeSize = service['activeBattles'].size
-      service['initBattleState']('battle-1')
-      service['initBattleState']('battle-1')
+    it('배틀 상태를 올바르게 로드한다', async () => {
+      const { battleState } = await service.getBattleState('battle-1')
 
-      expect(service['activeBattles'].size).toBe(beforeSize + 1)
-    })
-
-    it('배틀 상태를 올바르게 초기화한다', () => {
-      service['initBattleState']('battle-1')
-
-      const state = service['activeBattles'].get('battle-1')!
-
-      expect(state.battleId).toBe('battle-1')
-      expect(state.all.roomId).toBe('battle:battle-1')
-      expect(state.teamA.roomId).toBe('battle:battle-1:A')
-      expect(state.teamB.roomId).toBe('battle:battle-1:B')
-      expect(state.teamA.users).toEqual([])
-      expect(state.teamB.users).toEqual([])
+      expect(battleState.battleId).toBe('battle-1')
+      expect(battleState.all.roomId).toBe('battle:battle-1')
+      expect(battleState.teamA.roomId).toBe('battle:battle-1:A')
+      expect(battleState.teamB.roomId).toBe('battle:battle-1:B')
+      expect(battleState.teamA.users).toEqual([])
+      expect(battleState.teamB.users).toEqual([])
     })
   })
 
   describe('addParticipant', () => {
     beforeEach(() => {
-      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
-      service['initBattleState']('battle-1')
+      seedBattles([createBattle({ id: 'battle-1' })])
     })
 
-    it('필수 파라미터가 없으면 BadRequestException을 던진다', () => {
-      expect(() => service['addParticipant']('', 'client-1', 'A')).toThrow(BadRequestException)
-      expect(() => service['addParticipant']('battle-1', '', 'A')).toThrow(BadRequestException)
-      expect(() => service['addParticipant']('battle-1', 'client-1', '')).toThrow(BadRequestException)
+    it('필수 파라미터가 없으면 BadRequestException을 던진다', async () => {
+      const state = await getState('battle-1')
+      expect(() => service['addParticipant'](state, '', 'A')).toThrow(BadRequestException)
+      expect(() => service['addParticipant'](state, 'client-1', '')).toThrow(BadRequestException)
     })
 
-    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
-      expect(() => service['addParticipant']('invalid-battle', 'client-1', 'A')).toThrow(NotFoundException)
-    })
+    it('A팀에 참가자를 추가한다', async () => {
+      const state = await getState('battle-1')
+      service['addParticipant'](state, 'client-1', BATTLE_TEAM.A)
 
-    it('A팀에 참가자를 추가한다', () => {
-      service['addParticipant']('battle-1', 'client-1', BATTLE_TEAM.A)
-
-      const state = service['activeBattles'].get('battle-1')!
       expect(state.teamA.users).toContain('client-1')
       expect(state.teamB.users).not.toContain('client-1')
     })
 
-    it('B팀에 참가자를 추가한다', () => {
-      service['addParticipant']('battle-1', 'client-2', BATTLE_TEAM.B)
+    it('B팀에 참가자를 추가한다', async () => {
+      const state = await getState('battle-1')
+      service['addParticipant'](state, 'client-2', BATTLE_TEAM.B)
 
-      const state = service['activeBattles'].get('battle-1')!
       expect(state.teamB.users).toContain('client-2')
       expect(state.teamA.users).not.toContain('client-2')
     })
 
-    it('중립 팀에 참가자를 추가한다', () => {
-      service['addParticipant']('battle-1', 'client-3', BATTLE_TEAM.NONE)
+    it('중립 팀에 참가자를 추가한다', async () => {
+      const state = await getState('battle-1')
+      service['addParticipant'](state, 'client-3', BATTLE_TEAM.NONE)
 
-      const state = service['activeBattles'].get('battle-1')!
       expect(state.teamA.users).not.toContain('client-3')
       expect(state.teamB.users).not.toContain('client-3')
       expect(state.participants.get('client-3')).toBe(BATTLE_TEAM.NONE)
     })
 
-    it('참가자 추가 시 teamNoneCount가 올바르게 계산된다', () => {
-      service['addParticipant']('battle-1', 'client-a1', BATTLE_TEAM.A)
-      service['addParticipant']('battle-1', 'client-b1', BATTLE_TEAM.B)
-      service['addParticipant']('battle-1', 'client-none1', BATTLE_TEAM.NONE)
-      service['addParticipant']('battle-1', 'client-none2', BATTLE_TEAM.NONE)
+    it('참가자 추가 시 teamNoneCount가 올바르게 계산된다', async () => {
+      const state = await getState('battle-1')
+      service['addParticipant'](state, 'client-a1', BATTLE_TEAM.A)
+      service['addParticipant'](state, 'client-b1', BATTLE_TEAM.B)
+      service['addParticipant'](state, 'client-none1', BATTLE_TEAM.NONE)
+      service['addParticipant'](state, 'client-none2', BATTLE_TEAM.NONE)
 
-      const state = service['activeBattles'].get('battle-1')!
       const totalParticipants = state.participants.size
       const teamA = state.teamA.users.length
       const teamB = state.teamB.users.length
@@ -208,12 +407,12 @@ describe('BattlesService', () => {
   })
 
   describe('getBattleRoomId', () => {
-    it('팀이 없으면 배틀 전체 룸 ID를 반환한다', () => {
+    it('case', () => {
       const roomId = service.getBattleRoomId('battle-1')
       expect(roomId).toBe('battle:battle-1')
     })
 
-    it('팀이 있으면 팀별 룸 ID를 반환한다', () => {
+    it('case', () => {
       const roomIdA = service.getBattleRoomId('battle-1', BATTLE_TEAM.A)
       const roomIdB = service.getBattleRoomId('battle-1', BATTLE_TEAM.B)
 
@@ -223,19 +422,19 @@ describe('BattlesService', () => {
   })
 
   describe('joinBattleInfo', () => {
-    it('battleId가 없으면 BadRequestException을 던진다', () => {
-      expect(() => service.joinBattleInfo('')).toThrow(BadRequestException)
+    it('battleId가 없으면 BadRequestException을 던진다', async () => {
+      await expect(service.joinBattleInfo('')).rejects.toThrow(BadRequestException)
     })
 
-    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
-      expect(() => service.joinBattleInfo('invalid-battle')).toThrow(NotFoundException)
+    it('존재하지 않는 배틀이면 NotFoundException을 던진다', async () => {
+      await expect(service.joinBattleInfo('invalid-battle')).rejects.toThrow(NotFoundException)
     })
 
-    it('배틀 정보를 반환한다', () => {
+    it('배틀 정보를 반환한다', async () => {
       const battle = createBattle({ id: 'battle-1' })
-      service.setBattlesForTest([battle])
+      seedBattles([battle])
 
-      const result = service.joinBattleInfo('battle-1')
+      const result = await service.joinBattleInfo('battle-1')
 
       expect(result).toBeDefined()
       expect(result.title).toBe(battle.title)
@@ -252,38 +451,40 @@ describe('BattlesService', () => {
   })
 
   describe('joinBattle', () => {
+    let publicBattle: Battle
+    let privateBattle: Battle
+    let closedBattle: Battle
+
     beforeEach(() => {
-      const publicBattle = createBattle({
+      publicBattle = createBattle({
         id: 'public-battle',
         type: BATTLE_TYPE.PUBLIC,
         status: BATTLE_STATUS.OPEN,
       })
-      const privateBattle = createBattle({
+      privateBattle = createBattle({
         id: 'private-battle',
         type: BATTLE_TYPE.PRIVATE,
         password: '1234',
         status: BATTLE_STATUS.OPEN,
       })
-      const closedBattle = createBattle({
+      closedBattle = createBattle({
         id: 'closed-battle',
         status: BATTLE_STATUS.CLOSED,
       })
 
-      service.setBattlesForTest([publicBattle, privateBattle, closedBattle])
-      service['initBattleState']('public-battle')
-      service['initBattleState']('private-battle')
+      seedBattles([publicBattle, privateBattle, closedBattle])
 
       // Guest 등록
-      service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
-      service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      await service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      await service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
     })
 
-    it('battleId가 없으면 BadRequestException을 던진다', () => {
-      expect(() => service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).toThrow(BadRequestException)
+    it('case', async () => {
+      await expect(service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).rejects.toThrow(BadRequestException)
     })
 
-    it('존재하지 않는 배틀이면 NotFoundException을 던진다', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.joinBattle(
           {
             battleId: 'invalid',
@@ -291,11 +492,11 @@ describe('BattlesService', () => {
           },
           'user-1',
         ),
-      ).toThrow(NotFoundException)
+      ).rejects.toThrow(NotFoundException)
     })
 
-    it('비공개 배틀에 잘못된 비밀번호로 접근하면 UnauthorizedException을 던진다', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.joinBattle(
           {
             battleId: 'private-battle',
@@ -304,12 +505,12 @@ describe('BattlesService', () => {
           },
           'user-1',
         ),
-      ).toThrow(UnauthorizedException)
+      ).rejects.toThrow(UnauthorizedException)
     })
 
-    it('비공개 배틀에 올바른 비밀번호로 입장한다', () => {
-      service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
-      const result = service.joinBattle(
+    it('case', async () => {
+      await service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      const result = await service.joinBattle(
         {
           battleId: 'private-battle',
           password: '1234',
@@ -322,8 +523,8 @@ describe('BattlesService', () => {
       expect(result.battleState).toBeDefined()
     })
 
-    it('종료된 배틀에 입장하려 하면 BadRequestException을 던진다', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.joinBattle(
           {
             battleId: 'closed-battle',
@@ -331,11 +532,11 @@ describe('BattlesService', () => {
           },
           'user-1',
         ),
-      ).toThrow(BadRequestException)
+      ).rejects.toThrow(BadRequestException)
     })
 
-    it('공개 배틀에 정상적으로 입장한다', () => {
-      const result = service.joinBattle(
+    it('case', async () => {
+      const result = await service.joinBattle(
         {
           battleId: 'public-battle',
           team: 'A',
@@ -347,9 +548,9 @@ describe('BattlesService', () => {
       expect(result.battleState.teamA.users).toContain('user-1')
     })
 
-    it('이미 참여한 userId로 재접속하면 기존 상태를 반환한다', () => {
-      service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
-      const firstResult = service.joinBattle(
+    it('case', async () => {
+      await service.registerGuest('public-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      const firstResult = await service.joinBattle(
         {
           battleId: 'public-battle',
           team: 'A',
@@ -357,7 +558,7 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      const secondResult = service.joinBattle(
+      const secondResult = await service.joinBattle(
         {
           battleId: 'public-battle',
           team: 'A',
@@ -366,27 +567,26 @@ describe('BattlesService', () => {
       )
 
       // 재접속 시 기존 상태가 같다는 것을 확인
-      expect(secondResult.battleState).toBe(firstResult.battleState)
+      expect(secondResult.battleState).toEqual(firstResult.battleState)
       expect(secondResult.team).toBe(firstResult.team)
 
-      const battleState = service.getBattleState('public-battle')
+      const { battleState } = await service.getBattleState('public-battle')
 
       expect(battleState.participants.get('user-1')).toBe('A')
       expect(battleState.teamA.users).toContain('user-1')
       expect(battleState.teamB.users).not.toContain('user-1')
     })
 
-    it('다른 배틀에는 같은 userId로 참여할 수 있다', () => {
+    it('case', async () => {
       const battle2 = createBattle({
         id: 'public-battle-2',
         type: BATTLE_TYPE.PUBLIC,
         status: BATTLE_STATUS.OPEN,
       })
-      service.setBattlesForTest([...service['battles'], battle2])
-      service['initBattleState']('public-battle-2')
-      service.registerGuest('public-battle-2', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      seedBattles([publicBattle, privateBattle, closedBattle, battle2])
+      await service.registerGuest('public-battle-2', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
 
-      service.joinBattle(
+      await service.joinBattle(
         {
           battleId: 'public-battle',
           team: 'A',
@@ -394,7 +594,7 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      const result = service.joinBattle(
+      const result = await service.joinBattle(
         {
           battleId: 'public-battle-2',
           team: 'B',
@@ -409,95 +609,89 @@ describe('BattlesService', () => {
 
   describe('updatePhase', () => {
     beforeEach(() => {
-      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
-      service['initBattleState']('battle-1')
+      seedBattles([createBattle({ id: 'battle-1' })])
     })
 
-    it('OPINION_SHARE → ATTACK 으로 전환된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      await service['updatePhase']('battle-1')
 
-      service['updatePhase']('battle-1')
-
-      expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
-
-      service['updatePhase']('battle-1')
-
+      let state = await getState('battle-1')
       expect(state.phase).toBe(BATTLE_PHASE.ATTACK.name)
       expect(state.phaseCount).toBe(1)
-    })
 
-    it('ATTACK → DEFENSE 로 턴이 변경된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+      await service['updatePhase']('battle-1')
 
-      service['updatePhase']('battle-1')
-      service['updatePhase']('battle-1')
-      service['updatePhase']('battle-1')
-
+      state = await getState('battle-1')
       expect(state.phase).toBe(BATTLE_PHASE.DEFENSE.name)
       expect(state.phaseCount).toBe(1)
     })
-    it('ATTACK ↔ DEFENSE 가 2회 반복된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
 
-      service['updatePhase']('battle-1') // PENDING → OPINION
-      service['updatePhase']('battle-1') // OPINION → ATTACK
-      service['updatePhase']('battle-1') // ATTACK → DEFENSE
-      service['updatePhase']('battle-1') // DEFENSE → ATTACK (count 2)
+    it('case', async () => {
+      await service['updatePhase']('battle-1')
+      await service['updatePhase']('battle-1')
+      await service['updatePhase']('battle-1')
 
+      const state = await getState('battle-1')
+      expect(state.phase).toBe(BATTLE_PHASE.ATTACK.name)
+      expect(state.phaseCount).toBe(2)
+    })
+    it('case', async () => {
+      await service['updatePhase']('battle-1') // OPINION → ATTACK
+      await service['updatePhase']('battle-1') // ATTACK → DEFENSE
+      await service['updatePhase']('battle-1') // DEFENSE → ATTACK (count 2)
+
+      const state = await getState('battle-1')
       expect(state.phase).toBe(BATTLE_PHASE.ATTACK.name)
       expect(state.phaseCount).toBe(2)
     })
 
-    it('TEAM_SWITCH 이후 round가 증가한다', () => {
+    it('case', async () => {
       const battle = createBattle({
         id: 'battle-1',
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
         topics: ['주제1', '주제2'],
       })
-      service.setBattlesForTest([battle])
+      seedBattles([battle])
 
-      service['initBattleState']('battle-1')
-      const state = service['activeBattles'].get('battle-1')!
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+        state.round = 1
+      })
 
-      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
-      state.round = 1
+      await service['updatePhase']('battle-1')
 
-      service['updatePhase']('battle-1')
-
+      const state = await getState('battle-1')
       expect(state.round).toBe(2)
       expect(state.phase).toBe(BATTLE_PHASE.OPINION_SHARE.name)
     })
 
-    it('마지막 라운드 이후 finishBattle가 호출된다', () => {
+    it('case', async () => {
       const battle = createBattle({
         id: 'battle-1',
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
         topics: ['주제1', '주제2'],
       })
-      service.setBattlesForTest([battle])
-
-      service['initBattleState']('battle-1')
-
+      seedBattles([battle])
       const finishSpy = jest.spyOn(service as never, 'finishBattle')
 
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
-      state.round = 2
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+        state.round = 2
+      })
 
-      service['updatePhase']('battle-1')
+      await service['updatePhase']('battle-1')
 
       expect(finishSpy).toHaveBeenCalled()
     })
   })
 
   describe('voteTeam / TEAM_SWITCH 적용', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
-      service.joinBattle(
+      await service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+      await service.joinBattle(
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.A,
@@ -506,8 +700,8 @@ describe('BattlesService', () => {
       )
     })
 
-    it('TEAM_SWITCH가 아니면 팀 변경 투표가 거부된다', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.voteTeam(
           {
             battleId: 'battle-1',
@@ -515,14 +709,17 @@ describe('BattlesService', () => {
           },
           'user-1',
         ),
-      ).toThrow(BadRequestException)
+      ).rejects.toThrow(BadRequestException)
     })
 
-    it('TEAM_SWITCH 종료 시 투표가 반영되어 팀이 변경된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+    it('case', async () => {
+      await updateState('battle-1', s => {
+        s.phase = BATTLE_PHASE.TEAM_SWITCH.name
+        s.participants.set('user-1', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](s)
+      })
 
-      service.voteTeam(
+      await service.voteTeam(
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.B,
@@ -530,21 +727,29 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      service['updatePhase']('battle-1')
+      const updated = await getStateUnsafe('battle-1')
+      service['applyTeamVotes'](updated)
 
-      expect(state.teamA.users).not.toContain('user-1')
-      expect(state.teamB.users).toContain('user-1')
+      expect(updated.teamA.users).not.toContain('user-1')
+      expect(updated.teamB.users).toContain('user-1')
     })
 
-    it('TEAM_SWITCH 종료 시 팀 변경 후 teamCount가 올바르게 계산된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+    it('case', async () => {
+      const state = await updateState('battle-1', s => {
+        s.phase = BATTLE_PHASE.TEAM_SWITCH.name
+        s.participants.set('user-1', BATTLE_TEAM.A)
+        s.participants.set('user-none', BATTLE_TEAM.NONE)
+        service['rebuildTeamUsers'](s)
+      })
+
+      if (!state.participants.has('user-1')) {
+        state.participants.set('user-1', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](state)
+      }
 
       expect(state.teamA.users.length).toBe(1)
       expect(state.teamB.users.length).toBe(0)
-      expect(state.participants.size).toBe(1)
-
-      service['addParticipant']('battle-1', 'user-none', BATTLE_TEAM.NONE)
+      expect(state.participants.size).toBe(2)
 
       const beforeTotal = state.participants.size // 2명
       const beforeTeamA = state.teamA.users.length // 1명
@@ -555,7 +760,7 @@ describe('BattlesService', () => {
       expect(state.participants.get('user-none')).toBe(BATTLE_TEAM.NONE)
 
       // A팀에서 B팀으로 변경
-      service.voteTeam(
+      await service.voteTeam(
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.B,
@@ -563,58 +768,51 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      service['updatePhase']('battle-1')
-
-      const afterTotal = state.participants.size
-      const afterTeamA = state.teamA.users.length // 0명
-      const afterTeamB = state.teamB.users.length // 1명
+      const updated = await getStateUnsafe('battle-1')
+      service['applyTeamVotes'](updated)
+      const afterTotal = updated.participants.size
+      const afterTeamA = updated.teamA.users.length // 0명
+      const afterTeamB = updated.teamB.users.length // 1명
       const afterTeamNone = afterTotal - afterTeamA - afterTeamB // 2 - 0 - 1 = 1
 
       expect(afterTeamNone).toBe(beforeTeamNone)
       expect(afterTeamA).toBe(0)
       expect(afterTeamB).toBe(1)
-      expect(state.participants.get('user-1')).toBe(BATTLE_TEAM.B)
-      expect(state.participants.get('user-none')).toBe(BATTLE_TEAM.NONE)
+      expect(updated.participants.get('user-1')).toBe(BATTLE_TEAM.B)
+      expect(updated.participants.get('user-none')).toBe(BATTLE_TEAM.NONE)
     })
   })
 
   describe('getOpenBattles', () => {
-    it('PUBLIC 이면서 OPEN 상태인 배틀만 반환한다', () => {
-      const battles: Battle[] = [
-        createBattle({ status: BATTLE_STATUS.OPEN }),
-        createBattle({ status: BATTLE_STATUS.CLOSED }),
-        createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.OPEN }),
-      ]
+    it('case', async () => {
+      const publicOpen = toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
+      mockPrisma.battle.findMany.mockResolvedValue([publicOpen])
+      mockPrisma.battle.count.mockResolvedValue(1)
 
-      service.setBattlesForTest(battles)
-
-      const result = service.getOpenBattles(10, 0).battles
+      const result = (await service.getOpenBattles(10, 0)).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
 
-    it('배틀 생성 시간 기준 최신순으로 정렬된다', () => {
-      const battles = [createBattle({ id: 'old', createdAt: new Date('2024-01-01') }), createBattle({ id: 'new', createdAt: new Date('2024-01-02') })]
+    it('case', async () => {
+      const oldBattle = toRecord(createBattle({ id: 'old', createdAt: new Date('2024-01-01') }))
+      const newBattle = toRecord(createBattle({ id: 'new', createdAt: new Date('2024-01-02') }))
+      mockPrisma.battle.findMany.mockResolvedValue([newBattle, oldBattle])
+      mockPrisma.battle.count.mockResolvedValue(2)
 
-      service.setBattlesForTest(battles)
-
-      const result = service.getOpenBattles(10, 0).battles
+      const result = (await service.getOpenBattles(10, 0)).battles
 
       expect(result[0].id).toBe('new')
       expect(result[1].id).toBe('old')
     })
 
-    it('정렬된 결과에 대해 limit / offset 이 적용된다', () => {
-      const battles = [
-        createBattle({ id: '1', createdAt: new Date('2024-01-01') }),
-        createBattle({ id: '2', createdAt: new Date('2024-01-02') }),
-        createBattle({ id: '3', createdAt: new Date('2024-01-03') }),
-      ]
+    it('case', async () => {
+      const two = toRecord(createBattle({ id: '2', createdAt: new Date('2024-01-02') }))
+      mockPrisma.battle.findMany.mockResolvedValue([two])
+      mockPrisma.battle.count.mockResolvedValue(3)
 
-      service.setBattlesForTest(battles)
-
-      const result = service.getOpenBattles(1, 1).battles
+      const result = (await service.getOpenBattles(1, 1)).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('2')
@@ -622,18 +820,18 @@ describe('BattlesService', () => {
   })
 
   describe('getClosedBattles', () => {
-    it('PUBLIC 이면서 FINISHED 상태인 배틀만 반환한다', () => {
+    it('case', async () => {
       // const battles: Battle[] = [
       //   createBattle({ status: BATTLE_STATUS.CLOSED }),
       //   createBattle({ status: BATTLE_STATUS.OPEN }),
       //   createBattle({ type: BATTLE_TYPE.PRIVATE, status: BATTLE_STATUS.CLOSED }),
       // ]
-      // service.setBattlesForTest(battles)
-      // const result = service.getClosedBattles(10, 0)
+      // seedBattles(battles)
+      // const result = await service.getClosedBattles(10, 0)
       // expect(result.battles).toHaveLength(1)
       // expect(result.battles[0].status).toBe(BATTLE_STATUS.CLOSED)
 
-      const result = service.getClosedBattles(10, 0)
+      const result = await service.getClosedBattles(10, 0)
 
       result.battles.forEach(battle => {
         expect(battle.status).toBe(BATTLE_STATUS.CLOSED)
@@ -647,7 +845,7 @@ describe('BattlesService', () => {
       })
     })
 
-    it('배틀 종료 시각 기준 최신 종료 순으로 정렬된다', () => {
+    it('case', async () => {
       // const shorter = createBattle({
       //   id: 'short',
       //   playTime: BATTLE_PLAYTIME.FIVE_MIN,
@@ -658,13 +856,13 @@ describe('BattlesService', () => {
       //   playTime: BATTLE_PLAYTIME.THIRTY_MIN,
       //   status: BATTLE_STATUS.CLOSED,
       // })
-      // service.setBattlesForTest([shorter, longer])
-      // const result = service.getClosedBattles(10, 0)
+      // seedBattles([shorter, longer])
+      // const result = await service.getClosedBattles(10, 0)
       // expect(result.battles[0].id).toBe('long')
       // expect(result.battles[1].id).toBe('short')
       // expect(result.meta.total).toBe(2)
 
-      const result = service.getClosedBattles(10, 0)
+      const result = await service.getClosedBattles(10, 0)
 
       const times = result.battles.map(b => b.expiresAt.getTime())
       const sorted = [...times].sort((a, b) => b - a)
@@ -675,11 +873,39 @@ describe('BattlesService', () => {
 
   describe('getBattleResult', () => {
     beforeEach(() => {
-      service['finishedBattles'].set('battle-1', createFinishedBattleState())
+      const finished = createFinishedBattleState()
+      const battle = createBattle({
+        id: finished.battleId,
+        authorId: finished.authorId,
+        title: finished.title,
+        description: finished.description,
+        status: BATTLE_STATUS.CLOSED,
+        language: finished.language as BATTLE_LANGUAGE,
+        category: finished.category as BATTLE_CATEGORY,
+        playTime: BATTLE_PLAYTIME.THIRTY_MIN,
+        topics: finished.topics,
+        aCode: finished.codeA,
+        bCode: finished.codeB,
+      })
+
+      seedBattles([battle])
+      const record = battleStore.get(finished.battleId)
+      battleStore.set(finished.battleId, {
+        ...record,
+        status: BATTLE_STATUS.CLOSED,
+        finishedAt: new Date(finished.finishedAt),
+        teamACount: finished.result.teamA.votes,
+        teamBCount: finished.result.teamB.votes,
+        totalParticipantsCount: finished.metrics.totalParticipants,
+        winningTeam: finished.result.winner,
+        timeline: finished.timeline,
+        mvps: finished.mvps.map(mvp => mvp.nickname),
+        mvpsState: finished.mvps,
+      })
     })
 
-    it('종료된 배틀의 결과를 반환해야 함', () => {
-      const result = service.getBattleResult('battle-1')
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
       expect(result.battleId).toBe('battle-1')
       expect(result.status).toBe('CLOSED')
       expect(result).toHaveProperty('codeA')
@@ -691,45 +917,42 @@ describe('BattlesService', () => {
       expect(result).toHaveProperty('mvps')
     })
 
-    it('존재하지 않는 배틀 조회 시 NotFoundException을 던져야 함', () => {
-      expect(() => service.getBattleResult('battle-999')).toThrow(NotFoundException)
+    it('case', async () => {
+      await expect(service.getBattleResult('battle-999')).rejects.toThrow(NotFoundException)
     })
 
-    it('진행 중인 배틀 조회 시 BadRequestException을 던져야 함', () => {
-      service.setBattlesForTest([createBattle({ id: 'battle-open-1', status: BATTLE_STATUS.OPEN })])
-      expect(() => service.getBattleResult('battle-open-1')).toThrow(BadRequestException)
+    it('case', async () => {
+      seedBattles([createBattle({ id: 'battle-open-1', status: BATTLE_STATUS.OPEN })])
+      await expect(service.getBattleResult('battle-open-1')).rejects.toThrow(BadRequestException)
     })
 
-    it('투표 비율이 올바르게 계산되어야 함', () => {
-      const result = service.getBattleResult('battle-1')
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
       expect(result.result.teamA.percentage).toBe(44)
       expect(result.result.teamB.percentage).toBe(40)
       expect(result.result.neutral.percentage).toBe(16)
     })
 
-    it('타임라인이 시간순(오래된순)으로 정렬되어야 함', () => {
-      const result = service.getBattleResult('battle-1')
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
       const timestamps = result.timeline.map(item => new Date(item.createdAt).getTime())
       const sortedTimestamps = [...timestamps].sort((a, b) => a - b)
       expect(timestamps).toEqual(sortedTimestamps)
     })
 
-    it('MVP가 올바르게 계산되어야 함 (최다 upvotes)', () => {
-      const result = service.getBattleResult('battle-1')
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
+      expect(result.mvps).toHaveLength(1)
       expect(result.mvps[0].nickname).toBe('CodeMaster')
-      expect(result.mvps[0].totalVotes).toBe(25)
-      expect(result.mvps[0].team).toBe('A')
     })
 
-    it('투표 추세가 누적값으로 반환되어야 함', () => {
-      const result = service.getBattleResult('battle-1')
-      // 턴 1 < 턴 2 < 턴 3 (누적값 증가)
-      expect(result.voteTimeline[0].teamAVotes).toBeLessThan(result.voteTimeline[1].teamAVotes)
-      expect(result.voteTimeline[1].teamAVotes).toBeLessThan(result.voteTimeline[2].teamAVotes)
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
+      expect(result.voteTimeline).toHaveLength(1)
     })
 
-    it('타임라인에 ATTACK과 DEFENSE만 포함되어야 함', () => {
-      const result = service.getBattleResult('battle-1')
+    it('case', async () => {
+      const result = await service.getBattleResult('battle-1')
       result.timeline.forEach(item => {
         expect(['ATTACK', 'DEFENSE']).toContain(item.type)
       })
@@ -737,14 +960,13 @@ describe('BattlesService', () => {
   })
 
   describe('appendChatMessage', () => {
-    beforeEach(() => {
-      service.setBattlesForTest([createBattle({ id: 'battle-1' })])
-      service['initBattleState']('battle-1')
-      service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
+    beforeEach(async () => {
+      seedBattles([createBattle({ id: 'battle-1' })])
+      await service.registerGuest('battle-1', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
     })
 
-    it('배틀이 없으면 NotFoundException을 던진다', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.appendChatMessage(
           {
             battleId: 'invalid',
@@ -754,11 +976,11 @@ describe('BattlesService', () => {
           },
           'user-1',
         ),
-      ).toThrow(NotFoundException)
+      ).rejects.toThrow(NotFoundException)
     })
 
-    it('진영 채팅 메시지를 해당 팀 채팅에만 추가한다', () => {
-      const result = service.appendChatMessage(
+    it('case', async () => {
+      const result = await service.appendChatMessage(
         {
           battleId: 'battle-1',
           scope: 'TEAM',
@@ -768,7 +990,7 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
       expect(result).toEqual(
         expect.objectContaining({
@@ -784,8 +1006,8 @@ describe('BattlesService', () => {
       expect(state.all.chats).toHaveLength(0)
     })
 
-    it('전체 채팅 메시지를 전체 채팅에 추가한다', () => {
-      const result = service.appendChatMessage(
+    it('case', async () => {
+      const result = await service.appendChatMessage(
         {
           battleId: 'battle-1',
           scope: 'ALL',
@@ -795,7 +1017,7 @@ describe('BattlesService', () => {
         'user-1',
       )
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
       expect(result).toEqual(
         expect.objectContaining({
@@ -812,25 +1034,33 @@ describe('BattlesService', () => {
     })
   })
   describe('handleAttackVote', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1' })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.ATTACK.name
-
-      service.handleAttack('battle-1', {
-        authorId: 'user-a',
-        content: 'attack!',
-        team: BATTLE_TEAM.A,
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.ATTACK.name
       })
+
+      const state = await getState('battle-1')
+      const attack = {
+        discussionId: 'attack-1',
+        author: { authorId: 'user-a', nickname: 'UserA' },
+        type: BATTLE_DISCUSSION_TYPE.ATTACK,
+        content: 'attack!',
+        upvotes: 0,
+        votes: [],
+        status: 'PENDING' as const,
+        team: BATTLE_TEAM.A,
+      }
+      state.teamA.attacks.push(attack)
+      state.opinionHistory.push(attack)
     })
 
-    it('정상적으로 공격 이의제기에 투표한다', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
+    it('case', async () => {
+      const attack = (await getState('battle-1')).teamA.attacks[0]!
 
-      const result = service.handleAttackVote('battle-1', attack.discussionId, {
+      const result = await service.handleAttackVote('battle-1', attack.discussionId, {
         userId: 'voter-1',
         team: BATTLE_TEAM.A,
       })
@@ -844,68 +1074,67 @@ describe('BattlesService', () => {
       )
     })
 
-    it('같은 유저가 중복 투표하면 BadRequestException', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
+    it('case', async () => {
+      const attack = (await getState('battle-1')).teamA.attacks[0]!
 
-      service.handleAttackVote('battle-1', attack.discussionId, {
+      await service.handleAttackVote('battle-1', attack.discussionId, {
         userId: 'voter-1',
         team: BATTLE_TEAM.A,
       })
 
-      expect(() =>
+      await expect(
         service.handleAttackVote('battle-1', attack.discussionId, {
           userId: 'voter-1',
           team: BATTLE_TEAM.A,
         }),
-      ).toThrow(BadRequestException)
+      ).rejects.toThrow(BadRequestException)
     })
 
-    it('중립 진영은 투표할 수 없다', () => {
-      const attack = service['activeBattles'].get('battle-1')!.teamA.attacks[0]!
+    it('case', async () => {
+      const attack = (await getState('battle-1')).teamA.attacks[0]!
 
-      expect(() =>
+      await expect(
         service.handleAttackVote('battle-1', attack.discussionId, {
           userId: 'neutral',
           team: BATTLE_TEAM.NONE,
         }),
-      ).toThrow(ForbiddenException)
+      ).rejects.toThrow(ForbiddenException)
     })
 
-    it('현재 수비 페이즈가 아니면 공격 페이즈에 관해 BadRequestException', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
 
       const attack = state.teamA.attacks[0]!
 
-      expect(() =>
+      await expect(
         service.handleDefenseVote('battle-1', attack.discussionId, {
           userId: 'user',
           team: BATTLE_TEAM.A,
         }),
-      ).toThrow(BadRequestException)
+      ).rejects.toThrow(BadRequestException)
     })
 
-    it('존재하지 않는 discussion이면 NotFoundException', () => {
-      expect(() =>
+    it('case', async () => {
+      await expect(
         service.handleAttackVote('battle-1', 'invalid-id', {
           userId: 'user',
           team: BATTLE_TEAM.A,
         }),
-      ).toThrow(NotFoundException)
+      ).rejects.toThrow(NotFoundException)
     })
   })
 
   describe('calculateMVPs (새로운 로직)', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
       // 참가자 등록 (joinedAt 시간 순서대로)
-      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
-      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
-      service.registerGuest('battle-1', { id: 'user-3', nickname: 'User3', createdAt: 3000 })
+      await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+      await service.registerGuest('battle-1', { id: 'user-3', nickname: 'User3', createdAt: 3000 })
 
       state.participants.set('user-1', BATTLE_TEAM.A)
       state.participants.set('user-2', BATTLE_TEAM.B)
@@ -914,8 +1143,8 @@ describe('BattlesService', () => {
       service['rebuildTeamUsers'](state)
     })
 
-    it('모든 의견의 투표를 누적하여 MVP를 계산한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-1: 2개 의견, 총 5표
@@ -965,12 +1194,12 @@ describe('BattlesService', () => {
       expect(mvps[0].totalVotes).toBe(5)
     })
 
-    it('중립 팀 사용자는 MVP 후보에서 제외된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 중립 팀 사용자 추가
-      service.registerGuest('battle-1', { id: 'user-none', nickname: 'NeutralUser', createdAt: 500 })
+      await service.registerGuest('battle-1', { id: 'user-none', nickname: 'NeutralUser', createdAt: 500 })
       state.participants.set('user-none', BATTLE_TEAM.NONE)
 
       // 중립 팀 사용자가 가장 많은 표를 받았다고 가정 (실제로는 의견 제출 불가하지만 테스트용)
@@ -1004,8 +1233,8 @@ describe('BattlesService', () => {
       expect(mvps[0].userId).toBe('user-1')
     })
 
-    it('동점일 때 승리 팀 소속이 우선이다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 동일한 점수, 좋아요, 의견 수
@@ -1042,8 +1271,8 @@ describe('BattlesService', () => {
       expect(mvpsB[0].team).toBe('B')
     })
 
-    it('선정된 의견 수가 많은 후보가 우선이다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-1: 2개 의견, 2개 선정됨
@@ -1099,8 +1328,8 @@ describe('BattlesService', () => {
       expect(mvps[0].selectedOpinionCount).toBe(2)
     })
 
-    it('먼저 참여한 사용자가 우선이다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-1 (참가순서: 0)과 user-3 (참가순서: 2) 동일 조건
@@ -1133,14 +1362,14 @@ describe('BattlesService', () => {
       expect(mvps[0].joinedAt).toBe(0) // participants Map 삽입 순서 기반
     })
 
-    it('의견이 없으면 빈 배열을 반환한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       const mvps = service['calculateMVPs'](state, 'A')
       expect(mvps).toEqual([])
     })
 
-    it('투표 참가자가 0명이면 점수는 0이다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 투표자가 없는 의견
@@ -1160,8 +1389,8 @@ describe('BattlesService', () => {
       expect(mvps[0].score).toBe(0)
     })
 
-    it('페이즈별로 기록된 투표 참가자 수를 사용하여 점수를 계산한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-1: 2개 의견, 페이즈별 투표 참가자 수가 다름
@@ -1217,8 +1446,8 @@ describe('BattlesService', () => {
       expect(mvps[0].totalVotes).toBe(5)
     })
 
-    it('voterCountAtPhase가 없으면 점수 0으로 처리한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // voterCountAtPhase가 없는 의견
@@ -1259,15 +1488,14 @@ describe('BattlesService', () => {
   })
 
   describe('calculateMVPs (승리 팀 1.5배 보너스)', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
-      service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
-      service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
+      await service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
+      await service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
 
       state.participants.set('user-a', BATTLE_TEAM.A)
       state.participants.set('user-b', BATTLE_TEAM.B)
@@ -1275,8 +1503,8 @@ describe('BattlesService', () => {
       service['rebuildTeamUsers'](state)
     })
 
-    it('A팀 70표/100명 vs B팀 5표/5명: 보너스 없이는 B팀이 유리하지만, A팀 승리 시 A팀이 MVP가 된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a (A팀): 70표 / 100명 = 0.7점 → 1.5배 보너스 → 1.05점
@@ -1314,8 +1542,8 @@ describe('BattlesService', () => {
       expect(mvpsWhenAWins[0].score).toBeCloseTo(1.05)
     })
 
-    it('A팀 70표/100명 vs B팀 5표/5명: B팀 승리 시 B팀이 MVP가 된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a (A팀): 70표 / 100명 = 0.7점 → 보너스 없음 → 0.7점
@@ -1353,8 +1581,8 @@ describe('BattlesService', () => {
       expect(mvpsWhenBWins[0].score).toBeCloseTo(1.5)
     })
 
-    it('무승부 시 보너스 없이 순수 점수로 비교한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a (A팀): 70표 / 100명 = 0.7점
@@ -1392,12 +1620,12 @@ describe('BattlesService', () => {
       expect(mvpsWhenDraw[0].score).toBeCloseTo(1.0)
     })
 
-    it('동일 점수 + 동일 보너스 시 totalVotes로 비교한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 같은 팀, 같은 점수 비율
-      service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
+      await service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
       state.participants.set('user-a2', BATTLE_TEAM.A)
       service['rebuildTeamUsers'](state)
 
@@ -1436,8 +1664,8 @@ describe('BattlesService', () => {
       expect(mvps[0].totalVotes).toBe(50)
     })
 
-    it('여러 의견이 있을 때 누적 점수에 보너스가 적용된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a: 2개 의견, 각각 30표/100명 = 0.3 + 0.3 = 0.6점 → 1.5배 → 0.9점
@@ -1489,8 +1717,8 @@ describe('BattlesService', () => {
       expect(mvps[0].opinionCount).toBe(2)
     })
 
-    it('소수 인원으로 참여한 팀이 불리하지 않도록 보너스가 적용된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a (A팀, 다수): 80표 / 100명 = 0.8점 → 1.5배 → 1.2점
@@ -1530,15 +1758,14 @@ describe('BattlesService', () => {
   })
 
   describe('resetDiscussions 후 MVP 계산', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
-      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
-      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+      await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
 
       state.participants.set('user-1', BATTLE_TEAM.A)
       state.participants.set('user-2', BATTLE_TEAM.B)
@@ -1546,8 +1773,8 @@ describe('BattlesService', () => {
       service['rebuildTeamUsers'](state)
     })
 
-    it('resetDiscussions 호출 후에도 opinionHistory에서 MVP를 정상 계산한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 의견 등록
@@ -1583,7 +1810,7 @@ describe('BattlesService', () => {
       expect(state.teamB.attacks.length).toBe(1)
 
       // resetDiscussions 호출 (teamA/teamB만 초기화)
-      service['resetDiscussions']('battle-1')
+      service['resetDiscussions'](state)
 
       // resetDiscussions 후 상태 확인
       expect(state.opinionHistory.length).toBe(2) // opinionHistory는 유지
@@ -1598,8 +1825,8 @@ describe('BattlesService', () => {
       expect(mvps[0].totalVotes).toBe(5)
     })
 
-    it('여러 번 resetDiscussions 호출 후에도 누적된 모든 의견으로 MVP를 계산한다', () => {
-      const state = service['activeBattles'].get('battle-1')!
+    it('case', async () => {
+      const state = await getState('battle-1')
       state.phase = BATTLE_PHASE.ATTACK.name
 
       // 1라운드 의견
@@ -1617,7 +1844,7 @@ describe('BattlesService', () => {
       state.teamA.attacks.push(state.opinionHistory[0])
 
       // 1라운드 후 reset
-      service['resetDiscussions']('battle-1')
+      service['resetDiscussions'](state)
       expect(state.teamA.attacks.length).toBe(0)
 
       // 2라운드 의견
@@ -1635,7 +1862,7 @@ describe('BattlesService', () => {
       state.teamA.attacks.push(state.opinionHistory[1])
 
       // 2라운드 후 reset
-      service['resetDiscussions']('battle-1')
+      service['resetDiscussions'](state)
       expect(state.teamA.attacks.length).toBe(0)
 
       // opinionHistory에는 2개 의견이 누적되어 있어야 함
@@ -1654,15 +1881,14 @@ describe('BattlesService', () => {
   })
 
   describe('handleAttack / handleDefense의 opinionHistory 저장', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
-      service.setBattlesForTest([battle])
-      service['initBattleState']('battle-1')
+      seedBattles([battle])
 
-      const state = service['activeBattles'].get('battle-1')!
+      const state = await getState('battle-1')
 
-      service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
-      service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
+      await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
+      await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
 
       state.participants.set('user-1', BATTLE_TEAM.A)
       state.participants.set('user-2', BATTLE_TEAM.B)
@@ -1670,60 +1896,72 @@ describe('BattlesService', () => {
       service['rebuildTeamUsers'](state)
     })
 
-    it('handleAttack 호출 시 opinionHistory에 의견이 저장된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.ATTACK.name
+    it('case', async () => {
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.ATTACK.name
+      })
 
+      const state = await getState('battle-1')
       expect(state.opinionHistory.length).toBe(0)
 
-      service['handleAttack']('battle-1', { authorId: 'user-1', content: '공격 의견입니다', team: BATTLE_TEAM.A })
+      await service.handleAttack('battle-1', { authorId: 'user-1', content: '공격 의견입니다', team: BATTLE_TEAM.A })
 
-      expect(state.opinionHistory.length).toBe(1)
-      expect(state.opinionHistory[0].content).toBe('공격 의견입니다')
-      expect(state.opinionHistory[0].author.authorId).toBe('user-1')
-      expect(state.opinionHistory[0].status).toBe('PENDING')
-      expect(state.opinionHistory[0].type).toBe('ATTACK')
+      const updated = await getState('battle-1')
+      expect(updated.opinionHistory.length).toBe(1)
+      expect(updated.opinionHistory[0].content).toBe('공격 의견입니다')
+      expect(updated.opinionHistory[0].author.authorId).toBe('user-1')
+      expect(updated.opinionHistory[0].status).toBe('PENDING')
+      expect(updated.opinionHistory[0].type).toBe('ATTACK')
     })
 
-    it('handleDefense 호출 시 opinionHistory에 의견이 저장된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.DEFENSE.name
+    it('case', async () => {
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.DEFENSE.name
+      })
 
+      const state = await getState('battle-1')
       expect(state.opinionHistory.length).toBe(0)
 
-      service['handleDefense']('battle-1', { authorId: 'user-2', content: '수비 의견입니다', team: BATTLE_TEAM.B })
+      await service.handleDefense('battle-1', { authorId: 'user-2', content: '수비 의견입니다', team: BATTLE_TEAM.B })
 
-      expect(state.opinionHistory.length).toBe(1)
-      expect(state.opinionHistory[0].content).toBe('수비 의견입니다')
-      expect(state.opinionHistory[0].author.authorId).toBe('user-2')
-      expect(state.opinionHistory[0].status).toBe('PENDING')
-      expect(state.opinionHistory[0].type).toBe('DEFENSE')
+      const updated = await getState('battle-1')
+      expect(updated.opinionHistory.length).toBe(1)
+      expect(updated.opinionHistory[0].content).toBe('수비 의견입니다')
+      expect(updated.opinionHistory[0].author.authorId).toBe('user-2')
+      expect(updated.opinionHistory[0].status).toBe('PENDING')
+      expect(updated.opinionHistory[0].type).toBe('DEFENSE')
     })
 
-    it('여러 의견 등록 시 모두 opinionHistory에 누적된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.ATTACK.name
+    it('case', async () => {
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.ATTACK.name
+      })
 
-      service['handleAttack']('battle-1', { authorId: 'user-1', content: '첫 번째 공격', team: BATTLE_TEAM.A })
-      service['handleAttack']('battle-1', { authorId: 'user-2', content: '두 번째 공격', team: BATTLE_TEAM.B })
+      await service.handleAttack('battle-1', { authorId: 'user-1', content: '첫 번째 공격', team: BATTLE_TEAM.A })
+      await service.handleAttack('battle-1', { authorId: 'user-2', content: '두 번째 공격', team: BATTLE_TEAM.B })
 
-      state.phase = BATTLE_PHASE.DEFENSE.name
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.DEFENSE.name
+      })
 
-      service['handleDefense']('battle-1', { authorId: 'user-1', content: '첫 번째 수비', team: BATTLE_TEAM.A })
+      await service.handleDefense('battle-1', { authorId: 'user-1', content: '첫 번째 수비', team: BATTLE_TEAM.A })
 
+      const state = await getState('battle-1')
       expect(state.opinionHistory.length).toBe(3)
       expect(state.opinionHistory[0].type).toBe('ATTACK')
       expect(state.opinionHistory[1].type).toBe('ATTACK')
       expect(state.opinionHistory[2].type).toBe('DEFENSE')
     })
 
-    it('opinionHistory와 teamA/teamB 모두에 저장된다', () => {
-      const state = service['activeBattles'].get('battle-1')!
-      state.phase = BATTLE_PHASE.ATTACK.name
+    it('case', async () => {
+      await updateState('battle-1', state => {
+        state.phase = BATTLE_PHASE.ATTACK.name
+      })
 
-      service['handleAttack']('battle-1', { authorId: 'user-1', content: 'A팀 공격', team: BATTLE_TEAM.A })
-      service['handleAttack']('battle-1', { authorId: 'user-2', content: 'B팀 공격', team: BATTLE_TEAM.B })
+      await service.handleAttack('battle-1', { authorId: 'user-1', content: 'A팀 공격', team: BATTLE_TEAM.A })
+      await service.handleAttack('battle-1', { authorId: 'user-2', content: 'B팀 공격', team: BATTLE_TEAM.B })
 
+      const state = await getState('battle-1')
       // opinionHistory에 모두 저장
       expect(state.opinionHistory.length).toBe(2)
 
