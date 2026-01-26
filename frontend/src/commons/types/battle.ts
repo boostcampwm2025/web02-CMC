@@ -27,6 +27,7 @@ export interface BattleInfo {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
   };
+  referenceData?: BattleReferenceData | null;
 }
 
 // 공통 타입들
