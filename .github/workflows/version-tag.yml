@@ -42,10 +42,9 @@ jobs:
             exit 0
           fi
 
-        
-          if echo "$labels" | grep -q "release:major"; then
+          if echo "$labels" | grep -q "major"; then
             bump_type=major
-          elif echo "$labels" | grep -q "release:minor"; then
+          elif echo "$labels" | grep -q "minor"; then
             bump_type=minor
           else
             bump_type=patch
