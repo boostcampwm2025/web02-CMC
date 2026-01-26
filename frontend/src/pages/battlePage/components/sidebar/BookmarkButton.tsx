@@ -1,13 +1,20 @@
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import MessageIcon from '@/assets/icon/message.svg?react';
+import { BookOpen } from 'lucide-react';
 
 interface BookmarkButtonProps {
   onOpen: () => void;
   isOpen: boolean;
   highlight?: boolean;
+  hasReferenceData?: boolean;
 }
 
-export default function BookmarkButton({ onOpen, isOpen, highlight = false }: BookmarkButtonProps) {
+export default function BookmarkButton({
+  onOpen,
+  isOpen,
+  highlight = false,
+  hasReferenceData = false
+}: BookmarkButtonProps) {
   if (isOpen) return null;
 
   return (
@@ -34,6 +41,18 @@ export default function BookmarkButton({ onOpen, isOpen, highlight = false }: Bo
         <ClockIcon className="w-3.5 h-3.5" />
         <span className="text-sm">타임라인</span>
       </button>
+
+      {/* 참고 자료 */}
+      {hasReferenceData && (
+        <button
+          onClick={onOpen}
+          className="group relative bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
+          aria-label="참고 자료 보기"
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span className="text-sm">참고 자료</span>
+        </button>
+      )}
     </div>
   );
 }

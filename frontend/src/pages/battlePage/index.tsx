@@ -142,6 +142,7 @@ export default function BattlePage() {
         onOpen={handleOpenSidebar}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
+        hasReferenceData={!!battleInfo.referenceData}
       />
 
       {/* 사이드바 */}
@@ -154,6 +155,7 @@ export default function BattlePage() {
         category={battleInfo.category}
         topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
+        referenceData={battleInfo.referenceData}
       />
 
       {/* 메인 콘텐츠 */}
