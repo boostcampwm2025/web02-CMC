@@ -77,11 +77,27 @@ export class BattlesService extends EventEmitter {
     return uuidv7()
   }
 
-  create(payload: BattleCreateQueryDto): Battle {
+  async create(payload: BattleCreateQueryDto): Promise<Battle> {
     const now = new Date()
     const battleId = this.generateId()
     const playTime: BattlePlayTime = BATTLE_PLAYTIME[payload.playTime]
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
+
+    // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
+    let referenceData: BattleReferenceData | null = null
+    try {
+      referenceData = await this.generateReferenceData({
+        title: payload.title,
+        description: payload.description,
+        codeA: payload.aCode,
+        codeB: payload.bCode,
+        language: payload.language,
+        category: payload.category,
+        topics: payload.topics,
+      })
+    } catch (error: unknown) {
+      console.warn('AI 참고 자료 생성 실패, 배틀은 정상 생성됩니다:', error)
+    }
 
     const battle: Battle = {
       id: battleId,
@@ -106,6 +122,7 @@ export class BattlesService extends EventEmitter {
         phaseCount: 1,
         timeRemainingSeconds: playTime.time * 60,
       },
+      referenceData,
     }
 
     this.battles.push(battle)

@@ -10,8 +10,8 @@ export class BattlesController {
   constructor(private readonly battlesService: BattlesService) {}
 
   @Post()
-  createBattle(@Body() body: BattleCreateQueryDto): { battleId: string } {
-    const battle = this.battlesService.create(body)
+  async createBattle(@Body() body: BattleCreateQueryDto): Promise<{ battleId: string }> {
+    const battle = await this.battlesService.create(body)
     return { battleId: battle.id }
   }
 
