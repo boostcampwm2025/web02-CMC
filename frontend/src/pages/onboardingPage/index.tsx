@@ -1,4 +1,14 @@
+import { useEffect } from 'react';
+
 export default function OnBoardingPage() {
+  useEffect(() => {
+    document.documentElement.style.scrollSnapType = 'y mandatory';
+
+    return () => {
+      document.documentElement.style.scrollSnapType = '';
+    };
+  }, []);
+
   return (
     <main>
       <section className="h-screen w-full snap-start snap-always flex items-center justify-center">
