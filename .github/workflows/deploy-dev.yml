@@ -1,0 +1,100 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ${{ github.repository }}-backend
+  IMAGE_FRONTEND: ${{ github.repository }}-frontend
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase image names
+        id: image_names
+        run: |
+          echo "backend_image=${IMAGE_BACKEND,,}" >> "$GITHUB_OUTPUT"
+          echo "frontend_image=${IMAGE_FRONTEND,,}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:latest
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:${{ github.sha }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync monitoring configs to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USER }}
+          password: ${{ secrets.NCP_PASSWORD }}
+          source: "monitoring/**"
+          target: ${{ secrets.NCP_DEPLOY_PATH }}
+
+      - name: Deploy on NCP via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.NCP_HOST }}
+          username: ${{ secrets.NCP_USER }}
+          password: ${{ secrets.NCP_PASSWORD }}
+          script: |
+            set -e
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+            cd "${{ secrets.NCP_DEPLOY_PATH }}"
+
+            # === 기존 컨테이너 종료 ===
+            docker compose -f docker-compose.yml down || true
+
+            # === 이미지 pull ===
+            docker compose -f docker-compose.yml pull
+
+            # === Prisma Migration용 컨테이너 실행 ===
+            docker compose -f docker-compose.yml run --rm migrate
+
+            # === 오래된 이미지 정리 ===
+            docker image prune -f
+
+            # === 새 버전 실행 ===
+            docker compose -f docker-compose.yml up -d
+
+            echo "[SUCCESS] Deployment completed successfully ✅"
