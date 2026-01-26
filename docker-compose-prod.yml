@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   migrate:
-    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:latest
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
     profiles:
       - tools
     working_dir: /app/backend
@@ -11,7 +11,7 @@ services:
       - ./.env
 
   backend:
-    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:latest
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
     environment:
       PORT: 3000
     env_file:
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/boostcampwm2025/web02-cmc-frontend-prod:latest
+    image: ghcr.io/boostcampwm2025/web02-cmc-frontend-prod:${VERSION_TAG:-latest}
     ports:
       - "80:80"
     depends_on:
