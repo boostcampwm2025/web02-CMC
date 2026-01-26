@@ -455,7 +455,7 @@ describe('BattlesService', () => {
     let privateBattle: Battle
     let closedBattle: Battle
 
-    beforeEach(() => {
+    beforeEach(async () => {
       publicBattle = createBattle({
         id: 'public-battle',
         type: BATTLE_TYPE.PUBLIC,
