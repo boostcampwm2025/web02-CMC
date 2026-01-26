@@ -29,14 +29,14 @@ export default function Carousel({ children, interval = 5000 }: CarouselProps) {
   }, [currentIndex, interval, items.length]);
 
   return (
-    <div className="relative w-full h-full">
-      <div className="relative w-full h-full overflow-hidden rounded-xl">
+    <div className="relative w-full h-full overflow-hidden rounded-xl">
+      <div className="relative w-full h-full overflow-hidden">
         <div
           className="flex h-full transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {items.map((item, index) => (
-            <div key={index} className="min-w-full h-full flex-shrink-0">
+            <div key={index} className="w-full h-full flex-shrink-0 overflow-hidden">
               {item}
             </div>
           ))}
