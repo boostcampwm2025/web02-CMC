@@ -23,6 +23,8 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
+import SoundSettingsPopover from './components/header/SoundSettingsPopover';
+import SoundIcon from '@/assets/icon/sound.svg?react';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 type Tab = 'info' | 'timeline';
@@ -39,6 +41,8 @@ export default function BattlePage() {
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
   const battleProgress = useBattleStore(selectBattleProgress);
   const hasLeftRef = useRef(false);
+  const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
+  const soundButtonRef = useRef<HTMLButtonElement>(null);
 
   const safeLeaveBattle = useCallback(() => {
     if (hasLeftRef.current) return;
@@ -87,6 +91,7 @@ export default function BattlePage() {
 
   // 사운드 초기화
   useEffect(() => {
+    // 이펙트 사운드
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
     soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
     soundManager.preload('swoosh', '/sounds/swoosh.mp3');
@@ -94,7 +99,22 @@ export default function BattlePage() {
     soundManager.preload('fanfare', '/sounds/fanfare.mp3');
     soundManager.preload('click', '/sounds/click.mp3');
     soundManager.preload('click2', '/sounds/click2.mp3');
+
+    // BGM
+    soundManager.preloadBGM('acoustic', '/sounds/acoustic.mp3');
+    soundManager.preloadBGM('groove', '/sounds/groove.mp3');
+    soundManager.preloadBGM('hiphop', '/sounds/hiphop.mp3');
+    soundManager.preloadBGM('jazz', '/sounds/jazz.mp3');
+    soundManager.preloadBGM('lofi', '/sounds/lofi.mp3');
   }, []);
+
+  // 배틀 시작 시 BGM 자동 재생
+  useEffect(() => {
+    if (battleProgress && battleProgress.phase !== 'PENDING' && !soundManager.getCurrentBGM()) {
+      // 기본 BGM으로 acoustic 재생
+      soundManager.playBGM('acoustic', '/sounds/acoustic.mp3');
+    }
+  }, [battleProgress]);
 
   useEffect(() => {
     const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
@@ -183,6 +203,23 @@ export default function BattlePage() {
             >
               ← 돌아가기
             </button>
+
+            {/* 사운드 설정 버튼 - fixed */}
+            <div className="fixed top-4 right-4 z-10">
+              <button
+                ref={soundButtonRef}
+                onClick={() => setIsSoundSettingsOpen(!isSoundSettingsOpen)}
+                className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
+                aria-label="사운드 설정"
+              >
+                <SoundIcon className="w-5 h-5" />
+              </button>
+              <SoundSettingsPopover
+                isOpen={isSoundSettingsOpen}
+                onClose={() => setIsSoundSettingsOpen(false)}
+                anchorEl={soundButtonRef.current}
+              />
+            </div>
           </div>
           <BattleHeader />
         </div>
