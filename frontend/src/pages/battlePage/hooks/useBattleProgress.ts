@@ -51,7 +51,8 @@ export function useBattleProgress() {
       if (isTeamVoteResultShowing) {
         setPendingBattleClosed(true);
       } else {
-        navigate(`/battles/${data.battleId}/result`);
+        soundManager.stopAllBGM();
+      navigate(`/battles/${data.battleId}/result`);
       }
     };
     socket.on('battle:closed', handleBattleClosed);

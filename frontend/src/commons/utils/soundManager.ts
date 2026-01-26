@@ -3,7 +3,6 @@ class SoundManager {
   private bgmSounds: Map<string, HTMLAudioElement> = new Map();
   private currentBgmKey: string | null = null;
   private bgmVolume: number = 0.5;
-  private effectVolume: number = 0.5;
 
   preload(key: string, src: string) {
     const audio = new Audio(src);
@@ -11,11 +10,11 @@ class SoundManager {
     this.sounds.set(key, audio);
   }
 
-  play(key: string, volume?: number) {
+  play(key: string, volume = 0.5) {
     const audio = this.sounds.get(key);
     if (audio) {
       audio.currentTime = 0;
-      audio.volume = volume ?? this.effectVolume;
+      audio.volume = volume;
       audio.play().catch((error) => {
         console.error(`사운드 파일 에러: ${key}`, error);
       });
@@ -24,6 +23,8 @@ class SoundManager {
 
   // BGM 사전 로드
   preloadBGM(key: string, src: string) {
+    if (this.bgmSounds.has(key)) return;
+
     const audio = new Audio(src);
     audio.preload = 'auto';
     audio.loop = true;
@@ -32,10 +33,10 @@ class SoundManager {
 
   // BGM 재생
   playBGM(key: string, src: string) {
-    // 기존 BGM 정지
-    this.stopBGM();
+    if (this.currentBgmKey === key && this.isBGMPlaying()) return;
 
-    // Map에서 가져오거나 새로 생성
+    this.stopAllBGM();
+
     let audio = this.bgmSounds.get(key);
     if (!audio) {
       audio = new Audio(src);
@@ -51,16 +52,13 @@ class SoundManager {
     this.currentBgmKey = key;
   }
 
-  // BGM 정지
-  stopBGM() {
-    if (this.currentBgmKey) {
-      const audio = this.bgmSounds.get(this.currentBgmKey);
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-      this.currentBgmKey = null;
-    }
+  // 모든 BGM 정지
+  stopAllBGM() {
+    this.bgmSounds.forEach((audio) => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    this.currentBgmKey = null;
   }
 
   // BGM 일시정지
@@ -103,11 +101,6 @@ class SoundManager {
     }
   }
 
-  // 이펙트 사운드 볼륨 설정
-  setEffectVolume(volume: number) {
-    this.effectVolume = Math.max(0, Math.min(1, volume));
-  }
-
   // 현재 BGM 키 반환
   getCurrentBGM(): string | null {
     return this.currentBgmKey;
@@ -116,11 +109,6 @@ class SoundManager {
   // BGM 볼륨 반환
   getBGMVolume(): number {
     return this.bgmVolume;
-  }
-
-  // 이펙트 볼륨 반환
-  getEffectVolume(): number {
-    return this.effectVolume;
   }
 }
 

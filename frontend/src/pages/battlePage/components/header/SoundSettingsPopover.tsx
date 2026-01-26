@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { soundManager } from '@/commons/utils/soundManager';
+import { BGM_OPTIONS } from '@/commons/constants/bgmOptions';
 import CloseIcon from '@/assets/icon/close.svg?react';
 import PlayIcon from '@/assets/icon/play.svg?react';
 import PauseIcon from '@/assets/icon/pause.svg?react';
-import SoundIcon from '@/assets/icon/sound.svg?react';
+import VolumeSlider from './VolumeSlider';
 
 interface SoundSettingsPopoverProps {
   isOpen: boolean;
@@ -11,37 +12,18 @@ interface SoundSettingsPopoverProps {
   anchorEl: HTMLElement | null;
 }
 
-const BGM_OPTIONS = [
-  { key: 'acoustic', label: 'Acoustic ambient', src: '/sounds/acoustic.mp3' },
-  { key: 'groove', label: 'Groove', src: '/sounds/groove.mp3' },
-  { key: 'hiphop', label: 'Hip Hop', src: '/sounds/hiphop.mp3' },
-  { key: 'jazz', label: 'Jazz', src: '/sounds/jazz.mp3' },
-  { key: 'lofi', label: 'Lo-Fi', src: '/sounds/lofi.mp3' }
-];
-
 export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: SoundSettingsPopoverProps) {
-  const [volume, setVolume] = useState(soundManager.getBGMVolume());
+  const [bgmVolume, setBgmVolume] = useState(soundManager.getBGMVolume());
   const [selectedBGM, setSelectedBGM] = useState<string | null>(soundManager.getCurrentBGM());
   const [isPlaying, setIsPlaying] = useState(soundManager.isBGMPlaying());
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setVolume(soundManager.getBGMVolume());
+      setBgmVolume(soundManager.getBGMVolume());
       setSelectedBGM(soundManager.getCurrentBGM());
       setIsPlaying(soundManager.isBGMPlaying());
     }
-  }, [isOpen]);
-
-  // BGM 재생 상태 주기적 확인
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const interval = setInterval(() => {
-      setIsPlaying(soundManager.isBGMPlaying());
-    }, 100);
-
-    return () => clearInterval(interval);
   }, [isOpen]);
 
   useEffect(() => {
@@ -65,16 +47,33 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: Soun
     };
   }, [isOpen, onClose, anchorEl]);
 
-  const handleVolumeChange = (value: number) => {
-    setVolume(value);
+  const handleBGMVolumeChange = (value: number) => {
+    setBgmVolume(value);
     soundManager.setBGMVolume(value);
-    soundManager.setEffectVolume(value);
   };
 
-  const handleBGMSelect = (bgm: (typeof BGM_OPTIONS)[0]) => {
+  const handleBGMSelect = (bgmKey: string) => {
+    const bgm = BGM_OPTIONS.find((opt) => opt.key === bgmKey);
+    if (!bgm) return;
+
     setSelectedBGM(bgm.key);
     soundManager.playBGM(bgm.key, bgm.src);
     setIsPlaying(true);
+  };
+
+  const togglePlayPause = () => {
+    if (!selectedBGM) {
+      handleBGMSelect(BGM_OPTIONS[0].key);
+      return;
+    }
+
+    if (isPlaying) {
+      soundManager.pauseBGM();
+      setIsPlaying(false);
+    } else {
+      soundManager.resumeBGM();
+      setIsPlaying(true);
+    }
   };
 
   if (!isOpen || !anchorEl) return null;
@@ -82,98 +81,53 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: Soun
   return (
     <div
       ref={popoverRef}
-      className="absolute top-full right-0 mt-2 z-[1000] bg-[#1E1E2F] rounded-lg shadow-xl border border-[#2D2D3F] p-4 w-[280px]"
+      className="absolute top-full right-0 mt-2 z-1000 bg-[#1E1E2F]/70 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 p-6 w-[320px] animate-in fade-in zoom-in duration-200"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-white">사운드 설정</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-300 transition-colors p-1" aria-label="닫기">
+      <div className="relative flex items-center mb-6">
+        <h3 className="flex-1 text-sm font-bold text-white text-center">사운드 설정</h3>
+        <button
+          onClick={onClose}
+          className="absolute right-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+          aria-label="닫기"
+        >
           <CloseIcon className="w-4 h-4" />
         </button>
       </div>
 
-      {/* 브금 선택 */}
-      <div className="mb-4">
-        <label className="block text-xs text-gray-400 mb-2">브금</label>
-        <div className="flex items-center gap-2">
-          <select
-            value={selectedBGM || ''}
-            onChange={(e) => {
-              const bgm = BGM_OPTIONS.find((opt) => opt.key === e.target.value);
-              if (bgm) handleBGMSelect(bgm);
-            }}
-            className="flex-1 px-3 py-2 text-sm bg-[#2D2D3F] border border-[#3D3D4F] rounded hover:border-purple-600/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-300"
-          >
-            <option value="">음악 선택</option>
-            {BGM_OPTIONS.map((bgm) => (
-              <option key={bgm.key} value={bgm.key}>
-                {bgm.label}
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <label className="block text-xs font-semibold text-gray-300 text-left mb-3">BGM 선택</label>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedBGM || ''}
+              onChange={(e) => handleBGMSelect(e.target.value)}
+              className="flex-1 px-4 py-2.5 text-sm bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-gray-200 transition-all appearance-none cursor-pointer"
+            >
+              <option value="" className="bg-[#1E1E2F]">
+                선택 안함
               </option>
-            ))}
-          </select>
-          <button
-            onClick={() => {
-              if (selectedBGM) {
-                // 일시정지/재생 토글
-                if (isPlaying) {
-                  // 재생 중이면 일시정지
-                  soundManager.pauseBGM();
-                  setIsPlaying(false);
-                } else {
-                  // 일시정지 중이면 재개
-                  const currentBGM = soundManager.getCurrentBGM();
-                  if (currentBGM) {
-                    // 이전에 재생하던 BGM 재개
-                    soundManager.resumeBGM();
-                    setIsPlaying(true);
-                  } else {
-                    // 선택된 BGM 재생
-                    const bgm = BGM_OPTIONS.find((opt) => opt.key === selectedBGM);
-                    if (bgm) {
-                      soundManager.playBGM(bgm.key, bgm.src);
-                      setIsPlaying(true);
-                    }
-                  }
-                }
-              } else {
-                // 선택된 BGM이 없으면 첫 번째 옵션 재생
-                if (BGM_OPTIONS.length > 0) {
-                  handleBGMSelect(BGM_OPTIONS[0]);
-                  setIsPlaying(true);
-                }
-              }
-            }}
-            className="w-8 h-8 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] border border-[#3D3D4F] flex items-center justify-center transition-colors shrink-0"
-            aria-label={selectedBGM && isPlaying ? 'BGM 일시정지' : 'BGM 재생'}
-          >
-            {selectedBGM && isPlaying ? (
-              <PauseIcon className="w-4 h-4 text-white" />
-            ) : (
-              <PlayIcon className="w-4 h-4 text-white ml-0.5" />
-            )}
-          </button>
+              {BGM_OPTIONS.map((bgm) => (
+                <option key={bgm.key} value={bgm.key} className="bg-[#1E1E2F]">
+                  {bgm.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={togglePlayPause}
+              className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all active:scale-95 group"
+              aria-label={isPlaying ? '일시정지' : '재생'}
+            >
+              {isPlaying ? (
+                <PauseIcon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+              ) : (
+                <PlayIcon className="w-5 h-5 text-white ml-0.5 group-hover:scale-110 transition-transform" />
+              )}
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 볼륨 조절 */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-xs text-gray-400">볼륨</label>
-          <span className="text-xs text-gray-400">{Math.round(volume * 100)}%</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <SoundIcon className="w-4 h-4 text-gray-400 shrink-0" />
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={volume}
-            onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-            className="flex-1 h-2 bg-[#2D2D3F] rounded-lg appearance-none cursor-pointer"
-            style={{
-              background: `linear-gradient(to right, #9333ea 0%, #9333ea ${volume * 100}%, #2D2D3F ${volume * 100}%, #2D2D3F 100%)`
-            }}
-          />
+        <div className="pt-2">
+          <VolumeSlider label="볼륨" value={bgmVolume} onChange={handleBGMVolumeChange} />
         </div>
       </div>
     </div>
