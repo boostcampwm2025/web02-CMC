@@ -1,6 +1,14 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 import { MOCK_BATTLES } from '../mock/battles.mock'
 import { TimelineItem, Mvp, BattleResult, VoteTimeline, Metrics } from '../types/battleResult.types'
@@ -35,7 +43,10 @@ import {
   BATTLE_DISCUSSION_TYPE,
   BATTLE_MAX_PHASE_COUNT,
   MVP_DISPLAY_COUNT,
+  AI_REFERENCE_PROMPT,
 } from '../const/battles.const'
+import type { BattleReferenceData } from '../types/ai.types'
+import type { GenerateReferenceRequestDto } from '../dto/generateReference.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
@@ -1149,5 +1160,45 @@ export class BattlesService extends EventEmitter {
     }, remaining)
 
     this.battleTimers.set(battleId, battleTimer)
+  }
+
+  async generateReferenceData(dto: GenerateReferenceRequestDto): Promise<BattleReferenceData> {
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) {
+      console.warn('GEMINI_API_KEY가 설정되지 않았습니다.')
+      throw new InternalServerErrorException('AI 서비스를 사용할 수 없습니다.')
+    }
+
+    const prompt = AI_REFERENCE_PROMPT.replace('{title}', dto.title)
+      .replace('{description}', dto.description)
+      .replace('{language}', dto.language)
+      .replace('{category}', dto.category)
+      .replace('{topics}', dto.topics?.join(', ') || '없음')
+      .replace('{codeA}', dto.codeA)
+      .replace('{codeB}', dto.codeB)
+      .replace('{language}', dto.language)
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const model = genAI.getGenerativeModel({ model: 'gemini-3.0-flash' })
+
+      const result = await model.generateContent(prompt)
+      const response = result.response
+      const text = response.text()
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        throw new InternalServerErrorException('AI 응답을 파싱할 수 없습니다.')
+      }
+
+      const referenceData = JSON.parse(jsonMatch[0]) as BattleReferenceData
+      return referenceData
+    } catch (error: unknown) {
+      console.error('AI 참고 자료 생성 실패:', error)
+      if (error instanceof InternalServerErrorException) {
+        throw error
+      }
+      throw new InternalServerErrorException('AI 참고 자료 생성에 실패했습니다.')
+    }
   }
 }
