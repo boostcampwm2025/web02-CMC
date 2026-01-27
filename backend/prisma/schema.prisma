@@ -49,8 +49,8 @@ model Battle {
   topics                   String[]  @db.VarChar(20)
   category                 String    @db.VarChar(20)
   language                 String    @db.VarChar(20)
-  password                 String?   @db.VarChar(255)
-  isPrivate                Boolean   @default(false) @map("is_private")
+  inviteCode               String?   @unique @db.VarChar(255) @map("invite_code")
+  isPrivate                Boolean   @default(true) @map("is_private")
   status                   String    @db.VarChar(20)
 
   /* AI 참고 자료 */
