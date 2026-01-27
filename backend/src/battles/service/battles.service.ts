@@ -1,6 +1,14 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common'
+import * as crypto from 'crypto'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
@@ -67,6 +75,26 @@ export class BattlesService extends EventEmitter {
     return uuidv7()
   }
 
+  private async generateInviteCode(): Promise<string> {
+    const MAX_ATTEMPTS = 10
+    let attempt = 0
+
+    while (attempt < MAX_ATTEMPTS) {
+      const inviteCode = crypto.randomBytes(12).toString('base64url')
+      // 중복 확인
+      const existingBattle = await this.prisma.battle.findUnique({
+        where: { inviteCode },
+        select: { id: true },
+      })
+      if (!existingBattle) {
+        return inviteCode
+      }
+      attempt++
+    }
+
+    throw new InternalServerErrorException('고유한 초대 코드를 생성할 수 없습니다. 다시 시도해 주세요.')
+  }
+
   private getPlayTime(playTimeName: string): BattlePlayTime {
     const playTime = BATTLE_PLAYTIME[playTimeName as BattlePlayTimeName]
     if (!playTime) {
@@ -87,7 +115,7 @@ export class BattlesService extends EventEmitter {
       category: string
       playTime: string
       topics: string[]
-      password: string | null
+      inviteCode: string | null
       isPrivate: boolean
       status: string
       createdAt: Date
@@ -109,7 +137,7 @@ export class BattlesService extends EventEmitter {
       category: record.category as BattleCategory,
       playTime,
       topics: record.topics,
-      password: record.password ?? undefined,
+      inviteCode: record.inviteCode ?? undefined,
       status: record.status as BattleStatus,
       participantCount,
       initialState: {
@@ -356,6 +384,12 @@ export class BattlesService extends EventEmitter {
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
     const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
+    // PRIVATE 배틀인 경우 inviteCode 생성
+    let inviteCode: string | null = null
+    if (isPrivate) {
+      inviteCode = await this.generateInviteCode()
+    }
+
     const created = await this.prisma.battle.create({
       data: {
         id: battleId,
@@ -368,7 +402,7 @@ export class BattlesService extends EventEmitter {
         category: payload.category,
         playTime: payload.playTime,
         topics: shuffledTopics,
-        password: isPrivate ? (payload.password?.trim() ?? null) : null,
+        inviteCode,
         isPrivate,
         status: BATTLE_STATUS.PENDING,
         createdAt: now,
@@ -533,16 +567,20 @@ export class BattlesService extends EventEmitter {
   }
 
   async joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
-    const { battleId, password, team, nickname } = battleJoinRequestDto
+    const { battleId, inviteCode, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
     const { battle, state } = await this.loadBattleState(battleId)
 
-    if (battle.isPrivate && battle.password) {
-      const isValid = battle.password === password
-
-      if (!isValid) throw new UnauthorizedException('잘못된 비밀번호입니다.')
+    // PRIVATE 배틀인 경우 inviteCode 검증
+    if (battle.isPrivate) {
+      if (!inviteCode) {
+        throw new UnauthorizedException('초대 코드가 필요합니다.')
+      }
+      if (battle.inviteCode !== inviteCode) {
+        throw new UnauthorizedException('잘못된 초대 코드입니다.')
+      }
     }
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
