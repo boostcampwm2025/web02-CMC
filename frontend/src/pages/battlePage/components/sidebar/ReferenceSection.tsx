@@ -72,25 +72,14 @@ function TeamReferences({ team, perspective, references, isExpanded, onToggle }:
               key={index}
               className={`bg-[#0a0a1a]/50 border ${colors.border} ${colors.hover} rounded-lg p-3 transition-all hover:shadow group`}
             >
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <h4 className={`${colors.text} font-semibold text-xs flex-1`}>{ref.title}</h4>
-                <a
-                  href={ref.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`${colors.text} opacity-60 hover:opacity-100 transition-opacity`}
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </a>
-              </div>
-
               <a
                 href={ref.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 text-xs hover:text-gray-400 transition-colors block mb-2 truncate"
+                className={`${colors.text} font-semibold text-xs hover:underline inline-flex items-center gap-1 mb-2`}
               >
-                {ref.url}
+                {ref.title}
+                <ExternalLink className="w-3 h-3 opacity-60 flex-shrink-0" />
               </a>
 
               <p className="text-gray-300 text-xs leading-relaxed">{ref.summary}</p>
