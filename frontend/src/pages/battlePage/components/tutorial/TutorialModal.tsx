@@ -2,24 +2,13 @@ import QuestionIcon from '@/assets/icon/question.svg?react';
 
 interface TutorialModalProps {
   isOpen: boolean;
-  onClose: () => void;
   onStart: () => void;
   dontShowAgain: boolean;
   onDontShowAgainChange: (value: boolean) => void;
 }
 
-export default function TutorialModal({
-  isOpen,
-  onClose,
-  onStart,
-  dontShowAgain,
-  onDontShowAgainChange
-}: TutorialModalProps) {
+export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontShowAgainChange }: TutorialModalProps) {
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    onClose();
-  };
 
   const handleStart = () => {
     onStart();
@@ -37,9 +26,9 @@ export default function TutorialModal({
         <h2 className="text-center text-2xl font-bold text-white mb-4">배틀 페이지 튜토리얼</h2>
 
         <p className="text-center text-sm text-[#99A1AF] leading-relaxed mb-6">
-          처음이신가요? 배틀 페이지 사용법을 안내해드릴게요!
+          처음이신가요? 화면을 하나씩 따라가며 사용법을 안내해드릴게요!
           <br />
-          7단계의 가이드로 쉽게 배워보세요.
+          9단계로 핵심 기능을 차근차근 익힐 수 있습니다.
         </p>
 
         <label className="flex items-center justify-center gap-2 mb-6 cursor-pointer">
@@ -52,20 +41,12 @@ export default function TutorialModal({
           <span className="text-xs text-[#99A1AF]">다시 보지 않기</span>
         </label>
 
-        <div className="flex gap-3">
-          <button
-            onClick={handleClose}
-            className="flex-1 h-12 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] text-white text-base font-medium transition-colors"
-          >
-            건너뛰기
-          </button>
-          <button
-            onClick={handleStart}
-            className="flex-1 h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-base font-bold transition-all shadow-lg shadow-orange-500/30"
-          >
-            시작하기
-          </button>
-        </div>
+        <button
+          onClick={handleStart}
+          className="w-full h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-base font-bold transition-all shadow-lg shadow-orange-500/30"
+        >
+          시작하기
+        </button>
 
         <div className="flex items-center justify-center gap-1 mt-4">
           <span className="text-[0.625rem] text-[#6A7282]">💡 우측 상단</span>
