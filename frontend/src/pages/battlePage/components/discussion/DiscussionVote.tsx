@@ -58,18 +58,21 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
 
       <div className="p-4 bg-gradient-to-r from-[#1E1E2F] to-[#59168B]">
         <div className="space-y-3 max-h-[280px] xl:max-h-[320px] min-[1920px]:max-h-[360px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
-          {discussions.map((discussion) => (
-            <DiscussionVoteItem
-              key={discussion.id}
-              user={discussion.user}
-              team={discussion.team}
-              content={discussion.content}
-              votes={discussion.votes}
-              totalVotes={discussion.totalVotes}
-              hasVoted={discussion.hasVoted}
-              onVote={() => onVote(discussion.id)}
-            />
-          ))}
+          {discussions
+            .sort((a, b) => b.votes - a.votes)
+            .map((discussion) => (
+              <div key={discussion.id} className="transition-all duration-300">
+                <DiscussionVoteItem
+                  user={discussion.user}
+                  team={discussion.team}
+                  content={discussion.content}
+                  votes={discussion.votes}
+                  totalVotes={discussion.totalVotes}
+                  hasVoted={discussion.hasVoted}
+                  onVote={() => onVote(discussion.id)}
+                />
+              </div>
+            ))}
         </div>
       </div>
       <div className="py-4 bg-gradient-to-r from-[#1C398E] to-[#59168B] border-t border-[#2D2D3F] flex items-center justify-center gap-2 text-sm">
