@@ -1,50 +1,55 @@
 import { useState, useEffect, useRef } from 'react';
 import { soundManager } from '@/commons/utils/soundManager';
-import { BGM_OPTIONS } from '@/commons/constants/bgmOptions';
 import CloseIcon from '@/assets/icon/close.svg?react';
 import PlayIcon from '@/assets/icon/play.svg?react';
 import PauseIcon from '@/assets/icon/pause.svg?react';
 import VolumeSlider from './VolumeSlider';
 
+interface BGMOption {
+  key: string;
+  label: string;
+  src: string;
+}
+
 interface SoundSettingsPopoverProps {
   isOpen: boolean;
   onClose: () => void;
   anchorEl: HTMLElement | null;
+  bgmOptions: BGMOption[];
 }
 
-export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: SoundSettingsPopoverProps) {
-  const [bgmVolume, setBgmVolume] = useState(soundManager.getBGMVolume());
-  const [selectedBGM, setSelectedBGM] = useState<string | null>(soundManager.getCurrentBGM());
-  const [isPlaying, setIsPlaying] = useState(soundManager.isBGMPlaying());
+export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOptions }: SoundSettingsPopoverProps) {
+  const [bgmVolume, setBgmVolume] = useState(() => soundManager.getBGMVolume());
+  const [selectedBGM, setSelectedBGM] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
+  // 팝오버가 열릴 때 soundManager 상태와 동기화
   useEffect(() => {
-    if (isOpen) {
-      setBgmVolume(soundManager.getBGMVolume());
-      setSelectedBGM(soundManager.getCurrentBGM());
-      setIsPlaying(soundManager.isBGMPlaying());
-    }
+    if (!isOpen) return;
+
+    const currentBGM = soundManager.getCurrentBGM();
+    setSelectedBGM(currentBGM || bgmOptions[0]?.key || null);
+    setIsPlaying(soundManager.isBGMPlaying());
+    setBgmVolume(soundManager.getBGMVolume());
   }, [isOpen]);
 
+  // 외부 클릭 감지
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoverRef.current &&
-        !popoverRef.current.contains(event.target as Node) &&
-        anchorEl &&
-        !anchorEl.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      const clickedInsidePopover = popoverRef.current?.contains(target);
+      const clickedInsideButton = anchorEl?.contains(target);
+
+      if (!clickedInsidePopover && !clickedInsideButton) {
         onClose();
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose, anchorEl]);
 
   const handleBGMVolumeChange = (value: number) => {
@@ -53,17 +58,24 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: Soun
   };
 
   const handleBGMSelect = (bgmKey: string) => {
-    const bgm = BGM_OPTIONS.find((opt) => opt.key === bgmKey);
-    if (!bgm) return;
+    if (!bgmKey) {
+      soundManager.stopAllBGM();
+      setSelectedBGM(null);
+      setIsPlaying(false);
+      return;
+    }
 
-    setSelectedBGM(bgm.key);
-    soundManager.playBGM(bgm.key, bgm.src);
+    setSelectedBGM(bgmKey);
+    soundManager.playBGM(bgmKey);
     setIsPlaying(true);
   };
 
   const togglePlayPause = () => {
+    const targetBGM = selectedBGM || bgmOptions[0]?.key;
+    if (!targetBGM) return;
+
     if (!selectedBGM) {
-      handleBGMSelect(BGM_OPTIONS[0].key);
+      handleBGMSelect(targetBGM);
       return;
     }
 
@@ -96,7 +108,7 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: Soun
 
       <div className="space-y-6">
         <div className="space-y-4">
-          <label className="block text-xs font-semibold text-gray-300 text-left mb-3">BGM 선택</label>
+          <label className="block text-sm font-base text-gray-400 text-left mb-3">BGM 선택</label>
           <div className="flex items-center gap-2">
             <select
               value={selectedBGM || ''}
@@ -106,7 +118,7 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl }: Soun
               <option value="" className="bg-[#1E1E2F]">
                 선택 안함
               </option>
-              {BGM_OPTIONS.map((bgm) => (
+              {bgmOptions.map((bgm) => (
                 <option key={bgm.key} value={bgm.key} className="bg-[#1E1E2F]">
                   {bgm.label}
                 </option>

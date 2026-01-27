@@ -6,7 +6,6 @@ import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
-import { BGM_OPTIONS } from '@/commons/constants/bgmOptions';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 
@@ -44,6 +43,16 @@ export default function BattlePage() {
   const hasLeftRef = useRef(false);
   const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
   const soundButtonRef = useRef<HTMLButtonElement>(null);
+
+  const BGM_OPTIONS = [
+    { key: 'lofi', label: 'LoFi', src: '/sounds/lofi.mp3' },
+    { key: 'chill', label: 'Chill', src: '/sounds/chill.mp3' },
+    { key: 'groove', label: 'Groove', src: '/sounds/groove.mp3' },
+    { key: 'hiphop', label: 'Hip Hop', src: '/sounds/hiphop.mp3' },
+    { key: 'jazz', label: 'Jazz', src: '/sounds/jazz.mp3' },
+    { key: 'rock', label: 'Rock', src: '/sounds/rock.mp3' },
+    { key: 'romantic', label: 'Romantic', src: '/sounds/romantic.mp3' }
+  ];
 
   const safeLeaveBattle = useCallback(() => {
     if (hasLeftRef.current) return;
@@ -95,7 +104,6 @@ export default function BattlePage() {
 
   // 사운드 초기화
   useEffect(() => {
-    // 이펙트 사운드
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
     soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
     soundManager.preload('swoosh', '/sounds/swoosh.mp3');
@@ -103,19 +111,16 @@ export default function BattlePage() {
     soundManager.preload('fanfare', '/sounds/fanfare.mp3');
     soundManager.preload('click', '/sounds/click.mp3');
     soundManager.preload('click2', '/sounds/click2.mp3');
-  }, []);
 
-  // 배틀 시작 시 BGM 자동 재생
-  useEffect(() => {
-    // BGM 사전 로드
     BGM_OPTIONS.forEach((bgm) => {
       soundManager.preloadBGM(bgm.key, bgm.src);
     });
+  }, []);
 
-    // 배틀 진행 중이고 BGM이 없으면 기본 BGM 재생
-    if (battleProgress && battleProgress.phase !== 'PENDING' && !soundManager.getCurrentBGM()) {
-      const defaultBGM = BGM_OPTIONS[0];
-      soundManager.playBGM(defaultBGM.key, defaultBGM.src);
+  // 배틀 페이지 진입 시 BGM 자동 재생
+  useEffect(() => {
+    if (!soundManager.getCurrentBGM()) {
+      soundManager.playBGM(BGM_OPTIONS[0].key);
     }
   }, []);
 
@@ -221,6 +226,7 @@ export default function BattlePage() {
                 isOpen={isSoundSettingsOpen}
                 onClose={() => setIsSoundSettingsOpen(false)}
                 anchorEl={soundButtonRef.current}
+                bgmOptions={BGM_OPTIONS}
               />
             </div>
           </div>

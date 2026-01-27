@@ -21,7 +21,6 @@ class SoundManager {
     }
   }
 
-  // BGM 사전 로드
   preloadBGM(key: string, src: string) {
     if (this.bgmSounds.has(key)) return;
 
@@ -32,16 +31,15 @@ class SoundManager {
   }
 
   // BGM 재생
-  playBGM(key: string, src: string) {
+  playBGM(key: string) {
     if (this.currentBgmKey === key && this.isBGMPlaying()) return;
 
     this.stopAllBGM();
 
-    let audio = this.bgmSounds.get(key);
+    const audio = this.bgmSounds.get(key);
     if (!audio) {
-      audio = new Audio(src);
-      audio.loop = true;
-      this.bgmSounds.set(key, audio);
+      console.warn(`BGM이 사전 로드되지 않았습니다: ${key}`);
+      return;
     }
 
     audio.volume = this.bgmVolume;

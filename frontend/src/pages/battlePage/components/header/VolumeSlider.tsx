@@ -10,8 +10,8 @@ export default function VolumeSlider({ label, value, onChange }: VolumeSliderPro
   return (
     <div className="mb-5">
       <div className="flex items-center justify-between mb-2">
-        <label className="text-xs font-medium text-gray-300">{label}</label>
-        <span className="text-xs text-gray-400 font-mono">{percentage}%</span>
+        <label className="text-sm font-base text-gray-400">{label}</label>
+        <span className="text-xs text-gray-400 font-base">{percentage}%</span>
       </div>
       <div className="relative flex items-center group">
         <input
