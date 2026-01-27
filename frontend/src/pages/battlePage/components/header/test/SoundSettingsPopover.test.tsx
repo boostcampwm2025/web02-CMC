@@ -48,7 +48,8 @@ describe('SoundSettingsPopover', () => {
   it('BGM 볼륨 슬라이더 변경', () => {
     render(<SoundSettingsPopover {...defaultProps} />);
 
-    const bgmSlider = screen.getByLabelText(/BGM 볼륨/i);
+    const sliders = screen.getAllByRole('slider');
+    const bgmSlider = sliders[0];
     fireEvent.change(bgmSlider, { target: { value: '0.8' } });
 
     expect(soundManager.setBGMVolume).toHaveBeenCalledWith(0.8);
@@ -57,7 +58,8 @@ describe('SoundSettingsPopover', () => {
   it('효과음 볼륨 슬라이더 변경', () => {
     render(<SoundSettingsPopover {...defaultProps} />);
 
-    const effectSlider = screen.getByLabelText(/효과음 볼륨/i);
+    const sliders = screen.getAllByRole('slider');
+    const effectSlider = sliders[1];
     fireEvent.change(effectSlider, { target: { value: '0.6' } });
 
     expect(soundManager.setEffectVolume).toHaveBeenCalledWith(0.6);
