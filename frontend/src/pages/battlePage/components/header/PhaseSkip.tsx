@@ -12,8 +12,8 @@ export default function PhaseSkip({ phase }: PhaseSkipProps) {
   const isSkip = ['PENDING', 'TEAM_SWITCH'].includes(phase);
 
   return (
-    <div className="ml-auto">
-      <div className="mb-3 bg-[#0a0a1a]/40 border border-gray-700 rounded-xl px-4 py-3">
+    <div className="ml-auto shrink-0">
+      <div className="mb-1 bg-[#0a0a1a]/40 border border-gray-700 rounded-xl px-4 py-3">
         <div className="flex items-center gap-2 relative group">
           <span className="text-white text-sm font-semibold whitespace-nowrap">이번 페이즈 스킵</span>
           <SkipIcon className="w-4 h-4 text-cyan-400" />

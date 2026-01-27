@@ -6,7 +6,8 @@ import {
   useBattleStore,
   selectBattleProgress,
   selectBattleId,
-  selectSocket
+  selectSocket,
+  selectSelectedTeam
 } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 import PhaseSkip from './PhaseSkip';
@@ -21,10 +22,13 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
 
 export default function BattleHeader() {
   const battleProgress = useBattleStore(selectBattleProgress);
+  const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);
   const socket = useBattleStore(selectSocket);
   const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
+
+  const isSkipVisible = team !== 'NONE';
 
   const handleStart = () => {
     if (!socket || !battleId) return;
@@ -54,10 +58,15 @@ export default function BattleHeader() {
             </>
           )}
         </div>
-        <div className="flex items-center justify-between">
-          <PhaseSkip phase={phase} />
-          <div className="ml-3 pl-6 border-l-2 border-gray-700">
-            <div className="flex items-center" />
+        <div className="flex items-center">
+          <div className="ml-auto flex items-center">
+            {isSkipVisible && (
+              <>
+                <PhaseSkip phase={phase} />
+                <div className="mx-4 h-6 border-l-2 border-gray-700" />
+              </>
+            )}
+
             <TeamCounter />
           </div>
         </div>
