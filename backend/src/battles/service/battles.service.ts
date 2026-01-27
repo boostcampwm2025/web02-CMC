@@ -603,10 +603,12 @@ export class BattlesService extends EventEmitter {
 
     allOpinions.forEach(opinion => {
       const { authorId, nickname } = opinion.author
-      const team = opinion.team
 
-      // 중립 팀 및 빈 userId(placeholder) 제외
-      if (team === BATTLE_TEAM.NONE || !authorId) return
+      // 빈 userId(placeholder) 제외
+      if (!authorId) return
+
+      // 의견 제출 시점에 중립 팀이면 점수 집계 제외 (중립은 의견 제출 불가)
+      if (opinion.team === BATTLE_TEAM.NONE) return
 
       // 페이즈별로 기록된 투표 참가자 수 사용 (없으면 0으로 처리)
       const voterCount = opinion.voterCountAtPhase ?? 0
@@ -627,7 +629,7 @@ export class BattlesService extends EventEmitter {
           createMvpCandidate({
             userId: authorId,
             nickname,
-            team: team === BATTLE_TEAM.A ? 'A' : 'B',
+            team: 'A', // 임시값, 최종 팀으로 나중에 덮어씀
             score: opinionScore,
             totalVotes: opinion.upvotes,
             opinionCount: 1,
@@ -636,6 +638,12 @@ export class BattlesService extends EventEmitter {
           }),
         )
       }
+    })
+
+    // 최종 팀 기준으로 MVP 팀 설정 (팀 변경 반영)
+    candidateMap.forEach((candidate, oderId) => {
+      const finalTeam = state.participants.get(oderId)
+      candidate.team = finalTeam === BATTLE_TEAM.A ? 'A' : finalTeam === BATTLE_TEAM.B ? 'B' : 'NONE'
     })
 
     if (candidateMap.size === 0) return []
