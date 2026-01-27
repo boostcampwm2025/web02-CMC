@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsNotEmpty, IsString } from 'class-validator'
 import type { BattleTeam } from '../types/battles.types'
 
 export class BattleJoinRequestDto {
@@ -13,8 +13,4 @@ export class BattleJoinRequestDto {
   @IsString()
   @IsNotEmpty()
   nickname: string
-
-  @IsString()
-  @IsOptional()
-  password?: string
 }

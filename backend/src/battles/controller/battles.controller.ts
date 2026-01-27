@@ -1,4 +1,5 @@
-import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException } from '@nestjs/common'
+import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException, Res } from '@nestjs/common'
+import type { Response } from 'express'
 import { BattlesService } from '../service/battles.service'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
@@ -10,9 +11,12 @@ export class BattlesController {
   constructor(private readonly battlesService: BattlesService) {}
 
   @Post()
-  async createBattle(@Body() body: BattleCreateQueryDto): Promise<{ battleId: string }> {
+  async createBattle(@Body() body: BattleCreateQueryDto): Promise<{ battleId: string; inviteCode?: string }> {
     const battle = await this.battlesService.create(body)
-    return { battleId: battle.id }
+    return {
+      battleId: battle.id,
+      inviteCode: battle.inviteCode,
+    }
   }
 
   @Get('open')
@@ -23,6 +27,16 @@ export class BattlesController {
   @Get('closed')
   async getClosedBattles(@Query() query: BattleListRequestQueryDto) {
     return this.battlesService.getClosedBattles(query.limit, query.offset)
+  }
+
+  @Get(':inviteCode')
+  @HttpCode(302)
+  async getBattleByInviteCode(@Param('inviteCode') inviteCode: string, @Res() res: Response) {
+    const { battleId } = await this.battlesService.getBattleByInviteCode(inviteCode)
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+
+    //리다이렉트
+    return res.redirect(`${frontendUrl}/battle/${battleId}/team-select`)
   }
 
   @Post(':id/join')
