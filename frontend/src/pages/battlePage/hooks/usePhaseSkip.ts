@@ -12,7 +12,7 @@ export function usePhaseSkip() {
 
     setIsSkipEnabled((prev) => {
       const next = !prev;
-      socket.emit('battle:phase:skip', { skip: next, battleId: battleId });
+      socket.emit('battle:user:skip', { skip: next, battleId: battleId });
       return next;
     });
   }, [socket, battleId]);
@@ -29,11 +29,11 @@ export function usePhaseSkip() {
       setTotalSkips(0);
     };
 
-    socket.on('battle:phase:skipped', handleSkipped);
+    socket.on('battle:user:skipped', handleSkipped);
     socket.on('battle:phase:updated', handlePhaseUpdated);
 
     return () => {
-      socket.off('battle:phase:skipped', handleSkipped);
+      socket.off('battle:user:skipped', handleSkipped);
       socket.off('battle:phase:updated', handlePhaseUpdated);
     };
   }, [socket]);
