@@ -375,13 +375,9 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
-    const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
+    const isPrivate = true
 
-    // PRIVATE 배틀인 경우 inviteCode 생성
-    let inviteCode: string | null = null
-    if (isPrivate) {
-      inviteCode = await this.generateInviteCode()
-    }
+    const inviteCode = await this.generateInviteCode()
 
     const created = await this.prisma.battle.create({
       data: {
