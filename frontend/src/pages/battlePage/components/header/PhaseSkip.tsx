@@ -1,8 +1,15 @@
 import SkipIcon from '@/assets/icon/skip.svg?react';
 import { usePhaseSkip } from '../../hooks/usePhaseSkip';
+import type { BattlePhase } from '@/commons/types/battle';
 
-export default function PhaseSkip() {
+interface PhaseSkipProps {
+  phase: BattlePhase;
+}
+
+export default function PhaseSkip({ phase }: PhaseSkipProps) {
   const { isSkipEnabled, totalSkips, toggleSkip } = usePhaseSkip();
+
+  const isSkip = ['PENDING', 'TEAM_SWITCH'].includes(phase);
 
   return (
     <div className="ml-auto">
@@ -14,6 +21,7 @@ export default function PhaseSkip() {
           <button
             type="button"
             onClick={toggleSkip}
+            disabled={isSkip}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors
               ${isSkipEnabled ? 'bg-blue-500' : 'bg-[#3A3A4F]'}`}
           >
