@@ -45,10 +45,14 @@ export function usePhaseSkip() {
     };
 
     socket.on('battle:user:skipped', handleSkipped);
+    socket.on('battle:leaved', handleSkipped);
+    socket.on('battle:joined', handleSkipped);
     socket.on('battle:phase:updated', handlePhaseUpdated);
 
     return () => {
       socket.off('battle:user:skipped', handleSkipped);
+      socket.off('battle:leaved', handleSkipped);
+      socket.off('battle:joined', handleSkipped);
       socket.off('battle:phase:updated', handlePhaseUpdated);
     };
   }, [socket]);
