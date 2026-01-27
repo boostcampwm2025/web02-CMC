@@ -1,5 +1,5 @@
-import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam } from '../types/battles.types'
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam, BattleLanguage, BattleCategory } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import {
   BATTLE_TYPE,
@@ -74,7 +74,7 @@ type BattleCreateArgs = {
 }
 
 type BattleFindUniqueArgs = {
-  where: { id: string }
+  where: { id?: string; inviteCode?: string }
 }
 
 type MockPrisma = {
@@ -265,7 +265,16 @@ describe('BattlesService', () => {
     stateStore = new Map()
     mockPrisma = {
       battle: {
-        findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => battleStore.get(where.id) ?? null),
+        findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => {
+          if (where.id) {
+            return battleStore.get(where.id) ?? null
+          }
+          if (where.inviteCode) {
+            const records = [...battleStore.values()]
+            return records.find(r => r.inviteCode === where.inviteCode) ?? null
+          }
+          return null
+        }),
         findMany: jest.fn(({ where, orderBy, skip = 0, take }: BattleFindManyArgs) => {
           let records = [...battleStore.values()]
           if (where?.isPrivate !== undefined) {
@@ -423,6 +432,40 @@ describe('BattlesService', () => {
     })
   })
 
+  describe('getBattleByInviteCode', () => {
+    beforeEach(() => {
+      const battle = createBattle({
+        id: 'battle-1',
+        inviteCode: 'test-invite-code-1234',
+        status: BATTLE_STATUS.OPEN,
+      })
+      seedBattles([battle])
+    })
+
+    it('inviteCode가 없으면 BadRequestException을 던진다', async () => {
+      await expect(service.getBattleByInviteCode('')).rejects.toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 inviteCode면 NotFoundException을 던진다', async () => {
+      await expect(service.getBattleByInviteCode('invalid-code')).rejects.toThrow(NotFoundException)
+    })
+
+    it('올바른 inviteCode로 배틀 ID를 반환한다', async () => {
+      const result = await service.getBattleByInviteCode('test-invite-code-1234')
+      expect(result.battleId).toBe('battle-1')
+    })
+
+    it('종료된 배틀의 inviteCode면 BadRequestException을 던진다', async () => {
+      const closedBattle = createBattle({
+        id: 'closed-battle',
+        inviteCode: 'closed-invite-code',
+        status: BATTLE_STATUS.CLOSED,
+      })
+      seedBattles([closedBattle])
+      await expect(service.getBattleByInviteCode('closed-invite-code')).rejects.toThrow(BadRequestException)
+    })
+  })
+
   describe('joinBattleInfo', () => {
     it('battleId가 없으면 BadRequestException을 던진다', async () => {
       await expect(service.joinBattleInfo('')).rejects.toThrow(BadRequestException)
@@ -499,25 +542,10 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(
-        service.joinBattle(
-          {
-            battleId: 'private-battle',
-            inviteCode: 'wrong-invite-code',
-            team: 'A',
-            nickname: 'test-user',
-          },
-          'user-1',
-        ),
-      ).rejects.toThrow(UnauthorizedException)
-    })
-
-    it('case', async () => {
       await service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
       const result = await service.joinBattle(
         {
           battleId: 'private-battle',
-          inviteCode: 'test-invite-code-1234',
           team: 'A',
           nickname: 'test-user',
         },
