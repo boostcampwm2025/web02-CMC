@@ -20,6 +20,7 @@ interface SoundSettingsPopoverProps {
 
 export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOptions }: SoundSettingsPopoverProps) {
   const [bgmVolume, setBgmVolume] = useState(() => soundManager.getBGMVolume());
+  const [effectVolume, setEffectVolume] = useState(() => soundManager.getEffectVolume());
   const [selectedBGM, setSelectedBGM] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -32,6 +33,7 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
     setSelectedBGM(currentBGM || bgmOptions[0]?.key || null);
     setIsPlaying(soundManager.isBGMPlaying());
     setBgmVolume(soundManager.getBGMVolume());
+    setEffectVolume(soundManager.getEffectVolume());
   }, [isOpen]);
 
   // 외부 클릭 감지
@@ -55,6 +57,11 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
   const handleBGMVolumeChange = (value: number) => {
     setBgmVolume(value);
     soundManager.setBGMVolume(value);
+  };
+
+  const handleEffectVolumeChange = (value: number) => {
+    setEffectVolume(value);
+    soundManager.setEffectVolume(value);
   };
 
   const handleBGMSelect = (bgmKey: string) => {
@@ -138,8 +145,9 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
           </div>
         </div>
 
-        <div className="pt-2">
-          <VolumeSlider label="볼륨" value={bgmVolume} onChange={handleBGMVolumeChange} />
+        <div className="space-y-4 pt-2">
+          <VolumeSlider label="BGM 볼륨" value={bgmVolume} onChange={handleBGMVolumeChange} />
+          <VolumeSlider label="효과음 볼륨" value={effectVolume} onChange={handleEffectVolumeChange} />
         </div>
       </div>
     </div>

@@ -3,24 +3,27 @@ class SoundManager {
   private bgmSounds: Map<string, HTMLAudioElement> = new Map();
   private currentBgmKey: string | null = null;
   private bgmVolume: number = 0.5;
+  private effectVolume: number = 0.5;
 
+  //효과음
   preload(key: string, src: string) {
     const audio = new Audio(src);
     audio.preload = 'auto';
     this.sounds.set(key, audio);
   }
 
-  play(key: string, volume = 0.5) {
+  play(key: string) {
     const audio = this.sounds.get(key);
     if (audio) {
-      audio.currentTime = 0;
-      audio.volume = volume;
+      audio.volume = this.effectVolume;
+
       audio.play().catch((error) => {
         console.error(`사운드 파일 에러: ${key}`, error);
       });
     }
   }
 
+  //BGM
   preloadBGM(key: string, src: string) {
     if (this.bgmSounds.has(key)) return;
 
@@ -110,6 +113,19 @@ class SoundManager {
   // BGM 볼륨 반환
   getBGMVolume(): number {
     return this.bgmVolume;
+  }
+
+  // 이펙트 볼륨 설정
+  setEffectVolume(volume: number) {
+    this.effectVolume = Math.max(0, Math.min(1, volume));
+    this.sounds.forEach((audio) => {
+      audio.volume = this.effectVolume;
+    });
+  }
+
+  // 이펙트 볼륨 반환
+  getEffectVolume(): number {
+    return this.effectVolume;
   }
 }
 
