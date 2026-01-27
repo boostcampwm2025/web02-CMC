@@ -3,7 +3,7 @@ name: deploy-prod
 on:
   push:
     branches:
-      - release-test
+      - release-test2
   workflow_dispatch:
 
 permissions:
