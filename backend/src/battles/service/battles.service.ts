@@ -641,8 +641,8 @@ export class BattlesService extends EventEmitter {
     })
 
     // 최종 팀 기준으로 MVP 팀 설정 (팀 변경 반영)
-    candidateMap.forEach((candidate, oderId) => {
-      const finalTeam = state.participants.get(oderId)
+    candidateMap.forEach((candidate, userId) => {
+      const finalTeam = state.participants.get(userId)
       candidate.team = finalTeam === BATTLE_TEAM.A ? 'A' : finalTeam === BATTLE_TEAM.B ? 'B' : 'NONE'
     })
 
@@ -660,9 +660,9 @@ export class BattlesService extends EventEmitter {
     return candidates.slice(0, MVP_DISPLAY_COUNT)
   }
 
-  private getParticipantJoinedAt(state: ActiveBattleState, oderId: string): number {
+  private getParticipantJoinedAt(state: ActiveBattleState, userId: string): number {
     // participants Map의 삽입 순서를 기반으로 참가 순서 반환
-    const participantOrder = [...state.participants.keys()].indexOf(oderId)
+    const participantOrder = [...state.participants.keys()].indexOf(userId)
     return participantOrder >= 0 ? participantOrder : 0
   }
 
