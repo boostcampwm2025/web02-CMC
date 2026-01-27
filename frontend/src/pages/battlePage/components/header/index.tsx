@@ -9,6 +9,7 @@ import {
   selectSocket
 } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
+import PhaseSkip from './PhaseSkip';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   PENDING: '',
@@ -53,8 +54,12 @@ export default function BattleHeader() {
             </>
           )}
         </div>
-        <div className="flex justify-end">
-          <TeamCounter />
+        <div className="flex items-center justify-between">
+          <PhaseSkip />
+          <div className="ml-3 pl-6 border-l-2 border-gray-700">
+            <div className="flex items-center" />
+            <TeamCounter />
+          </div>
         </div>
       </div>
       <ParticipantRatioBar />
