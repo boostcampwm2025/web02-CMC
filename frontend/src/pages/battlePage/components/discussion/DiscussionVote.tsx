@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import ScaleIcon from '@/assets/icon/scale.svg?react';
 import DiscussionVoteItem from './DiscussionVoteItem';
 import { isMyTeamAttacking } from '../../utils/battlePhase';
@@ -24,8 +25,34 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
 
+  const [animatingIds, setAnimatingIds] = useState<Set<number>>(new Set());
+  const prevVotesRef = useRef<Map<number, number>>(new Map());
+
   const phase = battleProgress?.phase;
   const isAttacking = isMyTeamAttacking(team, phase);
+
+  // 투표수 변경 감지하여 애니메이션 트리거
+  useEffect(() => {
+    const changedIds = new Set<number>();
+
+    discussions.forEach((discussion) => {
+      const prevVotes = prevVotesRef.current.get(discussion.id);
+      if (prevVotes !== undefined && prevVotes !== discussion.votes) {
+        changedIds.add(discussion.id);
+      }
+      prevVotesRef.current.set(discussion.id, discussion.votes);
+    });
+
+    if (changedIds.size > 0) {
+      setAnimatingIds(changedIds);
+
+      const timer = setTimeout(() => {
+        setAnimatingIds(new Set());
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [discussions]);
 
   // ATTACK/DEFENSE 외 단계에서는 표시하지 않음
   if (phase !== 'ATTACK' && phase !== 'DEFENSE') {
@@ -60,19 +87,27 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
         <div className="space-y-3 max-h-[280px] xl:max-h-[320px] min-[1920px]:max-h-[360px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
           {discussions
             .sort((a, b) => b.votes - a.votes)
-            .map((discussion) => (
-              <div key={discussion.id} className="transition-all duration-300">
-                <DiscussionVoteItem
-                  user={discussion.user}
-                  team={discussion.team}
-                  content={discussion.content}
-                  votes={discussion.votes}
-                  totalVotes={discussion.totalVotes}
-                  hasVoted={discussion.hasVoted}
-                  onVote={() => onVote(discussion.id)}
-                />
-              </div>
-            ))}
+            .map((discussion) => {
+              const isAnimating = animatingIds.has(discussion.id);
+              return (
+                <div
+                  key={discussion.id}
+                  className={`transition-all duration-300 ${
+                    isAnimating ? 'animate-[fadeOut_0.4s_ease-in-out,fadeIn_0.4s_0.4s_ease-in-out]' : ''
+                  }`}
+                >
+                  <DiscussionVoteItem
+                    user={discussion.user}
+                    team={discussion.team}
+                    content={discussion.content}
+                    votes={discussion.votes}
+                    totalVotes={discussion.totalVotes}
+                    hasVoted={discussion.hasVoted}
+                    onVote={() => onVote(discussion.id)}
+                  />
+                </div>
+              );
+            })}
         </div>
       </div>
       <div className="py-4 bg-gradient-to-r from-[#1C398E] to-[#59168B] border-t border-[#2D2D3F] flex items-center justify-center gap-2 text-sm">
