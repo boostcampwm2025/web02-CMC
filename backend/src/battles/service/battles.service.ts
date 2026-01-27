@@ -85,7 +85,6 @@ export class BattlesService extends EventEmitter {
 
     // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
     let referenceData: BattleReferenceData | null = null
-    console.log('AI 참고 자료 생성 시작...')
     try {
       referenceData = await this.generateReferenceData({
         title: payload.title,
@@ -96,7 +95,6 @@ export class BattlesService extends EventEmitter {
         category: payload.category,
         topics: payload.topics,
       })
-      console.log('AI 참고 자료 생성 완료:', referenceData ? '성공' : '실패')
     } catch (error: unknown) {
       console.warn('AI 참고 자료 생성 실패, 배틀은 정상 생성됩니다:', error)
     }
