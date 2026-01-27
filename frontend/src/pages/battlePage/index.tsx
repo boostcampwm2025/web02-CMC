@@ -100,6 +100,7 @@ export default function BattlePage() {
     const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
 
     if (shouldOpenSidebar && !isSidebarOpen) {
+      setActiveSidebarTab('info');
       handleOpenSidebar();
       sidebarOpenedForTutorial.current = true;
       return;
