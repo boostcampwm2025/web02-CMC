@@ -45,9 +45,14 @@ export function useBattleProgress() {
     socket.on('battle:phase:updated', handlePhaseUpdate);
     socket.on('battle:round:updated', handleRoundUpdate);
 
-    // 배틀 종료 이벤트 구독
     const handleBattleClosed = (data: { battleId: string }) => {
-      navigate(`/battles/${data.battleId}/result`);
+      const { isTeamVoteResultShowing, setPendingBattleClosed } = useBattleStore.getState();
+
+      if (isTeamVoteResultShowing) {
+        setPendingBattleClosed(true);
+      } else {
+        navigate(`/battles/${data.battleId}/result`);
+      }
     };
     socket.on('battle:closed', handleBattleClosed);
 
