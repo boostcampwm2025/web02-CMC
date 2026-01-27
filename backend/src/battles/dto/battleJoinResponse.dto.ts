@@ -8,6 +8,7 @@ export class BattleJoinResponseDto {
     teamB: number
     teamNone: number
   }
+  totalSkips: number
 
   // 배틀 전체 타임라인 & 채팅
   timelines: { attacks: (BattleDiscussion | null)[]; defenses: (BattleDefense | null)[] }
@@ -29,7 +30,7 @@ export class BattleJoinResponseDto {
 
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
-    const { all, teamA, teamB, participants, round, topics, phase, phaseCount, startedAt, expiredAt } = payload
+    const { all, teamA, teamB, participants, round, topics, phase, phaseCount, skipState, startedAt, expiredAt } = payload
 
     const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
@@ -39,6 +40,8 @@ export class BattleJoinResponseDto {
       teamB: teamB.users.length,
       teamNone: participants.size - (teamA.users.length + teamB.users.length),
     }
+    res.totalSkips = skipState.size
+
     res.timelines = {
       attacks: all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),
       defenses: all.defenses.filter((defense): defense is BattleDefense => defense !== null && defense.status === 'SELECTED'),
