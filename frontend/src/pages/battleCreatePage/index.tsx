@@ -5,10 +5,18 @@ import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
+import InviteLinkButton from './components/InviteLinkButton';
+import PeopleIcon from '@/assets/icon/peoples.svg?react';
+import postCreateBattle from '@/commons/apis/postCreateBattle';
 
-type BattleType = 'PUBLIC' | 'PRIVATE';
-type BattleLanguage = 'javascript' | 'typescript' | 'python';
-type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
+export type BattleType = 'PUBLIC' | 'PRIVATE';
+export type BattleLanguage = 'javascript' | 'typescript' | 'python';
+export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
+
+interface InviteLinkData {
+  battleId: string;
+  inviteCode: string;
+}
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
@@ -49,10 +57,10 @@ export default function BattleCreatePage() {
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PUBLIC');
-  const [password, setPassword] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [inviteLinkData, setInviteLinkData] = useState<InviteLinkData | null>(null);
 
   const rounds = PLAYTIME_OPTIONS.find(({ value }) => value === playTime)?.rounds ?? 0;
 
@@ -62,7 +70,6 @@ export default function BattleCreatePage() {
     if (!description.trim()) return false;
     if (!aCode.trim()) return false;
     if (!bCode.trim()) return false;
-    if (type === 'PRIVATE' && !password.trim()) return false;
     if (topics.length !== rounds) return false;
 
     return true;
@@ -79,31 +86,26 @@ export default function BattleCreatePage() {
       if (!authorId) {
         throw new Error('로그인이 필요합니다.');
       }
-      const res = await fetch(`/api/battles`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authorId,
-          title: title.trim(),
-          description: description.trim(),
-          aCode: formattedA.code,
-          bCode: formattedB.code,
-          language,
-          type,
-          password: type === 'PRIVATE' ? password : undefined,
-          category,
-          playTime,
-          topics
-        })
+
+      const data = await postCreateBattle({
+        authorId,
+        title: title.trim(),
+        description: description.trim(),
+        aCode: formattedA.code,
+        bCode: formattedB.code,
+        language,
+        type,
+        category,
+        playTime,
+        topics
       });
 
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(payload?.message ?? '배틀 생성에 실패했습니다.');
+      if (data.inviteCode) {
+        setInviteLinkData({ battleId: data.battleId, inviteCode: data.inviteCode });
+      } else {
+        // 초대 코드가 없으면 바로 이동
+        navigate(`/battle/${data.battleId}/team-select/`);
       }
-
-      const data = (await res.json()) as { battleId: string };
-      navigate(`/battle/${data.battleId}/team-select/`);
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
@@ -246,18 +248,6 @@ export default function BattleCreatePage() {
                     ))}
                   </select>
                 </div>
-
-                {type === 'PRIVATE' && (
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm text-gray-300">비공개 배틀 비밀번호</label>
-                    <input
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="비밀번호를 입력하세요"
-                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                    />
-                  </div>
-                )}
               </div>
 
               <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
@@ -268,24 +258,68 @@ export default function BattleCreatePage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/')}
-                  className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
-                >
-                  취소
-                </button>
+              {inviteLinkData && (
+                <div className="rounded-xl border border-orange-500/50 bg-orange-500/20 px-6 py-6 space-y-4 shadow-lg">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <PeopleIcon className="w-6 h-6 " />
+                      <h3 className="text-lg font-bold text-white">친구 초대</h3>
+                    </div>
+                    <p className="text-sm text-gray-300 mb-4">초대 링크를 복사하여 친구들에게 공유해봐요!</p>
+                  </div>
 
-                <button
-                  type="button"
-                  disabled={!canSubmit || isSubmitting}
-                  onClick={handleSubmit}
-                  className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  {isSubmitting ? '생성 중...' : '배틀 시작'}
-                </button>
+                  <InviteLinkButton inviteCode={inviteLinkData.inviteCode} />
+                </div>
+              )}
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                {inviteLinkData ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInviteLinkData(null);
+                        setTitle('');
+                        setDescription('');
+                        setACode('');
+                        setBCode('');
+                        setTopics([]);
+                      }}
+                      className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(`/battle/${inviteLinkData.battleId}/team-select/`);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 transition-colors"
+                    >
+                      배틀 참여하기
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/')}
+                      className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
+                    >
+                      취소
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={!canSubmit || isSubmitting}
+                      onClick={handleSubmit}
+                      className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
+                    >
+                      <PlusIcon className="h-4 w-4" />
+                      {isSubmitting ? '생성 중...' : '배틀 시작'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

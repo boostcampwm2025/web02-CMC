@@ -2,11 +2,11 @@ import { useState } from 'react';
 import CheckIcon from '@/assets/icon/check.svg?react';
 import CopyIcon from '@/assets/icon/copy.svg?react';
 
-interface InviteLinkButtonProps {
+interface InviteLinkProps {
   inviteCode: string;
 }
 
-export default function InviteLinkButton({ inviteCode }: InviteLinkButtonProps) {
+export default function InviteLinkButton({ inviteCode }: InviteLinkProps) {
   const [copied, setCopied] = useState(false);
 
   const inviteLink = `${window.location.origin}/battles/${inviteCode}`;
