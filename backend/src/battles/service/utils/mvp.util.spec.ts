@@ -202,5 +202,14 @@ describe('MVP Utils', () => {
       const score = applyWinnerBonus(0.7, 'A', 'A')
       expect(score).toBeCloseTo(1.05)
     })
+
+    it('중립(NONE) 팀에는 보너스를 적용하지 않는다', () => {
+      const scoreWhenAWins = applyWinnerBonus(1.0, 'NONE', 'A')
+      const scoreWhenBWins = applyWinnerBonus(1.0, 'NONE', 'B')
+      const scoreWhenDraw = applyWinnerBonus(1.0, 'NONE', 'DRAW')
+      expect(scoreWhenAWins).toBe(1.0)
+      expect(scoreWhenBWins).toBe(1.0)
+      expect(scoreWhenDraw).toBe(1.0)
+    })
   })
 })
