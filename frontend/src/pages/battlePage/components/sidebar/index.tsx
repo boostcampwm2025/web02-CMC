@@ -13,6 +13,8 @@ interface BattleSidebarProps {
   category: string;
   topics: string[];
   raiseZIndex?: boolean;
+  activeTab: Tab;
+  onActiveTabChange: (tab: Tab) => void;
 }
 
 type Tab = 'info' | 'timeline';
@@ -25,9 +27,10 @@ export default function BattleSidebar({
   language,
   category,
   topics,
-  raiseZIndex = false
+  raiseZIndex = false,
+  activeTab = 'info',
+  onActiveTabChange
 }: BattleSidebarProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('info');
   const { width, isResizing, setIsResizing } = useResize({
     initialWidth: 400
   });
@@ -56,7 +59,7 @@ export default function BattleSidebar({
         raiseZIndex ? 'z-[101]' : 'z-100'
       } ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isResizing ? 'select-none' : ''}`}
     >
-      <SidebarHeader activeTab={activeTab} onTabChange={setActiveTab} onClose={onClose} />
+      <SidebarHeader activeTab={activeTab} onTabChange={onActiveTabChange} onClose={onClose} />
       <div className="flex justify-between">
         <div className="flex-1 h-[calc(100vh-65px)] overflow-y-auto overflow-x-hidden">
           {activeTab === 'info' ? (

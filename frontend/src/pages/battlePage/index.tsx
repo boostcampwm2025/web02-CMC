@@ -25,12 +25,15 @@ import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
+type Tab = 'info' | 'timeline';
+
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const battleInfo = useLoaderData<BattleInfo>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+  const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
   const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
@@ -139,7 +142,10 @@ export default function BattlePage() {
     <div className="text-white relative">
       {/* 책갈피 버튼 */}
       <BookmarkButton
-        onOpen={handleOpenSidebar}
+        onOpen={(tab) => {
+          setActiveSidebarTab(tab);
+          handleOpenSidebar();
+        }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
       />
@@ -154,6 +160,8 @@ export default function BattlePage() {
         category={battleInfo.category}
         topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
+        activeTab={activeSidebarTab}
+        onActiveTabChange={setActiveSidebarTab}
       />
 
       {/* 메인 콘텐츠 */}
