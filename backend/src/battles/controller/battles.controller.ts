@@ -10,32 +10,32 @@ export class BattlesController {
   constructor(private readonly battlesService: BattlesService) {}
 
   @Post()
-  createBattle(@Body() body: BattleCreateQueryDto): { battleId: string } {
-    const battle = this.battlesService.create(body)
+  async createBattle(@Body() body: BattleCreateQueryDto): Promise<{ battleId: string }> {
+    const battle = await this.battlesService.create(body)
     return { battleId: battle.id }
   }
 
   @Get('open')
-  getOpenBattles(@Query() query: BattleListRequestQueryDto) {
+  async getOpenBattles(@Query() query: BattleListRequestQueryDto) {
     return this.battlesService.getOpenBattles(query.limit, query.offset)
   }
 
   @Get('closed')
-  getClosedBattles(@Query() query: BattleListRequestQueryDto) {
+  async getClosedBattles(@Query() query: BattleListRequestQueryDto) {
     return this.battlesService.getClosedBattles(query.limit, query.offset)
   }
 
   @Post(':id/join')
   @HttpCode(200)
-  joinBattleInfo(@Param('id') battleId: string): BattleJoinInfoResponseDto {
+  async joinBattleInfo(@Param('id') battleId: string): Promise<BattleJoinInfoResponseDto> {
     return this.battlesService.joinBattleInfo(battleId)
   }
 
   @Get(':id/result')
   @HttpCode(200)
-  getBattleResult(@Param('id') battleId: string): BattleResultResponseDto {
+  async getBattleResult(@Param('id') battleId: string): Promise<BattleResultResponseDto> {
     try {
-      return this.battlesService.getBattleResult(battleId)
+      return await this.battlesService.getBattleResult(battleId)
     } catch (error) {
       if (error instanceof HttpException) {
         throw error

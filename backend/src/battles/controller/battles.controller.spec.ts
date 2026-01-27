@@ -33,7 +33,7 @@ describe('BattlesController', () => {
   })
 
   describe('getOpenBattles', () => {
-    it('query.limit/offset을 getOpenBattles로 전달하고 결과를  반환한다', () => {
+    it('query.limit/offset을 getOpenBattles로 전달하고 결과를  반환한다', async () => {
       const query: BattleListRequestQueryDto = {
         limit: 10,
         offset: 0,
@@ -48,9 +48,9 @@ describe('BattlesController', () => {
         },
       }
 
-      const spy = jest.spyOn(service, 'getOpenBattles').mockReturnValue(mockResult)
+      const spy = jest.spyOn(service, 'getOpenBattles').mockResolvedValue(mockResult as never)
 
-      const result = controller.getOpenBattles(query)
+      const result = await controller.getOpenBattles(query)
 
       expect(spy).toHaveBeenCalledWith(10, 0)
       expect(result).toBe(mockResult)
@@ -58,7 +58,7 @@ describe('BattlesController', () => {
   })
 
   describe('getClosedBattles', () => {
-    it('query.limit/offset을 getClosedBattles로 전달하고 결과를 반환한다', () => {
+    it('query.limit/offset을 getClosedBattles로 전달하고 결과를 반환한다', async () => {
       const query: BattleListRequestQueryDto = {
         limit: 5,
         offset: 20,
@@ -73,9 +73,9 @@ describe('BattlesController', () => {
         },
       }
 
-      const spy = jest.spyOn(service, 'getClosedBattles').mockReturnValue(mockResult)
+      const spy = jest.spyOn(service, 'getClosedBattles').mockResolvedValue(mockResult as never)
 
-      const result = controller.getClosedBattles(query)
+      const result = await controller.getClosedBattles(query)
 
       expect(spy).toHaveBeenCalledWith(5, 20)
       expect(result).toBe(mockResult)
@@ -83,33 +83,29 @@ describe('BattlesController', () => {
   })
 
   describe('GET /battles/:id/result', () => {
-    it('배틀 결과를 200 상태코드와 함께 반환해야 함', () => {
+    it('배틀 결과를 200 상태코드와 함께 반환해야 함', async () => {
       const mockResult = {
         battleId: 'battle-1',
         status: 'CLOSED' as const,
       }
 
-      jest.spyOn(service, 'getBattleResult').mockReturnValue(mockResult as BattleResultResponseDto)
+      jest.spyOn(service, 'getBattleResult').mockResolvedValue(mockResult as BattleResultResponseDto)
 
-      const result = controller.getBattleResult('battle-1')
+      const result = await controller.getBattleResult('battle-1')
       expect(result).toBeDefined()
       expect(result.battleId).toBe('battle-1')
     })
 
-    it('존재하지 않는 배틀 조회 시 404 에러를 반환해야 함', () => {
-      jest.spyOn(service, 'getBattleResult').mockImplementation(() => {
-        throw new NotFoundException()
-      })
+    it('존재하지 않는 배틀 조회 시 404 에러를 반환해야 함', async () => {
+      jest.spyOn(service, 'getBattleResult').mockRejectedValue(new NotFoundException() as never)
 
-      expect(() => controller.getBattleResult('battle-999')).toThrow(NotFoundException)
+      await expect(controller.getBattleResult('battle-999')).rejects.toThrow(NotFoundException)
     })
 
-    it('진행 중인 배틀 조회 시 400 에러를 반환해야 함', () => {
-      jest.spyOn(service, 'getBattleResult').mockImplementation(() => {
-        throw new BadRequestException()
-      })
+    it('진행 중인 배틀 조회 시 400 에러를 반환해야 함', async () => {
+      jest.spyOn(service, 'getBattleResult').mockRejectedValue(new BadRequestException() as never)
 
-      expect(() => controller.getBattleResult('battle-open-1')).toThrow(BadRequestException)
+      await expect(controller.getBattleResult('battle-open-1')).rejects.toThrow(BadRequestException)
     })
   })
 })

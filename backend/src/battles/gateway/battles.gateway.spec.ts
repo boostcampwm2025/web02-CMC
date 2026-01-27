@@ -73,7 +73,7 @@ describe('BattlesGateway - Discussion Events', () => {
   })
 
   describe('battle:attack', () => {
-    it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
+    it('공격 이벤트를 처리하고 팀 룸에 브로드캐스트한다', async () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
         content: '퀵소트가 더 빠릅니다',
@@ -94,10 +94,10 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       }
 
-      jest.spyOn(service, 'handleAttack').mockReturnValue(mockAttack)
+      jest.spyOn(service, 'handleAttack').mockResolvedValue(mockAttack as never)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
 
-      gateway.handleAttack(dto, mockClient)
+      await gateway.handleAttack(dto, mockClient)
 
       expect(service.handleAttack).toHaveBeenCalledWith('battle-1', {
         authorId: 'user-1',
@@ -109,18 +109,16 @@ describe('BattlesGateway - Discussion Events', () => {
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
 
-    it('공격 등록 실패 시 에러 이벤트를 emit한다', () => {
+    it('공격 등록 실패 시 에러 이벤트를 emit한다', async () => {
       const dto: AttackRequestDto = {
         battleId: 'battle-1',
         content: '내용',
         team: BATTLE_TEAM.A,
       }
 
-      jest.spyOn(service, 'handleAttack').mockImplementation(() => {
-        throw new Error('Phase가 올바르지 않습니다')
-      })
+      jest.spyOn(service, 'handleAttack').mockRejectedValue(new Error('Phase가 올바르지 않습니다') as never)
 
-      gateway.handleAttack(dto, mockClient)
+      await gateway.handleAttack(dto, mockClient)
 
       expect(mockClient.emit).toHaveBeenCalledWith('battle:attack:error', {
         message: 'Phase가 올바르지 않습니다',
@@ -129,7 +127,7 @@ describe('BattlesGateway - Discussion Events', () => {
   })
 
   describe('battle:defense', () => {
-    it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
+    it('반론 이벤트를 처리하고 팀 룸에 브로드캐스트한다', async () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
         content: '하지만 최악의 경우 O(n²)입니다',
@@ -150,10 +148,10 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       }
 
-      jest.spyOn(service, 'handleDefense').mockReturnValue(mockDefense)
+      jest.spyOn(service, 'handleDefense').mockResolvedValue(mockDefense as never)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
 
-      gateway.handleDefense(dto, mockClient)
+      await gateway.handleDefense(dto, mockClient)
 
       expect(service.handleDefense).toHaveBeenCalledWith('battle-1', {
         authorId: 'user-1',
@@ -165,18 +163,16 @@ describe('BattlesGateway - Discussion Events', () => {
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
 
-    it('반론 등록 실패 시 에러 이벤트를 emit한다', () => {
+    it('반론 등록 실패 시 에러 이벤트를 emit한다', async () => {
       const dto: DefenseRequestDto = {
         battleId: 'battle-1',
         content: '반론',
         team: BATTLE_TEAM.B,
       }
 
-      jest.spyOn(service, 'handleDefense').mockImplementation(() => {
-        throw new Error('현재 반론을 등록할 수 없는 단계입니다.')
-      })
+      jest.spyOn(service, 'handleDefense').mockRejectedValue(new Error('현재 반론을 등록할 수 없는 단계입니다.') as never)
 
-      gateway.handleDefense(dto, mockClient)
+      await gateway.handleDefense(dto, mockClient)
 
       expect(mockClient.emit).toHaveBeenCalledWith('battle:defense:error', {
         message: '현재 반론을 등록할 수 없는 단계입니다.',
@@ -185,7 +181,7 @@ describe('BattlesGateway - Discussion Events', () => {
   })
 
   describe('battle:attack:vote', () => {
-    it('공격 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
+    it('공격 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', async () => {
       const dto: AttackVoteRequestDto = {
         battleId: 'battle-1',
         discussionId: 'attack-1',
@@ -206,10 +202,10 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       })
 
-      jest.spyOn(service, 'handleAttackVote').mockReturnValue([mockResponse])
+      jest.spyOn(service, 'handleAttackVote').mockResolvedValue([mockResponse] as never)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
 
-      gateway.handleAttackVote(dto, mockClient)
+      await gateway.handleAttackVote(dto, mockClient)
 
       expect(service.handleAttackVote).toHaveBeenCalledWith('battle-1', 'attack-1', {
         userId: 'user-1',
@@ -222,7 +218,7 @@ describe('BattlesGateway - Discussion Events', () => {
   })
 
   describe('battle:defense:vote', () => {
-    it('반론 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', () => {
+    it('반론 투표 이벤트를 처리하고 팀 룸에 브로드캐스트한다', async () => {
       const dto: DefenseVoteRequestDto = {
         battleId: 'battle-1',
         discussionId: 'defense-1',
@@ -243,10 +239,10 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       })
 
-      jest.spyOn(service, 'handleDefenseVote').mockReturnValue([mockResponse])
+      jest.spyOn(service, 'handleDefenseVote').mockResolvedValue([mockResponse] as never)
       jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
 
-      gateway.handleDefenseVote(dto, mockClient)
+      await gateway.handleDefenseVote(dto, mockClient)
 
       expect(service.handleDefenseVote).toHaveBeenCalledWith('battle-1', 'defense-1', {
         userId: 'user-1',

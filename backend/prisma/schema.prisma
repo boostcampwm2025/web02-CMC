@@ -60,11 +60,27 @@ model Battle {
   totalParticipantsCount   Int?       @map("total_participants_count")
   winningTeam              String?    @db.VarChar(10) @map("winning_team")
   mvps                     String[]   @db.VarChar(10)
+  mvpsState                Json?      @map("mvps_state")
     
   /* 시간 */
   createdAt                DateTime   @default(now()) @map("created_at")
   updatedAt                DateTime?  @updatedAt  @map("updated_at")
   finishedAt               DateTime?  @map("finished_at")
+  currentRound             Int?       @map("current_round")
+  currentPhase             String?    @db.VarChar(20) @map("current_phase")
+  phaseCount               Int?       @map("phase_count")
+  startedAt                DateTime?  @map("started_at")
+  expiredAt                DateTime?  @map("expired_at")
+
+  participantsState        Json?      @map("participants_state")
+  teamVotesState           Json?      @map("team_votes_state")
+  userInfoState            Json?      @map("user_info_state")
+  attacksState             Json?      @map("attacks_state")
+  defensesState            Json?      @map("defenses_state")
+  opinionHistoryState      Json?      @map("opinion_history_state")
+  chatsAllState            Json?      @map("chats_all_state")
+  chatsTeamAState          Json?      @map("chats_team_a_state")
+  chatsTeamBState          Json?      @map("chats_team_b_state")
 
   creator                  User?      @relation("BattleCreator", fields: [userId], references: [id])
   participants             BattleParticipant[]
