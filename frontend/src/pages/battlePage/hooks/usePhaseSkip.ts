@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { selectSocket, useBattleStore } from '../stores/battleStore';
+import { selectBattleId, selectSocket, useBattleStore } from '../stores/battleStore';
 
 export function usePhaseSkip() {
   const socket = useBattleStore(selectSocket);
+  const battleId = useBattleStore(selectBattleId);
   const [isSkipEnabled, setIsSkipEnabled] = useState(false);
   const [totalSkips, setTotalSkips] = useState(0);
 
@@ -11,10 +12,10 @@ export function usePhaseSkip() {
 
     setIsSkipEnabled((prev) => {
       const next = !prev;
-      socket.emit('battle:phase:skip', { skip: next });
+      socket.emit('battle:phase:skip', { skip: next, battleId: battleId });
       return next;
     });
-  }, [socket]);
+  }, [socket, battleId]);
 
   useEffect(() => {
     if (!socket) return;
