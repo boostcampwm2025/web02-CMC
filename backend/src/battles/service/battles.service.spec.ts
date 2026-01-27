@@ -81,7 +81,7 @@ type MockPrisma = {
   battle: {
     findUnique: jest.Mock<BattleRecord | null, [BattleFindUniqueArgs]>
     findMany: jest.Mock<BattleRecord[], [BattleFindManyArgs]>
-    count: jest.Mock<number, [BattleCountArgs | undefined]>
+    count: jest.Mock<number, [BattleCountArgs?]>
     update: jest.Mock<BattleRecord | null, [BattleUpdateArgs]>
     create: jest.Mock<BattleRecord, [BattleCreateArgs]>
   }
@@ -289,7 +289,8 @@ describe('BattlesService', () => {
           const end = take ? skip + take : undefined
           return records.slice(skip, end)
         }),
-        count: jest.fn(({ where }: BattleCountArgs = {}) => {
+        count: jest.fn((args?: BattleCountArgs) => {
+          const { where } = args ?? {}
           let records = [...battleStore.values()]
           if (where?.isPrivate !== undefined) {
             records = records.filter(r => r.isPrivate === where.isPrivate)
@@ -312,7 +313,8 @@ describe('BattlesService', () => {
         }),
       },
       battleParticipant: { upsert: jest.fn() },
-      user: { findUnique: jest.fn(() => null) },
+      // eslint-disable-next-line no-empty-pattern
+      user: { findUnique: jest.fn(({}: { where: { id: string }; select?: { id: true } }) => null) },
     }
     service = new BattlesService(mockPrisma as unknown as PrismaService)
     const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
@@ -480,7 +482,16 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).rejects.toThrow(BadRequestException)
+      return await expect(
+        service.joinBattle(
+          {
+            battleId: '',
+            team: 'A',
+            nickname: '',
+          },
+          'user-1',
+        ),
+      ).rejects.toThrow(BadRequestException)
     })
 
     it('case', async () => {
@@ -489,6 +500,7 @@ describe('BattlesService', () => {
           {
             battleId: 'invalid',
             team: 'A',
+            nickname: '',
           },
           'user-1',
         ),
@@ -502,6 +514,7 @@ describe('BattlesService', () => {
             battleId: 'private-battle',
             password: 'wrong',
             team: 'A',
+            nickname: '',
           },
           'user-1',
         ),
@@ -515,6 +528,7 @@ describe('BattlesService', () => {
           battleId: 'private-battle',
           password: '1234',
           team: 'A',
+          nickname: '',
         },
         'user-1',
       )
@@ -529,6 +543,7 @@ describe('BattlesService', () => {
           {
             battleId: 'closed-battle',
             team: 'A',
+            nickname: '',
           },
           'user-1',
         ),
@@ -540,6 +555,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: '',
         },
         'user-1',
       )
@@ -554,6 +570,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: '',
         },
         'user-1',
       )
@@ -562,6 +579,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: '',
         },
         'user-1',
       )
@@ -590,6 +608,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: '',
         },
         'user-1',
       )
@@ -598,6 +617,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle-2',
           team: 'B',
+          nickname: '',
         },
         'user-1',
       )
@@ -695,6 +715,7 @@ describe('BattlesService', () => {
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.A,
+          nickname: '',
         },
         'user-1',
       )
@@ -785,21 +806,18 @@ describe('BattlesService', () => {
 
   describe('getOpenBattles', () => {
     it('case', async () => {
-      const publicOpen = toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
-      mockPrisma.battle.findMany.mockResolvedValue([publicOpen])
-      mockPrisma.battle.count.mockResolvedValue(1)
+      toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
+      seedBattles([createBattle({ status: BATTLE_STATUS.OPEN })])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
-
     it('case', async () => {
-      const oldBattle = toRecord(createBattle({ id: 'old', createdAt: new Date('2024-01-01') }))
-      const newBattle = toRecord(createBattle({ id: 'new', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([newBattle, oldBattle])
-      mockPrisma.battle.count.mockResolvedValue(2)
+      const oldBattle = createBattle({ id: 'old', createdAt: new Date('2024-01-01') })
+      const newBattle = createBattle({ id: 'new', createdAt: new Date('2024-01-02') })
+      seedBattles([oldBattle, newBattle])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
@@ -808,9 +826,8 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      const two = toRecord(createBattle({ id: '2', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([two])
-      mockPrisma.battle.count.mockResolvedValue(3)
+      const two = createBattle({ id: '2', createdAt: new Date('2024-01-02') })
+      seedBattles([createBattle({ id: '1', createdAt: new Date('2024-01-01') }), two, createBattle({ id: '3', createdAt: new Date('2024-01-03') })])
 
       const result = (await service.getOpenBattles(1, 1)).battles
 
@@ -880,8 +897,8 @@ describe('BattlesService', () => {
         title: finished.title,
         description: finished.description,
         status: BATTLE_STATUS.CLOSED,
-        language: finished.language as BATTLE_LANGUAGE,
-        category: finished.category as BATTLE_CATEGORY,
+        language: finished.language as (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE],
+        category: finished.category as (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY],
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
         topics: finished.topics,
         aCode: finished.codeA,
@@ -889,7 +906,7 @@ describe('BattlesService', () => {
       })
 
       seedBattles([battle])
-      const record = battleStore.get(finished.battleId)
+      const record = battleStore.get(finished.battleId)!
       battleStore.set(finished.battleId, {
         ...record,
         status: BATTLE_STATUS.CLOSED,
