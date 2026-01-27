@@ -9,10 +9,13 @@ import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import TutorialTeamSelectPage from './pages/tutorialTeamSelectPage';
+import TutorialBattlePage from './pages/tutorialBattlePage';
 import { useAuthStore } from './commons/stores/authStore';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
 import { useEffect } from 'react';
+import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/data/tutorialBattle';
 
 const router = createBrowserRouter([
   {
@@ -67,6 +70,18 @@ const router = createBrowserRouter([
     path: '/battle/create',
     element: <BattleCreatePage />,
     errorElement: <ErrorPage />
+  },
+  {
+    path: '/tutorial/team-select',
+    element: <TutorialTeamSelectPage />,
+    errorElement: <ErrorPage />,
+    loader: () => TUTORIAL_BATTLE_INFO
+  },
+  {
+    path: '/tutorial/battle',
+    element: <TutorialBattlePage />,
+    errorElement: <ErrorPage />,
+    loader: () => TUTORIAL_BATTLE_INFO
   },
   {
     path: '/battles/:id/result',
