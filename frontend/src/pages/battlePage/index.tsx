@@ -26,6 +26,7 @@ import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import SoundSettingsButton from './components/header/SoundSettingsButton';
 import SkipModal from './components/effects/SkipModal';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
+import { usePhaseSkip } from './hooks/usePhaseSkip';
 
 type Tab = 'info' | 'timeline';
 
@@ -152,6 +153,7 @@ export default function BattlePage() {
     });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
+  const { isModalOpen: isPhaseSkipModalOpen, closeModal: closeSkipModal } = usePhaseSkip();
 
   // Phase와 Team 정보 가져오기
   const team = useBattleStore(selectSelectedTeam);
@@ -275,9 +277,7 @@ export default function BattlePage() {
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
-
-        <SkipModal isOpen={true} onClose={hideRoundEffect} />
-
+        {isPhaseSkipModalOpen && <SkipModal isOpen={true} onClose={closeSkipModal} />}
         <TutorialModal
           isOpen={isTutorialOpen && currentStep === 'welcome'}
           onClose={skipTutorial}
