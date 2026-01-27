@@ -1,9 +1,10 @@
-name: deploy
+name: deploy-prod
 
 on:
   push:
     branches:
-      - dev
+      - release
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,8 +12,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BACKEND: ${{ github.repository }}-backend
-  IMAGE_FRONTEND: ${{ github.repository }}-frontend
+  IMAGE_BACKEND: ${{ github.repository }}-backend-prod
+  IMAGE_FRONTEND: ${{ github.repository }}-frontend-prod
 
 jobs:
   ci:
@@ -65,18 +66,18 @@ jobs:
       - name: Sync monitoring configs to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.NCP_HOST }}
-          username: ${{ secrets.NCP_USER }}
-          password: ${{ secrets.NCP_PASSWORD }}
+          host: ${{ secrets.NCP_HOST_PROD }}
+          username: ${{ secrets.NCP_USER_PROD }}
+          password: ${{ secrets.NCP_PASSWORD_PROD }}
           source: "monitoring/**"
           target: ${{ secrets.NCP_DEPLOY_PATH }}
 
       - name: Deploy on NCP via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.NCP_HOST }}
-          username: ${{ secrets.NCP_USER }}
-          password: ${{ secrets.NCP_PASSWORD }}
+          host: ${{ secrets.NCP_HOST_PROD }}
+          username: ${{ secrets.NCP_USER_PROD }}
+          password: ${{ secrets.NCP_PASSWORD_PROD }}
           script: |
             set -e
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
@@ -87,6 +88,9 @@ jobs:
 
             # === 이미지 pull ===
             docker compose -f docker-compose.yml pull
+
+            # === Prisma Migration용 컨테이너 실행 ===
+            docker compose -f docker-compose.yml run --rm migrate
 
             # === 오래된 이미지 정리 ===
             docker image prune -f
