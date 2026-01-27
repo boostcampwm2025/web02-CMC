@@ -2,9 +2,14 @@ name: deploy-prod
 
 on:
   push:
-    branches:
-      - release-test2
+    tags:
+      - "v*"
   workflow_dispatch:
+    inputs:
+      version_tag:
+        description: "시멘틱 버전 태그를 입력하세요. 비워두면 최신 시멘틱 버전 태그를 사용합니다."
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -18,8 +23,39 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.set_version.outputs.version_tag }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version tag
+        id: set_version
+        run: |
+          # tag push면 그 태그가 곧 버전
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "version_tag=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+            echo "Deploying tag from push event: ${GITHUB_REF_NAME}"
+            exit 0
+          fi
+
+          # workflow_dispatch면 입력 우선, 없으면 최신 semver tag
+          input_tag="${{ github.event.inputs.version_tag }}"
+          if [ -n "$input_tag" ]; then
+            echo "version_tag=$input_tag" >> $GITHUB_OUTPUT
+            echo "Deploying input tag: $input_tag"
+            exit 0
+          fi
+
+          latest_tag=$(git tag --list "v*" --sort=-v:refname | head -n 1)
+          if [ -z "$latest_tag" ]; then
+            latest_tag="latest"
+          fi
+          echo "version_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "Deploying latest tag: $latest_tag"
 
       - name: Set lowercase image names
         id: image_names
@@ -43,7 +79,7 @@ jobs:
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:latest
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:${{ steps.set_version.outputs.version_tag }}
 
       - name: Build and push frontend
         uses: docker/build-push-action@v6
@@ -55,7 +91,7 @@ jobs:
             VITE_API_URL=${{ secrets.VITE_API_URL }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ steps.set_version.outputs.version_tag }}
 
   cd:
     needs: ci
@@ -80,8 +116,14 @@ jobs:
           password: ${{ secrets.NCP_PASSWORD_PROD }}
           script: |
             set -e
+
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
             cd "${{ secrets.NCP_DEPLOY_PATH }}"
+
+            VERSION_TAG="${{ needs.ci.outputs.version_tag }}"
+            export VERSION_TAG
+
+            echo "Deploying version: ${VERSION_TAG}"
 
             # === 기존 컨테이너 종료 ===
             docker compose -f docker-compose.yml down || true
