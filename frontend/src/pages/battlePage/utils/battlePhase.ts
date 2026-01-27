@@ -25,13 +25,13 @@ export const getDiscussionConfig = (phase?: BattlePhase) => {
       isAttacking: true,
       isActive: true,
       colors: {
-        iconBox: 'bg-red-500/20 border-red-500/40',
+        iconBox: 'bg-red-700/50 border-red-500/40',
         icon: 'text-red-400',
         border: 'border-red-500/30',
         glowBorder: 'border-red-500',
         focusBorder: 'border-red-500',
         focusRing: 'focus:ring-red-500/30',
-        bg: 'bg-gradient-to-r from-black/50 to-red-900/30',
+        bg: 'bg-gradient-to-r from-black/90 to-red-900',
         badge: 'bg-red-500/20 border-red-500/40 text-red-400',
         button: 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/25 text-white'
       }
