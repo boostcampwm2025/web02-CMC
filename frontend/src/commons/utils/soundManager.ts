@@ -52,10 +52,13 @@ class SoundManager {
 
   // 모든 BGM 정지
   stopAllBGM() {
-    this.bgmSounds.forEach((audio) => {
-      audio.pause();
-      audio.currentTime = 0;
-    });
+    if (this.currentBgmKey) {
+      const currentAudio = this.bgmSounds.get(this.currentBgmKey);
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+    }
     this.currentBgmKey = null;
   }
 
