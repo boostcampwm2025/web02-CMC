@@ -57,7 +57,7 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
       </div>
 
       <div className="p-4 bg-gradient-to-r from-[#1E1E2F] to-[#59168B]">
-        <div className="space-y-3 ">
+        <div className="space-y-3 max-h-[280px] xl:max-h-[320px] min-[1920px]:max-h-[360px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent">
           {discussions.map((discussion) => (
             <DiscussionVoteItem
               key={discussion.id}
