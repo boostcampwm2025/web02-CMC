@@ -16,10 +16,11 @@ export function calculateOpinionScore(upvotes: number, voterCount: number): numb
 /**
  * 승리 팀 보너스를 적용한 최종 점수를 계산한다
  * 승리 팀에 속한 후보자는 누적 점수에 1.5배 보너스를 받는다
- * 무승부인 경우 보너스 없음
+ * 무승부 또는 중립(NONE) 팀인 경우 보너스 없음
  */
-export function applyWinnerBonus(score: number, team: 'A' | 'B', winner: 'A' | 'B' | 'DRAW'): number {
+export function applyWinnerBonus(score: number, team: 'A' | 'B' | 'NONE', winner: 'A' | 'B' | 'DRAW'): number {
   if (winner === 'DRAW') return score
+  if (team === 'NONE') return score
   if (team === winner) {
     return score * WINNER_TEAM_BONUS_MULTIPLIER
   }
