@@ -8,9 +8,9 @@ import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
 import Step1BattleInfo from './components/steps/Step1BattleInfo';
 import Step2CodeCompare from './components/steps/Step2CodeCompare';
-import Step3Timeline from './components/steps/Step3Timeline';
-import Step4TeamSelect from './components/steps/Step4TeamSelect';
-import ReferenceData from './components/steps/ReferenceData';
+import Step3ReferenceData from './components/steps/Step3ReferenceData';
+import Step4Timeline from './components/steps/Step4Timeline';
+import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 
@@ -82,10 +82,10 @@ export default function TeamSelectPage() {
         return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
       case 3:
         if (hasReferenceData && battleInfo.referenceData) {
-          return <ReferenceData referenceData={battleInfo.referenceData} />;
+          return <Step3ReferenceData referenceData={battleInfo.referenceData} />;
         }
         return (
-          <Step3Timeline
+          <Step4Timeline
             timelines={[...attacks, ...defenses]}
             topics={battleInfo.topics}
             currentRound={battleInfo.currentRound}
@@ -95,7 +95,7 @@ export default function TeamSelectPage() {
       case 4:
         if (hasReferenceData) {
           return (
-            <Step3Timeline
+            <Step4Timeline
               timelines={[...attacks, ...defenses]}
               topics={battleInfo.topics}
               currentRound={battleInfo.currentRound}
@@ -103,9 +103,9 @@ export default function TeamSelectPage() {
             />
           );
         }
-        return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       case 5:
-        return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       default:
         return null;
     }
