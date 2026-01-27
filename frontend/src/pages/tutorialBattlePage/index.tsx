@@ -1,0 +1,339 @@
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
+import type { BattleInfo, Team } from '@/commons/types/battle';
+import { useTutorial } from '@/pages/battlePage/hooks/useTutorial';
+import useModal from '@/commons/hooks/useModal';
+import { soundManager } from '@/commons/utils/soundManager';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/pages/battlePage/stores/battleStore';
+import { isInputDisabled } from '@/pages/battlePage/utils/battlePhase';
+
+import BattleHeader from '@/pages/battlePage/components/header';
+import CodeSection from '@/pages/battlePage/components/codeview/CodeSection';
+import ChatSection from '@/pages/battlePage/components/chatting/ChatSection';
+import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
+import DiscussionVote from '@/pages/battlePage/components/discussion/DiscussionVote';
+import BattleSidebar from '@/pages/battlePage/components/sidebar';
+import BookmarkButton from '@/pages/battlePage/components/sidebar/BookmarkButton';
+import TutorialModal from '@/pages/battlePage/components/tutorial/TutorialModal';
+import TutorialStepModal from '@/pages/battlePage/components/tutorial/TutorialStepModal';
+import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
+import TeamChangeModal from '@/pages/battlePage/components/modals/TeamChangeModal';
+import TeamVoteResultModal from '@/pages/battlePage/components/effects/TeamVoteResultModal';
+import DiscussionModal from '@/pages/battlePage/components/effects/DiscussionModal';
+import { useTeamVoteResult } from '@/pages/battlePage/hooks/useTeamVoteResult';
+import { useAuthStore } from '@/commons/stores/authStore';
+import { createMockSocket } from '@/pages/tutorial/utils/mockSocket';
+import {
+  TUTORIAL_BATTLE_ID,
+  TUTORIAL_BATTLE_PROGRESS,
+  TUTORIAL_TEAM_COUNTS,
+  TUTORIAL_TEAM_CHATS,
+  TUTORIAL_ALL_CHATS,
+  TUTORIAL_USER
+} from '@/pages/tutorial/data/tutorialBattle';
+import { MOCK_DISCUSSIONS } from '@/pages/battlePage/components/tutorial/const/tutorialSteps';
+import { usePracticeFlow } from './hooks/usePracticeFlow';
+import PracticeGuideCard from './components/PracticeGuideCard';
+
+export default function TutorialBattlePage() {
+  const battleInfo = useLoaderData<BattleInfo>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+  const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
+  const {
+    isOpen: isTeamChangeModalOpen,
+    openModal: handleOpenTeamChangeModal,
+    closeModal: handleCloseTeamChangeModal
+  } = useModal(false);
+  const sidebarOpenedForTutorial = useRef(false);
+  const battleProgress = useBattleStore(selectBattleProgress);
+  const selectedTeam = useBattleStore(selectSelectedTeam);
+
+  const selectedTeamFromState = (location.state as { selectedTeam?: Team })?.selectedTeam;
+
+  useEffect(() => {
+    const previousUser = useAuthStore.getState().user;
+    const shouldRestoreUser = !previousUser;
+    const activeUser = previousUser ?? TUTORIAL_USER;
+
+    if (!previousUser) {
+      useAuthStore.setState({ user: activeUser });
+    }
+
+    const store = useBattleStore.getState();
+    store.initializeBattle({ userId: activeUser.id, battleId: TUTORIAL_BATTLE_ID });
+    store.setSelectedTeam(selectedTeamFromState ?? 'NONE');
+    store.setBattleProgress(TUTORIAL_BATTLE_PROGRESS);
+    store.setCurrentStage(TUTORIAL_BATTLE_PROGRESS.phase);
+    store.setTeamCounts(TUTORIAL_TEAM_COUNTS);
+    store.setTimelines(battleInfo.timelines);
+    store.setDiscussions(MOCK_DISCUSSIONS);
+    store.setTeamChats(TUTORIAL_TEAM_CHATS);
+    store.setAllChats(TUTORIAL_ALL_CHATS);
+    store.setChatInitialized(true);
+    store.setSocket(createMockSocket());
+
+    return () => {
+      useBattleStore.getState().leaveBattle();
+      if (shouldRestoreUser) {
+        useAuthStore.setState({ user: null });
+      }
+    };
+  }, [battleInfo.timelines, selectedTeamFromState]);
+
+  const {
+    isModalOpen: isTutorialOpen,
+    currentStep,
+    dontShowAgain,
+    openTutorial,
+    startTutorial,
+    nextStep,
+    prevStep,
+    setDontShowAgain
+  } = useTutorial();
+
+  useEffect(() => {
+    openTutorial();
+    setDontShowAgain(false);
+  }, [openTutorial, setDontShowAgain]);
+
+  useEffect(() => {
+    if (!isTutorialOpen) return;
+    if (currentStep !== 'welcome') return;
+    startTutorial();
+  }, [isTutorialOpen, currentStep, startTutorial]);
+
+  useEffect(() => {
+    soundManager.preload('timerWarning', '/sounds/timerSound.wav');
+    soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
+    soundManager.preload('swoosh', '/sounds/swoosh.mp3');
+    soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
+    soundManager.preload('fanfare', '/sounds/fanfare.mp3');
+    soundManager.preload('click', '/sounds/click.mp3');
+    soundManager.preload('click2', '/sounds/click2.mp3');
+  }, []);
+
+  useEffect(() => {
+    const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
+
+    if (shouldOpenSidebar && !isSidebarOpen) {
+      handleOpenSidebar();
+      sidebarOpenedForTutorial.current = true;
+      return;
+    }
+
+    if (!shouldOpenSidebar && sidebarOpenedForTutorial.current) {
+      handleCloseSidebar();
+      sidebarOpenedForTutorial.current = false;
+    }
+  }, [currentStep, isSidebarOpen, isTutorialOpen, handleCloseSidebar, handleOpenSidebar]);
+
+  const {
+    practicePhase,
+    practiceIntroVisible,
+    typingIndex,
+    typingMessage,
+    practiceCardRef,
+    cornerOffset,
+    showMissionFocus,
+    attackSubmitted,
+    attackVoted,
+    defenseSubmitted,
+    defenseVoted,
+    needsAttackSubmit,
+    needsAttackVote,
+    needsDefenseSubmit,
+    needsDefenseVote,
+    needsTeamSwitch,
+    effectModal,
+    closeEffectModal,
+    handleVote,
+    handleDiscussionSubmit,
+    handleTeamSelect,
+    teamSwitchModalClassName,
+    shouldHighlightVote,
+    shouldHighlightInput
+  } = usePracticeFlow({
+    currentStep,
+    onOpenTeamChangeModal: handleOpenTeamChangeModal
+  });
+
+  const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
+
+  const handleLeaveBattle = () => {
+    navigate('/');
+  };
+
+  const phase = battleProgress?.phase;
+  const shouldShowInput = !isInputDisabled(selectedTeam, phase);
+  const hasScheduledExit = useRef(false);
+
+  useEffect(() => {
+    if (practicePhase !== 'done') return;
+    if (hasScheduledExit.current) return;
+    hasScheduledExit.current = true;
+    const timer = setTimeout(() => {
+      navigate('/');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [practicePhase, navigate]);
+
+  return (
+    <div className="text-white relative">
+      <BookmarkButton
+        onOpen={handleOpenSidebar}
+        isOpen={isSidebarOpen}
+        highlight={isTutorialOpen && currentStep === 'sidebar'}
+      />
+
+      <BattleSidebar
+        isOpen={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        title={battleInfo.title}
+        description={battleInfo.description}
+        language={battleInfo.language}
+        category={battleInfo.category}
+        topics={battleInfo.topics}
+        raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
+      />
+
+      <div className="flex flex-col items-center">
+        <PracticeGuideCard
+          isVisible={practicePhase !== 'idle'}
+          practiceIntroVisible={practiceIntroVisible}
+          typingMessage={typingMessage}
+          typingIndex={typingIndex}
+          practicePhase={practicePhase}
+          showMissionFocus={showMissionFocus}
+          attackSubmitted={attackSubmitted}
+          attackVoted={attackVoted}
+          defenseSubmitted={defenseSubmitted}
+          defenseVoted={defenseVoted}
+          needsAttackSubmit={needsAttackSubmit}
+          needsAttackVote={needsAttackVote}
+          needsDefenseSubmit={needsDefenseSubmit}
+          needsDefenseVote={needsDefenseVote}
+          needsTeamSwitch={needsTeamSwitch}
+          practiceCardRef={practiceCardRef}
+          cornerOffset={cornerOffset}
+        />
+
+        <BattleProgressBoard />
+        <div
+          className={`transition-all duration-300 main-width-closed ${
+            battleProgress &&
+            (battleProgress.phase as string) !== 'PENDING' &&
+            battleProgress.expiredAt != null &&
+            battleProgress.startedAt
+          }`}
+        >
+          <div className="flex items-center justify-between mt-10 mb-8">
+            <button
+              onClick={handleLeaveBattle}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
+            >
+              ← 돌아가기
+            </button>
+          </div>
+          <BattleHeader />
+        </div>
+        <main className="main-width-closed">
+          <div className="flex gap-2 py-4">
+            <div className="flex-1 min-w-0">
+              <CodeSection
+                onViewChange={setViewMode}
+                currentView={viewMode}
+                language={battleInfo.language}
+                codeA={battleInfo.aCode}
+                codeB={battleInfo.bCode}
+              />
+            </div>
+            <aside
+              className={`flex flex-col gap-4 transition-all duration-300 ${
+                isSidebarOpen ? 'lounge-width-open' : 'lounge-width-closed'
+              }`}
+            >
+              <div
+                className={
+                  shouldHighlightVote
+                    ? 'rounded-lg ring-2 ring-orange-400/70 shadow-[0_0_25px_rgba(255,105,0,0.35)] animate-pulse'
+                    : undefined
+                }
+              >
+                <DiscussionVote onVote={handleVote} />
+              </div>
+              <ChatSection />
+            </aside>
+          </div>
+        </main>
+
+        <div
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[5] px-4 pb-4 transition-all duration-500 ease-out ${
+            shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="discussion-input-width">
+            {shouldShowInput && (
+              <div
+                className={
+                  shouldHighlightInput
+                    ? 'rounded-2xl ring-2 ring-orange-400/70 shadow-[0_0_25px_rgba(255,105,0,0.35)] animate-pulse'
+                    : undefined
+                }
+              >
+                <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isTeamChangeModalOpen && (
+          <TeamChangeModal
+            topics={battleInfo.topics}
+            handleTeamChange={handleTeamSelect}
+            onClose={handleCloseTeamChangeModal}
+            className={teamSwitchModalClassName}
+          />
+        )}
+
+        {isVoteResultModalOpen && voteResult && (
+          <TeamVoteResultModal
+            isOpen={isVoteResultModalOpen}
+            round={voteResult.round}
+            teamACount={voteResult.after.teamA}
+            teamBCount={voteResult.after.teamB}
+            teamABefore={voteResult.before.teamA}
+            teamBBefore={voteResult.before.teamB}
+            teamAPercentage={(voteResult.after.teamA / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            teamBPercentage={(voteResult.after.teamB / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
+            leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
+            onClose={closeVoteResultModal}
+          />
+        )}
+
+        <DiscussionModal
+          isOpen={effectModal.isOpen}
+          team={effectModal.team}
+          content={effectModal.content}
+          type={effectModal.type}
+          onClose={closeEffectModal}
+        />
+
+        <TutorialModal
+          isOpen={isTutorialOpen && currentStep === 'welcome'}
+          onStart={startTutorial}
+          dontShowAgain={dontShowAgain}
+          onDontShowAgainChange={setDontShowAgain}
+        />
+
+        <TutorialStepModal
+          isOpen={isTutorialOpen && currentStep !== 'welcome' && currentStep !== 'completed'}
+          currentStep={currentStep}
+          onNext={nextStep}
+          onPrev={prevStep}
+        />
+      </div>
+    </div>
+  );
+}
