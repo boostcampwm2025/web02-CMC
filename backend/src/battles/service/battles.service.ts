@@ -297,6 +297,7 @@ export class BattlesService extends EventEmitter {
     const attackState = this.parseAttackState(battle.attacksState)
     const defenseState = this.parseDefenseState(battle.defensesState)
     const opinionHistory = this.parseOpinionHistoryState(battle.opinionHistoryState)
+    const skipState = new Set<string>(battle?.skipState ?? [])
 
     const state: ActiveBattleState = {
       battleId,
@@ -324,6 +325,7 @@ export class BattlesService extends EventEmitter {
       teamVotes,
       userInfoMap,
       opinionHistory,
+      skipState,
       round: battle.currentRound ?? 1,
       topics: battle.topics,
       totalRounds: this.getPlayTime(battle.playTime).rounds,
@@ -363,6 +365,7 @@ export class BattlesService extends EventEmitter {
         chatsAllState: this.serializeChatState(state.all.chats) as unknown as Prisma.InputJsonValue,
         chatsTeamAState: this.serializeChatState(state.teamA.chats) as unknown as Prisma.InputJsonValue,
         chatsTeamBState: this.serializeChatState(state.teamB.chats) as unknown as Prisma.InputJsonValue,
+        skipState: Array.from(state.skipState),
         updatedAt: new Date(),
       },
     })
@@ -620,6 +623,7 @@ export class BattlesService extends EventEmitter {
     // battleState.guestInfoMap.delete(userId)
     battleState.teamVotes.delete(userId)
     battleState.participants.delete(userId)
+    battleState.skipState.delete(userId)
 
     await this.saveBattleState(battleId, battleState)
 
@@ -853,6 +857,7 @@ export class BattlesService extends EventEmitter {
     state.phase = nextPhase.name
     state.startedAt = now
     state.expiredAt = now + nextPhase.time
+    state.skipState = new Set<string>()
 
     if (prevRound !== state.round) {
       const res = BattleRoundResponseDto.of({
@@ -1278,6 +1283,50 @@ export class BattlesService extends EventEmitter {
 
     await this.saveBattleState(battleId, battleState)
     return updatedDiscussions
+  }
+
+  async handlePhaseSkip(payload: { battleId: string; userId: string; skip: boolean }): Promise<number> {
+    const { battleId, skip, userId } = payload
+
+    const { battleState } = await this.getBattleState(battleId)
+    const ABParticipants = [...battleState.participants.values()].filter(p => p !== BATTLE_TEAM.NONE).length
+    const participant = battleState.participants.get(userId)
+
+    if (battleState.phase === BATTLE_PHASE.TEAM_SWITCH.name) throw new BadRequestException('진영선택 페이즈는 스킵이 불가합니다.')
+    if (!participant || participant === BATTLE_TEAM.NONE) throw new UnauthorizedException('권한이 없습니다.')
+
+    const skipList = battleState.skipState
+    if (skip) {
+      skipList.add(userId)
+    } else {
+      skipList.delete(userId)
+    }
+
+    let totalSkips = skipList.size
+    await this.updateSkipState(battleId, skipList)
+
+    if (skipList.size && skipList.size === ABParticipants) {
+      await this.skipPhase(battleId)
+      totalSkips = 0
+    }
+
+    return totalSkips
+  }
+
+  async skipPhase(battleId: string) {
+    await this.updateSkipState(battleId, new Set<string>())
+    await this.updatePhase(battleId)
+
+    this.emit('battle:phase:skipped', { battleId })
+  }
+
+  private async updateSkipState(battleId: string, skipList: Set<string>) {
+    await this.prisma.battle.update({
+      where: { id: battleId },
+      data: {
+        skipState: Array.from(skipList),
+      },
+    })
   }
 
   //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
