@@ -49,7 +49,7 @@ export default function PhaseSkip({ phase }: PhaseSkipProps) {
         </div>
       </div>
 
-      <span className="text-xs text-gray-400">현재 {totalSkips}명이 스킵을 희망합니다.</span>
+      <span className="text-xs text-gray-400">현재 {totalSkips || 0}명이 스킵을 희망합니다.</span>
     </div>
   );
 }
