@@ -84,7 +84,7 @@ export class OauthController {
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: expressReq) {
     const jwtUser = req.user as { id: string }
-    return this.oauthService.findUserById(jwtUser.id)
+    return await this.oauthService.findUserById(jwtUser.id)
   }
 
   @Patch('nickname')
@@ -92,6 +92,6 @@ export class OauthController {
   @HttpCode(200)
   async updateNickname(@Req() req: expressReq, @Body() dto: UpdateNicknameDto): Promise<OAuthUserResponseDto> {
     const jwtUser = req.user as { id: string }
-    return this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
+    return await this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
   }
 }
