@@ -24,7 +24,7 @@ type BattleRecord = {
   category: string
   playTime: string
   topics: string[]
-  password: string | null
+  inviteCode: string | null
   isPrivate: boolean
   status: string
   createdAt: Date
@@ -204,7 +204,7 @@ describe('BattlesService', () => {
     category: battle.category,
     playTime: (battle.playTime as { name?: string }).name ?? (battle.playTime as unknown as string),
     topics: battle.topics,
-    password: battle.password ?? null,
+    inviteCode: battle.inviteCode ?? null,
     isPrivate: battle.type === BATTLE_TYPE.PRIVATE,
     status: battle.status,
     createdAt: battle.createdAt,
@@ -464,7 +464,7 @@ describe('BattlesService', () => {
       privateBattle = createBattle({
         id: 'private-battle',
         type: BATTLE_TYPE.PRIVATE,
-        password: '1234',
+        inviteCode: 'test-invite-code-1234',
         status: BATTLE_STATUS.OPEN,
       })
       closedBattle = createBattle({
@@ -480,7 +480,7 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).rejects.toThrow(BadRequestException)
+      await expect(service.joinBattle({ battleId: '', team: 'A', nickname: 'test-user' }, 'user-1')).rejects.toThrow(BadRequestException)
     })
 
     it('case', async () => {
@@ -500,8 +500,9 @@ describe('BattlesService', () => {
         service.joinBattle(
           {
             battleId: 'private-battle',
-            password: 'wrong',
+            inviteCode: 'wrong-invite-code',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -513,8 +514,9 @@ describe('BattlesService', () => {
       const result = await service.joinBattle(
         {
           battleId: 'private-battle',
-          password: '1234',
+          inviteCode: 'test-invite-code-1234',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )

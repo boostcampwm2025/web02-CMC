@@ -36,7 +36,7 @@ export interface Battle {
   playTime: BattlePlayTime
   topics: string[]
 
-  password?: string
+  inviteCode?: string
   status: BattleStatus
   participantCount: number
   initialState: {

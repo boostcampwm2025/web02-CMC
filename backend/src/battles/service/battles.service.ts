@@ -1,13 +1,6 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  UnauthorizedException,
-  ForbiddenException,
-  InternalServerErrorException,
-} from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException } from '@nestjs/common'
 import * as crypto from 'crypto'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
@@ -546,6 +539,22 @@ export class BattlesService extends EventEmitter {
     return dto
   }
 
+  async getBattleByInviteCode(inviteCode: string): Promise<{ battleId: string }> {
+    if (!inviteCode) throw new BadRequestException('초대 코드가 필요합니다.')
+
+    const battle = await this.prisma.battle.findUnique({ where: { inviteCode } })
+
+    if (!battle) {
+      throw new NotFoundException('잘못된 초대 코드입니다.')
+    }
+
+    if (battle.status === BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('이미 종료된 배틀입니다.')
+    }
+
+    return { battleId: battle.id }
+  }
+
   async joinBattleInfo(battleId: string): Promise<BattleJoinInfoResponseDto> {
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
@@ -567,21 +576,11 @@ export class BattlesService extends EventEmitter {
   }
 
   async joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
-    const { battleId, inviteCode, team, nickname } = battleJoinRequestDto
+    const { battleId, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
     const { battle, state } = await this.loadBattleState(battleId)
-
-    // PRIVATE 배틀인 경우 inviteCode 검증
-    if (battle.isPrivate) {
-      if (!inviteCode) {
-        throw new UnauthorizedException('초대 코드가 필요합니다.')
-      }
-      if (battle.inviteCode !== inviteCode) {
-        throw new UnauthorizedException('잘못된 초대 코드입니다.')
-      }
-    }
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
