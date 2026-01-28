@@ -34,10 +34,10 @@ export class OauthController {
     // 사용자 정보 확인
     const isInitialNickname = this.oauthService.isInitialNickname(user)
 
-    // 프론트엔드 콜백 페이지로 리다이렉트 (콜백 페이지에서 사용자 정보 가져오고 최종 리다이렉트)
+    // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
     const redirectTo = isInitialNickname ? '/nickname' : '/'
-    res.redirect(`${frontendUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`)
+    res.redirect(`${frontendUrl}${redirectTo}`)
   }
 
   @Get('kakao')
@@ -56,10 +56,10 @@ export class OauthController {
     // 사용자 정보 확인
     const isInitialNickname = this.oauthService.isInitialNickname(user)
 
-    // 프론트엔드 콜백 페이지로 리다이렉트 (콜백 페이지에서 사용자 정보 가져오고 최종 리다이렉트)
+    // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
     const redirectTo = isInitialNickname ? '/nickname' : '/'
-    res.redirect(`${frontendUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`)
+    res.redirect(`${frontendUrl}${redirectTo}`)
   }
 
   @Post('refresh')

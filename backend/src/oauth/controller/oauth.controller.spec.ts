@@ -99,7 +99,7 @@ describe('OauthController', () => {
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
       expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback?redirect=%2F')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
     })
 
     it('닉네임이 "사용자 "로 시작하면 닉네임 페이지로 리다이렉트한다', async () => {
@@ -139,7 +139,7 @@ describe('OauthController', () => {
       await controller.githubCallback(mockReq, mockRes)
 
       expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback?redirect=%2Fnickname')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/nickname')
     })
   })
 
@@ -183,7 +183,7 @@ describe('OauthController', () => {
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
       expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback?redirect=%2F')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
     })
 
     it('닉네임이 "사용자 "로 시작하면 닉네임 페이지로 리다이렉트한다', async () => {
@@ -223,7 +223,7 @@ describe('OauthController', () => {
       await controller.kakaoCallback(mockReq, mockRes)
 
       expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback?redirect=%2Fnickname')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/nickname')
     })
   })
 
