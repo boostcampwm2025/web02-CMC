@@ -23,6 +23,7 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
+import SoundSettingsButton from './components/header/SoundSettingsButton';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 type Tab = 'info' | 'timeline';
@@ -40,6 +41,16 @@ export default function BattlePage() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const hasLeftRef = useRef(false);
 
+  const BGM_OPTIONS = [
+    { key: 'lofi', label: 'LoFi', src: '/sounds/lofi.mp3' },
+    { key: 'chill', label: 'Chill', src: '/sounds/chill.mp3' },
+    { key: 'groove', label: 'Groove', src: '/sounds/groove.mp3' },
+    { key: 'hiphop', label: 'Hip Hop', src: '/sounds/hiphop.mp3' },
+    { key: 'jazz', label: 'Jazz', src: '/sounds/jazz.mp3' },
+    { key: 'rock', label: 'Rock', src: '/sounds/rock.mp3' },
+    { key: 'romantic', label: 'Romantic', src: '/sounds/romantic.mp3' }
+  ];
+
   const safeLeaveBattle = useCallback(() => {
     if (hasLeftRef.current) return;
     hasLeftRef.current = true;
@@ -55,10 +66,12 @@ export default function BattlePage() {
 
   useEffect(() => {
     const handlePageHide = () => {
+      soundManager.stopAllBGM();
       safeLeaveBattle();
     };
 
     const handleBeforeUnload = () => {
+      soundManager.stopAllBGM();
       safeLeaveBattle();
     };
 
@@ -68,6 +81,7 @@ export default function BattlePage() {
     return () => {
       window.removeEventListener('pagehide', handlePageHide);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      soundManager.stopAllBGM();
       safeLeaveBattle();
     };
   }, [safeLeaveBattle]);
@@ -94,6 +108,17 @@ export default function BattlePage() {
     soundManager.preload('fanfare', '/sounds/fanfare.mp3');
     soundManager.preload('click', '/sounds/click.mp3');
     soundManager.preload('click2', '/sounds/click2.mp3');
+
+    BGM_OPTIONS.forEach((bgm) => {
+      soundManager.preloadBGM(bgm.key, bgm.src);
+    });
+  }, []);
+
+  // 배틀 페이지 진입 시 BGM 자동 재생
+  useEffect(() => {
+    if (!soundManager.getCurrentBGM()) {
+      soundManager.playBGM(BGM_OPTIONS[0].key);
+    }
   }, []);
 
   useEffect(() => {
@@ -184,6 +209,7 @@ export default function BattlePage() {
               ← 돌아가기
             </button>
           </div>
+          <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
           <BattleHeader />
         </div>
         <main className="main-width-closed">
@@ -208,7 +234,7 @@ export default function BattlePage() {
 
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
-          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[5] px-4 pb-4 transition-all duration-500 ease-out ${
+          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-5 px-4 pb-4 transition-all duration-500 ease-out ${
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
           }`}
         >

@@ -29,7 +29,7 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       const timer = setTimeout(() => {
         onOpenTeamChangeModal();
 
-        soundManager.play('swoosh', 0.5);
+        soundManager.play('swoosh');
       }, 4000);
 
       return () => clearTimeout(timer);

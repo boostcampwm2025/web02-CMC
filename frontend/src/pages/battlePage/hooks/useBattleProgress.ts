@@ -17,7 +17,7 @@ export function useBattleProgress() {
     // Phase 변경 이벤트 구독
     const handlePhaseUpdate = (data: BattleProgressState) => {
       // 페이즈 전환 효과음 재생
-      soundManager.play('click', 0.4);
+      soundManager.play('click');
 
       updateBattleProgress({
         phase: data.phase,
@@ -51,7 +51,8 @@ export function useBattleProgress() {
       if (isTeamVoteResultShowing) {
         setPendingBattleClosed(true);
       } else {
-        navigate(`/battles/${data.battleId}/result`);
+        soundManager.stopAllBGM();
+      navigate(`/battles/${data.battleId}/result`);
       }
     };
     socket.on('battle:closed', handleBattleClosed);

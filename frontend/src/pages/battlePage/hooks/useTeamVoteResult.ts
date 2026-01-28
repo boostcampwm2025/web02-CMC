@@ -34,7 +34,7 @@ export function useTeamVoteResult() {
       setIsTeamVoteResultShowing(true); // 모달 표시 중 플래그 ON
 
       // 팀 투표 결과 효과음 재생
-      soundManager.play('fanfare', 0.5);
+      soundManager.play('fanfare');
 
       // battle:closed가 대기 중이면 5초 후 자동 이동
       const { pendingBattleClosed } = useBattleStore.getState();
