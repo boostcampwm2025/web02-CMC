@@ -81,6 +81,28 @@
   100% {
     transform: translateX(0) scale(1);
   }
+@keyframes character-wiggle {
+  0%,
+  85%,
+  100% {
+    transform: rotate(0deg);
+  }
+  88% {
+    transform: rotate(-2deg);
+  }
+  91% {
+    transform: rotate(2deg);
+  }
+  94% {
+    transform: rotate(-1.5deg);
+  }
+  97% {
+    transform: rotate(1.5deg);
+  }
+}
+
+.animate-character-wiggle {
+  animation: character-wiggle 1.5s ease-in-out infinite;
 }
 
 @keyframes message-appear {
