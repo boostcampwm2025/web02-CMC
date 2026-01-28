@@ -16,8 +16,8 @@ interface BattleSidebarProps {
   topics: string[];
   raiseZIndex?: boolean;
   referenceData?: BattleReferenceData | null;
-  activeTab: Tab;
-  onActiveTabChange: (tab: Tab) => void;
+  activeTab: SidebarTab;
+  onActiveTabChange: (tab: SidebarTab) => void;
 }
 
 export default function BattleSidebar({

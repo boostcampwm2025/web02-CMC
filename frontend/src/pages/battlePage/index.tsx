@@ -26,7 +26,7 @@ import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import SoundSettingsButton from './components/header/SoundSettingsButton';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
-type Tab = 'info' | 'timeline';
+type Tab = 'info' | 'timeline' | 'reference';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
