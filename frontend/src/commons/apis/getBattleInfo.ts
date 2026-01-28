@@ -41,7 +41,6 @@ const fetchBattleInfo = async (id: string) => {
 
     if (!response.ok) {
       if (response.status === 403) {
-        // 비공개 배틀 접근 거부 - 초대 코드 필요
         alert('비공개 배틀에 접근하려면 초대 코드가 필요합니다.');
         window.location.href = '/';
         throw new Error('비공개 배틀에 접근하려면 초대 코드가 필요합니다.');

@@ -11,7 +11,6 @@ import {
 } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 import PhaseSkip from './PhaseSkip';
-import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   PENDING: '',
@@ -25,10 +24,9 @@ interface BattleHeaderProps {
   isSkipEnabled: boolean;
   toggleSkip: () => void;
   totalSkips: number;
-  inviteCode?: string;
 }
 
-export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips, inviteCode }: BattleHeaderProps) {
+export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: BattleHeaderProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);

@@ -24,18 +24,18 @@ export default function InviteLinkButton({ inviteCode }: InviteLinkProps) {
   return (
     <button
       onClick={handleCopy}
-      className="px-4 py-2 bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+      className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors flex items-center justify-center gap-2 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
       title="링크 복사"
     >
       {copied ? (
         <>
           <CheckIcon className="w-4 h-4 shrink-0" />
-          <span className="text-sm">복사됨</span>
+          <span className="text-sm hidden sm:inline">복사됨</span>
         </>
       ) : (
         <>
           <CopyIcon className="w-4 h-4 shrink-0" />
-          <span className="text-sm">친구 초대</span>
+          <span className="text-sm hidden sm:inline">친구 초대</span>
         </>
       )}
     </button>

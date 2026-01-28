@@ -27,6 +27,7 @@ import SoundSettingsButton from './components/header/SoundSettingsButton';
 import SkipModal from './components/effects/SkipModal';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { usePhaseSkip } from './hooks/usePhaseSkip';
+import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 type Tab = 'info' | 'timeline' | 'reference';
 
@@ -212,13 +213,16 @@ export default function BattlePage() {
             battleProgress.startedAt
           }`}
         >
-          <div className="flex items-center justify-between mt-10 mb-8">
+          <div className="flex items-center justify-between gap-4 mt-10 mb-8">
             <button
               onClick={handleLeaveBattle}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기
             </button>
+            <div className="shrink-0">
+              {battleInfo.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
+            </div>
           </div>
           <div className="flex items-center justify-between">
             <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
