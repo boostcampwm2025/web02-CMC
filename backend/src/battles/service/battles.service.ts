@@ -4,9 +4,9 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  UnauthorizedException,
   ForbiddenException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -83,6 +83,11 @@ export class BattlesService extends EventEmitter {
     return uuidv7()
   }
 
+  private generateInviteCode(): string {
+    // 밀리초 단위 타임스탬프 기반 코드 생성
+    return Date.now().toString()
+  }
+
   private getPlayTime(playTimeName: string): BattlePlayTime {
     const playTime = BATTLE_PLAYTIME[playTimeName as BattlePlayTimeName]
     if (!playTime) {
@@ -103,7 +108,7 @@ export class BattlesService extends EventEmitter {
       category: string
       playTime: string
       topics: string[]
-      password: string | null
+      inviteCode: string | null
       isPrivate: boolean
       status: string
       createdAt: Date
@@ -126,7 +131,7 @@ export class BattlesService extends EventEmitter {
       category: record.category as BattleCategory,
       playTime,
       topics: record.topics,
-      password: record.password ?? undefined,
+      inviteCode: record.inviteCode ?? undefined,
       status: record.status as BattleStatus,
       participantCount,
       initialState: {
@@ -375,7 +380,7 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
-    const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
+    const isPrivate = true
 
     // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
     let referenceData: BattleReferenceData | null = null
@@ -392,6 +397,7 @@ export class BattlesService extends EventEmitter {
     } catch {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
+    const inviteCode = this.generateInviteCode()
 
     const created = await this.prisma.battle.create({
       data: {
@@ -405,7 +411,7 @@ export class BattlesService extends EventEmitter {
         category: payload.category,
         playTime: payload.playTime,
         topics: shuffledTopics,
-        password: isPrivate ? (payload.password?.trim() ?? null) : null,
+        inviteCode,
         isPrivate,
         status: BATTLE_STATUS.PENDING,
         createdAt: now,
@@ -550,6 +556,30 @@ export class BattlesService extends EventEmitter {
     return dto
   }
 
+  async getBattleByInviteCode(inviteCode: string): Promise<{ battleId: string }> {
+    if (!inviteCode) throw new BadRequestException('초대 코드가 필요합니다.')
+
+    const battle = await this.prisma.battle.findUnique({ where: { inviteCode } })
+
+    if (!battle) {
+      throw new NotFoundException('잘못된 초대 코드입니다.')
+    }
+
+    if (battle.status === BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('이미 종료된 배틀입니다.')
+    }
+
+    return { battleId: battle.id }
+  }
+
+  async isPrivateBattle(battleId: string): Promise<boolean> {
+    const battle = await this.prisma.battle.findUnique({
+      where: { id: battleId },
+      select: { isPrivate: true },
+    })
+    return battle?.isPrivate ?? false
+  }
+
   async joinBattleInfo(battleId: string): Promise<BattleJoinInfoResponseDto> {
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
@@ -571,17 +601,11 @@ export class BattlesService extends EventEmitter {
   }
 
   async joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
-    const { battleId, password, team, nickname } = battleJoinRequestDto
+    const { battleId, team, nickname } = battleJoinRequestDto
 
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
     const { battle, state } = await this.loadBattleState(battleId)
-
-    if (battle.isPrivate && battle.password) {
-      const isValid = battle.password === password
-
-      if (!isValid) throw new UnauthorizedException('잘못된 비밀번호입니다.')
-    }
 
     if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 

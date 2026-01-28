@@ -33,6 +33,8 @@ describe('BattlesGateway - Discussion Events', () => {
             handleAttackVote: jest.fn(),
             handleDefenseVote: jest.fn(),
             getBattleRoomId: jest.fn(),
+            isPrivateBattle: jest.fn(),
+            joinBattle: jest.fn(),
             on: jest.fn(),
             emit: jest.fn(),
           },

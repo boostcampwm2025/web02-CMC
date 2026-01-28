@@ -83,6 +83,7 @@ export class BattleJoinInfoResponseDto {
   phaseCount: number
   timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
   referenceData: BattleReferenceData | null
+  inviteCode?: string
 
   static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
     const res = new BattleJoinInfoResponseDto()
@@ -94,6 +95,7 @@ export class BattleJoinInfoResponseDto {
     res.category = battle.category
     res.participantCount = battle.participantCount
     res.topics = battle.topics
+    res.inviteCode = battle.inviteCode
 
     // ActiveBattleState가 있으면 실시간 데이터 사용, 없으면 초기 상태 사용
     if (activeBattleState) {

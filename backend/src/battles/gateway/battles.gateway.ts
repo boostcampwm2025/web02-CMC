@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit, UnauthorizedException, NotFoundException } from '@nestjs/common'
+import { Logger, OnModuleInit, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../types/socket.types'
 import {
@@ -110,6 +110,17 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
 
       const { battleId } = battleJoinRequestDto
+
+      // 비공개 배틀이면 초대 코드로 접근했는지 확인
+      const isPrivate = await this.battlesService.isPrivateBattle(battleId)
+      if (isPrivate) {
+        const cookieHeader = client.handshake.headers.cookie
+        const cookieName = `inviteAccess_${battleId}`
+        if (!cookieHeader?.includes(cookieName)) {
+          throw new ForbiddenException('비공개 배틀에 접근하려면 초대 코드가 필요합니다.')
+        }
+      }
+
       const { battleState, team } = await this.battlesService.joinBattle(battleJoinRequestDto, userId)
 
       const res = BattleJoinResponseDto.of(battleState, team)
