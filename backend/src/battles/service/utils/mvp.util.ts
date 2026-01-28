@@ -19,12 +19,7 @@ export function calculateOpinionScore(upvotes: number, voterCount: number): numb
  * 무승부 또는 중립(NONE) 팀인 경우 보너스 없음
  */
 export function applyWinnerBonus(score: number, team: 'A' | 'B' | 'NONE', winner: 'A' | 'B' | 'DRAW'): number {
-  if (winner === 'DRAW') return score
-  if (team === 'NONE') return score
-  if (team === winner) {
-    return score * WINNER_TEAM_BONUS_MULTIPLIER
-  }
-  return score
+  return team === winner ? score * WINNER_TEAM_BONUS_MULTIPLIER : score
 }
 
 /** MVP 비교 함수 타입 */
