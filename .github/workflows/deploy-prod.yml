@@ -127,7 +127,7 @@ jobs:
 
             # === 기존 컨테이너 종료 ===
             docker compose -f docker-compose.yml down || true
-            
+
             # === 이미지 pull ===
             docker compose -f docker-compose.yml pull
 
