@@ -79,14 +79,14 @@ type BattleFindUniqueArgs = {
 
 type MockPrisma = {
   battle: {
-    findUnique: jest.Mock<BattleRecord | null, [BattleFindUniqueArgs]>
-    findMany: jest.Mock<BattleRecord[], [BattleFindManyArgs]>
-    count: jest.Mock<number, [BattleCountArgs | undefined]>
-    update: jest.Mock<BattleRecord | null, [BattleUpdateArgs]>
-    create: jest.Mock<BattleRecord, [BattleCreateArgs]>
+    findUnique: jest.Mock
+    findMany: jest.Mock
+    count: jest.Mock
+    update: jest.Mock
+    create: jest.Mock
   }
   battleParticipant: { upsert: jest.Mock }
-  user: { findUnique: jest.Mock<{ id: string } | null, [{ where: { id: string }; select?: { id: true } }]> }
+  user: { findUnique: jest.Mock }
 }
 
 type BattleStateAccess = {
@@ -480,7 +480,7 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).rejects.toThrow(BadRequestException)
+      await expect(service.joinBattle({ battleId: '', team: 'A', nickname: 'test-user' }, 'user-1')).rejects.toThrow(BadRequestException)
     })
 
     it('case', async () => {
@@ -489,6 +489,7 @@ describe('BattlesService', () => {
           {
             battleId: 'invalid',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -502,6 +503,7 @@ describe('BattlesService', () => {
             battleId: 'private-battle',
             password: 'wrong',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -515,6 +517,7 @@ describe('BattlesService', () => {
           battleId: 'private-battle',
           password: '1234',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -529,6 +532,7 @@ describe('BattlesService', () => {
           {
             battleId: 'closed-battle',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -540,6 +544,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -554,6 +559,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -562,6 +568,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -590,6 +597,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -598,6 +606,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle-2',
           team: 'B',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -695,6 +704,7 @@ describe('BattlesService', () => {
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.A,
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -880,8 +890,8 @@ describe('BattlesService', () => {
         title: finished.title,
         description: finished.description,
         status: BATTLE_STATUS.CLOSED,
-        language: finished.language as BATTLE_LANGUAGE,
-        category: finished.category as BATTLE_CATEGORY,
+        language: finished.language as (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE],
+        category: finished.category as (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY],
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
         topics: finished.topics,
         aCode: finished.codeA,
@@ -889,7 +899,7 @@ describe('BattlesService', () => {
       })
 
       seedBattles([battle])
-      const record = battleStore.get(finished.battleId)
+      const record = battleStore.get(finished.battleId)!
       battleStore.set(finished.battleId, {
         ...record,
         status: BATTLE_STATUS.CLOSED,
