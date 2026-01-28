@@ -109,10 +109,8 @@ describe('BattlesController', () => {
         type: BATTLE_TYPE.PRIVATE,
       }
 
-      const cookieMock = jest.fn()
       const jsonMock = jest.fn()
       const res = {
-        cookie: cookieMock,
         json: jsonMock,
       } as unknown as Response
 
@@ -134,24 +132,21 @@ describe('BattlesController', () => {
         res,
       )
 
-      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
         inviteCode: 'test-invite-code-1234',
       })
     })
 
-    it('공개 배틀 생성 시 쿠키를 설정하지 않는다', async () => {
+    it('공개 배틀 생성 시 battleId와 inviteCode를 반환한다', async () => {
       const mockBattle = {
         id: 'battle-1',
         inviteCode: null,
         type: BATTLE_TYPE.PUBLIC,
       }
 
-      const cookieMock = jest.fn()
       const jsonMock = jest.fn()
       const res = {
-        cookie: cookieMock,
         json: jsonMock,
       } as unknown as Response
 
@@ -173,7 +168,6 @@ describe('BattlesController', () => {
         res,
       )
 
-      expect(cookieMock).not.toHaveBeenCalled()
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
         inviteCode: null,
@@ -182,21 +176,18 @@ describe('BattlesController', () => {
   })
 
   describe('getBattleByInviteCode', () => {
-    it('inviteCode로 배틀을 찾고 쿠키를 설정한 후 리다이렉트한다', async () => {
+    it('inviteCode로 배틀을 찾고 리다이렉트한다', async () => {
       const mockResult = { battleId: 'battle-1' }
       const getBattleByInviteCodeSpy = jest.spyOn(service, 'getBattleByInviteCode').mockResolvedValue(mockResult)
 
       const redirectMock = jest.fn()
-      const cookieMock = jest.fn()
       const res = {
         redirect: redirectMock,
-        cookie: cookieMock,
       } as unknown as Response
 
       await controller.getBattleByInviteCode('test-invite-code', res)
 
       expect(getBattleByInviteCodeSpy).toHaveBeenCalledWith('test-invite-code')
-      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
@@ -204,14 +195,11 @@ describe('BattlesController', () => {
       jest.spyOn(service, 'getBattleByInviteCode').mockRejectedValue(new NotFoundException())
 
       const redirectMock = jest.fn()
-      const cookieMock = jest.fn()
       const res = {
         redirect: redirectMock,
-        cookie: cookieMock,
       } as unknown as Response
 
       await expect(controller.getBattleByInviteCode('invalid-code', res)).rejects.toThrow(NotFoundException)
-      expect(cookieMock).not.toHaveBeenCalled()
     })
   })
 
