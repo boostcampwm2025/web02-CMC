@@ -30,6 +30,10 @@ export function usePhaseSkip() {
     };
 
     socket.on('battle:phase:skipped', handleTeamUpdateAll);
+
+    return () => {
+      socket.off('battle:phase:skipped', handleTeamUpdateAll);
+    };
   }, [socket]);
 
   useEffect(() => {
