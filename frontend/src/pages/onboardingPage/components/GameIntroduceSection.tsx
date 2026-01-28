@@ -3,12 +3,12 @@ import OnBoardingIntroduceCard from '@/pages/onboardingPage/components/OnBoardin
 
 export default function GameIntroduceSection() {
   return (
-    <section className="h-screen snap-start snap-always flex flex-col justify-between py-12">
+    <section className="min-h-screen snap-start snap-always flex flex-col justify-between py-16 pb-24">
       <h2>
-        <span className="text-yellow-500 font-bold text-4xl">코문철 </span>
-        <span className="text-white font-bold text-4xl">게임소개</span>
+        <span className="text-yellow-500 font-bold text-3xl">코문철 </span>
+        <span className="text-white font-bold text-3xl">게임소개</span>
       </h2>
-      <div className="mx-auto w-[70rem] h-[40rem]">
+      <div className="mx-auto w-[55rem] h-[32rem] max-w-[85%]">
         <Carousel>
           <OnBoardingIntroduceCard
             image="/public/images/bigTitle.png"

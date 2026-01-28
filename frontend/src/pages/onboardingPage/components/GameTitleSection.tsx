@@ -13,9 +13,13 @@ export default function GameTitleSection() {
   };
 
   return (
-    <section className="relative h-screen !w-screen snap-start snap-always flex items-end justify-center pb-[12vh]">
-      <div className="absolute inset-0 !w-screen left-1/2 -translate-x-1/2 bg-[#0a0b14]">
-        <img src={onBoardingBackgroundImage} alt="CMC Background" className="w-full h-full object-cover" />
+    <section className="relative h-screen w-screen snap-start snap-always flex items-end justify-center pb-[12vh] !ml-[calc(-50vw+50%)] overflow-hidden">
+      <div className="absolute inset-0 w-screen bg-[#0a0b14] flex items-center justify-center">
+        <img
+          src={onBoardingBackgroundImage}
+          alt="CMC Background"
+          className="max-w-8xl w-full h-auto object-contain opacity-60"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0b14]/30 to-[#0a0b14]" />
       </div>
 
