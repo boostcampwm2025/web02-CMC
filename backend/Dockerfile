@@ -15,6 +15,7 @@ RUN HUSKY=0 pnpm install --frozen-lockfile
 
 # Copy source
 COPY backend ./backend
+COPY backend/prisma ./backend/prisma
 
 # Prisma Client 생성
 RUN pnpm -C backend prisma:generate
@@ -38,6 +39,9 @@ RUN HUSKY=0 pnpm install --filter backend --prod --frozen-lockfile --ignore-scri
 
 # Copy built artifacts
 COPY --from=builder /app/backend/dist ./backend/dist
+COPY --from=builder /app/backend/prisma ./backend/prisma
+
+COPY backend/prisma.config.ts ./backend/prisma.config.ts
 
 EXPOSE 3000
 CMD ["pnpm", "-C", "backend", "start:prod"]

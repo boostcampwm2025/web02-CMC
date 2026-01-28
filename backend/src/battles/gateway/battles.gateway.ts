@@ -110,7 +110,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
 
       const { battleId } = battleJoinRequestDto
-      const { battleState, team } = this.battlesService.joinBattle(battleJoinRequestDto, userId)
+      const { battleState, team } = await this.battlesService.joinBattle(battleJoinRequestDto, userId)
 
       const res = BattleJoinResponseDto.of(battleState, team)
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -133,23 +133,23 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:leave')
-  handleLeave(@MessageBody() dto: { battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
+  async handleLeave(@MessageBody() dto: { battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
     const { battleId } = dto
     const userId = this.getUserIdFromSocket(client)
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    const result = this.battlesService.leaveBattle(userId, battleId)
+    const result = await this.battlesService.leaveBattle(userId, battleId)
     client.data.battleId = undefined
 
     this.server.to(battleRoomId).emit('battle:leaved', result)
   }
 
   @SubscribeMessage('battle:start')
-  handleStart(@MessageBody() dto: BattleStartDto) {
+  async handleStart(@MessageBody() dto: BattleStartDto) {
     const stopTimer = this.metricsService.startSocketTimer('battle:start')
     try {
       const { battleId } = dto
-      this.battlesService.startBattle(battleId)
+      await this.battlesService.startBattle(battleId)
 
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
@@ -162,12 +162,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:attack')
-  handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:attack')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, content, team } = dto
-      const attack = this.battlesService.handleAttack(battleId, { authorId: userId, content, team })
+      const attack = await this.battlesService.handleAttack(battleId, { authorId: userId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:attack:created', attack)
@@ -183,12 +183,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:defense')
-  handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:defense')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, content, team } = dto
-      const defense = this.battlesService.handleDefense(battleId, { authorId: userId, content, team })
+      const defense = await this.battlesService.handleDefense(battleId, { authorId: userId, content, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:defense:created', defense)
@@ -204,12 +204,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:attack:vote')
-  handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:attack:vote')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, discussionId, team } = dto
-      const updates = this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
+      const updates = await this.battlesService.handleAttackVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
@@ -228,12 +228,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:defense:vote')
-  handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:defense:vote')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, discussionId, team } = dto
-      const updates = this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
+      const updates = await this.battlesService.handleDefenseVote(battleId, discussionId, { userId, team })
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
@@ -319,12 +319,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:chat')
-  handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:chat')
     try {
       const userId = this.getUserIdFromSocket(client)
 
-      const saved = this.battlesService.appendChatMessage(battleChatDto, userId)
+      const saved = await this.battlesService.appendChatMessage(battleChatDto, userId)
       const roomId =
         battleChatDto.scope === BATTLE_CHAT_SCOPE.ALL
           ? this.battlesService.getBattleRoomId(battleChatDto.battleId)
@@ -342,12 +342,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   }
 
   @SubscribeMessage('battle:team:vote')
-  handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: SocketWithUserId) {
+  async handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:team:vote')
     try {
       const userId = this.getUserIdFromSocket(client)
 
-      this.battlesService.voteTeam(dto, userId)
+      await this.battlesService.voteTeam(dto, userId)
       stopTimer('success')
     } catch (error) {
       stopTimer('error')
