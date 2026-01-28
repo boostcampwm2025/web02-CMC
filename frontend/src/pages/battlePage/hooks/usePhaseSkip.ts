@@ -25,35 +25,26 @@ export function usePhaseSkip() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleTeamUpdateAll = () => {
-      setIsModalOpen(true);
-    };
-
-    socket.on('battle:phase:skipped', handleTeamUpdateAll);
-
-    return () => {
-      socket.off('battle:phase:skipped', handleTeamUpdateAll);
-    };
-  }, [socket]);
-
-  useEffect(() => {
-    if (!socket) return;
-
     const handleSkipped = (data: { totalSkips: number }) => {
       setTotalSkips(data.totalSkips);
+    };
+
+    const handleTeamUpdateAll = () => {
+      setIsModalOpen(true);
     };
 
     const handlePhaseUpdated = () => {
       setIsSkipEnabled(false);
       setTotalSkips(0);
     };
-
+    socket.on('battle:phase:skipped', handleTeamUpdateAll);
     socket.on('battle:user:skipped', handleSkipped);
     socket.on('battle:leaved', handleSkipped);
     socket.on('battle:joined', handleSkipped);
     socket.on('battle:phase:updated', handlePhaseUpdated);
 
     return () => {
+      socket.off('battle:phase:skipped', handleTeamUpdateAll);
       socket.off('battle:user:skipped', handleSkipped);
       socket.off('battle:leaved', handleSkipped);
       socket.off('battle:joined', handleSkipped);
