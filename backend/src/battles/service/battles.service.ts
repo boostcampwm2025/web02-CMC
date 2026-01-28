@@ -1,6 +1,13 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException, InternalServerErrorException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
