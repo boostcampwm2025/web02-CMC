@@ -573,6 +573,14 @@ export class BattlesService extends EventEmitter {
     return { battleId: battle.id }
   }
 
+  async isPrivateBattle(battleId: string): Promise<boolean> {
+    const battle = await this.prisma.battle.findUnique({
+      where: { id: battleId },
+      select: { isPrivate: true },
+    })
+    return battle?.isPrivate ?? false
+  }
+
   async joinBattleInfo(battleId: string): Promise<BattleJoinInfoResponseDto> {
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
