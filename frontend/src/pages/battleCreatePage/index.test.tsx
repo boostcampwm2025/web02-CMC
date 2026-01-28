@@ -51,34 +51,11 @@ describe('BattleCreatePage', () => {
     expect(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i)).toBeInTheDocument();
   });
 
-  it('비공개 배틀 생성 성공 시 inviteCode로 리다이렉트된다', async () => {
+  it('배틀 생성 성공 시 team-select로 리다이렉트된다', async () => {
     const user = userEvent.setup({ delay: null });
     vi.mocked(postCreateBattleApi.default).mockResolvedValue({
       battleId: 'test-battle-id',
       inviteCode: 'test-invite-code'
-    });
-
-    renderWithRouter(<BattleCreatePage />);
-
-    await user.type(screen.getByPlaceholderText(/예: 배열에서 중복 제거하기/i), 'Test Battle');
-    await user.type(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i), 'Test Description');
-    await user.type(screen.getByPlaceholderText(/첫 번째 코드/i), 'code A');
-    await user.type(screen.getByPlaceholderText(/두 번째 코드/i), 'code B');
-
-    const topicCheckbox = screen.getByLabelText(/효율성/i);
-    await user.click(topicCheckbox);
-
-    await user.click(screen.getByRole('button', { name: /배틀 시작/i }));
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/battles/test-invite-code');
-    });
-  });
-
-  it('공개 배틀 생성 성공 시 team-select로 리다이렉트된다', async () => {
-    const user = userEvent.setup({ delay: null });
-    vi.mocked(postCreateBattleApi.default).mockResolvedValue({
-      battleId: 'test-battle-id'
     });
 
     renderWithRouter(<BattleCreatePage />);

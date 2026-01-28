@@ -36,6 +36,7 @@ const postCreateBattle = async (payload: CreateBattleRequest): Promise<CreateBat
     const response = await fetch(`/api/battles`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // 쿠키 수신을 위해 필요
       body: JSON.stringify(payload)
     });
 

@@ -92,13 +92,7 @@ export default function BattleCreatePage() {
         topics
       });
 
-      // 비공개 배틀 생성 시 inviteCode로 리다이렉트
-      if (data.inviteCode) {
-        navigate(`/battles/${data.inviteCode}`);
-      } else {
-        // 공개 배틀은 바로 이동 가능
-        navigate(`/battle/${data.battleId}/team-select/`);
-      }
+      navigate(`/battle/${data.battleId}/team-select/`);
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
