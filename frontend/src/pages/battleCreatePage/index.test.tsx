@@ -23,11 +23,12 @@ vi.mock('@/commons/stores/authStore', () => ({
   }),
   selectUser: vi.fn((state: any) => state.user)
 }));
+const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => vi.fn()
+    useNavigate: () => mockNavigate
   };
 });
 
@@ -38,6 +39,7 @@ const renderWithRouter = (component: React.ReactElement) => {
 describe('BattleCreatePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockNavigate.mockClear();
     vi.mocked(formatCodeUtil.formatCode).mockResolvedValue({ code: 'formatted code', formatted: true });
   });
 
@@ -49,7 +51,7 @@ describe('BattleCreatePage', () => {
     expect(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i)).toBeInTheDocument();
   });
 
-  it('배틀 생성 성공 시 초대 링크 UI가 표시된다', async () => {
+  it('비공개 배틀 생성 성공 시 inviteCode로 리다이렉트된다', async () => {
     const user = userEvent.setup({ delay: null });
     vi.mocked(postCreateBattleApi.default).mockResolvedValue({
       battleId: 'test-battle-id',
@@ -69,16 +71,14 @@ describe('BattleCreatePage', () => {
     await user.click(screen.getByRole('button', { name: /배틀 시작/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('친구 초대')).toBeInTheDocument();
-      expect(screen.getByText(/초대 링크를 복사하여 친구들에게 공유해봐요!/i)).toBeInTheDocument();
+      expect(mockNavigate).toHaveBeenCalledWith('/battles/test-invite-code');
     });
   });
 
-  it('초대 링크가 표시되면 "배틀 참여하기" 버튼이 나타난다', async () => {
+  it('공개 배틀 생성 성공 시 team-select로 리다이렉트된다', async () => {
     const user = userEvent.setup({ delay: null });
     vi.mocked(postCreateBattleApi.default).mockResolvedValue({
-      battleId: 'test-battle-id',
-      inviteCode: 'test-invite-code'
+      battleId: 'test-battle-id'
     });
 
     renderWithRouter(<BattleCreatePage />);
@@ -94,7 +94,7 @@ describe('BattleCreatePage', () => {
     await user.click(screen.getByRole('button', { name: /배틀 시작/i }));
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /배틀 참여하기/i })).toBeInTheDocument();
+      expect(mockNavigate).toHaveBeenCalledWith('/battle/test-battle-id/team-select/');
     });
   });
 

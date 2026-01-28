@@ -16,25 +16,18 @@ describe('InviteLinkButton', () => {
 
   const mockInviteCode = 'testInviteCode123';
 
-  it('초대 링크가 올바르게 렌더링된다', () => {
+  it('친구 초대 버튼이 렌더링된다', () => {
     render(<InviteLinkButton inviteCode={mockInviteCode} />);
 
-    const input = screen.getByRole('textbox') as HTMLInputElement;
-    expect(input.value).toBe(`${window.location.origin}/battles/${mockInviteCode}`);
+    const button = screen.getByTitle('링크 복사');
+    expect(button).toBeInTheDocument();
   });
 
-  it('복사 버튼이 렌더링된다', () => {
+  it('버튼 클릭 시 클립보드에 링크가 복사된다', async () => {
     render(<InviteLinkButton inviteCode={mockInviteCode} />);
 
-    const copyButton = screen.getByRole('button', { name: /복사/i });
-    expect(copyButton).toBeInTheDocument();
-  });
-
-  it('복사 버튼 클릭 시 클립보드에 링크가 복사된다', async () => {
-    render(<InviteLinkButton inviteCode={mockInviteCode} />);
-
-    const copyButton = screen.getByRole('button', { name: /복사/i });
-    fireEvent.click(copyButton);
+    const button = screen.getByTitle('링크 복사');
+    fireEvent.click(button);
 
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(`${window.location.origin}/battles/${mockInviteCode}`);
@@ -44,11 +37,12 @@ describe('InviteLinkButton', () => {
   it('복사 성공 시 "복사됨" 텍스트가 표시된다', async () => {
     render(<InviteLinkButton inviteCode={mockInviteCode} />);
 
-    const copyButton = screen.getByRole('button', { name: /복사/i });
-    fireEvent.click(copyButton);
+    const button = screen.getByTitle('링크 복사');
+    fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('복사됨')).toBeInTheDocument();
+      const copiedText = screen.queryByText('복사됨');
+      expect(copiedText).toBeInTheDocument();
     });
   });
 });
