@@ -23,8 +23,7 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
-import SoundSettingsPopover from './components/header/SoundSettingsPopover';
-import SoundIcon from '@/assets/icon/sound.svg?react';
+import SoundSettingsButton from './components/header/SoundSettingsButton';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 type Tab = 'info' | 'timeline';
@@ -41,8 +40,6 @@ export default function BattlePage() {
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
   const battleProgress = useBattleStore(selectBattleProgress);
   const hasLeftRef = useRef(false);
-  const [isSoundSettingsOpen, setIsSoundSettingsOpen] = useState(false);
-  const soundButtonRef = useRef<HTMLButtonElement>(null);
 
   const BGM_OPTIONS = [
     { key: 'lofi', label: 'LoFi', src: '/sounds/lofi.mp3' },
@@ -211,25 +208,8 @@ export default function BattlePage() {
             >
               ← 돌아가기
             </button>
-
-            {/* 사운드 설정 버튼 */}
-            <div className="fixed top-4 right-4 z-10">
-              <button
-                ref={soundButtonRef}
-                onClick={() => setIsSoundSettingsOpen(!isSoundSettingsOpen)}
-                className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#2D2D3F]/80 hover:bg-[#3D3D4F] text-white transition-all shadow-lg border border-white/10"
-                aria-label="사운드 설정"
-              >
-                <SoundIcon className="w-6 h-6" />
-              </button>
-              <SoundSettingsPopover
-                isOpen={isSoundSettingsOpen}
-                onClose={() => setIsSoundSettingsOpen(false)}
-                anchorEl={soundButtonRef.current}
-                bgmOptions={BGM_OPTIONS}
-              />
-            </div>
           </div>
+          <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
           <BattleHeader />
         </div>
         <main className="main-width-closed">
