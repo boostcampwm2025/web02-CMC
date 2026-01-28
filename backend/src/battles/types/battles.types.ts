@@ -10,6 +10,7 @@ import {
 } from '../const/battles.const'
 
 import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
+import type { BattleReferenceData } from './ai.types'
 export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
 export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
@@ -45,6 +46,8 @@ export interface Battle {
     phaseCount: number
     timeRemainingSeconds: number
   }
+
+  referenceData?: BattleReferenceData | null
 
   createdAt: Date
   updatedAt: Date

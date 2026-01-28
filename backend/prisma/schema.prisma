@@ -53,8 +53,11 @@ model Battle {
   isPrivate                Boolean   @default(false) @map("is_private")
   status                   String    @db.VarChar(20)
 
+  /* AI 참고 자료 */
+  referenceData            Json?      @map("reference_data")
+
   /* 배틀 결과 */
-  timeline                 Json?      
+  timeline                 Json?
   teamACount               Int?       @map("team_a_count")
   teamBCount               Int?       @map("team_b_count")
   totalParticipantsCount   Int?       @map("total_participants_count")

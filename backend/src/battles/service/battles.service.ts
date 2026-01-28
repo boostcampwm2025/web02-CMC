@@ -1,6 +1,14 @@
 import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  InternalServerErrorException,
+} from '@nestjs/common'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
@@ -42,7 +50,12 @@ import {
   BATTLE_DISCUSSION_TYPE,
   BATTLE_MAX_PHASE_COUNT,
   MVP_DISPLAY_COUNT,
+  BUILD_AI_REFERENCE_PROMPT,
+  AI_REFERENCE_SCHEMA,
 } from '../const/battles.const'
+import { ConfigService } from '@nestjs/config'
+import type { BattleReferenceData } from '../types/ai.types'
+import type { GenerateReferenceRequestDto } from '../dto/generateReference.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
@@ -59,7 +72,10 @@ import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 export class BattlesService extends EventEmitter {
   private battleTimers: Map<string, NodeJS.Timeout> = new Map()
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
+  ) {
     super()
   }
 
@@ -92,6 +108,7 @@ export class BattlesService extends EventEmitter {
       status: string
       createdAt: Date
       updatedAt: Date | null
+      referenceData?: unknown
     },
     participantCount: number,
   ): Battle {
@@ -118,6 +135,7 @@ export class BattlesService extends EventEmitter {
         phaseCount: 1,
         timeRemainingSeconds: playTime.time * 60,
       },
+      referenceData: record.referenceData as BattleReferenceData | null | undefined,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt ?? record.createdAt,
     }
@@ -356,6 +374,22 @@ export class BattlesService extends EventEmitter {
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
     const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
+    // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
+    let referenceData: BattleReferenceData | null = null
+    try {
+      referenceData = await this.generateReferenceData({
+        title: payload.title,
+        description: payload.description,
+        codeA: payload.aCode,
+        codeB: payload.bCode,
+        language: payload.language,
+        category: payload.category,
+        topics: payload.topics,
+      })
+    } catch {
+      // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
+    }
+
     const created = await this.prisma.battle.create({
       data: {
         id: battleId,
@@ -387,6 +421,7 @@ export class BattlesService extends EventEmitter {
         chatsAllState: [],
         chatsTeamAState: [],
         chatsTeamBState: [],
+        referenceData: referenceData as unknown as Prisma.InputJsonValue,
       },
     })
 
@@ -1402,6 +1437,46 @@ export class BattlesService extends EventEmitter {
       this.battleTimers.set(battleId, battleTimer)
     } catch {
       // ignore if battle not found or closed
+    }
+  }
+
+  async generateReferenceData(dto: GenerateReferenceRequestDto): Promise<BattleReferenceData> {
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY')
+    if (!apiKey) {
+      throw new InternalServerErrorException('AI 서비스를 사용할 수 없습니다.')
+    }
+
+    const prompt = BUILD_AI_REFERENCE_PROMPT({
+      title: dto.title,
+      description: dto.description,
+      language: dto.language,
+      category: dto.category,
+      topics: dto.topics?.join(', ') || '없음',
+      codeA: dto.codeA,
+      codeB: dto.codeB,
+    })
+
+    try {
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-3-flash-preview',
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: AI_REFERENCE_SCHEMA,
+        },
+      })
+
+      const result = await model.generateContent(prompt)
+      const response = result.response
+      const text = response.text()
+
+      const referenceData = JSON.parse(text) as BattleReferenceData
+      return referenceData
+    } catch (error: unknown) {
+      if (error instanceof InternalServerErrorException) {
+        throw error
+      }
+      throw new InternalServerErrorException('AI 참고 자료 생성에 실패했습니다.')
     }
   }
 }
