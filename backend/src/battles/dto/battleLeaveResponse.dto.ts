@@ -7,10 +7,11 @@ export class BattleLeaveResponseDto {
     teamB: number
     teamNone: number
   }
+  totalSkips: number
 
   static fromEntity(payload: ActiveBattleState): BattleLeaveResponseDto {
     const res = new BattleLeaveResponseDto()
-    const { teamA, teamB, participants } = payload
+    const { teamA, teamB, participants, skipState } = payload
 
     res.battleId = payload.battleId
     res.counts = {
@@ -18,6 +19,7 @@ export class BattleLeaveResponseDto {
       teamB: teamB.users.length,
       teamNone: participants.size - (teamA.users.length + teamB.users.length),
     }
+    res.totalSkips = skipState.size
     return res
   }
 

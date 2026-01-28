@@ -1,5 +1,5 @@
 import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState } from '../types/battles.types'
+import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import {
   BATTLE_TYPE,
@@ -289,7 +289,8 @@ describe('BattlesService', () => {
           const end = take ? skip + take : undefined
           return records.slice(skip, end)
         }),
-        count: jest.fn(({ where }: BattleCountArgs = {}) => {
+        count: jest.fn((args?: BattleCountArgs) => {
+          const { where } = args ?? {}
           let records = [...battleStore.values()]
           if (where?.isPrivate !== undefined) {
             records = records.filter(r => r.isPrivate === where.isPrivate)
@@ -312,7 +313,8 @@ describe('BattlesService', () => {
         }),
       },
       battleParticipant: { upsert: jest.fn() },
-      user: { findUnique: jest.fn(() => null) },
+      // eslint-disable-next-line no-empty-pattern
+      user: { findUnique: jest.fn(({}: { where: { id: string }; select?: { id: true } }) => null) },
     }
     service = new BattlesService(mockPrisma as unknown as PrismaService)
     const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
@@ -795,21 +797,18 @@ describe('BattlesService', () => {
 
   describe('getOpenBattles', () => {
     it('case', async () => {
-      const publicOpen = toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
-      mockPrisma.battle.findMany.mockResolvedValue([publicOpen])
-      mockPrisma.battle.count.mockResolvedValue(1)
+      toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
+      seedBattles([createBattle({ status: BATTLE_STATUS.OPEN })])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
-
     it('case', async () => {
-      const oldBattle = toRecord(createBattle({ id: 'old', createdAt: new Date('2024-01-01') }))
-      const newBattle = toRecord(createBattle({ id: 'new', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([newBattle, oldBattle])
-      mockPrisma.battle.count.mockResolvedValue(2)
+      const oldBattle = createBattle({ id: 'old', createdAt: new Date('2024-01-01') })
+      const newBattle = createBattle({ id: 'new', createdAt: new Date('2024-01-02') })
+      seedBattles([oldBattle, newBattle])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
@@ -818,9 +817,8 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      const two = toRecord(createBattle({ id: '2', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([two])
-      mockPrisma.battle.count.mockResolvedValue(3)
+      const two = createBattle({ id: '2', createdAt: new Date('2024-01-02') })
+      seedBattles([createBattle({ id: '1', createdAt: new Date('2024-01-01') }), two, createBattle({ id: '3', createdAt: new Date('2024-01-03') })])
 
       const result = (await service.getOpenBattles(1, 1)).battles
 
@@ -1980,6 +1978,114 @@ describe('BattlesService', () => {
       // 같은 객체를 참조
       expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
       expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
+    })
+  })
+
+  describe('handlePhaseSkip', () => {
+    const battleId = 'battle-id'
+    const userA = 'user-a'
+    const userB = 'user-b'
+
+    const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
+      battleId,
+      all: { roomId: `battle:${battleId}`, chats: [], attacks: [], defenses: [] },
+      teamA: { roomId: `battle:${battleId}:A`, chats: [], users: [userA], attacks: [], defenses: [] },
+      teamB: { roomId: `battle:${battleId}:B`, chats: [], users: [userB], attacks: [], defenses: [] },
+      phase: BATTLE_PHASE.OPINION_SHARE.name,
+      participants: new Map([
+        [userA, BATTLE_TEAM.A],
+        [userB, BATTLE_TEAM.B],
+      ]),
+      teamVotes: new Map<string, BattleTeam>(),
+      userInfoMap: new Map<string, string>(),
+      opinionHistory: [],
+      skipState: new Set<string>(),
+      round: 0,
+      topics: [],
+      totalRounds: 0,
+      phaseCount: 0,
+      startedAt: null,
+      expiredAt: null,
+      ...overrides,
+    })
+
+    beforeEach(async () => {
+      const battle = createBattle({ id: battleId })
+      seedBattles([battle])
+
+      await updateState(battleId, state => {
+        Object.assign(state, createActiveState())
+      })
+    })
+
+    it('TEAM_SWITCH 페이즈에서는 스킵할 수 없다', async () => {
+      await updateState(battleId, state => {
+        state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      })
+
+      await expect(service.handlePhaseSkip({ battleId, userId: userA, skip: true })).rejects.toThrow('진영선택 페이즈는 스킵이 불가합니다.')
+    })
+
+    it('중립(NONE) 유저는 스킵할 수 없다', async () => {
+      await updateState(battleId, state => {
+        state.participants.set(userA, BATTLE_TEAM.NONE)
+      })
+
+      await expect(service.handlePhaseSkip({ battleId, userId: userA, skip: true })).rejects.toThrow('권한이 없습니다.')
+    })
+
+    it('skip=true면 skipState에 유저가 추가된다', async () => {
+      const total = await service.handlePhaseSkip({
+        battleId,
+        userId: userA,
+        skip: true,
+      })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(state.skipState.has(userA)).toBe(true)
+      expect(total).toBe(1)
+    })
+
+    it('skip=false면 skipState에서 유저가 제거된다', async () => {
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+
+      const total = await service.handlePhaseSkip({
+        battleId,
+        userId: userA,
+        skip: false,
+      })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(state.skipState.has(userA)).toBe(false)
+      expect(total).toBe(0)
+    })
+
+    it('모든 참가자가 스킵하면 phase가 스킵되고 skipState가 초기화된다', async () => {
+      const skipPhaseSpy = jest.spyOn(service, 'skipPhase')
+
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+      const total = await service.handlePhaseSkip({ battleId, userId: userB, skip: true })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(skipPhaseSpy).toHaveBeenCalledWith(battleId)
+      expect(state.skipState.size).toBe(0)
+      expect(total).toBe(0)
+    })
+
+    it('skipState는 DB에 저장된다', async () => {
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+
+      expect(mockPrisma.battle.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: battleId },
+          data: {
+            skipState: [userA],
+          },
+        }),
+      )
     })
   })
 })

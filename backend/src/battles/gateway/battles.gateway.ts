@@ -251,6 +251,28 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
+  @SubscribeMessage('battle:user:skip')
+  async handlePhaseSkip(@MessageBody() dto: { skip: boolean; battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
+    const stopTimer = this.metricsService.startSocketTimer('battle:user:skip')
+    const userId = this.getUserIdFromSocket(client)
+    try {
+      const { skip, battleId } = dto
+      const totalSkips = await this.battlesService.handlePhaseSkip({ battleId, userId, skip })
+      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+      this.server.to(battleRoomId).emit('battle:user:skipped', { totalSkips })
+
+      stopTimer('success')
+    } catch (error) {
+      stopTimer('error')
+      if (error instanceof Error) {
+        client.emit('battle:user:skip:error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -299,6 +321,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.server.to(battleRoomId).emit('battle:user:updated', payload)
   }
 
+  skipPhase(payload: { battleId: string }) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:phase:skipped')
+  }
+
   private bindBattleEvents() {
     this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
@@ -311,10 +340,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.battlesService.on('battle:team:updated', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
 
     this.battlesService.on('battle:user:updated', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
-    // this.battlesService.on('battle:ended', payload => {
-    //   const { battleId } = payload
-    //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
-    // })
+
+    this.battlesService.on('battle:phase:skipped', (payload: { battleId: string }) => this.skipPhase(payload))
+
     this.battlesService.on('battle:closed', (payload: BattleClosedResponseDto) => this.closeBattle(payload))
   }
 

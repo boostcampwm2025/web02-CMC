@@ -115,6 +115,7 @@ export interface ActiveBattleState {
   userInfoMap: Map<string, string>
 
   opinionHistory: BattleDiscussion[]
+  skipState: Set<string>
 
   round: number
   topics: string[]
