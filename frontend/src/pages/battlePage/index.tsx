@@ -220,18 +220,13 @@ export default function BattlePage() {
             >
               ← 돌아가기
             </button>
-            <div className="shrink-0">
+            <div className="shrink-0 flex items-center gap-2">
               {battleInfo.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
             </div>
           </div>
           <div className="flex items-center justify-between">
             <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
-            <BattleHeader
-              isSkipEnabled={isSkipEnabled}
-              toggleSkip={toggleSkip}
-              totalSkips={totalSkips}
-              inviteCode={battleInfo.inviteCode}
-            />
+            <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
           </div>
         </div>
         <main className="main-width-closed">
