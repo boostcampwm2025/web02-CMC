@@ -626,6 +626,7 @@ export class BattlesService extends EventEmitter {
     battleState.skipState.delete(userId)
 
     await this.saveBattleState(battleId, battleState)
+    await this.checkAndSkipPhase(battleId, battleState)
 
     return BattleLeaveResponseDto.of(battleState)
   }
@@ -1289,28 +1290,21 @@ export class BattlesService extends EventEmitter {
     const { battleId, skip, userId } = payload
 
     const { battleState } = await this.getBattleState(battleId)
-    const ABParticipants = [...battleState.participants.values()].filter(p => p !== BATTLE_TEAM.NONE).length
     const participant = battleState.participants.get(userId)
 
     if (battleState.phase === BATTLE_PHASE.TEAM_SWITCH.name) throw new BadRequestException('진영선택 페이즈는 스킵이 불가합니다.')
     if (!participant || participant === BATTLE_TEAM.NONE) throw new UnauthorizedException('권한이 없습니다.')
 
-    const skipList = battleState.skipState
     if (skip) {
-      skipList.add(userId)
+      battleState.skipState.add(userId)
     } else {
-      skipList.delete(userId)
+      battleState.skipState.delete(userId)
     }
 
-    let totalSkips = skipList.size
-    await this.updateSkipState(battleId, skipList)
+    await this.updateSkipState(battleId, battleState.skipState)
 
-    if (skipList.size && skipList.size === ABParticipants) {
-      await this.skipPhase(battleId)
-      totalSkips = 0
-    }
-
-    return totalSkips
+    const skipped = await this.checkAndSkipPhase(battleId, battleState)
+    return skipped ? 0 : battleState.skipState.size
   }
 
   async skipPhase(battleId: string) {
@@ -1329,9 +1323,20 @@ export class BattlesService extends EventEmitter {
     })
   }
 
-  //turn 끝나면 최고 득표한 이의제기 항목 선정 후 이벤트 발행
-  //battle:defensed
-  //battle:attacked
+  private async checkAndSkipPhase(battleId: string, state: ActiveBattleState) {
+    const activeParticipants = this.getActiveParticipantsCount(state)
+
+    if (activeParticipants > 0 && state.skipState.size === activeParticipants) {
+      await this.skipPhase(battleId)
+      return true
+    }
+
+    return false
+  }
+
+  private getActiveParticipantsCount(state: ActiveBattleState): number {
+    return [...state.participants.values()].filter(team => team !== BATTLE_TEAM.NONE).length
+  }
 
   private canUserVoteAttack(battleState: ActiveBattleState): boolean {
     return battleState.phase === BATTLE_PHASE.ATTACK.name ? true : false
