@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import SidebarHeader from './SidebarHeader';
+import SidebarHeader, { type SidebarTab } from './SidebarHeader';
 import BattleInfoSection from './BattleInfoSection';
+import ReferenceSection from './ReferenceSection';
 import { useResize } from '../../hooks/useResize';
 import SidebarTimelineSection from './SidebarTimelineSection';
+import type { BattleReferenceData } from '@/commons/types/battle';
 
 interface BattleSidebarProps {
   isOpen: boolean;
@@ -13,11 +15,10 @@ interface BattleSidebarProps {
   category: string;
   topics: string[];
   raiseZIndex?: boolean;
-  activeTab: Tab;
-  onActiveTabChange: (tab: Tab) => void;
+  referenceData?: BattleReferenceData | null;
+  activeTab: SidebarTab;
+  onActiveTabChange: (tab: SidebarTab) => void;
 }
-
-type Tab = 'info' | 'timeline';
 
 export default function BattleSidebar({
   isOpen,
@@ -28,6 +29,7 @@ export default function BattleSidebar({
   category,
   topics,
   raiseZIndex = false,
+  referenceData,
   activeTab = 'info',
   onActiveTabChange
 }: BattleSidebarProps) {
@@ -37,6 +39,7 @@ export default function BattleSidebar({
 
   const [isWideLayout, setIsWideLayout] = useState(false);
   const asideRef = useRef<HTMLElement>(null);
+  const hasReferenceData = !!referenceData;
 
   useEffect(() => {
     const observer = new ResizeObserver((entries) => {
@@ -50,6 +53,19 @@ export default function BattleSidebar({
     return () => observer.disconnect();
   }, []);
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'info':
+        return <BattleInfoSection title={title} description={description} language={language} category={category} />;
+      case 'timeline':
+        return <SidebarTimelineSection isWide={isWideLayout} topics={topics} />;
+      case 'reference':
+        return referenceData ? <ReferenceSection referenceData={referenceData} /> : null;
+      default:
+        return null;
+    }
+  };
+
   return (
     <aside
       data-tutorial="sidebar-panel"
@@ -59,15 +75,14 @@ export default function BattleSidebar({
         raiseZIndex ? 'z-[101]' : 'z-100'
       } ${isOpen ? 'translate-x-0' : '-translate-x-full'} ${isResizing ? 'select-none' : ''}`}
     >
-      <SidebarHeader activeTab={activeTab} onTabChange={onActiveTabChange} onClose={onClose} />
+      <SidebarHeader
+        activeTab={activeTab}
+        onTabChange={onActiveTabChange}
+        onClose={onClose}
+        hasReferenceData={hasReferenceData}
+      />
       <div className="flex justify-between">
-        <div className="flex-1 h-[calc(100vh-65px)] overflow-y-auto overflow-x-hidden">
-          {activeTab === 'info' ? (
-            <BattleInfoSection title={title} description={description} language={language} category={category} />
-          ) : (
-            <SidebarTimelineSection isWide={isWideLayout} topics={topics} />
-          )}
-        </div>
+        <div className="flex-1 h-[calc(100vh-65px)] overflow-y-auto overflow-x-hidden">{renderContent()}</div>
         <div className="relative h-[calc(100vh-65px)]">
           <button
             onMouseDown={() => setIsResizing(true)}

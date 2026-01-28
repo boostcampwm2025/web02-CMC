@@ -26,7 +26,7 @@ import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import SoundSettingsButton from './components/header/SoundSettingsButton';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
-type Tab = 'info' | 'timeline';
+type Tab = 'info' | 'timeline' | 'reference';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
@@ -174,6 +174,7 @@ export default function BattlePage() {
         }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
+        hasReferenceData={!!battleInfo.referenceData}
       />
 
       {/* 사이드바 */}
@@ -186,6 +187,7 @@ export default function BattlePage() {
         category={battleInfo.category}
         topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
+        referenceData={battleInfo.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
       />

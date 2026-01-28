@@ -1,5 +1,6 @@
 import { BATTLE_TEAM } from '../const/battles.const'
 import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
+import type { BattleReferenceData } from '../types/ai.types'
 
 export class BattleJoinResponseDto {
   battleId: string
@@ -78,6 +79,7 @@ export class BattleJoinInfoResponseDto {
   currentPhase: BattlePhaseName
   phaseCount: number
   timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
+  referenceData: BattleReferenceData | null
 
   static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
     const res = new BattleJoinInfoResponseDto()
@@ -108,6 +110,8 @@ export class BattleJoinInfoResponseDto {
       res.phaseCount = battle.initialState.phaseCount
       res.timelines = { attacks: [], defenses: [] }
     }
+
+    res.referenceData = battle.referenceData ?? null
 
     return res
   }

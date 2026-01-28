@@ -8,8 +8,9 @@ import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
 import Step1BattleInfo from './components/steps/Step1BattleInfo';
 import Step2CodeCompare from './components/steps/Step2CodeCompare';
-import Step3Timeline from './components/steps/Step3Timeline';
-import Step4TeamSelect from './components/steps/Step4TeamSelect';
+import Step3ReferenceData from './components/steps/Step3ReferenceData';
+import Step4Timeline from './components/steps/Step4Timeline';
+import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 
@@ -17,7 +18,9 @@ export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
-  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
+  const hasReferenceData = !!battleInfo.referenceData;
+  const totalSteps = hasReferenceData ? 5 : 4;
+  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const loginGuest = useAuthStore((s) => s.loginGuest);
   const isLoggingIn = useAuthStore(selectIsLoggingIn);
@@ -78,8 +81,11 @@ export default function TeamSelectPage() {
       case 2:
         return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
       case 3:
+        if (hasReferenceData && battleInfo.referenceData) {
+          return <Step3ReferenceData referenceData={battleInfo.referenceData} />;
+        }
         return (
-          <Step3Timeline
+          <Step4Timeline
             timelines={[...attacks, ...defenses]}
             topics={battleInfo.topics}
             currentRound={battleInfo.currentRound}
@@ -87,7 +93,19 @@ export default function TeamSelectPage() {
           />
         );
       case 4:
-        return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+        if (hasReferenceData) {
+          return (
+            <Step4Timeline
+              timelines={[...attacks, ...defenses]}
+              topics={battleInfo.topics}
+              currentRound={battleInfo.currentRound}
+              totalRounds={battleInfo.totalRounds}
+            />
+          );
+        }
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+      case 5:
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       default:
         return null;
     }
@@ -111,7 +129,7 @@ export default function TeamSelectPage() {
         <p className="text-center text-[#99A1AF] mb-8">배틀 정보를 확인하고 진영을 선택하세요</p>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} />
+        <StepIndicator currentStep={currentStep} hasReferenceData={hasReferenceData} />
 
         {/* Step Content with Side Navigation */}
         <div className="relative mb-8">
@@ -134,7 +152,7 @@ export default function TeamSelectPage() {
               )}
 
               {/* 다음 버튼 - 콘텐츠 오른쪽 */}
-              {currentStep < 4 && (
+              {currentStep < totalSteps && (
                 <button
                   onClick={goToNext}
                   disabled={!canGoNext}
@@ -161,8 +179,9 @@ export default function TeamSelectPage() {
           onPrev={goToPrev}
           onNext={goToNext}
           onSubmit={handleSubmit}
-          canGoNext={currentStep === 4 ? selectedTeam !== null : canGoNext}
+          canGoNext={currentStep === totalSteps ? selectedTeam !== null : canGoNext}
           isSubmitting={isLoggingIn}
+          totalSteps={totalSteps}
         />
       </div>
     </main>

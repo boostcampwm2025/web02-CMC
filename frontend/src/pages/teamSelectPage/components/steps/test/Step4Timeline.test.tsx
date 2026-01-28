@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Step3Timeline from '../Step3Timeline';
+import Step4Timeline from '../Step4Timeline';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 
-describe('Step3Timeline', () => {
+describe('Step4Timeline', () => {
   const mockAttackA: BattleDiscussion = {
     discussionId: '1',
     author: {
@@ -70,7 +70,7 @@ describe('Step3Timeline', () => {
   const mockTimelines = [mockAttackA, mockAttackB, mockDefenseA, mockDefenseB];
 
   it('렌더링된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 상단 섹션 확인
     expect(screen.getByText('타임라인')).toBeInTheDocument();
@@ -78,14 +78,14 @@ describe('Step3Timeline', () => {
   });
 
   it('라운드 헤더가 표시된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 라운드 1 헤더 확인
     expect(screen.getByText('Round 1')).toBeInTheDocument();
   });
 
   it('현재 라운드는 기본으로 펼쳐진다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 타임라인 내용이 보임
     expect(screen.getByText('구현 A의 Set 사용이 더 효율적입니다.')).toBeInTheDocument();
@@ -94,7 +94,7 @@ describe('Step3Timeline', () => {
 
   it('라운드를 접거나 펼칠 수 있다', async () => {
     const user = userEvent.setup();
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 라운드 1 버튼 찾기
     const roundButton = screen.getByRole('button', { name: /Round 1/i });
@@ -116,21 +116,21 @@ describe('Step3Timeline', () => {
   });
 
   it('빈 타임라인일 때 메시지가 표시된다', () => {
-    render(<Step3Timeline timelines={[]} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={[]} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     expect(screen.getByText('아직 이의제기가 없습니다')).toBeInTheDocument();
     expect(screen.getByText('배틀이 시작되면 여기에 표시됩니다')).toBeInTheDocument();
   });
 
   it('활성 라운드는 강조 표시된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // "진행 중" 텍스트 확인
     expect(screen.getByText('진행 중')).toBeInTheDocument();
   });
 
   it('미래 라운드는 비활성화된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 라운드 2 버튼 찾기
     const round2Button = screen.getByRole('button', { name: /Round 2/i });
@@ -140,7 +140,7 @@ describe('Step3Timeline', () => {
   });
 
   it('팀 배지가 표시된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // A팀, B팀 배지 확인 (A팀 attack이 있고, B팀 defense가 있음)
     const teamABadges = screen.getAllByText('A팀');
@@ -150,7 +150,7 @@ describe('Step3Timeline', () => {
   });
 
   it('투표 수가 표시된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // 투표 수 확인
     expect(screen.getByText('15')).toBeInTheDocument(); // mockAttack upvotes
@@ -158,7 +158,7 @@ describe('Step3Timeline', () => {
   });
 
   it('VS 레이아웃으로 표시된다', () => {
-    render(<Step3Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
+    render(<Step4Timeline timelines={mockTimelines} currentRound={1} totalRounds={2} topics={['효율성', '가독성']} />);
 
     // Phase 헤더 확인 (A 이의제기, B 반론)
     expect(screen.getAllByText(/A 이의제기/).length).toBeGreaterThan(0);

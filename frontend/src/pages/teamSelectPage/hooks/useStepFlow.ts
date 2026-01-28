@@ -10,11 +10,15 @@ interface UseStepFlowReturn {
   isLastStep: boolean;
 }
 
-export function useStepFlow(): UseStepFlowReturn {
+interface UseStepFlowOptions {
+  totalSteps?: number;
+}
+
+export function useStepFlow({ totalSteps = 4 }: UseStepFlowOptions = {}): UseStepFlowReturn {
   const [currentStep, setCurrentStep] = useState<Step>(1);
 
   const goToNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < totalSteps) {
       setCurrentStep((prev) => (prev + 1) as Step);
     }
   };
@@ -29,8 +33,8 @@ export function useStepFlow(): UseStepFlowReturn {
     currentStep,
     goToNext,
     goToPrev,
-    canGoNext: currentStep < 4,
+    canGoNext: currentStep < totalSteps,
     isFirstStep: currentStep === 1,
-    isLastStep: currentStep === 4
+    isLastStep: currentStep === totalSteps
   };
 }
