@@ -220,8 +220,15 @@ export default function BattlePage() {
               ← 돌아가기
             </button>
           </div>
-          <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
-          <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
+          <div className="flex items-center justify-between">
+            <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
+            <BattleHeader
+              isSkipEnabled={isSkipEnabled}
+              toggleSkip={toggleSkip}
+              totalSkips={totalSkips}
+              inviteCode={battleInfo.inviteCode}
+            />
+          </div>
         </div>
         <main className="main-width-closed">
           <div className="flex gap-2 py-4">

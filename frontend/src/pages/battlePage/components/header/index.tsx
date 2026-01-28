@@ -11,6 +11,7 @@ import {
 } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 import PhaseSkip from './PhaseSkip';
+import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   PENDING: '',
@@ -19,13 +20,15 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   DEFENSE: '상대의 공격에 대한 반박 논리를 작성해주세요',
   TEAM_SWITCH: '원하시는 팀으로 변경하실 수 있습니다'
 };
+
 interface BattleHeaderProps {
   isSkipEnabled: boolean;
   toggleSkip: () => void;
   totalSkips: number;
+  inviteCode?: string;
 }
 
-export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: BattleHeaderProps) {
+export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips, inviteCode }: BattleHeaderProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);
