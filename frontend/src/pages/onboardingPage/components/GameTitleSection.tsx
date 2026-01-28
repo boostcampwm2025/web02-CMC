@@ -1,6 +1,6 @@
 import { Play, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import onBoardingBackgroundImage from '/public/images/gameLogo.png';
+import onBoardingBackgroundImage from '/public/images/onBoarding/gameLogo.png';
 import onBoardingPeoplesImage1 from '/public/images/onBoarding/onBoardingPeople1.png';
 import onBoardingPeoplesImage2 from '/public/images/onBoarding/onBoardingPeople2.png';
 
