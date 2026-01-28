@@ -22,7 +22,7 @@ export function useRoundUpdateModal() {
       topic
     });
 
-    soundManager.play('swoosh', 0.5);
+    soundManager.play('swoosh');
   }, []);
 
   const hideEffect = useCallback(() => {

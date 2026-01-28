@@ -10,6 +10,7 @@ import {
 } from '../const/battles.const'
 
 import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../types/battleResult.types'
+import type { BattleReferenceData } from './ai.types'
 export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
 export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
@@ -36,7 +37,7 @@ export interface Battle {
   playTime: BattlePlayTime
   topics: string[]
 
-  password?: string
+  inviteCode?: string
   status: BattleStatus
   participantCount: number
   initialState: {
@@ -45,6 +46,8 @@ export interface Battle {
     phaseCount: number
     timeRemainingSeconds: number
   }
+
+  referenceData?: BattleReferenceData | null
 
   createdAt: Date
   updatedAt: Date
@@ -112,6 +115,7 @@ export interface ActiveBattleState {
   userInfoMap: Map<string, string>
 
   opinionHistory: BattleDiscussion[]
+  skipState: Set<string>
 
   round: number
   topics: string[]

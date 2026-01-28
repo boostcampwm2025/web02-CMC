@@ -51,10 +51,12 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
                 className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                   mvp.team === 'A'
                     ? 'bg-blue-500/30 text-blue-200 border border-blue-400/50'
-                    : 'bg-red-500/30 text-red-200 border border-red-400/50'
+                    : mvp.team === 'B'
+                      ? 'bg-red-500/30 text-red-200 border border-red-400/50'
+                      : 'bg-gray-500/30 text-gray-200 border border-gray-400/50'
                 }`}
               >
-                {mvp.team === 'A' ? '코드 A' : '코드 B'}팀
+                {mvp.team === 'A' ? '코드 A' : mvp.team === 'B' ? '코드 B' : '중립'}팀
               </div>
             </div>
 

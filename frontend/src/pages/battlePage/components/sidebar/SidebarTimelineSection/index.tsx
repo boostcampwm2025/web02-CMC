@@ -53,8 +53,8 @@ export default function SidebarTimelineSection({ isWide = false, topics }: Sideb
           topic: topics[round - 1],
           attackA: attackList[pairIndex] || null,
           attackB: attackList[pairIndex + 1] || null,
-          defenseB: defenseList[pairIndex] || null,
-          defenseA: defenseList[pairIndex + 1] || null
+          defenseA: defenseList[pairIndex] || null,
+          defenseB: defenseList[pairIndex + 1] || null
         };
       });
     }).flat();

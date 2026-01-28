@@ -1,5 +1,5 @@
-import { NotFoundException, BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common'
-import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState } from '../types/battles.types'
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam, BattleLanguage, BattleCategory } from '../types/battles.types'
 import { BattlesService } from './battles.service'
 import {
   BATTLE_TYPE,
@@ -24,7 +24,7 @@ type BattleRecord = {
   category: string
   playTime: string
   topics: string[]
-  password: string | null
+  inviteCode: string | null
   isPrivate: boolean
   status: string
   createdAt: Date
@@ -74,19 +74,19 @@ type BattleCreateArgs = {
 }
 
 type BattleFindUniqueArgs = {
-  where: { id: string }
+  where: { id?: string; inviteCode?: string }
 }
 
 type MockPrisma = {
   battle: {
-    findUnique: jest.Mock<BattleRecord | null, [BattleFindUniqueArgs]>
-    findMany: jest.Mock<BattleRecord[], [BattleFindManyArgs]>
-    count: jest.Mock<number, [BattleCountArgs | undefined]>
-    update: jest.Mock<BattleRecord | null, [BattleUpdateArgs]>
-    create: jest.Mock<BattleRecord, [BattleCreateArgs]>
+    findUnique: jest.Mock
+    findMany: jest.Mock
+    count: jest.Mock
+    update: jest.Mock
+    create: jest.Mock
   }
   battleParticipant: { upsert: jest.Mock }
-  user: { findUnique: jest.Mock<{ id: string } | null, [{ where: { id: string }; select?: { id: true } }]> }
+  user: { findUnique: jest.Mock }
 }
 
 type BattleStateAccess = {
@@ -204,7 +204,7 @@ describe('BattlesService', () => {
     category: battle.category,
     playTime: (battle.playTime as { name?: string }).name ?? (battle.playTime as unknown as string),
     topics: battle.topics,
-    password: battle.password ?? null,
+    inviteCode: battle.inviteCode ?? null,
     isPrivate: battle.type === BATTLE_TYPE.PRIVATE,
     status: battle.status,
     createdAt: battle.createdAt,
@@ -265,7 +265,16 @@ describe('BattlesService', () => {
     stateStore = new Map()
     mockPrisma = {
       battle: {
-        findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => battleStore.get(where.id) ?? null),
+        findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => {
+          if (where.id) {
+            return battleStore.get(where.id) ?? null
+          }
+          if (where.inviteCode) {
+            const records = [...battleStore.values()]
+            return records.find(r => r.inviteCode === where.inviteCode) ?? null
+          }
+          return null
+        }),
         findMany: jest.fn(({ where, orderBy, skip = 0, take }: BattleFindManyArgs) => {
           let records = [...battleStore.values()]
           if (where?.isPrivate !== undefined) {
@@ -289,7 +298,8 @@ describe('BattlesService', () => {
           const end = take ? skip + take : undefined
           return records.slice(skip, end)
         }),
-        count: jest.fn(({ where }: BattleCountArgs = {}) => {
+        count: jest.fn((args?: BattleCountArgs) => {
+          const { where } = args ?? {}
           let records = [...battleStore.values()]
           if (where?.isPrivate !== undefined) {
             records = records.filter(r => r.isPrivate === where.isPrivate)
@@ -312,7 +322,8 @@ describe('BattlesService', () => {
         }),
       },
       battleParticipant: { upsert: jest.fn() },
-      user: { findUnique: jest.fn(() => null) },
+      // eslint-disable-next-line no-empty-pattern
+      user: { findUnique: jest.fn(({}: { where: { id: string }; select?: { id: true } }) => null) },
     }
     service = new BattlesService(mockPrisma as unknown as PrismaService)
     const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
@@ -421,6 +432,40 @@ describe('BattlesService', () => {
     })
   })
 
+  describe('getBattleByInviteCode', () => {
+    beforeEach(() => {
+      const battle = createBattle({
+        id: 'battle-1',
+        inviteCode: 'test-invite-code-1234',
+        status: BATTLE_STATUS.OPEN,
+      })
+      seedBattles([battle])
+    })
+
+    it('inviteCode가 없으면 BadRequestException을 던진다', async () => {
+      await expect(service.getBattleByInviteCode('')).rejects.toThrow(BadRequestException)
+    })
+
+    it('존재하지 않는 inviteCode면 NotFoundException을 던진다', async () => {
+      await expect(service.getBattleByInviteCode('invalid-code')).rejects.toThrow(NotFoundException)
+    })
+
+    it('올바른 inviteCode로 배틀 ID를 반환한다', async () => {
+      const result = await service.getBattleByInviteCode('test-invite-code-1234')
+      expect(result.battleId).toBe('battle-1')
+    })
+
+    it('종료된 배틀의 inviteCode면 BadRequestException을 던진다', async () => {
+      const closedBattle = createBattle({
+        id: 'closed-battle',
+        inviteCode: 'closed-invite-code',
+        status: BATTLE_STATUS.CLOSED,
+      })
+      seedBattles([closedBattle])
+      await expect(service.getBattleByInviteCode('closed-invite-code')).rejects.toThrow(BadRequestException)
+    })
+  })
+
   describe('joinBattleInfo', () => {
     it('battleId가 없으면 BadRequestException을 던진다', async () => {
       await expect(service.joinBattleInfo('')).rejects.toThrow(BadRequestException)
@@ -464,7 +509,7 @@ describe('BattlesService', () => {
       privateBattle = createBattle({
         id: 'private-battle',
         type: BATTLE_TYPE.PRIVATE,
-        password: '1234',
+        inviteCode: 'test-invite-code-1234',
         status: BATTLE_STATUS.OPEN,
       })
       closedBattle = createBattle({
@@ -480,7 +525,7 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(service.joinBattle({ battleId: '', team: 'A' }, 'user-1')).rejects.toThrow(BadRequestException)
+      await expect(service.joinBattle({ battleId: '', team: 'A', nickname: 'test-user' }, 'user-1')).rejects.toThrow(BadRequestException)
     })
 
     it('case', async () => {
@@ -489,6 +534,7 @@ describe('BattlesService', () => {
           {
             battleId: 'invalid',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -496,25 +542,12 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      await expect(
-        service.joinBattle(
-          {
-            battleId: 'private-battle',
-            password: 'wrong',
-            team: 'A',
-          },
-          'user-1',
-        ),
-      ).rejects.toThrow(UnauthorizedException)
-    })
-
-    it('case', async () => {
       await service.registerGuest('private-battle', { id: 'user-1', nickname: 'test-user', createdAt: Date.now() })
       const result = await service.joinBattle(
         {
           battleId: 'private-battle',
-          password: '1234',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -529,6 +562,7 @@ describe('BattlesService', () => {
           {
             battleId: 'closed-battle',
             team: 'A',
+            nickname: 'test-user',
           },
           'user-1',
         ),
@@ -540,6 +574,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -554,6 +589,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -562,6 +598,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -590,6 +627,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle',
           team: 'A',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -598,6 +636,7 @@ describe('BattlesService', () => {
         {
           battleId: 'public-battle-2',
           team: 'B',
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -695,6 +734,7 @@ describe('BattlesService', () => {
         {
           battleId: 'battle-1',
           team: BATTLE_TEAM.A,
+          nickname: 'test-user',
         },
         'user-1',
       )
@@ -785,21 +825,18 @@ describe('BattlesService', () => {
 
   describe('getOpenBattles', () => {
     it('case', async () => {
-      const publicOpen = toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
-      mockPrisma.battle.findMany.mockResolvedValue([publicOpen])
-      mockPrisma.battle.count.mockResolvedValue(1)
+      toRecord(createBattle({ status: BATTLE_STATUS.OPEN }))
+      seedBattles([createBattle({ status: BATTLE_STATUS.OPEN })])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
       expect(result).toHaveLength(1)
       expect(result[0].status).toBe(BATTLE_STATUS.OPEN)
     })
-
     it('case', async () => {
-      const oldBattle = toRecord(createBattle({ id: 'old', createdAt: new Date('2024-01-01') }))
-      const newBattle = toRecord(createBattle({ id: 'new', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([newBattle, oldBattle])
-      mockPrisma.battle.count.mockResolvedValue(2)
+      const oldBattle = createBattle({ id: 'old', createdAt: new Date('2024-01-01') })
+      const newBattle = createBattle({ id: 'new', createdAt: new Date('2024-01-02') })
+      seedBattles([oldBattle, newBattle])
 
       const result = (await service.getOpenBattles(10, 0)).battles
 
@@ -808,9 +845,8 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      const two = toRecord(createBattle({ id: '2', createdAt: new Date('2024-01-02') }))
-      mockPrisma.battle.findMany.mockResolvedValue([two])
-      mockPrisma.battle.count.mockResolvedValue(3)
+      const two = createBattle({ id: '2', createdAt: new Date('2024-01-02') })
+      seedBattles([createBattle({ id: '1', createdAt: new Date('2024-01-01') }), two, createBattle({ id: '3', createdAt: new Date('2024-01-03') })])
 
       const result = (await service.getOpenBattles(1, 1)).battles
 
@@ -880,8 +916,8 @@ describe('BattlesService', () => {
         title: finished.title,
         description: finished.description,
         status: BATTLE_STATUS.CLOSED,
-        language: finished.language as BATTLE_LANGUAGE,
-        category: finished.category as BATTLE_CATEGORY,
+        language: finished.language as (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE],
+        category: finished.category as (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY],
         playTime: BATTLE_PLAYTIME.THIRTY_MIN,
         topics: finished.topics,
         aCode: finished.codeA,
@@ -889,7 +925,7 @@ describe('BattlesService', () => {
       })
 
       seedBattles([battle])
-      const record = battleStore.get(finished.battleId)
+      const record = battleStore.get(finished.battleId)!
       battleStore.set(finished.battleId, {
         ...record,
         status: BATTLE_STATUS.CLOSED,
@@ -1129,18 +1165,17 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       // 참가자 등록 (joinedAt 시간 순서대로)
       await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
       await service.registerGuest('battle-1', { id: 'user-3', nickname: 'User3', createdAt: 3000 })
 
-      state.participants.set('user-1', BATTLE_TEAM.A)
-      state.participants.set('user-2', BATTLE_TEAM.B)
-      state.participants.set('user-3', BATTLE_TEAM.A)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-1', BATTLE_TEAM.A)
+        state.participants.set('user-2', BATTLE_TEAM.B)
+        state.participants.set('user-3', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {
@@ -1492,15 +1527,14 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       await service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
 
-      state.participants.set('user-a', BATTLE_TEAM.A)
-      state.participants.set('user-b', BATTLE_TEAM.B)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-a', BATTLE_TEAM.A)
+        state.participants.set('user-b', BATTLE_TEAM.B)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {
@@ -1621,13 +1655,14 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      const state = await getState('battle-1')
-      state.phase = BATTLE_PHASE.ATTACK.name
-
       // 같은 팀, 같은 점수 비율
       await service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
-      state.participants.set('user-a2', BATTLE_TEAM.A)
-      service['rebuildTeamUsers'](state)
+      const state = await updateState('battle-1', state => {
+        state.participants.set('user-a2', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](state)
+      })
+
+      state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a: 50표 / 100명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 50
       state.opinionHistory.push({
@@ -1762,15 +1797,14 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
 
-      state.participants.set('user-1', BATTLE_TEAM.A)
-      state.participants.set('user-2', BATTLE_TEAM.B)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-1', BATTLE_TEAM.A)
+        state.participants.set('user-2', BATTLE_TEAM.B)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {
@@ -1972,6 +2006,114 @@ describe('BattlesService', () => {
       // 같은 객체를 참조
       expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
       expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
+    })
+  })
+
+  describe('handlePhaseSkip', () => {
+    const battleId = 'battle-id'
+    const userA = 'user-a'
+    const userB = 'user-b'
+
+    const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
+      battleId,
+      all: { roomId: `battle:${battleId}`, chats: [], attacks: [], defenses: [] },
+      teamA: { roomId: `battle:${battleId}:A`, chats: [], users: [userA], attacks: [], defenses: [] },
+      teamB: { roomId: `battle:${battleId}:B`, chats: [], users: [userB], attacks: [], defenses: [] },
+      phase: BATTLE_PHASE.OPINION_SHARE.name,
+      participants: new Map([
+        [userA, BATTLE_TEAM.A],
+        [userB, BATTLE_TEAM.B],
+      ]),
+      teamVotes: new Map<string, BattleTeam>(),
+      userInfoMap: new Map<string, string>(),
+      opinionHistory: [],
+      skipState: new Set<string>(),
+      round: 0,
+      topics: [],
+      totalRounds: 0,
+      phaseCount: 0,
+      startedAt: null,
+      expiredAt: null,
+      ...overrides,
+    })
+
+    beforeEach(async () => {
+      const battle = createBattle({ id: battleId })
+      seedBattles([battle])
+
+      await updateState(battleId, state => {
+        Object.assign(state, createActiveState())
+      })
+    })
+
+    it('TEAM_SWITCH 페이즈에서는 스킵할 수 없다', async () => {
+      await updateState(battleId, state => {
+        state.phase = BATTLE_PHASE.TEAM_SWITCH.name
+      })
+
+      await expect(service.handlePhaseSkip({ battleId, userId: userA, skip: true })).rejects.toThrow('진영선택 페이즈는 스킵이 불가합니다.')
+    })
+
+    it('중립(NONE) 유저는 스킵할 수 없다', async () => {
+      await updateState(battleId, state => {
+        state.participants.set(userA, BATTLE_TEAM.NONE)
+      })
+
+      await expect(service.handlePhaseSkip({ battleId, userId: userA, skip: true })).rejects.toThrow('권한이 없습니다.')
+    })
+
+    it('skip=true면 skipState에 유저가 추가된다', async () => {
+      const total = await service.handlePhaseSkip({
+        battleId,
+        userId: userA,
+        skip: true,
+      })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(state.skipState.has(userA)).toBe(true)
+      expect(total).toBe(1)
+    })
+
+    it('skip=false면 skipState에서 유저가 제거된다', async () => {
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+
+      const total = await service.handlePhaseSkip({
+        battleId,
+        userId: userA,
+        skip: false,
+      })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(state.skipState.has(userA)).toBe(false)
+      expect(total).toBe(0)
+    })
+
+    it('모든 참가자가 스킵하면 phase가 스킵되고 skipState가 초기화된다', async () => {
+      const skipPhaseSpy = jest.spyOn(service, 'skipPhase')
+
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+      const total = await service.handlePhaseSkip({ battleId, userId: userB, skip: true })
+
+      const state = await getStateUnsafe(battleId)
+
+      expect(skipPhaseSpy).toHaveBeenCalledWith(battleId)
+      expect(state.skipState.size).toBe(0)
+      expect(total).toBe(0)
+    })
+
+    it('skipState는 DB에 저장된다', async () => {
+      await service.handlePhaseSkip({ battleId, userId: userA, skip: true })
+
+      expect(mockPrisma.battle.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: battleId },
+          data: {
+            skipState: [userA],
+          },
+        }),
+      )
     })
   })
 })

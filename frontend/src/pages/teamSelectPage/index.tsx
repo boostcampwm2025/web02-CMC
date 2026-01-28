@@ -8,16 +8,20 @@ import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
 import Step1BattleInfo from './components/steps/Step1BattleInfo';
 import Step2CodeCompare from './components/steps/Step2CodeCompare';
-import Step3Timeline from './components/steps/Step3Timeline';
-import Step4TeamSelect from './components/steps/Step4TeamSelect';
+import Step3ReferenceData from './components/steps/Step3ReferenceData';
+import Step4Timeline from './components/steps/Step4Timeline';
+import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
+import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const battleInfo = useLoaderData<BattleInfo>();
-  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
+  const hasReferenceData = !!battleInfo.referenceData;
+  const totalSteps = hasReferenceData ? 5 : 4;
+  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const loginGuest = useAuthStore((s) => s.loginGuest);
   const isLoggingIn = useAuthStore(selectIsLoggingIn);
@@ -78,8 +82,11 @@ export default function TeamSelectPage() {
       case 2:
         return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
       case 3:
+        if (hasReferenceData && battleInfo.referenceData) {
+          return <Step3ReferenceData referenceData={battleInfo.referenceData} />;
+        }
         return (
-          <Step3Timeline
+          <Step4Timeline
             timelines={[...attacks, ...defenses]}
             topics={battleInfo.topics}
             currentRound={battleInfo.currentRound}
@@ -87,7 +94,19 @@ export default function TeamSelectPage() {
           />
         );
       case 4:
-        return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+        if (hasReferenceData) {
+          return (
+            <Step4Timeline
+              timelines={[...attacks, ...defenses]}
+              topics={battleInfo.topics}
+              currentRound={battleInfo.currentRound}
+              totalRounds={battleInfo.totalRounds}
+            />
+          );
+        }
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+      case 5:
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       default:
         return null;
     }
@@ -97,21 +116,27 @@ export default function TeamSelectPage() {
     <main className="min-h-screen bg-[#0a0a1a] py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-          >
-            ← 돌아가기
-          </button>
-          <h1 className="text-3xl font-bold text-white">배틀 참가하기</h1>
-          <div className="w-24" />
+        <div className="relative mb-8">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+            >
+              ← 돌아가기
+            </button>
+            <h1 className="text-3xl font-bold text-white absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              배틀 참가하기
+            </h1>
+            <div className="shrink-0">
+              {battleInfo.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
+            </div>
+          </div>
         </div>
 
         <p className="text-center text-[#99A1AF] mb-8">배틀 정보를 확인하고 진영을 선택하세요</p>
 
         {/* Step Indicator */}
-        <StepIndicator currentStep={currentStep} />
+        <StepIndicator currentStep={currentStep} hasReferenceData={hasReferenceData} />
 
         {/* Step Content with Side Navigation */}
         <div className="relative mb-8">
@@ -134,7 +159,7 @@ export default function TeamSelectPage() {
               )}
 
               {/* 다음 버튼 - 콘텐츠 오른쪽 */}
-              {currentStep < 4 && (
+              {currentStep < totalSteps && (
                 <button
                   onClick={goToNext}
                   disabled={!canGoNext}
@@ -161,8 +186,9 @@ export default function TeamSelectPage() {
           onPrev={goToPrev}
           onNext={goToNext}
           onSubmit={handleSubmit}
-          canGoNext={currentStep === 4 ? selectedTeam !== null : canGoNext}
+          canGoNext={currentStep === totalSteps ? selectedTeam !== null : canGoNext}
           isSubmitting={isLoggingIn}
+          totalSteps={totalSteps}
         />
       </div>
     </main>

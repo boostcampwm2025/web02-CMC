@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import Step4TeamSelect from '../Step4TeamSelect';
+import Step5TeamSelect from '../Step5TeamSelect';
 
-describe('Step4TeamSelect', () => {
+describe('Step5TeamSelect', () => {
   const mockOnSelect = vi.fn();
 
   beforeEach(() => {
@@ -11,7 +11,7 @@ describe('Step4TeamSelect', () => {
   });
 
   it('렌더링된다', () => {
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     expect(screen.getByText('A팀')).toBeInTheDocument();
     expect(screen.getByText('중립')).toBeInTheDocument();
@@ -19,7 +19,7 @@ describe('Step4TeamSelect', () => {
   });
 
   it('3개의 팀 카드가 모두 표시된다', () => {
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBeGreaterThanOrEqual(3);
@@ -27,7 +27,7 @@ describe('Step4TeamSelect', () => {
 
   it('A팀 카드 클릭 시 onSelect가 호출된다', async () => {
     const user = userEvent.setup();
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     const buttons = screen.getAllByRole('button');
     await user.click(buttons[0]); // 첫 번째 버튼은 A팀
@@ -37,7 +37,7 @@ describe('Step4TeamSelect', () => {
 
   it('중립 카드 클릭 시 onSelect가 호출된다', async () => {
     const user = userEvent.setup();
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     const buttons = screen.getAllByRole('button');
     await user.click(buttons[1]); // 두 번째 버튼은 중립
@@ -47,7 +47,7 @@ describe('Step4TeamSelect', () => {
 
   it('B팀 카드 클릭 시 onSelect가 호출된다', async () => {
     const user = userEvent.setup();
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     const buttons = screen.getAllByRole('button');
     await user.click(buttons[2]); // 세 번째 버튼은 B팀
@@ -56,7 +56,7 @@ describe('Step4TeamSelect', () => {
   });
 
   it('선택된 팀이 강조 표시된다', () => {
-    const { container } = render(<Step4TeamSelect onSelect={mockOnSelect} selectedTeam="A" />);
+    const { container } = render(<Step5TeamSelect onSelect={mockOnSelect} selectedTeam="A" />);
 
     const buttons = container.querySelectorAll('button');
     const selectedButton = Array.from(buttons).find((btn) => btn.className.includes('border-[#2B7FFF]'));
@@ -65,7 +65,7 @@ describe('Step4TeamSelect', () => {
   });
 
   it('선택되지 않은 팀은 기본 스타일을 가진다', () => {
-    const { container } = render(<Step4TeamSelect onSelect={mockOnSelect} selectedTeam="A" />);
+    const { container } = render(<Step5TeamSelect onSelect={mockOnSelect} selectedTeam="A" />);
 
     const buttons = container.querySelectorAll('button');
     const unselectedButtons = Array.from(buttons).filter((btn) => btn.className.includes('border-[#2D2D3F]'));
@@ -74,7 +74,7 @@ describe('Step4TeamSelect', () => {
   });
 
   it('설명 텍스트가 표시된다', () => {
-    render(<Step4TeamSelect onSelect={mockOnSelect} />);
+    render(<Step5TeamSelect onSelect={mockOnSelect} />);
 
     expect(screen.getByText('진영 선택')).toBeInTheDocument();
   });

@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit, UnauthorizedException, NotFoundException } from '@nestjs/common'
+import { Logger, OnModuleInit, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../types/socket.types'
 import {
@@ -110,6 +110,17 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
 
       const { battleId } = battleJoinRequestDto
+
+      // 비공개 배틀이면 초대 코드로 접근했는지 확인
+      const isPrivate = await this.battlesService.isPrivateBattle(battleId)
+      if (isPrivate) {
+        const cookieHeader = client.handshake.headers.cookie
+        const cookieName = `inviteAccess_${battleId}`
+        if (!cookieHeader?.includes(cookieName)) {
+          throw new ForbiddenException('비공개 배틀에 접근하려면 초대 코드가 필요합니다.')
+        }
+      }
+
       const { battleState, team } = await this.battlesService.joinBattle(battleJoinRequestDto, userId)
 
       const res = BattleJoinResponseDto.of(battleState, team)
@@ -251,6 +262,28 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
+  @SubscribeMessage('battle:user:skip')
+  async handlePhaseSkip(@MessageBody() dto: { skip: boolean; battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
+    const stopTimer = this.metricsService.startSocketTimer('battle:user:skip')
+    const userId = this.getUserIdFromSocket(client)
+    try {
+      const { skip, battleId } = dto
+      const totalSkips = await this.battlesService.handlePhaseSkip({ battleId, userId, skip })
+      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+      this.server.to(battleRoomId).emit('battle:user:skipped', { totalSkips })
+
+      stopTimer('success')
+    } catch (error) {
+      stopTimer('error')
+      if (error instanceof Error) {
+        client.emit('battle:user:skip:error', {
+          message: error.message,
+        })
+      }
+    }
+  }
+
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
     const battleRoomId = this.battlesService.getBattleRoomId(battleId)
@@ -299,6 +332,13 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.server.to(battleRoomId).emit('battle:user:updated', payload)
   }
 
+  skipPhase(payload: { battleId: string }) {
+    const { battleId } = payload
+    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+
+    this.server.to(battleRoomId).emit('battle:phase:skipped')
+  }
+
   private bindBattleEvents() {
     this.battlesService.on('battle:phase:updated', (payload: BattlePhaseResponseDto) => this.phaseUpdate(payload))
 
@@ -311,10 +351,9 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     this.battlesService.on('battle:team:updated', (payload: BattleTeamUpdateAllResponseDto) => this.teamUpdate(payload))
 
     this.battlesService.on('battle:user:updated', (payload: BattleUserUpdateResponseDto) => this.userUpdate(payload))
-    // this.battlesService.on('battle:ended', payload => {
-    //   const { battleId } = payload
-    //   this.server.to(`battle:${battleId}`).emit('battle:ended', payload)
-    // })
+
+    this.battlesService.on('battle:phase:skipped', (payload: { battleId: string }) => this.skipPhase(payload))
+
     this.battlesService.on('battle:closed', (payload: BattleClosedResponseDto) => this.closeBattle(payload))
   }
 

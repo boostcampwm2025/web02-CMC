@@ -7,23 +7,28 @@ interface StepNavigationProps {
   onSubmit?: () => void;
   canGoNext: boolean;
   isSubmitting?: boolean;
+  totalSteps?: number;
 }
 
-const STEP_LABELS = ['상황 요약', '쟁점', '타임라인', '진영 선택'] as const;
+const STEP_LABELS_WITH_REF = ['상황 요약', '쟁점', '참고 자료', '타임라인', '진영 선택'] as const;
+const STEP_LABELS_WITHOUT_REF = ['상황 요약', '쟁점', '타임라인', '진영 선택'] as const;
 
 export default function StepNavigation({
   currentStep,
   onSubmit,
   canGoNext,
-  isSubmitting = false
+  isSubmitting = false,
+  totalSteps = 4
 }: StepNavigationProps) {
-  const isLastStep = currentStep === 4;
+  const isLastStep = currentStep === totalSteps;
+  const stepLabels = totalSteps === 5 ? STEP_LABELS_WITH_REF : STEP_LABELS_WITHOUT_REF;
+  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
 
   return (
     <div className="flex flex-col items-center gap-6 mt-8">
       {/* 하단 단계 표시 */}
       <div className="flex items-center gap-2">
-        {[1, 2, 3, 4].map((step) => (
+        {steps.map((step) => (
           <div
             key={step}
             className={`
@@ -36,7 +41,7 @@ export default function StepNavigation({
 
       {/* 현재 단계 텍스트 */}
       <p className="text-sm text-[#99A1AF]">
-        {currentStep}단계: {STEP_LABELS[currentStep - 1]}
+        {currentStep}단계: {stepLabels[currentStep - 1]}
       </p>
 
       {/* 마지막 단계에서만 중앙에 완료 버튼 */}
