@@ -1,94 +1,10 @@
-import { BookOpen, ExternalLink, Sparkles, ChevronUp } from 'lucide-react';
+import { BookOpen, Sparkles, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
-import type { BattleReferenceData, ReferenceLink } from '@/commons/types/battle';
+import type { BattleReferenceData } from '@/commons/types/battle';
+import { TermCard, TeamReferencesAccordion } from '@/commons/components/reference';
 
 interface ReferenceDataProps {
   referenceData: BattleReferenceData;
-}
-
-interface TeamReferencesProps {
-  team: 'A' | 'B';
-  perspective: string;
-  references: ReferenceLink[];
-  isExpanded: boolean;
-  onToggle: () => void;
-}
-
-const TEAM_COLOR_CLASSES = {
-  A: {
-    border: 'border-blue-500/30',
-    bg: 'bg-blue-500/10',
-    text: 'text-blue-400',
-    gradient: 'from-blue-600 to-blue-500',
-    hover: 'hover:border-blue-500/50'
-  },
-  B: {
-    border: 'border-orange-500/30',
-    bg: 'bg-orange-500/10',
-    text: 'text-orange-400',
-    gradient: 'from-orange-600 to-orange-500',
-    hover: 'hover:border-orange-500/50'
-  }
-};
-
-function TeamReferences({ team, perspective, references, isExpanded, onToggle }: TeamReferencesProps) {
-  const colors = TEAM_COLOR_CLASSES[team];
-
-  return (
-    <div className="space-y-4">
-      <button
-        onClick={onToggle}
-        className={`w-full flex items-center justify-between gap-3 p-4 rounded-lg border-2 ${colors.border} ${colors.bg} ${colors.hover} transition-all`}
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-lg bg-gradient-to-br ${colors.gradient} flex items-center justify-center shadow-lg`}
-          >
-            <span className="text-white font-bold text-lg">{team}</span>
-          </div>
-          <div className="text-left">
-            <h3 className="text-white font-semibold text-lg">구현 {team} 관점</h3>
-            <p className="text-gray-400 text-xs">{references.length}개의 참고 자료</p>
-          </div>
-        </div>
-        <div className={`${colors.text} transition-transform duration-200 ${isExpanded ? 'rotate-0' : 'rotate-180'}`}>
-          <ChevronUp className="w-6 h-6" />
-        </div>
-      </button>
-
-      {isExpanded && (
-        <div className="space-y-3 animate-in fade-in duration-200">
-          {/* 관점 설명 */}
-          <div className={`${colors.bg} ${colors.border} border rounded-lg p-3`}>
-            <div className="flex items-start gap-2">
-              <Sparkles className={`w-4 h-4 ${colors.text} flex-shrink-0 mt-0.5`} />
-              <p className="text-gray-300 text-sm">{perspective}</p>
-            </div>
-          </div>
-
-          {/* 참고 자료 목록 */}
-          {references.map((ref, index) => (
-            <div
-              key={index}
-              className={`bg-[#0a0a1a]/50 border-2 ${colors.border} ${colors.hover} rounded-xl p-4 transition-all hover:shadow-lg group`}
-            >
-              <a
-                href={ref.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${colors.text} font-semibold text-sm hover:underline inline-flex items-center gap-1.5 mb-3`}
-              >
-                {ref.title}
-                <ExternalLink className="w-4 h-4 opacity-60 flex-shrink-0" />
-              </a>
-
-              <p className="text-gray-300 text-sm leading-relaxed">{ref.summary}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function ReferenceData({ referenceData }: ReferenceDataProps) {
@@ -140,13 +56,7 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
               {commonConcepts.terms.length > 0 && (
                 <div className="space-y-2">
                   {commonConcepts.terms.map((term, index) => (
-                    <div
-                      key={index}
-                      className="bg-[#0a0a1a]/50 border-2 border-yellow-500/30 hover:border-yellow-500/50 rounded-xl p-4 transition-all"
-                    >
-                      <h4 className="text-yellow-400 font-semibold text-sm mb-2">{term.term}</h4>
-                      <p className="text-gray-300 text-sm leading-relaxed">{term.description}</p>
-                    </div>
+                    <TermCard key={index} term={term.term} description={term.description} size="md" />
                   ))}
                 </div>
               )}
@@ -156,19 +66,21 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
 
         {/* A/B 참고 자료 */}
         <div className="grid grid-cols-1 gap-6">
-          <TeamReferences
+          <TeamReferencesAccordion
             team="A"
             perspective={teamA.perspective}
             references={teamA.references}
             isExpanded={expandedTeamA}
             onToggle={() => setExpandedTeamA(!expandedTeamA)}
+            size="md"
           />
-          <TeamReferences
+          <TeamReferencesAccordion
             team="B"
             perspective={teamB.perspective}
             references={teamB.references}
             isExpanded={expandedTeamB}
             onToggle={() => setExpandedTeamB(!expandedTeamB)}
+            size="md"
           />
         </div>
 
