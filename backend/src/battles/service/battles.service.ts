@@ -237,7 +237,7 @@ export class BattlesService extends EventEmitter {
       .filter(item => item && typeof item === 'object')
       .map(item => {
         const mvp = item as Partial<Mvp>
-        const team: 'A' | 'B' = mvp.team === 'B' ? 'B' : 'A'
+        const team: 'A' | 'B' | 'NONE' = mvp.team === 'A' ? 'A' : mvp.team === 'B' ? 'B' : 'NONE'
         const parsed: Mvp = {
           userId: typeof mvp.userId === 'string' ? mvp.userId : '',
           nickname: typeof mvp.nickname === 'string' ? mvp.nickname : '',
