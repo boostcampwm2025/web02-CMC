@@ -19,6 +19,7 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   DEFENSE: '상대의 공격에 대한 반박 논리를 작성해주세요',
   TEAM_SWITCH: '원하시는 팀으로 변경하실 수 있습니다'
 };
+
 interface BattleHeaderProps {
   isSkipEnabled: boolean;
   toggleSkip: () => void;

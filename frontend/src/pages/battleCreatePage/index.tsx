@@ -5,10 +5,11 @@ import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
+import postCreateBattle from '@/commons/apis/postCreateBattle';
 
-type BattleType = 'PUBLIC' | 'PRIVATE';
-type BattleLanguage = 'javascript' | 'typescript' | 'python';
-type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
+export type BattleType = 'PUBLIC' | 'PRIVATE';
+export type BattleLanguage = 'javascript' | 'typescript' | 'python';
+export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
   { label: 'JavaScript', value: 'javascript' },
@@ -21,10 +22,10 @@ const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: nu
   { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
 
-const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
-  { label: '공개', value: 'PUBLIC' },
-  { label: '비공개', value: 'PRIVATE' }
-];
+// const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
+//   { label: '공개', value: 'PUBLIC' },
+//   { label: '비공개', value: 'PRIVATE' }
+// ];
 
 export default function BattleCreatePage() {
   const navigate = useNavigate();
@@ -48,8 +49,7 @@ export default function BattleCreatePage() {
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
-  const [type, setType] = useState<BattleType>('PUBLIC');
-  const [password, setPassword] = useState('');
+  const [type] = useState<BattleType>('PRIVATE'); // 현재는 비공개만
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -62,7 +62,6 @@ export default function BattleCreatePage() {
     if (!description.trim()) return false;
     if (!aCode.trim()) return false;
     if (!bCode.trim()) return false;
-    if (type === 'PRIVATE' && !password.trim()) return false;
     if (topics.length !== rounds) return false;
 
     return true;
@@ -79,30 +78,20 @@ export default function BattleCreatePage() {
       if (!authorId) {
         throw new Error('로그인이 필요합니다.');
       }
-      const res = await fetch(`/api/battles`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authorId,
-          title: title.trim(),
-          description: description.trim(),
-          aCode: formattedA.code,
-          bCode: formattedB.code,
-          language,
-          type,
-          password: type === 'PRIVATE' ? password : undefined,
-          category,
-          playTime,
-          topics
-        })
+
+      const data = await postCreateBattle({
+        authorId,
+        title: title.trim(),
+        description: description.trim(),
+        aCode: formattedA.code,
+        bCode: formattedB.code,
+        language,
+        type,
+        category,
+        playTime,
+        topics
       });
 
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(payload?.message ?? '배틀 생성에 실패했습니다.');
-      }
-
-      const data = (await res.json()) as { battleId: string };
       navigate(`/battle/${data.battleId}/team-select/`);
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
@@ -231,7 +220,7 @@ export default function BattleCreatePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm text-gray-300">배틀 공개 여부</label>
                   <select
@@ -246,19 +235,7 @@ export default function BattleCreatePage() {
                     ))}
                   </select>
                 </div>
-
-                {type === 'PRIVATE' && (
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm text-gray-300">비공개 배틀 비밀번호</label>
-                    <input
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="비밀번호를 입력하세요"
-                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                    />
-                  </div>
-                )}
-              </div>
+              </div> */}
 
               <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
 

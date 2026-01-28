@@ -28,6 +28,7 @@ export interface BattleInfo {
     defenses: BattleDefense[];
   };
   referenceData?: BattleReferenceData | null;
+  inviteCode?: string;
 }
 
 // 공통 타입들

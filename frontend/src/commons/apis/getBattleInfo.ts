@@ -24,7 +24,8 @@ function isBattleInfo(data: unknown): data is BattleInfo {
     typeof timelines === 'object' &&
     timelines !== null &&
     Array.isArray(timelines.attacks) &&
-    Array.isArray(timelines.defenses)
+    Array.isArray(timelines.defenses) &&
+    (obj.inviteCode === undefined || typeof obj.inviteCode === 'string')
   );
 }
 
@@ -34,10 +35,16 @@ const fetchBattleInfo = async (id: string) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      credentials: 'include' // 쿠키 포함
     });
 
     if (!response.ok) {
+      if (response.status === 403) {
+        alert('비공개 배틀에 접근하려면 초대 코드가 필요합니다.');
+        window.location.href = '/';
+        throw new Error('비공개 배틀에 접근하려면 초대 코드가 필요합니다.');
+      }
       throw new Error('배틀 데이터를 불러오는데 실패했습니다.');
     }
 

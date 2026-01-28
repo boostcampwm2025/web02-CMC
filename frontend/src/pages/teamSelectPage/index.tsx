@@ -13,6 +13,7 @@ import Step4Timeline from './components/steps/Step4Timeline';
 import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
+import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
@@ -115,15 +116,21 @@ export default function TeamSelectPage() {
     <main className="min-h-screen bg-[#0a0a1a] py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-          >
-            ← 돌아가기
-          </button>
-          <h1 className="text-3xl font-bold text-white">배틀 참가하기</h1>
-          <div className="w-24" />
+        <div className="relative mb-8">
+          <div className="flex items-center justify-between gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+            >
+              ← 돌아가기
+            </button>
+            <h1 className="text-3xl font-bold text-white absolute left-1/2 -translate-x-1/2 pointer-events-none">
+              배틀 참가하기
+            </h1>
+            <div className="shrink-0">
+              {battleInfo.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
+            </div>
+          </div>
         </div>
 
         <p className="text-center text-[#99A1AF] mb-8">배틀 정보를 확인하고 진영을 선택하세요</p>
