@@ -1,0 +1,150 @@
+name: Version Tag
+
+on:
+  pull_request:
+    types: [closed]  # PR이 닫힐 때
+    branches:
+      - release 
+
+permissions:
+  contents: write
+
+jobs:
+  version-tag:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.semver.outputs.new_version }}
+      version_tag: ${{ steps.semver.outputs.version_tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      # === jq 설치 (JSON 파싱 도구) ===
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      # === PR 라벨 확인 및 버전 증가 타입 결정 ===
+      - name: Get PR labels
+        id: pr_labels
+        run: |
+          labels=$(echo '${{ toJSON(github.event.pull_request.labels) }}' | jq -r '.[].name' | grep -E '^(major|minor|patch)$' || true)
+
+          # 라벨이 없으면 버전 태깅 스킵
+          if [ -z "$labels" ]; then
+            echo "No release label found. Skipping version tagging."
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if echo "$labels" | grep -q "major"; then
+            bump_type=major
+          elif echo "$labels" | grep -q "minor"; then
+            bump_type=minor
+          else
+            bump_type=patch
+          fi
+
+          echo "bump_type=${bump_type}" >> $GITHUB_OUTPUT
+          echo "Found bump type: ${bump_type}"
+
+      # === 최신 시멘틱 버전 태그 조회 ===
+      - name: Get latest tag (semver)
+        id: get_latest_tag
+        if: steps.pr_labels.outputs.should_skip != 'true'
+        run: |
+          # v로 시작하는 태그 중 시멘틱 버전 순으로 정렬하여 최신 태그 조회
+          latest_tag=$(git tag --list "v*" --sort=-v:refname | head -n 1)
+          
+          # 태그가 없으면 v0.0.0부터 시작
+          if [ -z "$latest_tag" ]; then
+            latest_tag="v0.0.0"
+          fi
+          
+          echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
+          echo "Latest tag: ${latest_tag}"
+
+      # === 새 버전 계산 ===
+      - name: Determine version bump
+        id: semver
+        if: steps.pr_labels.outputs.should_skip != 'true'
+        run: |
+          bump_type="${{ steps.pr_labels.outputs.bump_type }}"
+          latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
+
+          current_version=${latest_tag#v}
+       
+          IFS='.' read -r major minor patch <<< "$current_version"
+
+          if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
+            major=0; minor=0; patch=0
+          fi
+
+          # 버전 증가 타입에 따라 새 버전 계산
+          case "$bump_type" in
+            major)
+              # major 증가: 1.0.0 → 2.0.0
+              new_version="$((major + 1)).0.0"
+              ;;
+            minor)
+              # minor 증가: 1.0.0 → 1.1.0
+              new_version="${major}.$((minor + 1)).0"
+              ;;
+            patch)
+              # patch 증가: 1.0.0 → 1.0.1
+              new_version="${major}.${minor}.$((patch + 1))"
+              ;;
+            *)
+              echo "Unknown bump type: ${bump_type}"
+              exit 1
+              ;;
+          esac
+
+          version_tag="v${new_version}"
+          echo "new_version=${new_version}" >> $GITHUB_OUTPUT
+          echo "version_tag=${version_tag}" >> $GITHUB_OUTPUT
+          echo "New version will be: ${version_tag}"
+
+      # === Git 태그 생성 및 푸시 ===
+      - name: Create Git tag
+        if: steps.pr_labels.outputs.should_skip != 'true'
+        run: |
+          tag="${{ steps.semver.outputs.version_tag }}"
+
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists. Skipping."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag "$tag"
+          git push origin "$tag"
+
+      # === GitHub Release 생성 ===
+      - name: Create GitHub Release
+        if: steps.pr_labels.outputs.should_skip != 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.semver.outputs.version_tag }}
+          release_name: Release ${{ steps.semver.outputs.version_tag }}
+          body: |
+            ## Release ${{ steps.semver.outputs.version_tag }}
+            
+            ### Changes
+            - Merged PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+            
+            ### Version Bump
+            - Type: ${{ steps.pr_labels.outputs.bump_type }}
+            - Previous version: ${{ steps.get_latest_tag.outputs.latest_tag }}
+            - New version: ${{ steps.semver.outputs.version_tag }}
+          draft: false
+          prerelease: false

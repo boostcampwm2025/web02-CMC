@@ -1,0 +1,3 @@
+
+echo "Running lint-staged..."
+pnpm exec lint-staged

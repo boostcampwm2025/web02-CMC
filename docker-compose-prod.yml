@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  migrate:
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
+    profiles:
+      - tools
+    working_dir: /app/backend
+    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
+    env_file:
+      - ./.env
+
+  backend:
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
+    environment:
+      PORT: 3000
+    env_file:
+      - ./.env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+      - cadvisor
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    privileged: true
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/boostcampwm2025/web02-cmc-frontend-prod:${VERSION_TAG:-latest}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

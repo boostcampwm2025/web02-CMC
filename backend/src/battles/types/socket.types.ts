@@ -1,0 +1,13 @@
+import { Socket } from 'socket.io'
+
+export interface SocketWithUserId extends Socket {
+  data: {
+    userId?: string
+    battleId?: string
+  }
+  handshake: Socket['handshake'] & {
+    auth: Socket['handshake']['auth'] & {
+      userId?: string
+    }
+  }
+}

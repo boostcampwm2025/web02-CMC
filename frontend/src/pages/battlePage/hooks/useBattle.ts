@@ -1,0 +1,57 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useBattleStore } from '../stores/battleStore';
+import { useBattleSocket } from './useBattleSocket';
+import { useBattleProgress } from './useBattleProgress';
+import { useBattleDiscussions } from './useBattleDiscussions';
+import { useBattleTimeline } from './useBattleTimeline';
+import { useBattleTeam } from './useBattleTeam';
+import { useAuthStore } from '@/commons/stores/authStore';
+
+interface UseBattle {
+  battleId?: string;
+  onOpenTeamChangeModal: () => void;
+  onCloseTeamChangeModal: () => void;
+}
+
+export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattle) {
+  const location = useLocation();
+  const selectedTeamFromState = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
+  const user = useAuthStore((state) => state.user);
+
+  // 배틀 초기화 (selectedTeam 먼저 설정)
+  useEffect(() => {
+    if (!battleId || !user) return;
+
+    // selectedTeam을 먼저 설정
+    if (selectedTeamFromState) {
+      useBattleStore.getState().setSelectedTeam(selectedTeamFromState);
+    }
+
+    useBattleStore.getState().initializeBattle({
+      userId: user.id,
+      battleId
+    });
+  }, [battleId, selectedTeamFromState, user]);
+
+  // 모든 배틀 관련 훅 초기화
+  useBattleSocket();
+
+  const { handleVote, handleDiscussionSubmit } = useBattleDiscussions();
+  const { roundModal, hideRoundEffect } = useBattleProgress();
+  const { effectModal, hideEffect } = useBattleTimeline();
+  const { handleTeamChange } = useBattleTeam({
+    onOpenTeamChangeModal,
+    onCloseTeamChangeModal
+  });
+
+  return {
+    handleVote,
+    handleDiscussionSubmit,
+    roundModal,
+    effectModal,
+    hideEffect,
+    hideRoundEffect,
+    handleTeamChange
+  };
+}

@@ -1,0 +1,521 @@
+@import 'tailwindcss';
+
+/* Custom Scrollbar Styles */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(147 51 234 / 0.4) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(147 51 234 / 0.4);
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(147 51 234 / 0.8);
+}
+
+@keyframes timer-shake {
+  0%,
+  50%,
+  100% {
+    transform: translateX(0);
+  }
+  5%,
+  15%,
+  25%,
+  35%,
+  45% {
+    transform: translateX(-2px);
+  }
+  10%,
+  20%,
+  30%,
+  40% {
+    transform: translateX(2px);
+  }
+}
+
+.animate-timer-shake {
+  animation: timer-shake 1s ease-in-out infinite;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+@keyframes slideHighlight {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  30% {
+    transform: translateX(8px) scale(1.02);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes message-appear {
+  0% {
+    transform: scale(0.92);
+    opacity: 0;
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+  }
+  40% {
+    box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+  }
+}
+
+.animate-message-appear {
+  animation: message-appear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bounce-scale {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(0.9);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-scale {
+  animation: bounce-scale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* 스크롤바 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 30, 47, 0.5);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(30, 30, 47, 0.5);
+}
+
+@keyframes shake-fade-out {
+  0% {
+    transform: scale(1) translateX(0);
+    opacity: 1;
+  }
+  25% {
+    transform: scale(0.9) translateX(-5px);
+  }
+  50% {
+    transform: scale(0.85) translateX(5px);
+  }
+  75% {
+    transform: scale(0.8) translateX(-3px);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1) translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-shake-fade-out {
+  animation: shake-fade-out 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Custom styles */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+
+  --sidebar-width: 320px;
+  --main-closed: 1220px;
+  --main-open: 960px;
+  --lounge-closed: 420px;
+  --lounge-open: 340px;
+  --header-height: 10rem;
+  --chat-height: 30rem;
+  --code-height: 30rem;
+  --discussion-input-width: 370px;
+  --create-max-width: 960px;
+  --create-padding: 1.5rem;
+  --create-title-size: 1.5rem;
+  --create-input-height: 2.75rem;
+  --create-textarea-height: 14rem;
+  
+  --team-card-width: 255px;
+  --team-card-height: 215px;
+  --team-card-icon-size: 64px;
+  --team-card-icon-inner-size: 32px;
+  --team-card-gap: 0.75rem;
+  --team-card-padding: 1rem;
+  --team-card-title-size: 1.125rem;
+  --team-card-desc-size: 0.75rem;
+  
+  --battle-info-icon-size: 40px;
+  --battle-info-title-size: 1.25rem;
+  --battle-info-desc-size: 0.875rem;
+  --battle-info-card-padding: 1rem;
+  --battle-info-stat-icon-size: 48px;
+  --battle-info-stat-value-size: 2rem;
+  --battle-info-swords-size: 20px;
+  --battle-info-users-size: 24px;
+  --battle-info-target-size: 20px;
+  
+  --code-compare-icon-size: 40px;
+  --code-compare-title-size: 1.25rem;
+  --code-compare-desc-size: 0.875rem;
+  --code-compare-container-padding: 1rem;
+  --code-compare-min-height: 300px;
+}
+
+@media (min-width: 1600px) {
+  :root {
+  font-size: 14px;
+
+    --sidebar-width: 360px;
+    --main-closed: 1500px;
+    --main-open: 1240px;
+    --lounge-closed: 520px;
+    --lounge-open: 400px;   
+    --header-height: 10.5rem;
+    --chat-height: 33rem;
+    --code-height: 33rem;
+    --discussion-input-width: 450px;    
+    --create-max-width: 1120px;
+    --create-padding: 1.75rem;
+    --create-title-size: 1.75rem;
+    --create-input-height: 3rem;
+    --create-textarea-height: 16rem;
+    
+    --team-card-width: 290px;
+    --team-card-height: 290px;
+    --team-card-icon-size: 80px;
+    --team-card-icon-inner-size: 40px;
+    --team-card-gap: 1rem;
+    --team-card-padding: 1.25rem;
+    --team-card-title-size: 1.25rem;
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 48px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 1.5rem;
+    --battle-info-stat-icon-size: 56px;
+    --battle-info-stat-value-size: 2.5rem;
+    --battle-info-swords-size: 22px;
+    --battle-info-users-size: 28px;
+    --battle-info-target-size: 24px;
+    
+    --code-compare-icon-size: 48px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 1.5rem;
+    --code-compare-min-height: 400px;  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+  font-size: 16px;
+    --sidebar-width: 400px;
+    --main-closed: 1800px;
+    --main-open: 1400px;
+    --lounge-closed: 590px;
+    --lounge-open: 450px;
+    --header-height: 11.1875rem;
+    --chat-height: 36rem;
+    --code-height: 36rem;
+    --discussion-input-width: 610px;    
+    --create-max-width: 1280px;
+    --create-padding: 2rem;
+    --create-title-size: 2rem;
+    --create-input-height: 3.25rem;
+    --create-textarea-height: 18rem;
+    
+    --team-card-width: 330px;
+    --team-card-height: 350px;
+    --team-card-icon-size: 96px;
+    --team-card-icon-inner-size: 48px;
+    --team-card-gap: 1.5rem;
+    --team-card-padding: 1.5rem;
+    --team-card-title-size: 1.5rem;
+    --team-card-desc-size: 0.875rem;
+    
+    --battle-info-icon-size: 64px;
+    --battle-info-title-size: 1.5rem;
+    --battle-info-desc-size: 1rem;
+    --battle-info-card-padding: 2rem;
+    --battle-info-stat-icon-size: 64px;
+    --battle-info-stat-value-size: 2.25rem;
+    --battle-info-swords-size: 24px;
+    --battle-info-users-size: 32px;
+    --battle-info-target-size: 28px;
+    
+    --code-compare-icon-size: 64px;
+    --code-compare-title-size: 1.5rem;
+    --code-compare-desc-size: 1rem;
+    --code-compare-container-padding: 2rem;
+    --code-compare-min-height: 500px;  }
+}
+
+@layer components {
+  .sidebar-width {
+    width: var(--sidebar-width);
+  }
+
+  .main-width-closed {
+    width: var(--main-closed);
+  }
+
+  .main-width-open {
+    width: var(--main-open);
+  }
+
+  .lounge-width-closed {
+    width: var(--lounge-closed);
+  }
+
+  .lounge-width-open {
+    width: var(--lounge-open);
+  }
+
+  .header-height {
+    height: var(--header-height);
+  }
+
+  .chat-height {
+    height: var(--chat-height);
+  }
+
+  .code-height {
+    height: var(--code-height);
+  }
+
+  .min-code-height {
+    min-height: var(--code-height);
+  }
+
+  .ml-sidebar {
+    margin-left: var(--sidebar-width);
+  }
+
+  .discussion-input-width {
+    width: var(--discussion-input-width);
+  }
+
+  .create-max-width {
+    max-width: var(--create-max-width);
+  }
+
+  .create-padding {
+    padding: var(--create-padding);
+  }
+
+  .create-title-size {
+    font-size: var(--create-title-size);
+  }
+
+  .create-input-height {
+    height: var(--create-input-height);
+  }
+
+  .create-textarea-height {
+    height: var(--create-textarea-height);
+  }
+
+  .team-card-width {
+    width: var(--team-card-width);
+  }
+
+  .team-card-height {
+    height: var(--team-card-height);
+  }
+
+  .team-card-icon-size {
+    width: var(--team-card-icon-size);
+    height: var(--team-card-icon-size);
+  }
+
+  .team-card-icon-inner-size {
+    width: var(--team-card-icon-inner-size);
+    height: var(--team-card-icon-inner-size);
+  }
+
+  .team-card-gap {
+    gap: var(--team-card-gap);
+  }
+
+  .team-card-padding {
+    padding: var(--team-card-padding);
+  }
+
+  .team-card-title-size {
+    font-size: var(--team-card-title-size);
+  }
+
+  .team-card-desc-size {
+    font-size: var(--team-card-desc-size);
+  }
+
+  .battle-info-icon-size {
+    width: var(--battle-info-icon-size);
+    height: var(--battle-info-icon-size);
+  }
+
+  .battle-info-title-size {
+    font-size: var(--battle-info-title-size);
+  }
+
+  .battle-info-desc-size {
+    font-size: var(--battle-info-desc-size);
+  }
+
+  .battle-info-card-padding {
+    padding: var(--battle-info-card-padding);
+  }
+
+  .battle-info-stat-icon-size {
+    width: var(--battle-info-stat-icon-size);
+    height: var(--battle-info-stat-icon-size);
+  }
+
+  .battle-info-stat-value-size {
+    font-size: var(--battle-info-stat-value-size);
+  }
+
+  .battle-info-swords-size {
+    width: var(--battle-info-swords-size);
+    height: var(--battle-info-swords-size);
+  }
+
+  .battle-info-users-size {
+    width: var(--battle-info-users-size);
+    height: var(--battle-info-users-size);
+  }
+
+  .battle-info-target-size {
+    width: var(--battle-info-target-size);
+    height: var(--battle-info-target-size);
+  }
+
+  .code-compare-icon-size {
+    width: var(--code-compare-icon-size);
+    height: var(--code-compare-icon-size);
+  }
+
+  .code-compare-title-size {
+    font-size: var(--code-compare-title-size);
+  }
+
+  .code-compare-desc-size {
+    font-size: var(--code-compare-desc-size);
+  }
+
+  .code-compare-container-padding {
+    padding: var(--code-compare-container-padding);
+  }
+
+  .code-compare-min-height {
+    min-height: var(--code-compare-min-height);
+  }
+}
+
+body {
+  background-color: #0a0a1a;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #2d2d3f;
+  border-radius: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #ff6900;
+  border-radius: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #ff8533;
+}
