@@ -24,7 +24,9 @@ import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import SoundSettingsButton from './components/header/SoundSettingsButton';
+import SkipModal from './components/effects/SkipModal';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
+import { usePhaseSkip } from './hooks/usePhaseSkip';
 
 type Tab = 'info' | 'timeline' | 'reference';
 
@@ -151,6 +153,13 @@ export default function BattlePage() {
     });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
+  const {
+    isModalOpen: isPhaseSkipModalOpen,
+    closeModal: closeSkipModal,
+    isSkipEnabled,
+    toggleSkip,
+    totalSkips
+  } = usePhaseSkip();
 
   // Phase와 Team 정보 가져오기
   const team = useBattleStore(selectSelectedTeam);
@@ -212,7 +221,7 @@ export default function BattlePage() {
             </button>
           </div>
           <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
-          <BattleHeader />
+          <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
         </div>
         <main className="main-width-closed">
           <div className="flex gap-2 py-4">
@@ -233,7 +242,6 @@ export default function BattlePage() {
             </aside>
           </div>
         </main>
-
         {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
           className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-5 px-4 pb-4 transition-all duration-500 ease-out ${
@@ -244,7 +252,6 @@ export default function BattlePage() {
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
-
         {isTeamChangeModalOpen && (
           <TeamChangeModal
             topics={battleInfo.topics}
@@ -252,7 +259,6 @@ export default function BattlePage() {
             onClose={handleCloseTeamChangeModal}
           />
         )}
-
         {effectModal.isOpen && effectModal.team !== 'NONE' && (
           <DiscussionModal
             isOpen={effectModal.isOpen}
@@ -262,7 +268,6 @@ export default function BattlePage() {
             onClose={hideEffect}
           />
         )}
-
         {isVoteResultModalOpen && voteResult && (
           <TeamVoteResultModal
             isOpen={isVoteResultModalOpen}
@@ -277,11 +282,10 @@ export default function BattlePage() {
             onClose={closeVoteResultModal}
           />
         )}
-
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
-
+        {isPhaseSkipModalOpen && <SkipModal isOpen={true} onClose={closeSkipModal} />}
         <TutorialModal
           isOpen={isTutorialOpen && currentStep === 'welcome'}
           onClose={skipTutorial}
@@ -289,7 +293,6 @@ export default function BattlePage() {
           dontShowAgain={dontShowAgain}
           onDontShowAgainChange={setDontShowAgain}
         />
-
         <TutorialStepModal
           isOpen={isTutorialOpen && currentStep !== 'welcome' && currentStep !== 'completed'}
           currentStep={currentStep}
