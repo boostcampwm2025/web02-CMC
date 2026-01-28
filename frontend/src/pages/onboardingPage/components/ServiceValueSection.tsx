@@ -33,9 +33,10 @@ export default function ServiceValueSection() {
       </div>
 
       <div className="relative z-10 text-center mb-8 space-y-2 px-4">
-        <span className="text-orange-500 font-bold tracking-wider uppercase text-xs">Service & Values</span>
-        <h2 className="text-3xl font-bold text-white">
-          왜 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">코문철</span>
+        <span className="text-orange-500 font-bold tracking-wider uppercase text-md my-1">Service & Values</span>
+        <h2 className="text-4xl font-bold text-white">
+          왜{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 my-1">코문철</span>
           인가요?
         </h2>
         <p className="text-gray-400 text-base max-w-2xl mx-auto hidden md:block">

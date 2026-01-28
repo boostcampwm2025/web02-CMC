@@ -12,9 +12,7 @@ export default function GameIntroduceSection() {
 
   return (
     <section className="relative min-h-screen w-screen !ml-[calc(-50vw+50%)] snap-start snap-always flex flex-col justify-between py-16 pb-24 overflow-hidden">
-      {/* Animated Background */}
       <div className="absolute inset-0 !w-screen left-1/2 -translate-x-1/2 bg-gradient-to-b from-[#0a0b14] via-[#0f1020] to-[#0a0b14]">
-        {/* Diagonal stripes */}
         <div className="absolute inset-0 opacity-[0.08]">
           <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_50px,rgba(251,146,60,0.4)_50px,rgba(251,146,60,0.4)_52px)]" />
         </div>
@@ -25,8 +23,8 @@ export default function GameIntroduceSection() {
       </div>
 
       <h2 className="relative z-10">
-        <span className="text-yellow-500 font-bold text-3xl">코문철 </span>
-        <span className="text-white font-bold text-3xl">게임소개</span>
+        <span className="text-yellow-500 font-bold text-4xl">코문철 </span>
+        <span className="text-white font-bold text-4xl">게임소개</span>
       </h2>
       <div className="relative z-10 mx-auto w-[55rem] h-[32rem] max-w-[85%] shadow-2xl">
         <Carousel>
