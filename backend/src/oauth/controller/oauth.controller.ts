@@ -26,14 +26,18 @@ export class OauthController {
   @HttpCode(302)
   async githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = await this.oauthService.loginWithGithub(profile)
+    const { accessToken, refreshToken, user } = await this.oauthService.loginWithGithub(profile)
 
     // 쿠키에 토큰 저장
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 프론트엔드로 리다이렉트
-    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
-    res.redirect(`${frontendUrl}/auth/callback`)
+    // 사용자 정보 확인
+    const isInitialNickname = this.oauthService.isInitialNickname(user)
+
+    // 프론트엔드 콜백 페이지로 리다이렉트 (콜백 페이지에서 사용자 정보 가져오고 최종 리다이렉트)
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
+    const redirectTo = isInitialNickname ? '/nickname' : '/'
+    res.redirect(`${frontendUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`)
   }
 
   @Get('kakao')
@@ -45,13 +49,17 @@ export class OauthController {
   @HttpCode(302)
   async kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = await this.oauthService.loginWithKakao(profile)
+    const { accessToken, refreshToken, user } = await this.oauthService.loginWithKakao(profile)
 
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 프론트엔드로 리다이렉트
-    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
-    res.redirect(`${frontendUrl}/auth/callback`)
+    // 사용자 정보 확인
+    const isInitialNickname = this.oauthService.isInitialNickname(user)
+
+    // 프론트엔드 콜백 페이지로 리다이렉트 (콜백 페이지에서 사용자 정보 가져오고 최종 리다이렉트)
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
+    const redirectTo = isInitialNickname ? '/nickname' : '/'
+    res.redirect(`${frontendUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`)
   }
 
   @Post('refresh')

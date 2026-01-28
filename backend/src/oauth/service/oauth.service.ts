@@ -5,7 +5,7 @@ import { TokenService } from './token.service'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 import { OAuthUserDto } from '../dto/oauthUser.dto'
 import { PrismaService } from '../../prisma/prisma.service'
-import { isGuestNicknamePattern } from '../../battles/service/utils/nickname.util'
+import { isGuestNicknamePattern, isInitialOAuthNickname } from '../../battles/service/utils/nickname.util'
 
 @Injectable()
 export class OauthService {
@@ -24,7 +24,7 @@ export class OauthService {
       return OAuthUserDto.fromEntity({ user: existingOAuth.user, oauth: existingOAuth })
     }
 
-    const nickname = 'anonymous'
+    const nickname = `사용자 ${p.providerId}`
     const userId = uuidv7()
     const oauthId = uuidv7()
 
@@ -57,6 +57,7 @@ export class OauthService {
   async loginWithGithub(profile: OAuthProfile): Promise<{
     accessToken: string
     refreshToken: string
+    user: User
   }> {
     const loginUser = await this.findOrCreateUser(profile)
     const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
@@ -64,12 +65,14 @@ export class OauthService {
     return {
       accessToken,
       refreshToken,
+      user: loginUser,
     }
   }
 
   async loginWithKakao(profile: OAuthProfile): Promise<{
     accessToken: string
     refreshToken: string
+    user: User
   }> {
     const loginUser = await this.findOrCreateUser(profile)
     const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
@@ -77,6 +80,7 @@ export class OauthService {
     return {
       accessToken,
       refreshToken,
+      user: loginUser,
     }
   }
 
@@ -126,5 +130,12 @@ export class OauthService {
       select: { id: true },
     })
     return Boolean(user)
+  }
+
+  /**
+   * 사용자의 닉네임이 초기 닉네임인지 확인
+   */
+  isInitialNickname(user: User): boolean {
+    return isInitialOAuthNickname(user.nickname)
   }
 }
