@@ -85,7 +85,7 @@ model Battle {
   chatsAllState            Json?      @map("chats_all_state")
   chatsTeamAState          Json?      @map("chats_team_a_state")
   chatsTeamBState          Json?      @map("chats_team_b_state")
-  skipState                String[]   @db.Uuid @map("skip_state")
+  skipState                String[]   @db.Uuid @map("skip_state") @default([])
 
   creator                  User?      @relation("BattleCreator", fields: [userId], references: [id])
   participants             BattleParticipant[]
