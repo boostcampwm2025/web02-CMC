@@ -153,7 +153,13 @@ export default function BattlePage() {
     });
 
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
-  const { isModalOpen: isPhaseSkipModalOpen, closeModal: closeSkipModal } = usePhaseSkip();
+  const {
+    isModalOpen: isPhaseSkipModalOpen,
+    closeModal: closeSkipModal,
+    isSkipEnabled,
+    toggleSkip,
+    totalSkips
+  } = usePhaseSkip();
 
   // Phase와 Team 정보 가져오기
   const team = useBattleStore(selectSelectedTeam);
@@ -213,7 +219,7 @@ export default function BattlePage() {
             </button>
           </div>
           <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
-          <BattleHeader />
+          <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
         </div>
         <main className="main-width-closed">
           <div className="flex gap-2 py-4">

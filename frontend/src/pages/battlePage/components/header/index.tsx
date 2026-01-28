@@ -19,8 +19,13 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   DEFENSE: '상대의 공격에 대한 반박 논리를 작성해주세요',
   TEAM_SWITCH: '원하시는 팀으로 변경하실 수 있습니다'
 };
+interface BattleHeaderProps {
+  isSkipEnabled: boolean;
+  toggleSkip: () => void;
+  totalSkips: number;
+}
 
-export default function BattleHeader() {
+export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: BattleHeaderProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);
@@ -62,7 +67,12 @@ export default function BattleHeader() {
           <div className="ml-auto flex items-center">
             {isSkipVisible && (
               <>
-                <PhaseSkip phase={phase} />
+                <PhaseSkip
+                  phase={phase}
+                  isSkipEnabled={isSkipEnabled}
+                  toggleSkip={toggleSkip}
+                  totalSkips={totalSkips}
+                />
                 <div className="mx-4 h-6 border-l-2 border-gray-700" />
               </>
             )}

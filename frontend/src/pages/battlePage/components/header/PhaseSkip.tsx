@@ -1,14 +1,14 @@
 import SkipIcon from '@/assets/icon/skip.svg?react';
-import { usePhaseSkip } from '../../hooks/usePhaseSkip';
 import type { BattlePhase } from '@/commons/types/battle';
 
 interface PhaseSkipProps {
   phase: BattlePhase;
+  isSkipEnabled: boolean;
+  toggleSkip: () => void;
+  totalSkips: number;
 }
 
-export default function PhaseSkip({ phase }: PhaseSkipProps) {
-  const { isSkipEnabled, totalSkips, toggleSkip } = usePhaseSkip();
-
+export default function PhaseSkip({ phase, isSkipEnabled, toggleSkip, totalSkips }: PhaseSkipProps) {
   const isSkip = ['PENDING', 'TEAM_SWITCH'].includes(phase);
 
   return (
