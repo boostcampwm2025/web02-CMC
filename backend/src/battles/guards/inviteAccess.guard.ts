@@ -21,7 +21,7 @@ export class InviteAccessGuard implements CanActivate {
     }
 
     // 비공개 배틀이면 쿠키 확인
-    const inviteAccessCookie = request.cookies?.[`inviteAccess:${battleId}`] as string | undefined
+    const inviteAccessCookie = request.cookies?.[`inviteAccess_${battleId}`] as string | undefined
     if (!inviteAccessCookie) {
       throw new ForbiddenException('비공개 배틀에 접근하려면 초대 코드가 필요합니다.')
     }

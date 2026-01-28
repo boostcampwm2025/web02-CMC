@@ -69,7 +69,7 @@ export class BattlesController {
   }
 
   private setInviteAccessCookie(battleId: string, res: Response) {
-    res.cookie(`inviteAccess:${battleId}`, 'true', {
+    res.cookie(`inviteAccess_${battleId}`, 'true', {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',

@@ -115,7 +115,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const isPrivate = await this.battlesService.isPrivateBattle(battleId)
       if (isPrivate) {
         const cookieHeader = client.handshake.headers.cookie
-        const cookieName = `inviteAccess:${battleId}`
+        const cookieName = `inviteAccess_${battleId}`
         if (!cookieHeader?.includes(cookieName)) {
           throw new ForbiddenException('비공개 배틀에 접근하려면 초대 코드가 필요합니다.')
         }

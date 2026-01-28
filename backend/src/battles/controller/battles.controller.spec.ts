@@ -134,7 +134,7 @@ describe('BattlesController', () => {
         res,
       )
 
-      expect(cookieMock).toHaveBeenCalledWith('inviteAccess:battle-1', 'true', expect.any(Object))
+      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
         inviteCode: 'test-invite-code-1234',
@@ -196,7 +196,7 @@ describe('BattlesController', () => {
       await controller.getBattleByInviteCode('test-invite-code', res)
 
       expect(getBattleByInviteCodeSpy).toHaveBeenCalledWith('test-invite-code')
-      expect(cookieMock).toHaveBeenCalledWith('inviteAccess:battle-1', 'true', expect.any(Object))
+      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
