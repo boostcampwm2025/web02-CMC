@@ -16,6 +16,8 @@ interface BattleSidebarProps {
   topics: string[];
   raiseZIndex?: boolean;
   referenceData?: BattleReferenceData | null;
+  activeTab: Tab;
+  onActiveTabChange: (tab: Tab) => void;
 }
 
 export default function BattleSidebar({
@@ -27,9 +29,10 @@ export default function BattleSidebar({
   category,
   topics,
   raiseZIndex = false,
-  referenceData
+  referenceData,
+  activeTab = 'info',
+  onActiveTabChange
 }: BattleSidebarProps) {
-  const [activeTab, setActiveTab] = useState<SidebarTab>('info');
   const { width, isResizing, setIsResizing } = useResize({
     initialWidth: 400
   });
@@ -74,7 +77,7 @@ export default function BattleSidebar({
     >
       <SidebarHeader
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={onActiveTabChange}
         onClose={onClose}
         hasReferenceData={hasReferenceData}
       />

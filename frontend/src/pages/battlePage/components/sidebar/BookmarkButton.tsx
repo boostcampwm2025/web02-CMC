@@ -3,7 +3,7 @@ import MessageIcon from '@/assets/icon/message.svg?react';
 import { BookOpen } from 'lucide-react';
 
 interface BookmarkButtonProps {
-  onOpen: () => void;
+  onOpen: (tab: 'info' | 'timeline') => void;
   isOpen: boolean;
   highlight?: boolean;
   hasReferenceData?: boolean;
@@ -24,7 +24,7 @@ export default function BookmarkButton({
     >
       {/* 문제 설명 */}
       <button
-        onClick={onOpen}
+        onClick={() => onOpen('info')}
         className="group relative bg-linear-to-r from-[#FF6900] to-[#FF8533] px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
         aria-label="문제 설명 보기"
       >
@@ -34,7 +34,7 @@ export default function BookmarkButton({
 
       {/* 타임라인 */}
       <button
-        onClick={onOpen}
+        onClick={() => onOpen('timeline')}
         className="group relative bg-linear-to-r from-[#AD46FF] to-[#6BA3FF] px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
         aria-label="타임라인 보기"
       >

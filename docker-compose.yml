@@ -18,7 +18,7 @@ services:
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
-      - '9090:9090'
+      - "9090:9090"
     depends_on:
       - backend
       - cadvisor
@@ -32,7 +32,7 @@ services:
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
-      - '3001:3000'
+      - "3001:3000"
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -40,7 +40,7 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     ports:
-      - '8080:8080'
+      - "8080:8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:ro

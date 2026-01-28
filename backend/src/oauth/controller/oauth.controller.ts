@@ -24,9 +24,9 @@ export class OauthController {
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
   @HttpCode(302)
-  githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
+  async githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = this.oauthService.loginWithGithub(profile)
+    const { accessToken, refreshToken } = await this.oauthService.loginWithGithub(profile)
 
     // 쿠키에 토큰 저장
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
@@ -43,9 +43,9 @@ export class OauthController {
   @Get('kakao/callback')
   @UseGuards(AuthGuard('kakao'))
   @HttpCode(302)
-  kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
+  async kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = this.oauthService.loginWithKakao(profile)
+    const { accessToken, refreshToken } = await this.oauthService.loginWithKakao(profile)
 
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
@@ -82,16 +82,16 @@ export class OauthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  getMe(@Req() req: expressReq) {
+  async getMe(@Req() req: expressReq) {
     const jwtUser = req.user as { id: string }
-    return this.oauthService.findUserById(jwtUser.id)
+    return await this.oauthService.findUserById(jwtUser.id)
   }
 
   @Patch('nickname')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  updateNickname(@Req() req: expressReq, @Body() dto: UpdateNicknameDto): OAuthUserResponseDto {
+  async updateNickname(@Req() req: expressReq, @Body() dto: UpdateNicknameDto): Promise<OAuthUserResponseDto> {
     const jwtUser = req.user as { id: string }
-    return this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
+    return await this.oauthService.updateUserNickname(jwtUser.id, dto.nickname)
   }
 }

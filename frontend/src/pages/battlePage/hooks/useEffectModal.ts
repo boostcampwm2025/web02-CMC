@@ -24,7 +24,7 @@ export function useEffectModal() {
       content,
       type
     });
-    soundManager.play('swordSlash', 0.6);
+    soundManager.play('swordSlash');
   }, []);
 
   const hideEffect = useCallback(() => {

@@ -10,6 +10,7 @@ import { KakaoStrategy } from './strategy/kakao.strategy'
 import { TokenService } from './service/token.service'
 import { JwtStrategy } from './strategy/jwt.strategy'
 import { RefreshStrategy } from './strategy/jwt-refresh.strategy'
+import { PrismaService } from 'src/prisma/prisma.service'
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { RefreshStrategy } from './strategy/jwt-refresh.strategy'
     }),
   ],
   controllers: [OauthController],
-  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshStrategy, TokenService],
+  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshStrategy, TokenService, PrismaService],
   exports: [OauthService],
 })
 export class OauthModule {}

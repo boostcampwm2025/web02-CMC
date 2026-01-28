@@ -67,6 +67,35 @@ export function useBattleSocket() {
       setAllChats(data.allChats || []);
       setChatInitialized(true);
 
+      // 적팀 최신 공지 설정
+      const currentTeam = useBattleStore.getState().selectedTeam;
+      if (currentTeam !== 'NONE') {
+        const opponentTeam = currentTeam === 'A' ? 'B' : 'A';
+        const allDiscussions = [
+          ...(data.timelines?.attacks || []).map((d) => ({ ...d, discussionType: 'attack' as const })),
+          ...(data.timelines?.defenses || []).map((d) => ({ ...d, discussionType: 'defense' as const }))
+        ];
+
+        const latest = allDiscussions
+          .filter((d) => d.team === opponentTeam)
+          .sort((a, b) => (b.selectedAt || 0) - (a.selectedAt || 0))[0];
+
+        if (latest) {
+          useBattleStore.getState().setOpponentNoticePending({
+            battleId: data.battleId,
+            scope: 'ALL',
+            messageId: `notice-${latest.discussionType}-${latest.discussionId}`,
+            sender: { userId: latest.author.id, nickname: latest.author.nickname },
+            team: latest.team,
+            text: latest.content,
+            createdAt: new Date(latest.selectedAt || Date.now()),
+            type: latest.discussionType,
+            votes: latest.upvotes
+          });
+          useBattleStore.getState().commitOpponentNotice();
+        }
+      }
+
       // 초기 투표 리스트 동기화 (ATTACK/DEFENSE 페이즈만)
       const team = useBattleStore.getState().selectedTeam;
       if (team !== 'NONE') {
