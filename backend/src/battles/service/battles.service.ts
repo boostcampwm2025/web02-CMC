@@ -9,7 +9,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import * as crypto from 'crypto'
+
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
@@ -84,24 +84,9 @@ export class BattlesService extends EventEmitter {
     return uuidv7()
   }
 
-  private async generateInviteCode(): Promise<string> {
-    const MAX_ATTEMPTS = 10
-    let attempt = 0
-
-    while (attempt < MAX_ATTEMPTS) {
-      const inviteCode = crypto.randomBytes(12).toString('base64url')
-      // 중복 확인
-      const existingBattle = await this.prisma.battle.findUnique({
-        where: { inviteCode },
-        select: { id: true },
-      })
-      if (!existingBattle) {
-        return inviteCode
-      }
-      attempt++
-    }
-
-    throw new InternalServerErrorException('고유한 초대 코드를 생성할 수 없습니다. 다시 시도해 주세요.')
+  private generateInviteCode(): string {
+    // 밀리초 단위 타임스탬프 기반 코드 생성
+    return Date.now().toString()
   }
 
   private getPlayTime(playTimeName: string): BattlePlayTime {
@@ -413,7 +398,7 @@ export class BattlesService extends EventEmitter {
     } catch {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
-    const inviteCode = await this.generateInviteCode()
+    const inviteCode = this.generateInviteCode()
 
     const created = await this.prisma.battle.create({
       data: {
