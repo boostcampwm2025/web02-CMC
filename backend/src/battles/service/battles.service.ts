@@ -443,7 +443,7 @@ export class BattlesService extends EventEmitter {
   //실시간 배틀 목록 조회
   async getOpenBattles(limit: number, offset: number) {
     const where = {
-      isPrivate: false,
+      // isPrivate: false,
       status: { in: [BATTLE_STATUS.OPEN, BATTLE_STATUS.PENDING] },
     }
 
