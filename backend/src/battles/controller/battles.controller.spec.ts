@@ -7,7 +7,7 @@ import { BattlesService } from '../service/battles.service'
 import { BattleListRequestQueryDto } from '../dto/battleListRequestQuery.dto'
 import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BATTLE_TYPE } from '../const/battles.const'
-import { InviteAccessGuard } from '../guards/invite-access.guard'
+import { InviteAccessGuard } from '../guards/inviteAccess.guard'
 
 describe('BattlesController', () => {
   let controller: BattlesController
