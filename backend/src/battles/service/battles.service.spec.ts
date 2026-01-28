@@ -1129,18 +1129,17 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       // 참가자 등록 (joinedAt 시간 순서대로)
       await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
       await service.registerGuest('battle-1', { id: 'user-3', nickname: 'User3', createdAt: 3000 })
 
-      state.participants.set('user-1', BATTLE_TEAM.A)
-      state.participants.set('user-2', BATTLE_TEAM.B)
-      state.participants.set('user-3', BATTLE_TEAM.A)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-1', BATTLE_TEAM.A)
+        state.participants.set('user-2', BATTLE_TEAM.B)
+        state.participants.set('user-3', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {
@@ -1492,15 +1491,14 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       await service.registerGuest('battle-1', { id: 'user-a', nickname: 'UserA', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-b', nickname: 'UserB', createdAt: 2000 })
 
-      state.participants.set('user-a', BATTLE_TEAM.A)
-      state.participants.set('user-b', BATTLE_TEAM.B)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-a', BATTLE_TEAM.A)
+        state.participants.set('user-b', BATTLE_TEAM.B)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {
@@ -1621,13 +1619,14 @@ describe('BattlesService', () => {
     })
 
     it('case', async () => {
-      const state = await getState('battle-1')
-      state.phase = BATTLE_PHASE.ATTACK.name
-
       // 같은 팀, 같은 점수 비율
       await service.registerGuest('battle-1', { id: 'user-a2', nickname: 'UserA2', createdAt: 3000 })
-      state.participants.set('user-a2', BATTLE_TEAM.A)
-      service['rebuildTeamUsers'](state)
+      const state = await updateState('battle-1', state => {
+        state.participants.set('user-a2', BATTLE_TEAM.A)
+        service['rebuildTeamUsers'](state)
+      })
+
+      state.phase = BATTLE_PHASE.ATTACK.name
 
       // user-a: 50표 / 100명 = 0.5점 → 1.5배 → 0.75점, totalVotes = 50
       state.opinionHistory.push({
@@ -1762,15 +1761,14 @@ describe('BattlesService', () => {
       const battle = createBattle({ id: 'battle-1', status: BATTLE_STATUS.OPEN })
       seedBattles([battle])
 
-      const state = await getState('battle-1')
-
       await service.registerGuest('battle-1', { id: 'user-1', nickname: 'User1', createdAt: 1000 })
       await service.registerGuest('battle-1', { id: 'user-2', nickname: 'User2', createdAt: 2000 })
 
-      state.participants.set('user-1', BATTLE_TEAM.A)
-      state.participants.set('user-2', BATTLE_TEAM.B)
-
-      service['rebuildTeamUsers'](state)
+      await updateState('battle-1', state => {
+        state.participants.set('user-1', BATTLE_TEAM.A)
+        state.participants.set('user-2', BATTLE_TEAM.B)
+        service['rebuildTeamUsers'](state)
+      })
     })
 
     it('case', async () => {

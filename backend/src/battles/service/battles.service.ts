@@ -255,7 +255,7 @@ export class BattlesService extends EventEmitter {
       .filter(item => item && typeof item === 'object')
       .map(item => {
         const mvp = item as Partial<Mvp>
-        const team: 'A' | 'B' = mvp.team === 'B' ? 'B' : 'A'
+        const team: 'A' | 'B' | 'NONE' = mvp.team === 'A' ? 'A' : mvp.team === 'B' ? 'B' : 'NONE'
         const parsed: Mvp = {
           userId: typeof mvp.userId === 'string' ? mvp.userId : '',
           nickname: typeof mvp.nickname === 'string' ? mvp.nickname : '',
@@ -638,10 +638,12 @@ export class BattlesService extends EventEmitter {
 
     allOpinions.forEach(opinion => {
       const { authorId, nickname } = opinion.author
-      const team = opinion.team
 
-      // 중립 팀 및 빈 userId(placeholder) 제외
-      if (team === BATTLE_TEAM.NONE || !authorId) return
+      // 빈 userId(placeholder) 제외
+      if (!authorId) return
+
+      // 의견 제출 시점에 중립 팀이면 점수 집계 제외 (중립은 의견 제출 불가)
+      if (opinion.team === BATTLE_TEAM.NONE) return
 
       // 페이즈별로 기록된 투표 참가자 수 사용 (없으면 0으로 처리)
       const voterCount = opinion.voterCountAtPhase ?? 0
@@ -662,7 +664,7 @@ export class BattlesService extends EventEmitter {
           createMvpCandidate({
             userId: authorId,
             nickname,
-            team: team === BATTLE_TEAM.A ? 'A' : 'B',
+            team: 'A', // 임시값, 최종 팀으로 나중에 덮어씀
             score: opinionScore,
             totalVotes: opinion.upvotes,
             opinionCount: 1,
@@ -671,6 +673,12 @@ export class BattlesService extends EventEmitter {
           }),
         )
       }
+    })
+
+    // 최종 팀 기준으로 MVP 팀 설정 (팀 변경 반영)
+    candidateMap.forEach((candidate, userId) => {
+      const finalTeam = state.participants.get(userId)
+      candidate.team = finalTeam === BATTLE_TEAM.A ? 'A' : finalTeam === BATTLE_TEAM.B ? 'B' : 'NONE'
     })
 
     if (candidateMap.size === 0) return []
@@ -687,9 +695,9 @@ export class BattlesService extends EventEmitter {
     return candidates.slice(0, MVP_DISPLAY_COUNT)
   }
 
-  private getParticipantJoinedAt(state: ActiveBattleState, oderId: string): number {
+  private getParticipantJoinedAt(state: ActiveBattleState, userId: string): number {
     // participants Map의 삽입 순서를 기반으로 참가 순서 반환
-    const participantOrder = [...state.participants.keys()].indexOf(oderId)
+    const participantOrder = [...state.participants.keys()].indexOf(userId)
     return participantOrder >= 0 ? participantOrder : 0
   }
 
