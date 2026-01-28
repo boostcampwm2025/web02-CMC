@@ -127,7 +127,7 @@ describe('BattlesController', () => {
       await controller.getBattleByInviteCode('test-invite-code', res)
 
       expect(getBattleByInviteCodeSpy).toHaveBeenCalledWith('test-invite-code')
-      expect(redirectMock).toHaveBeenCalledWith('http://localhost:5173/battle/battle-1/team-select')
+      expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
     it('존재하지 않는 inviteCode면 NotFoundException을 던진다', async () => {

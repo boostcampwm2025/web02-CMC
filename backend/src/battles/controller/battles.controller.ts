@@ -30,13 +30,13 @@ export class BattlesController {
   }
 
   @Get(':inviteCode')
-  @HttpCode(302)
+  @HttpCode(303)
   async getBattleByInviteCode(@Param('inviteCode') inviteCode: string, @Res() res: Response) {
     const { battleId } = await this.battlesService.getBattleByInviteCode(inviteCode)
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
 
     //리다이렉트
-    return res.redirect(`${frontendUrl}/battle/${battleId}/team-select`)
+    return res.redirect(303, `${frontendUrl}/battle/${battleId}/team-select`)
   }
 
   @Post(':id/join')
