@@ -25,8 +25,14 @@ const SERVICE_VALUES = [
 
 export default function ServiceValueSection() {
   return (
-    <section className="h-screen w-full snap-start snap-always flex flex-col items-center justify-center py-16 overflow-hidden">
-      <div className="text-center mb-8 space-y-2 px-4">
+    <section className="relative h-screen w-screen !ml-[calc(-50vw+50%)] snap-start snap-always flex flex-col items-center justify-center py-16 overflow-hidden">
+      <div className="absolute inset-0 !w-screen left-1/2 -translate-x-1/2 bg-gradient-to-b from-[#0a0b14] via-[#12131f] to-[#0a0b14]">
+        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[130px]" />
+        <div className="absolute bottom-1/3 left-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full blur-[130px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/8 rounded-full blur-[160px]" />
+      </div>
+
+      <div className="relative z-10 text-center mb-8 space-y-2 px-4">
         <span className="text-orange-500 font-bold tracking-wider uppercase text-xs">Service & Values</span>
         <h2 className="text-3xl font-bold text-white">
           왜 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">코문철</span>
@@ -41,7 +47,7 @@ export default function ServiceValueSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 px-8 max-w-4xl w-full">
+      <div className="relative z-10 grid grid-cols-1 gap-3 px-8 max-w-4xl w-full">
         {SERVICE_VALUES.map((value) => (
           <ServiceValueCard key={value.id} id={value.id} title={value.title} description={value.description} />
         ))}
