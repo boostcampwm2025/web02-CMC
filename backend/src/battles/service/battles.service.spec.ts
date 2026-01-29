@@ -1046,7 +1046,7 @@ describe('BattlesService', () => {
       seedUsers([
         { id: 'user-a', rating: 0, tier: 'BRONZE' },
         { id: 'user-b', rating: 3, tier: 'BRONZE' },
-        { id: 'user-c', rating: 610, tier: 'PLATINUM' },
+        { id: 'user-c', rating: 610, tier: 'DIAMOND' },
         { id: 'user-none', rating: 450, tier: 'GOLD' },
       ])
 
@@ -1073,7 +1073,7 @@ describe('BattlesService', () => {
       expect(userStore.get('user-b')?.rating).toBe(0)
       expect(userStore.get('user-b')?.tier).toBe('BRONZE')
       expect(userStore.get('user-c')?.rating).toBe(628)
-      expect(userStore.get('user-c')?.tier).toBe('PLATINUM')
+      expect(userStore.get('user-c')?.tier).toBe('DIAMOND')
       expect(userStore.get('user-none')?.rating).toBe(450)
 
       expect(mockPrisma.battleParticipant.updateMany).toHaveBeenCalledWith({
