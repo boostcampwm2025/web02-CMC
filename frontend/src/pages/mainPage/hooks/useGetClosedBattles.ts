@@ -11,13 +11,12 @@ export function useGetClosedBattles({ offset, limit }: GetBattleListParams) {
       total: data.meta.total
     }),
     staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-    throwOnError: true
+    gcTime: 1000 * 60 * 10
   });
 
   return {
-    battles: data?.battles,
-    total: data?.total,
+    battles: data?.battles ?? [],
+    total: data?.total ?? 0,
     ...rest
   };
 }

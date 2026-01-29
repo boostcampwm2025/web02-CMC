@@ -12,8 +12,7 @@ export function useGetOpenBattles({ offset, limit }: GetBattleListParams) {
     }),
     staleTime: 0,
     gcTime: 1000 * 60 * 2,
-    refetchInterval: 30000,
-    throwOnError: true
+    refetchInterval: 30000
   });
 
   return {

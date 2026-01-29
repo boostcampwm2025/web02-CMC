@@ -1,16 +1,19 @@
 import { Link } from 'react-router-dom';
-import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './components';
-import { BATTLE_CATEGORY_CONFIG } from './types/battle';
+import StatCard from '@/pages/mainPage/components/StatCard';
+import BattleCategoryCard from '@/pages/mainPage/components/BattleCategoryCard';
+import LiveBattlesSection from '@/pages/mainPage/components/LiveBattlesSection';
+import PastBattlesSection from '@/pages/mainPage/components/PastBattlesSection';
+import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
-import { useGetOpenBattles } from './hooks/useGetOpenBattles';
-import { useGetClosedBattles } from './hooks/useGetClosedBattles';
+import { useGetOpenBattles } from '@/pages/mainPage/hooks/useGetOpenBattles';
+import { useGetClosedBattles } from '@/pages/mainPage/hooks/useGetClosedBattles';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
 export default function MainPage() {
-  const { battles: openBattles, total: openTotal } = useGetOpenBattles({ offset: 0, limit: 3 });
-  const { battles: closedBattles, total: closedTotal } = useGetClosedBattles({ offset: 0, limit: 6 });
+  const { total: openTotal } = useGetOpenBattles({ offset: 0, limit: 3 });
+  const { total: closedTotal } = useGetClosedBattles({ offset: 0, limit: 6 });
 
   return (
     <div className="min-h-screen w-full">
@@ -61,37 +64,9 @@ export default function MainPage() {
               ))}
             </div>
           </section>
-          {/* Live */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex flex-col text-left gap-3">
-                <span className="text-orange-500 text-sm uppercase tracking-wider">PLAY TO EARN GAMES</span>
-                <h2 className="text-3xl  font-bold">실시간 배틀</h2>
-              </div>
 
-              <span className="text-sm text-gray-400">{openTotal}개 진행중</span>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {openBattles?.map((battleItem, index) => (
-                <LiveBattleCard key={battleItem.id} battleInform={battleItem} isHot={index === 0} />
-              ))}
-            </div>
-          </section>
-
-          {/* Past */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex flex-col text-left gap-3">
-                <span className="text-orange-500 text-sm uppercase">PAST BATTLES</span>
-                <h2 className="text-3xl font-bold">지난 배틀 결과</h2>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              {closedBattles?.map((b) => (
-                <PastBattleCard key={b.id} item={b} />
-              ))}
-            </div>
-          </section>
+          <LiveBattlesSection />
+          <PastBattlesSection />
         </div>
       </main>
     </div>
