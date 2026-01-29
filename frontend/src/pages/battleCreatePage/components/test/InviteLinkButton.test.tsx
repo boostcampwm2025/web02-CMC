@@ -9,6 +9,12 @@ Object.assign(navigator, {
   }
 });
 
+// window.isSecureContext를 true로 설정
+Object.defineProperty(window, 'isSecureContext', {
+  value: true,
+  writable: true
+});
+
 describe('InviteLinkButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +47,7 @@ describe('InviteLinkButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      const copiedText = screen.queryByText('복사됨');
+      const copiedText = screen.getByText('복사됨');
       expect(copiedText).toBeInTheDocument();
     });
   });
