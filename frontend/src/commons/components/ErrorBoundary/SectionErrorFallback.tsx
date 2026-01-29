@@ -5,7 +5,7 @@ interface SectionErrorFallbackProps {
   reset: () => void;
   title?: string;
   className?: string;
-  minHeight?: number;
+  minHeight?: string;
 }
 
 export default function SectionErrorFallback({
@@ -13,11 +13,11 @@ export default function SectionErrorFallback({
   reset,
   title = '데이터를 불러올 수 없습니다',
   className = '',
-  minHeight = 300
+  minHeight = '18.75rem'
 }: SectionErrorFallbackProps) {
   return (
     <div
-      style={{ minHeight: `${minHeight}px` }}
+      style={{ minHeight }}
       className={`w-full bg-[#1A1A2E] border border-[#364153] rounded-xl p-8 flex flex-col items-center justify-center animate-fadeIn ${className}`}
     >
       <div className="flex flex-col items-center gap-4 text-center">

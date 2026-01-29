@@ -2,7 +2,8 @@ import BattleIcon from '@/assets/icon/battle.svg?react';
 import GithubIcon from '@/assets/icon/github.svg?react';
 import KakaoIcon from '@/assets/icon/kakao.svg?react';
 import DevIcon from '@/assets/icon/dev.svg?react';
-import { loginWithGitHub, loginWithKakao } from './api/oauth';
+import { loginWithGitHub } from './api/loginWithGithub';
+import { loginWithKakao } from './api/loginWithKakao';
 
 export default function LoginPage() {
   const handleGitHubLogin = () => {
