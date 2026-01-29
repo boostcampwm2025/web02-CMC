@@ -6,9 +6,11 @@ import {
   useBattleStore,
   selectBattleProgress,
   selectBattleId,
-  selectSocket
+  selectSocket,
+  selectSelectedTeam
 } from '@/pages/battlePage/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
+import PhaseSkip from './PhaseSkip';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   PENDING: '',
@@ -18,12 +20,21 @@ const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
   TEAM_SWITCH: '원하시는 팀으로 변경하실 수 있습니다'
 };
 
-export default function BattleHeader() {
+interface BattleHeaderProps {
+  isSkipEnabled: boolean;
+  toggleSkip: () => void;
+  totalSkips: number;
+}
+
+export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: BattleHeaderProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
+  const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);
   const socket = useBattleStore(selectSocket);
   const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
+
+  const isSkipVisible = team !== 'NONE';
 
   const handleStart = () => {
     if (!socket || !battleId) return;
@@ -32,7 +43,7 @@ export default function BattleHeader() {
 
   return (
     <header
-      className="header-height main-width-closed bg-[#1E1E2F] rounded-lg mb-2 overflow-hidden flex flex-col"
+      className="header-height main-width-closed bg-[#1E1E2F] rounded-lg mb-2 flex flex-col"
       data-tutorial="phase-guide"
     >
       <div className="px-8 flex-1 grid grid-cols-3 items-center">
@@ -53,8 +64,22 @@ export default function BattleHeader() {
             </>
           )}
         </div>
-        <div className="flex justify-end">
-          <TeamCounter />
+        <div className="flex items-center">
+          <div className="ml-auto flex items-center">
+            {isSkipVisible && (
+              <>
+                <PhaseSkip
+                  phase={phase}
+                  isSkipEnabled={isSkipEnabled}
+                  toggleSkip={toggleSkip}
+                  totalSkips={totalSkips}
+                />
+                <div className="mx-4 h-6 border-l-2 border-gray-700" />
+              </>
+            )}
+
+            <TeamCounter />
+          </div>
         </div>
       </div>
       <ParticipantRatioBar />

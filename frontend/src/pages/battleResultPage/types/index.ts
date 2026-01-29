@@ -47,7 +47,7 @@ export interface TimelineItem {
 export interface Mvp {
   userId: string;
   nickname: string;
-  team: Exclude<Team, 'NONE'>;
+  team: Team;
   score: number;
   totalVotes: number;
   opinionCount: number;

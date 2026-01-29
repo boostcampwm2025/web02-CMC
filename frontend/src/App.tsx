@@ -3,6 +3,7 @@ import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
 import TeamSelectPage from './pages/teamSelectPage';
+import InvitePage from './pages/invitePage';
 import fetchBattleInfo from './commons/apis/getBattleInfo';
 import './App.css';
 import BattleResultPage from './pages/battleResultPage';
@@ -82,6 +83,11 @@ const router = createBrowserRouter([
     element: <TutorialBattlePage />,
     errorElement: <ErrorPage />,
     loader: () => TUTORIAL_BATTLE_INFO
+  },
+  {
+    path: '/battles/:inviteCode',
+    element: <InvitePage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/battles/:id/result',

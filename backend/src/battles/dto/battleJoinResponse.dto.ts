@@ -1,5 +1,6 @@
 import { BATTLE_TEAM } from '../const/battles.const'
 import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
+import type { BattleReferenceData } from '../types/ai.types'
 
 export class BattleJoinResponseDto {
   battleId: string
@@ -8,6 +9,7 @@ export class BattleJoinResponseDto {
     teamB: number
     teamNone: number
   }
+  totalSkips: number
 
   // 배틀 전체 타임라인 & 채팅
   timelines: { attacks: (BattleDiscussion | null)[]; defenses: (BattleDefense | null)[] }
@@ -29,7 +31,7 @@ export class BattleJoinResponseDto {
 
   static fromEntity(payload: ActiveBattleState, team: string): BattleJoinResponseDto {
     const res = new BattleJoinResponseDto()
-    const { all, teamA, teamB, participants, round, topics, phase, phaseCount, startedAt, expiredAt } = payload
+    const { all, teamA, teamB, participants, round, topics, phase, phaseCount, skipState, startedAt, expiredAt } = payload
 
     const myTeam = team === BATTLE_TEAM.A ? teamA : team === BATTLE_TEAM.B ? teamB : all
 
@@ -39,6 +41,8 @@ export class BattleJoinResponseDto {
       teamB: teamB.users.length,
       teamNone: participants.size - (teamA.users.length + teamB.users.length),
     }
+    res.totalSkips = skipState.size
+
     res.timelines = {
       attacks: all.attacks.filter((attack): attack is BattleDiscussion => attack !== null && attack.status === 'SELECTED'),
       defenses: all.defenses.filter((defense): defense is BattleDefense => defense !== null && defense.status === 'SELECTED'),
@@ -78,6 +82,8 @@ export class BattleJoinInfoResponseDto {
   currentPhase: BattlePhaseName
   phaseCount: number
   timelines: { attacks: BattleDiscussion[]; defenses: BattleDefense[] }
+  referenceData: BattleReferenceData | null
+  inviteCode?: string
 
   static fromEntity(battle: Battle, activeBattleState?: ActiveBattleState): BattleJoinInfoResponseDto {
     const res = new BattleJoinInfoResponseDto()
@@ -89,6 +95,7 @@ export class BattleJoinInfoResponseDto {
     res.category = battle.category
     res.participantCount = battle.participantCount
     res.topics = battle.topics
+    res.inviteCode = battle.inviteCode
 
     // ActiveBattleState가 있으면 실시간 데이터 사용, 없으면 초기 상태 사용
     if (activeBattleState) {
@@ -108,6 +115,8 @@ export class BattleJoinInfoResponseDto {
       res.phaseCount = battle.initialState.phaseCount
       res.timelines = { attacks: [], defenses: [] }
     }
+
+    res.referenceData = battle.referenceData ?? null
 
     return res
   }

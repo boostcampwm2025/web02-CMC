@@ -34,6 +34,8 @@ interface BattleStore {
   chatInitialized: boolean;
   opponentNotice: BattleChat | null;
   opponentNoticePending: BattleChat | null;
+  isTeamVoteResultShowing: boolean;
+  pendingBattleClosed: boolean;
 
   initializeBattle: (config: { userId: string; battleId: string }) => void;
   setSocket: (socket: Socket | null) => void;
@@ -55,6 +57,8 @@ interface BattleStore {
   setChatInitialized: (initialized: boolean) => void;
   setOpponentNoticePending: (notice: BattleChat | null) => void;
   commitOpponentNotice: () => void;
+  setIsTeamVoteResultShowing: (showing: boolean) => void;
+  setPendingBattleClosed: (pending: boolean) => void;
   leaveBattle: () => void;
 }
 
@@ -75,6 +79,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   chatInitialized: false,
   opponentNotice: null,
   opponentNoticePending: null,
+  isTeamVoteResultShowing: false,
+  pendingBattleClosed: false,
 
   initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
   setSocket: (socket) => set({ socket }),
@@ -156,6 +162,8 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       opponentNotice: state.opponentNoticePending,
       opponentNoticePending: null
     })),
+  setIsTeamVoteResultShowing: (showing) => set({ isTeamVoteResultShowing: showing }),
+  setPendingBattleClosed: (pending) => set({ pendingBattleClosed: pending }),
   leaveBattle: () => {
     const { socket, battleId } = get();
     socket?.emit('battle:leave', { battleId });
@@ -180,7 +188,9 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       selectedTeam: 'NONE',
       chatInitialized: false,
       opponentNotice: null,
-      opponentNoticePending: null
+      opponentNoticePending: null,
+      isTeamVoteResultShowing: false,
+      pendingBattleClosed: false
     });
   }
 }));

@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react';
+
 interface DiscussionVoteItemProps {
   user: string;
   team: 'A' | 'B';
@@ -17,6 +19,18 @@ export default function DiscussionVoteItem({
   hasVoted,
   onVote
 }: DiscussionVoteItemProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevVotesRef = useRef(votes);
+
+  useEffect(() => {
+    if (prevVotesRef.current !== votes) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 500);
+      prevVotesRef.current = votes;
+      return () => clearTimeout(timer);
+    }
+  }, [votes]);
+
   const getVotePercentage = (votes: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((votes / total) * 100);
@@ -28,7 +42,9 @@ export default function DiscussionVoteItem({
       disabled={hasVoted}
       className={`w-full p-3 rounded-lg border text-left transition-all ${
         hasVoted ? 'bg-[#1E3A2E] border-[#2ECC71]' : 'bg-[#2D2D3F] border-[#3D3D4F] hover:border-[#4D4D5F]'
-      } ${!hasVoted ? 'cursor-pointer' : 'cursor-default'}`}
+      } ${!hasVoted ? 'cursor-pointer' : 'cursor-default'} ${
+        isAnimating ? 'animate-[fadeOut_0.2s_ease-in-out,fadeIn_0.2s_0.2s_ease-in-out]' : ''
+      }`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">

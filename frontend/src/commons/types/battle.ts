@@ -27,6 +27,8 @@ export interface BattleInfo {
     attacks: BattleDiscussion[];
     defenses: BattleDefense[];
   };
+  referenceData?: BattleReferenceData | null;
+  inviteCode?: string;
 }
 
 // 공통 타입들
@@ -156,4 +158,30 @@ export interface BattleTeamUpdateAllResponse {
     teamNone: number;
   };
   dominantTeam: Team | null;
+}
+
+// AI 참고 자료 타입
+export interface ReferenceTerm {
+  term: string;
+  description: string;
+}
+
+export interface ReferenceLink {
+  title: string;
+  url: string;
+  summary: string;
+}
+
+export interface TeamReference {
+  perspective: string;
+  references: ReferenceLink[];
+}
+
+export interface BattleReferenceData {
+  commonConcepts: {
+    terms: ReferenceTerm[];
+    summary: string;
+  };
+  teamA: TeamReference;
+  teamB: TeamReference;
 }
