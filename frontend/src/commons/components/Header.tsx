@@ -21,13 +21,28 @@ export default function Header() {
           <nav className="flex items-center gap-3">
             {user && isOAuth ? (
               // OAuth 로그인 사용자: 프로필 드롭다운 표시
-              <UserProfileDropdown
-                user={{
-                  id: user.id,
-                  nickname: user.nickname,
-                  avatarUrl: user.avatarUrl
-                }}
-              />
+              <div className="flex items-center gap-3">
+                {user.tier && (
+                  <div className="relative group">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#1A1A2E] border border-[#2D2D3F] text-orange-400 cursor-default">
+                      {user.tier}
+                    </span>
+                    <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-95 opacity-0 pointer-events-none transition-all duration-150 group-hover:opacity-100 group-hover:scale-100">
+                      <div className="min-w-[140px] rounded-lg border border-[#2D2D3F] bg-[#0F111B] px-3 py-2 shadow-lg text-xs text-gray-200">
+                        <div className="font-semibold text-orange-300">{user.tier}</div>
+                        <div className="mt-1 text-gray-300">{user.rating ?? 0} Point</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <UserProfileDropdown
+                  user={{
+                    id: user.id,
+                    nickname: user.nickname,
+                    avatarUrl: user.avatarUrl
+                  }}
+                />
+              </div>
             ) : (
               // 비로그인 또는 비회원 사용자: 로그인/가입 버튼 표시
               <>
