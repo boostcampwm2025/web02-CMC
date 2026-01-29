@@ -380,7 +380,7 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
-    const isPrivate = true
+    const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
     // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
     let referenceData: BattleReferenceData | null = null
@@ -397,7 +397,8 @@ export class BattlesService extends EventEmitter {
     } catch {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
-    const inviteCode = this.generateInviteCode()
+
+    const inviteCode = isPrivate ? this.generateInviteCode() : null
 
     const created = await this.prisma.battle.create({
       data: {
