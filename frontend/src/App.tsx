@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { useEffect } from 'react';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
@@ -14,6 +15,7 @@ import TutorialBattlePage from './pages/tutorialBattlePage';
 import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
+import { useAuthStore } from './commons/stores/authStore';
 
 const router = createBrowserRouter([
   {
@@ -44,6 +46,12 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  const getOAuthUser = useAuthStore((state) => state.getOAuthUser);
+
+  useEffect(() => {
+    getOAuthUser();
+  }, [getOAuthUser]);
+
   return (
     <>
       <ToastContainer />
