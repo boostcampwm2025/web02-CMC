@@ -2,6 +2,33 @@ import { Link } from 'react-router-dom';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import { useAuthStore, selectUser, selectIsOAuth } from '@/commons/stores/authStore';
 import UserProfileDropdown from './UserProfileDropdown';
+import tierBronze from '@/assets/icon/bronze.png';
+import tierSilver from '@/assets/icon/silver.png';
+import tierGold from '@/assets/icon/gold.png';
+import tierPlatinum from '@/assets/icon/platinum.png';
+import tierDiamond from '@/assets/icon/diamond.png';
+import tierMaster from '@/assets/icon/master.png';
+import tierGrandmaster from '@/assets/icon/grandmaster.png';
+
+const TIER_ICON_MAP: Record<string, string> = {
+  BRONZE: tierBronze,
+  SILVER: tierSilver,
+  GOLD: tierGold,
+  PLATINUM: tierPlatinum,
+  DIAMOND: tierDiamond,
+  MASTER: tierMaster,
+  GRANDMASTER: tierGrandmaster
+};
+
+const TIER_ICON_SCALE: Record<string, number> = {
+  BRONZE: 1.12,
+  SILVER: 1.12,
+  GOLD: 1.12,
+  PLATINUM: 1.12,
+  DIAMOND: 1.12,
+  MASTER: 1.12,
+  GRANDMASTER: 1.12
+};
 
 export default function Header() {
   const user = useAuthStore(selectUser);
@@ -21,12 +48,17 @@ export default function Header() {
           <nav className="flex items-center gap-3">
             {user && isOAuth ? (
               // OAuth 로그인 사용자: 프로필 드롭다운 표시
-              <div className="flex items-center gap-3">
-                {user.tier && (
-                  <div className="relative group">
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-[#1A1A2E] border border-[#2D2D3F] text-orange-400 cursor-default">
-                      {user.tier}
-                    </span>
+              <div className="flex items-center gap-1">
+                {user.tier && TIER_ICON_MAP[user.tier] && (
+                  <div className="relative group flex items-center">
+                    <div className="w-[25px] h-[25px] flex items-center justify-center overflow-hidden">
+                      <img
+                        src={TIER_ICON_MAP[user.tier]}
+                        alt={`${user.tier} tier`}
+                        className="w-full h-full object-contain block"
+                        style={{ transform: `scale(${TIER_ICON_SCALE[user.tier] ?? 1})` }}
+                      />
+                    </div>
                     <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-95 opacity-0 pointer-events-none transition-all duration-150 group-hover:opacity-100 group-hover:scale-100">
                       <div className="min-w-[140px] rounded-lg border border-[#2D2D3F] bg-[#0F111B] px-3 py-2 shadow-lg text-xs text-gray-200">
                         <div className="font-semibold text-orange-300">{user.tier}</div>
