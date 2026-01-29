@@ -8,7 +8,7 @@ interface SkipModalProps {
 
 const ANIMATION_DURATION = {
   SHOW: 50,
-  AUTO_CLOSE: 3000,
+  AUTO_CLOSE: 2000,
   HIDE: 300
 } as const;
 

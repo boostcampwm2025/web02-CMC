@@ -94,12 +94,10 @@ export default function BattlePage() {
     isModalOpen: isTutorialOpen,
     currentStep,
     dontShowAgain,
-    skipTutorial,
     startTutorial,
     nextStep,
     prevStep,
-    setDontShowAgain,
-    closeTutorial
+    setDontShowAgain
   } = useTutorial();
 
   // 사운드 초기화
@@ -265,7 +263,7 @@ export default function BattlePage() {
             onClose={handleCloseTeamChangeModal}
           />
         )}
-        {effectModal.isOpen && effectModal.team !== 'NONE' && (
+        {!isPhaseSkipModalOpen && effectModal.isOpen && effectModal.team !== 'NONE' && (
           <DiscussionModal
             isOpen={effectModal.isOpen}
             team={effectModal.team}
@@ -274,6 +272,7 @@ export default function BattlePage() {
             onClose={hideEffect}
           />
         )}
+        {isPhaseSkipModalOpen && <SkipModal isOpen={true} onClose={closeSkipModal} />}
         {isVoteResultModalOpen && voteResult && (
           <TeamVoteResultModal
             isOpen={isVoteResultModalOpen}
@@ -291,10 +290,8 @@ export default function BattlePage() {
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
-        {isPhaseSkipModalOpen && <SkipModal isOpen={true} onClose={closeSkipModal} />}
         <TutorialModal
           isOpen={isTutorialOpen && currentStep === 'welcome'}
-          onClose={skipTutorial}
           onStart={startTutorial}
           dontShowAgain={dontShowAgain}
           onDontShowAgainChange={setDontShowAgain}
@@ -304,8 +301,6 @@ export default function BattlePage() {
           currentStep={currentStep}
           onNext={nextStep}
           onPrev={prevStep}
-          onSkip={skipTutorial}
-          onClose={closeTutorial}
         />
       </div>
     </div>

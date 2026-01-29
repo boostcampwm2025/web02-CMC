@@ -44,7 +44,8 @@ export default function PhaseSkip({ phase, isSkipEnabled, toggleSkip, totalSkips
               group-hover:opacity-100 group-hover:translate-y-0
             "
           >
-            모든 인원이 스킵에 동의하면 페이즈가 넘어갑니다.
+            <div>모든 인원이 스킵에 동의하면 페이즈가 넘어갑니다.</div>
+            <div>배틀 대기 상태 및 진영 변경 시간에는 비활성화됩니다.</div>
           </div>
         </div>
       </div>
