@@ -397,7 +397,8 @@ export class BattlesService extends EventEmitter {
     } catch {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
-    const inviteCode = this.generateInviteCode()
+
+    const inviteCode = isPrivate ? this.generateInviteCode() : null
 
     const created = await this.prisma.battle.create({
       data: {
