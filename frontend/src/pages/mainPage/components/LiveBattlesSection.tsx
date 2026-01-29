@@ -18,7 +18,12 @@ export default function LiveBattlesSection() {
       </div>
       <SectionErrorBoundary
         fallback={(error, reset) => (
-          <SectionErrorFallback error={error} reset={reset} title="실시간 배틀을 불러올 수 없습니다" />
+          <SectionErrorFallback
+            error={error}
+            reset={reset}
+            title="실시간 배틀을 불러올 수 없습니다"
+            minHeight="17.5rem"
+          />
         )}
       >
         <LiveBattlesList />

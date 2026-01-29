@@ -9,7 +9,7 @@ export default function PastBattlesList() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-4 h-[36rem]">
       {closedBattles?.map((b) => (
         <PastBattleCard key={b.id} item={b} />
       ))}

@@ -13,7 +13,12 @@ export default function PastBattlesSection() {
       </div>
       <SectionErrorBoundary
         fallback={(error, reset) => (
-          <SectionErrorFallback error={error} reset={reset} title="지난 배틀 결과를 불러올 수 없습니다" />
+          <SectionErrorFallback
+            error={error}
+            reset={reset}
+            title="지난 배틀 결과를 불러올 수 없습니다"
+            minHeight="36rem"
+          />
         )}
       >
         <PastBattlesList />
