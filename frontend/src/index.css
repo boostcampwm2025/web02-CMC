@@ -1,5 +1,12 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Mulmaru';
+  src: url('/public/fonts/Galmuri14.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
 /* Custom Scrollbar Styles */
 .custom-scrollbar {
   scrollbar-width: thin;

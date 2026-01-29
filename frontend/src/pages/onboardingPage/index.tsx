@@ -13,7 +13,7 @@ export default function OnBoardingPage() {
   }, []);
 
   return (
-    <main>
+    <main className="font-['Mulmaru']">
       <GameTitleSection />
       <GameIntroduceSection />
       <ServiceValueSection />
