@@ -9,7 +9,7 @@ export default function LiveBattlesList() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4 h-[280px]">
+    <div className="grid grid-cols-3 gap-4 h-[15rem]">
       {openBattles?.map((battleItem, index) => (
         <LiveBattleCard key={battleItem.id} battleInform={battleItem} isHot={index === 0} />
       ))}
