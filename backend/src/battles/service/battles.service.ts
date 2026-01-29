@@ -780,6 +780,10 @@ export class BattlesService extends EventEmitter {
     const { battleState } = await this.getBattleState(battleId)
 
     const nickname = this.getNicknameByUserId(battleState, userId) || ''
+    const userTier = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true },
+    })
 
     const chat = {
       messageId: this.generateId(),
@@ -787,6 +791,7 @@ export class BattlesService extends EventEmitter {
       sender: {
         userId,
         nickname,
+        tier: userTier?.tier ?? undefined,
       },
       text: text.trim(),
       createdAt: new Date(),
