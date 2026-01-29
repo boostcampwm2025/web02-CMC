@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
 import type { BattleInfo, Team } from '@/commons/types/battle';
-import { useTutorial } from '@/pages/battlePage/hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
-import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/pages/battlePage/stores/battleStore';
 import { isInputDisabled } from '@/pages/battlePage/utils/battlePhase';
 
@@ -23,22 +21,22 @@ import DiscussionModal from '@/pages/battlePage/components/effects/DiscussionMod
 import { useTeamVoteResult } from '@/pages/battlePage/hooks/useTeamVoteResult';
 import { useTutorialBattleSetup } from './hooks/useTutorialBattleSetup';
 import { usePracticeFlow } from './hooks/usePracticeFlow';
+import { useTutorialUI } from './hooks/useTutorialUI';
+import { useTutorialSounds } from './hooks/useTutorialSounds';
+import { useAutoExitOnDone } from './hooks/useAutoExitOnDone';
 import PracticeGuideCard from './components/PracticeGuideCard';
-import type { SidebarTab } from '@/pages/battlePage/components/sidebar/SidebarHeader';
 
 export default function TutorialBattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const location = useLocation();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
-  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('info');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const {
     isOpen: isTeamChangeModalOpen,
     openModal: handleOpenTeamChangeModal,
     closeModal: handleCloseTeamChangeModal
   } = useModal(false);
-  const sidebarOpenedForTutorial = useRef(false);
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);
 
@@ -47,60 +45,22 @@ export default function TutorialBattlePage() {
   useTutorialBattleSetup({ battleInfo, selectedTeamFromState });
 
   const {
-    isModalOpen: isTutorialOpen,
+    isTutorialOpen,
     currentStep,
     dontShowAgain,
-    openTutorial,
     startTutorial,
     nextStep,
     prevStep,
-    setDontShowAgain
-  } = useTutorial();
+    setDontShowAgain,
+    activeSidebarTab,
+    setActiveSidebarTab
+  } = useTutorialUI({
+    isSidebarOpen,
+    openSidebar: handleOpenSidebar,
+    closeSidebar: handleCloseSidebar
+  });
 
-  useEffect(() => {
-    openTutorial();
-    setDontShowAgain(false);
-  }, [openTutorial, setDontShowAgain]);
-
-  useEffect(() => {
-    if (!isTutorialOpen) return;
-    if (currentStep !== 'welcome') return;
-    startTutorial();
-  }, [isTutorialOpen, currentStep, startTutorial]);
-
-  useEffect(() => {
-    if (!isTutorialOpen) return;
-    if (currentStep === 'sidebarPanel') {
-      setActiveSidebarTab('info');
-      return;
-    }
-    setActiveSidebarTab('timeline');
-  }, [currentStep, isTutorialOpen]);
-
-  useEffect(() => {
-    soundManager.preload('timerWarning', '/sounds/timerSound.wav');
-    soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
-    soundManager.preload('swoosh', '/sounds/swoosh.mp3');
-    soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
-    soundManager.preload('fanfare', '/sounds/fanfare.mp3');
-    soundManager.preload('click', '/sounds/click.mp3');
-    soundManager.preload('click2', '/sounds/click2.mp3');
-  }, []);
-
-  useEffect(() => {
-    const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
-
-    if (shouldOpenSidebar && !isSidebarOpen) {
-      handleOpenSidebar();
-      sidebarOpenedForTutorial.current = true;
-      return;
-    }
-
-    if (!shouldOpenSidebar && sidebarOpenedForTutorial.current) {
-      handleCloseSidebar();
-      sidebarOpenedForTutorial.current = false;
-    }
-  }, [currentStep, isSidebarOpen, isTutorialOpen, handleCloseSidebar, handleOpenSidebar]);
+  useTutorialSounds();
 
   const {
     practicePhase,
@@ -140,17 +100,8 @@ export default function TutorialBattlePage() {
 
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(selectedTeam, phase);
-  const hasScheduledExit = useRef(false);
 
-  useEffect(() => {
-    if (practicePhase !== 'done') return;
-    if (hasScheduledExit.current) return;
-    hasScheduledExit.current = true;
-    const timer = setTimeout(() => {
-      navigate('/');
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [practicePhase, navigate]);
+  useAutoExitOnDone(practicePhase === 'done', () => navigate('/'));
 
   return (
     <div className="text-white relative">
