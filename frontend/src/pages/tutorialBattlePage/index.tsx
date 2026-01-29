@@ -30,16 +30,18 @@ import {
   TUTORIAL_TEAM_CHATS,
   TUTORIAL_ALL_CHATS,
   TUTORIAL_USER
-} from '@/pages/tutorial/data/tutorialBattle';
+} from '@/pages/tutorial/const/tutorialBattle';
 import { MOCK_DISCUSSIONS } from '@/pages/battlePage/components/tutorial/const/tutorialSteps';
 import { usePracticeFlow } from './hooks/usePracticeFlow';
 import PracticeGuideCard from './components/PracticeGuideCard';
+import type { SidebarTab } from '@/pages/battlePage/components/sidebar/SidebarHeader';
 
 export default function TutorialBattlePage() {
   const battleInfo = useLoaderData<BattleInfo>();
   const location = useLocation();
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('info');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const {
     isOpen: isTeamChangeModalOpen,
@@ -103,6 +105,15 @@ export default function TutorialBattlePage() {
     if (currentStep !== 'welcome') return;
     startTutorial();
   }, [isTutorialOpen, currentStep, startTutorial]);
+
+  useEffect(() => {
+    if (!isTutorialOpen) return;
+    if (currentStep === 'sidebarPanel') {
+      setActiveSidebarTab('info');
+      return;
+    }
+    setActiveSidebarTab('timeline');
+  }, [currentStep, isTutorialOpen]);
 
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
@@ -182,9 +193,13 @@ export default function TutorialBattlePage() {
   return (
     <div className="text-white relative">
       <BookmarkButton
-        onOpen={handleOpenSidebar}
+        onOpen={(tab) => {
+          setActiveSidebarTab(tab);
+          handleOpenSidebar();
+        }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
+        hasReferenceData={!!battleInfo.referenceData}
       />
 
       <BattleSidebar
@@ -196,6 +211,9 @@ export default function TutorialBattlePage() {
         category={battleInfo.category}
         topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
+        referenceData={battleInfo.referenceData}
+        activeTab={activeSidebarTab}
+        onActiveTabChange={setActiveSidebarTab}
       />
 
       <div className="flex flex-col items-center">
@@ -236,7 +254,7 @@ export default function TutorialBattlePage() {
               ← 돌아가기
             </button>
           </div>
-          <BattleHeader />
+          <BattleHeader isSkipEnabled={false} toggleSkip={() => {}} totalSkips={0} />
         </div>
         <main className="main-width-closed">
           <div className="flex gap-2 py-4">
