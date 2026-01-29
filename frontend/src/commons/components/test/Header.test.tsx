@@ -95,7 +95,7 @@ describe('Header', () => {
 
     expect(screen.getByTestId('user-profile-dropdown')).toBeInTheDocument();
     expect(screen.getByText('OAuth유저')).toBeInTheDocument();
-    expect(screen.getByText('GOLD')).toBeInTheDocument();
+    expect(screen.getByAltText('GOLD tier')).toBeInTheDocument();
     expect(screen.queryByText('로그인')).not.toBeInTheDocument();
     expect(screen.queryByText('가입하기')).not.toBeInTheDocument();
   });
@@ -119,6 +119,6 @@ describe('Header', () => {
 
     expect(screen.getByTestId('user-profile-dropdown')).toBeInTheDocument();
     expect(screen.getByText('OAuth유저')).toBeInTheDocument();
-    expect(screen.getByText('BRONZE')).toBeInTheDocument();
+    expect(screen.getByAltText('BRONZE tier')).toBeInTheDocument();
   });
 });
