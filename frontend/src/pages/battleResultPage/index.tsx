@@ -41,6 +41,12 @@ export default function BattleResultPage() {
 
   const { result } = battleData;
 
+  const totalVotesWithoutNeutral = result.teamA.votes + result.teamB.votes;
+  const teamAPercentageWithoutNeutral =
+    totalVotesWithoutNeutral > 0 ? Math.round((result.teamA.votes / totalVotesWithoutNeutral) * 100) : 0;
+  const teamBPercentageWithoutNeutral =
+    totalVotesWithoutNeutral > 0 ? Math.round((result.teamB.votes / totalVotesWithoutNeutral) * 100) : 0;
+
   return (
     <div className="min-h-screen text-white p-6 md:p-10">
       <header className="text-center mb-10">
@@ -53,9 +59,9 @@ export default function BattleResultPage() {
 
       <WinnerSection
         winner={result.winner}
-        teamAPercentage={result.teamA.percentage}
+        teamAPercentage={teamAPercentageWithoutNeutral}
         teamAVotes={result.teamA.votes}
-        teamBPercentage={result.teamB.percentage}
+        teamBPercentage={teamBPercentageWithoutNeutral}
         teamBVotes={result.teamB.votes}
       />
 
