@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import NicknamePage from './index';
 import { useAuthStore } from '@/commons/stores/authStore';
-import updateOAuthNickname from '@/commons/apis/patchOAuthNickname';
+import updateOAuthNickname from '@/commons/apis/updateOAuthNickname';
 
 // 모킹
 vi.mock('@/commons/stores/authStore', () => ({
@@ -14,7 +14,7 @@ vi.mock('@/commons/stores/authStore', () => ({
   }
 }));
 
-vi.mock('@/commons/apis/patchOAuthNickname', () => ({
+vi.mock('@/commons/apis/updateOAuthNickname', () => ({
   default: vi.fn()
 }));
 
