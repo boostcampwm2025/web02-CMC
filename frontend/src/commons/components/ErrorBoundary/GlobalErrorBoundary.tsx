@@ -10,6 +10,8 @@ interface State {
   error: Error | null;
 }
 
+// @Todos 센트리 도입 시 에러 로깅 추가
+
 export default class GlobalErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);

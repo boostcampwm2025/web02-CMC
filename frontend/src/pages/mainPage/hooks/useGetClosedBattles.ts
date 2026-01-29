@@ -16,8 +16,8 @@ export function useGetClosedBattles({ offset, limit }: GetBattleListParams) {
   });
 
   return {
-    battles: data?.battles ?? [],
-    total: data?.total ?? 0,
+    battles: data?.battles,
+    total: data?.total,
     ...rest
   };
 }
