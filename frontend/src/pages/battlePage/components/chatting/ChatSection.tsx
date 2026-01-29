@@ -98,6 +98,7 @@ export default function ChatSection() {
               team={message.team}
               content={message.content}
               timestamp={message.timestamp}
+              tier={message.tier}
               showTeamBadge={currentTab === 'all'}
             />
           )
