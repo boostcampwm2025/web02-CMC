@@ -33,9 +33,3 @@ export function isGuestNicknamePattern(nickname: string): boolean {
 
   return false
 }
-
-// OAuth 사용자의 초기 닉네임 패턴인지 확인
-export function isInitialOAuthNickname(nickname: string): boolean {
-  const trimmed = nickname.trim()
-  return trimmed === '' || /^사용자 \d+$/.test(trimmed)
-}
