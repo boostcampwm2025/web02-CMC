@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
-import postCreateBattle from '@/commons/apis/postCreateBattle';
+import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { useCreateBattle } from './hooks/useCreateBattle';
 import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
@@ -26,8 +25,8 @@ const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
 ];
 
 export default function BattleCreatePage() {
-  const navigate = useNavigate();
   const { createBattle, isPending } = useCreateBattle();
+  const addToast = useToastStore(selectAddToast);
 
   const categoryOptions = useMemo(
     () =>
@@ -50,8 +49,6 @@ export default function BattleCreatePage() {
   const [topics, setTopics] = useState<string[]>([]);
   const [type, setType] = useState<BattleType>('PRIVATE');
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   const rounds = PLAYTIME_OPTIONS.find(({ value }) => value === playTime)?.rounds ?? 0;
 
   const canSubmit = (() => {
@@ -67,32 +64,26 @@ export default function BattleCreatePage() {
 
   const handleSubmit = async () => {
     if (!canSubmit || isPending) return;
-    setErrorMessage(null);
 
-    try {
-      const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
+    const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
 
-      if (!authorId) {
-        throw new Error('로그인이 필요합니다.');
-      }
-
-      const data = await postCreateBattle({
-        authorId,
-        title: title.trim(),
-        description: description.trim(),
-        aCode: formattedA.code,
-        bCode: formattedB.code,
-        language,
-        type,
-        category,
-        playTime,
-        topics
-      });
-
-      navigate(`/battle/${data.battleId}/team-select/`);
-    } catch (e) {
-      setErrorMessage(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
+    if (!authorId) {
+      addToast({ message: '로그인이 필요합니다.' });
+      return;
     }
+
+    await createBattle({
+      authorId,
+      title: title.trim(),
+      description: description.trim(),
+      aCode: formattedA.code,
+      bCode: formattedB.code,
+      language,
+      type,
+      category,
+      playTime,
+      topics
+    });
   };
 
   return (
@@ -100,7 +91,7 @@ export default function BattleCreatePage() {
       <div className="mx-auto create-max-width">
         <div className="flex items-center justify-start gap-4 mt-10 mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.back()}
             className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
           >
             ← 돌아가기
@@ -235,16 +226,10 @@ export default function BattleCreatePage() {
 
               <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
 
-              {errorMessage && (
-                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-                  {errorMessage}
-                </div>
-              )}
-
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/')}
+                  onClick={() => (window.location.href = '/')}
                   className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
                 >
                   취소
