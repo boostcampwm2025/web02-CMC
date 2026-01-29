@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -19,7 +13,7 @@ model User {
   id                String              @id @db.Uuid
 
   /* 정보 */
-  nickname          String              @unique @db.VarChar(10) 
+  nickname          String              @unique @db.VarChar(20) 
   tier              String              @db.VarChar(20)
   rating            Int              
   avatarUrl         String?             @map("avatar_url")
@@ -107,7 +101,6 @@ model BattleParticipant {
 
   /* 복합 키 설정 */
   @@id([userId, battleId])
-  
   @@map("battle_participants")
 }
 
@@ -122,8 +115,6 @@ model OAuth {
   
   /* 시간 */  
   createdAt DateTime @default(now()) @map("created_at")
-
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("o_auths")

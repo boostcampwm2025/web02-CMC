@@ -19,8 +19,6 @@ interface TutorialStepModalProps {
   currentStep: TutorialStep;
   onNext: () => void;
   onPrev: () => void;
-  onSkip: () => void;
-  onClose: () => void;
 }
 
 const getModalPosition = (spotlight: SpotlightPosition | null) => {
@@ -79,14 +77,7 @@ const getModalStyle = (currentStep: TutorialStep, spotlight: SpotlightPosition |
   return getModalPosition(spotlight);
 };
 
-export default function TutorialStepModal({
-  isOpen,
-  currentStep,
-  onNext,
-  onPrev,
-  onSkip,
-  onClose
-}: TutorialStepModalProps) {
+export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev }: TutorialStepModalProps) {
   const stepContent = TUTORIAL_STEPS[currentStep];
   const defaultSpotlight = useSpotlight({
     selector: stepContent?.highlightElement,
@@ -101,7 +92,7 @@ export default function TutorialStepModal({
   if (!isOpen || currentStep === 'welcome' || currentStep === 'completed') return null;
   if (!stepContent) return null;
 
-  const { title, description, stepNumber } = stepContent;
+  const { title, description, stepNumber, tasks, tip } = stepContent;
   const isLastStep = stepNumber === TOTAL_STEPS;
 
   const renderMockComponents = () => (
@@ -130,7 +121,7 @@ export default function TutorialStepModal({
 
   return (
     <div className="fixed inset-0 z-[100]">
-      <SpotlightOverlay spotlight={spotlight} onBackdropClick={onSkip} />
+      <SpotlightOverlay spotlight={spotlight} onBackdropClick={() => {}} />
 
       {renderMockComponents()}
 
@@ -139,13 +130,6 @@ export default function TutorialStepModal({
         style={getModalStyle(currentStep, spotlight)}
       >
         <div className="relative max-w-md rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-[#99A1AF] hover:text-white transition-colors"
-          >
-            ✕
-          </button>
-
           <div className="flex justify-center mb-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
               <QuestionIcon className="w-8 h-8 text-white" />
@@ -159,7 +143,28 @@ export default function TutorialStepModal({
             </span>
           </div>
 
-          <p className="text-center text-sm text-[#99A1AF] leading-relaxed mb-6 px-2">{description}</p>
+          <p className="text-center text-sm text-[#99A1AF] leading-relaxed mb-5 px-2">{description}</p>
+
+          {tasks && tasks.length > 0 && (
+            <div className="mb-5 rounded-xl bg-[#131826] border border-[#2D3648] px-4 py-3 text-left">
+              <p className="text-xs font-semibold text-[#FF6900] mb-2">지금 해볼 것</p>
+              <ul className="space-y-1 text-xs text-[#C5CBD6]">
+                {tasks.map((task) => (
+                  <li key={task} className="flex gap-2">
+                    <span className="text-[#00C950]">•</span>
+                    <span>{task}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {tip && (
+            <div className="mb-5 rounded-xl bg-[#1A2233] border border-[#2D3648] px-4 py-3 text-left text-xs text-[#B6BDC9]">
+              <span className="text-[#8B5CF6] font-semibold mr-2">TIP</span>
+              {tip}
+            </div>
+          )}
 
           <div className="flex justify-center gap-2 mb-6">
             {Array.from({ length: TOTAL_STEPS }, (_, i) => (
@@ -180,20 +185,14 @@ export default function TutorialStepModal({
             <button
               onClick={onPrev}
               disabled={stepNumber === 1}
-              className="px-4 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center gap-1"
+              className="flex-1 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center justify-center gap-1"
             >
               <span>←</span>
               <span>이전</span>
             </button>
             <button
-              onClick={onSkip}
-              className="flex-1 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] text-white text-sm font-medium transition-colors"
-            >
-              건너뛰기
-            </button>
-            <button
               onClick={onNext}
-              className="px-6 h-11 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-sm font-bold transition-all shadow-lg shadow-orange-500/30 flex items-center gap-1"
+              className="flex-1 h-11 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-sm font-bold transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-1"
             >
               <span>{isLastStep ? '완료' : '다음'}</span>
               <span>→</span>

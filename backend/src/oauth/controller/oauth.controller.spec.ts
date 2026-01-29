@@ -16,6 +16,7 @@ describe('OauthController', () => {
     refreshToken: jest.fn(),
     findUserById: jest.fn(),
     updateUserNickname: jest.fn(),
+    findOrCreateUser: jest.fn(),
   }
 
   const mockTokenService = {
@@ -65,9 +66,18 @@ describe('OauthController', () => {
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
+      const mockUser = {
+        id: 'user-123',
+        provider: 'github',
+        providerId: '12345',
+        nickname: 'testUser',
+        avatarUrl: 'https://example.com/avatar.jpg',
+      }
+
       const mockTokens = {
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
+        user: mockUser,
       }
 
       const mockReq = {
@@ -86,7 +96,7 @@ describe('OauthController', () => {
 
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
     })
   })
 
@@ -98,9 +108,18 @@ describe('OauthController', () => {
         avatarUrl: 'https://example.com/kakao-avatar.jpg',
       }
 
+      const mockUser = {
+        id: 'user-123',
+        provider: 'kakao',
+        providerId: '67890',
+        nickname: 'testUser',
+        avatarUrl: 'https://example.com/kakao-avatar.jpg',
+      }
+
       const mockTokens = {
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
+        user: mockUser,
       }
 
       const mockReq = {
@@ -119,7 +138,7 @@ describe('OauthController', () => {
 
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/auth/callback')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
     })
   })
 
@@ -204,7 +223,7 @@ describe('OauthController', () => {
         id: 'user-123',
         provider: 'github',
         providerId: '12345',
-        nickname: 'anonymous',
+        nickname: '사용자_12345',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 

@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
@@ -9,35 +9,38 @@ import './App.css';
 import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
-import OAuthCallbackPage from './pages/OAuthCallbackPage';
-import { useAuthStore } from './commons/stores/authStore';
+import OnboardingPage from './pages/onboardingPage';
+import TutorialTeamSelectPage from './pages/tutorialTeamSelectPage';
+import TutorialBattlePage from './pages/tutorialBattlePage';
+import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
-import { useEffect } from 'react';
+import { useAuthStore } from './commons/stores/authStore';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <MainPage />,
     errorElement: <ErrorPage />
-    // loader: async () => {
-    //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-    //   return await useAuthStore.getState().getOAuthUser();
-    // }
+  },
+  {
+    path: '/onboarding',
+    element: <OnboardingPage />,
+    errorElement: <ErrorPage />
   },
   {
     path: '/error',
     element: <ErrorPage />
   },
   {
-    path: '/auth/callback',
-    element: <OAuthCallbackPage />,
-    errorElement: <ErrorPage />
-  },
-  {
     path: '/nickname',
     element: <NicknamePage />,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
+    loader: async () => {
+      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+      await useAuthStore.getState().getOAuthUser();
+      return null;
+    }
   },
   {
     path: '/login',
@@ -67,7 +70,27 @@ const router = createBrowserRouter([
   {
     path: '/battle/create',
     element: <BattleCreatePage />,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
+    loader: async () => {
+      const oauthUser = await useAuthStore.getState().getOAuthUser();
+      if (!oauthUser) {
+        alert('로그인이 필요합니다.');
+        return redirect('/login');
+      }
+      return null;
+    }
+  },
+  {
+    path: '/tutorial/team-select',
+    element: <TutorialTeamSelectPage />,
+    errorElement: <ErrorPage />,
+    loader: () => TUTORIAL_BATTLE_INFO
+  },
+  {
+    path: '/tutorial/battle',
+    element: <TutorialBattlePage />,
+    errorElement: <ErrorPage />,
+    loader: () => TUTORIAL_BATTLE_INFO
   },
   {
     path: '/battles/:inviteCode',
@@ -82,14 +105,6 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  useEffect(() => {
-    async function getUserInfo() {
-      await useAuthStore.getState().getOAuthUser();
-    }
-
-    getUserInfo();
-  }, []);
-
   return (
     <>
       <ToastContainer />

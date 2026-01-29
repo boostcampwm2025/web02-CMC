@@ -5,8 +5,8 @@ import { BattleResultResponseDto } from '../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../dto/battleJoinResponse.dto'
 import { BattleListRequestQueryDto } from '../dto/battleListRequestQuery.dto'
-import { BATTLE_TYPE } from '../const/battles.const'
 import { InviteAccessGuard } from '../guards/inviteAccess.guard'
+import { BATTLE_TYPE } from '../const/battles.const'
 
 @Controller('battles')
 export class BattlesController {

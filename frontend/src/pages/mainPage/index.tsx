@@ -4,6 +4,7 @@ import { StatCard, LiveBattleCard, BattleCategoryCard, PastBattleCard } from './
 import { type BattleCardItem, type ClosedBattleItem, BATTLE_CATEGORY_CONFIG } from './types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
+import { useAuthStore } from '@/commons/stores/authStore';
 
 import { getOpenBattles, getClosedBattles } from './api/getBattleList';
 
@@ -15,6 +16,11 @@ export default function MainPage() {
 
   const [openTotal, setOpenTotal] = useState(0);
   const [closedTotal, setClosedTotal] = useState(0);
+
+  useEffect(() => {
+    // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+    useAuthStore.getState().getOAuthUser();
+  }, []);
 
   useEffect(() => {
     const fetchBattles = async () => {
@@ -60,10 +66,10 @@ export default function MainPage() {
               </Link>
 
               <Link
-                to={`/battle/1/team-select`}
+                to="/tutorial/team-select"
                 className="flex items-center rounded-xl px-5 py-3 bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A]"
               >
-                배틀 참여
+                튜토리얼
               </Link>
             </div>
           </section>

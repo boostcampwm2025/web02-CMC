@@ -11,9 +11,30 @@ export default function InviteLinkButton({ inviteCode }: InviteLinkProps) {
 
   const inviteLink = `${window.location.origin}/battles/${inviteCode}`;
 
+  // HTTPS 환경
+  const copyWithNavigator = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+  };
+
+  // HTTP 환경
+  const copyWithExecCommand = (text: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(inviteLink);
+      if (navigator.clipboard && window.isSecureContext) {
+        await copyWithNavigator(inviteLink);
+      } else {
+        copyWithExecCommand(inviteLink);
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {

@@ -1,0 +1,25 @@
+changelog:
+  categories:
+    - title: "🚀 기능"
+      labels:
+        - "task"
+        - "story"
+        - "epic"
+
+    - title: "🛠 버그 수정"
+      labels:
+        - "fix"
+        - "test"
+
+    - title: "♻️ 리팩토링"
+      labels:
+        - "refactoring"
+
+    - title: "⚙️ 설정/인프라"
+      labels:
+        - "settings"
+        - "documentation"
+
+  exclude:
+    labels:
+      - "skip-changelog"

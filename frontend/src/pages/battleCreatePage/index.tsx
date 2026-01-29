@@ -22,10 +22,10 @@ const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: nu
   { label: '30분', value: 'THIRTY_MIN', rounds: 2 }
 ];
 
-// const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
-//   { label: '공개', value: 'PUBLIC' },
-//   { label: '비공개', value: 'PRIVATE' }
-// ];
+const VISIBILITY_OPTIONS: Array<{ label: string; value: BattleType }> = [
+  { label: '공개', value: 'PUBLIC' },
+  { label: '비공개', value: 'PRIVATE' }
+];
 
 export default function BattleCreatePage() {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export default function BattleCreatePage() {
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
-  const [type] = useState<BattleType>('PRIVATE'); // 현재는 비공개만
+  const [type, setType] = useState<BattleType>('PRIVATE');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -103,13 +103,14 @@ export default function BattleCreatePage() {
   return (
     <div className="min-h-screen w-full px-6 py-8">
       <div className="mx-auto create-max-width">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="text-sm text-gray-300 hover:text-white transition-colors"
-        >
-          ← 뒤로 가기
-        </button>
+        <div className="flex items-center justify-start gap-4 mt-10 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+          >
+            ← 돌아가기
+          </button>
+        </div>
 
         <div className="mt-4 rounded-2xl border border-[#2b2b3e] bg-[#121226] shadow-[0_18px_35px_rgba(0,0,0,0.35)]">
           <div className="h-1 w-full rounded-t-2xl bg-orange-500" />
@@ -220,7 +221,7 @@ export default function BattleCreatePage() {
                 </div>
               </div>
 
-              {/* <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-sm text-gray-300">배틀 공개 여부</label>
                   <select
@@ -228,14 +229,14 @@ export default function BattleCreatePage() {
                     onChange={(e) => setType(e.target.value as BattleType)}
                     className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   >
-                    {VISIBILITY_OPTIONS.map((o) => (
+                    {VISIBILITY_OPTIONS.map((o: { label: string; value: BattleType }) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
                     ))}
                   </select>
                 </div>
-              </div> */}
+              </div>
 
               <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
 

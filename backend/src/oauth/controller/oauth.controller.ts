@@ -31,9 +31,9 @@ export class OauthController {
     // 쿠키에 토큰 저장
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 프론트엔드로 리다이렉트
-    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
-    res.redirect(`${frontendUrl}/auth/callback`)
+    // 프론트엔드로 직접 리다이렉트
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
+    res.redirect(`${frontendUrl}/`)
   }
 
   @Get('kakao')
@@ -49,9 +49,8 @@ export class OauthController {
 
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 프론트엔드로 리다이렉트
-    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173/'
-    res.redirect(`${frontendUrl}/auth/callback`)
+    const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
+    res.redirect(`${frontendUrl}/`)
   }
 
   @Post('refresh')

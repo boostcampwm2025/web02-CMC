@@ -68,6 +68,15 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           <div className="py-2">
             <button
               onClick={() => {
+                navigate('/nickname');
+                setIsOpen(false);
+              }}
+              className="w-full px-4 py-2 text-left text-white text-sm hover:bg-[#24292e] transition-colors"
+            >
+              닉네임 변경
+            </button>
+            <button
+              onClick={() => {
                 navigate('/profile');
                 setIsOpen(false);
               }}

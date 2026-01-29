@@ -14,6 +14,7 @@ interface TeamChangeModalProps {
   topics: string[];
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   onClose: () => void;
+  className?: string;
 }
 
 /**
@@ -23,7 +24,7 @@ interface TeamChangeModalProps {
  * TEAM_SWITCH 페이즈에서 사용자가 현재 라운드의 타임라인을 확인하고
  * 지지할 팀을 선택할 수 있는 모달입니다.
  */
-export default function TeamChangeModal({ topics, handleTeamChange, onClose }: TeamChangeModalProps) {
+export default function TeamChangeModal({ topics, handleTeamChange, onClose, className }: TeamChangeModalProps) {
   // 데이터 페칭
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const currentTeam = useBattleStore(selectSelectedTeam);
@@ -50,7 +51,7 @@ export default function TeamChangeModal({ topics, handleTeamChange, onClose }: T
   return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div
-        className="w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8"
+        className={`w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8 ${className ?? ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 타임라인 섹션 */}
