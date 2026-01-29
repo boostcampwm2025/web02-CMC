@@ -53,6 +53,23 @@ export default function BattleSidebar({
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!asideRef.current) return;
+
+      if (!asideRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose]);
+
   const renderContent = () => {
     switch (activeTab) {
       case 'info':
