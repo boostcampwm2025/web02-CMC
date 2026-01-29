@@ -11,7 +11,7 @@ import Step3ReferenceData from '@/pages/teamSelectPage/components/steps/Step3Ref
 import Step4Timeline from '@/pages/teamSelectPage/components/steps/Step4Timeline';
 import Step5TeamSelect from '@/pages/teamSelectPage/components/steps/Step5TeamSelect';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
-import { TUTORIAL_BATTLE_ID, TUTORIAL_BATTLE_INFO } from '@/pages/tutorial/data/tutorialBattle';
+import { TUTORIAL_BATTLE_ID, TUTORIAL_BATTLE_INFO } from '@/pages/tutorial/const/tutorialBattle';
 
 export default function TutorialTeamSelectPage() {
   const navigate = useNavigate();

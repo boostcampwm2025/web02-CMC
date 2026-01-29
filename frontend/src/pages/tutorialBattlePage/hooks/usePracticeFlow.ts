@@ -3,7 +3,7 @@ import type { BattlePhase } from '@/commons/types/battle';
 import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
 import { useAuthStore } from '@/commons/stores/authStore';
 import { soundManager } from '@/commons/utils/soundManager';
-import { TUTORIAL_ATTACK_MESSAGES, TUTORIAL_BATTLE_ID } from '@/pages/tutorial/data/tutorialBattle';
+import { TUTORIAL_ATTACK_MESSAGES, TUTORIAL_BATTLE_ID } from '@/pages/tutorial/const/tutorialBattle';
 
 const ATTACK_DISCUSSIONS = [
   {
@@ -285,7 +285,7 @@ export function usePracticeFlow({ currentStep, onOpenTeamChangeModal }: Practice
       if (!target || target.hasVoted) return;
 
       state.updateDiscussionVote(String(discussionId), target.votes + 1, [currentUser.id], currentUser.id);
-      soundManager.play('click2', 0.3);
+      soundManager.play('click2');
       if (practicePhase === 'attack') setAttackVoted(true);
       if (practicePhase === 'defense') setDefenseVoted(true);
     },

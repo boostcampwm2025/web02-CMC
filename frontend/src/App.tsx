@@ -16,7 +16,7 @@ import { useAuthStore } from './commons/stores/authStore';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
 import { useEffect } from 'react';
-import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/data/tutorialBattle';
+import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 
 const router = createBrowserRouter([
   {
