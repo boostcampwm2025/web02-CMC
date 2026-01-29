@@ -71,7 +71,7 @@ export default function DiscussionModal({ isOpen, team, content, type, onClose }
         className={`relative flex flex-col items-center transition-all duration-500 ${scaleClass}`}
         onClick={handleClose}
       >
-        <div className={`absolute inset-0 blur-3xl bg-gradient-to-r ${gradient} opacity-30 animate-pulse`} />
+        <div className={`absolute inset-0 blur-3xl bg-gradient-to-r ${gradient} animate-pulse-slow`} />
 
         <div className="relative z-10 flex flex-col items-center gap-8">
           <div

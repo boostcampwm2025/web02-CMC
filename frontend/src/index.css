@@ -220,6 +220,20 @@
   animation: shake-fade-out 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* Custom styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

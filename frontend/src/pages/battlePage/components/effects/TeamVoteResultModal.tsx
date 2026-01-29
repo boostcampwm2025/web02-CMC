@@ -67,7 +67,7 @@ export default function TeamVoteResultModal({
         className={`relative flex flex-col items-center transition-all duration-500 ${scaleClass}`}
         onClick={handleClose}
       >
-        <div className="absolute inset-0 blur-[6.25rem] bg-gradient-to-r from-orange-500 to-red-500 opacity-25 animate-pulse scale-125" />
+        <div className="absolute inset-0 blur-[6.25rem] bg-gradient-to-r from-orange-500 to-red-500 animate-pulse-slow scale-125" />
 
         <div className="flex flex-col items-center gap-16 min-w-[50rem]">
           <div
