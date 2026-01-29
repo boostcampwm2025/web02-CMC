@@ -13,6 +13,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 import type { PrismaService } from 'src/prisma/prisma.service'
+import type { ConfigService } from '@nestjs/config'
 
 type BattleRecord = {
   id: string
@@ -211,6 +212,7 @@ describe('BattlesService', () => {
   let stateStore: Map<string, ActiveBattleState>
   let userStore: Map<string, UserRecord>
   let mockPrisma: MockPrisma
+  let mockConfigService: { get: jest.Mock }
 
   const toRecord = (battle: Battle, overrides: Partial<BattleRecord> = {}): BattleRecord => ({
     id: battle.id,
@@ -370,7 +372,10 @@ describe('BattlesService', () => {
       },
       $transaction: jest.fn(async (actions: Array<unknown>) => Promise.all(actions)),
     }
-    service = new BattlesService(mockPrisma as unknown as PrismaService)
+    mockConfigService = {
+      get: jest.fn(() => undefined),
+    }
+    service = new BattlesService(mockPrisma as unknown as PrismaService, mockConfigService as unknown as ConfigService)
     const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
     jest.spyOn(service, 'getBattleState').mockImplementation(async (battleId: string) => {
       const res = await originalGetBattleState(battleId)
