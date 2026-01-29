@@ -1065,13 +1065,29 @@ export class BattlesService extends EventEmitter {
     })
     if (users.length === 0) return
 
+    const topMvps = mvps.slice(0, 3)
     const mvpBonusByUserId = new Map<string, number>()
-    mvps.slice(0, 3).forEach((mvp, index) => {
+    topMvps.forEach((mvp, index) => {
       const bonus = getMvpBonus(index)
       if (bonus > 0) mvpBonusByUserId.set(mvp.userId, bonus)
     })
 
-    const updates = users.flatMap(user => {
+    const updates = [
+      this.prisma.battleParticipant.updateMany({
+        where: { battleId: state.battleId },
+        data: { isMvp: false },
+      }),
+      ...(topMvps.length > 0
+        ? [
+            this.prisma.battleParticipant.updateMany({
+              where: { battleId: state.battleId, userId: { in: topMvps.map(mvp => mvp.userId) } },
+              data: { isMvp: true },
+            }),
+          ]
+        : []),
+    ]
+
+    const userUpdates = users.flatMap(user => {
       const team = state.participants.get(user.id)
       if (!team) return []
       const result = this.getBattleResultForTeam(team, winningTeam)
@@ -1094,8 +1110,8 @@ export class BattlesService extends EventEmitter {
       ]
     })
 
-    if (updates.length === 0) return
-    await this.prisma.$transaction(updates)
+    if (updates.length === 0 && userUpdates.length === 0) return
+    await this.prisma.$transaction([...updates, ...userUpdates])
   }
 
   private buildTimeline(state: ActiveBattleState): TimelineItem[] {
