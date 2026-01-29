@@ -110,8 +110,10 @@ describe('BattlesController', () => {
       }
 
       const jsonMock = jest.fn()
+      const cookieMock = jest.fn()
       const res = {
         json: jsonMock,
+        cookie: cookieMock,
       } as unknown as Response
 
       jest.spyOn(service, 'create').mockResolvedValue(mockBattle as never)
@@ -132,6 +134,7 @@ describe('BattlesController', () => {
         res,
       )
 
+      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
         inviteCode: 'test-invite-code-1234',
@@ -146,8 +149,10 @@ describe('BattlesController', () => {
       }
 
       const jsonMock = jest.fn()
+      const cookieMock = jest.fn()
       const res = {
         json: jsonMock,
+        cookie: cookieMock,
       } as unknown as Response
 
       jest.spyOn(service, 'create').mockResolvedValue(mockBattle as never)
@@ -168,6 +173,7 @@ describe('BattlesController', () => {
         res,
       )
 
+      expect(cookieMock).not.toHaveBeenCalled()
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
         inviteCode: null,
@@ -181,13 +187,16 @@ describe('BattlesController', () => {
       const getBattleByInviteCodeSpy = jest.spyOn(service, 'getBattleByInviteCode').mockResolvedValue(mockResult)
 
       const redirectMock = jest.fn()
+      const cookieMock = jest.fn()
       const res = {
         redirect: redirectMock,
+        cookie: cookieMock,
       } as unknown as Response
 
       await controller.getBattleByInviteCode('test-invite-code', res)
 
       expect(getBattleByInviteCodeSpy).toHaveBeenCalledWith('test-invite-code')
+      expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
@@ -195,8 +204,10 @@ describe('BattlesController', () => {
       jest.spyOn(service, 'getBattleByInviteCode').mockRejectedValue(new NotFoundException())
 
       const redirectMock = jest.fn()
+      const cookieMock = jest.fn()
       const res = {
         redirect: redirectMock,
+        cookie: cookieMock,
       } as unknown as Response
 
       await expect(controller.getBattleByInviteCode('invalid-code', res)).rejects.toThrow(NotFoundException)
