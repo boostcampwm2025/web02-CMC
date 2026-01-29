@@ -17,7 +17,6 @@ describe('OauthController', () => {
     findUserById: jest.fn(),
     updateUserNickname: jest.fn(),
     findOrCreateUser: jest.fn(),
-    isInitialNickname: jest.fn(),
   }
 
   const mockTokenService = {
@@ -92,54 +91,12 @@ describe('OauthController', () => {
       } as unknown as expressRes
 
       mockOauthService.loginWithGithub.mockResolvedValue(mockTokens)
-      mockOauthService.isInitialNickname.mockReturnValue(false)
 
       await controller.githubCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
       expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
-    })
-
-    it('닉네임이 "사용자 "로 시작하면 닉네임 페이지로 리다이렉트한다', async () => {
-      const mockProfile: OAuthProfile = {
-        provider: 'github',
-        providerId: '12345',
-        avatarUrl: 'https://example.com/avatar.jpg',
-      }
-
-      const mockUser = {
-        id: 'user-123',
-        provider: 'github',
-        providerId: '12345',
-        nickname: '사용자 12345',
-        avatarUrl: 'https://example.com/avatar.jpg',
-      }
-
-      const mockTokens = {
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: mockUser,
-      }
-
-      const mockReq = {
-        user: mockProfile,
-      } as unknown as expressReq
-
-      const mockRedirect = jest.fn()
-      const mockRes = {
-        cookie: jest.fn(),
-        redirect: mockRedirect,
-      } as unknown as expressRes
-
-      mockOauthService.loginWithGithub.mockResolvedValue(mockTokens)
-      mockOauthService.isInitialNickname.mockReturnValue(true)
-
-      await controller.githubCallback(mockReq, mockRes)
-
-      expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/nickname')
     })
   })
 
@@ -176,54 +133,12 @@ describe('OauthController', () => {
       } as unknown as expressRes
 
       mockOauthService.loginWithKakao.mockResolvedValue(mockTokens)
-      mockOauthService.isInitialNickname.mockReturnValue(false)
 
       await controller.kakaoCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
       expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
-    })
-
-    it('닉네임이 "사용자 "로 시작하면 닉네임 페이지로 리다이렉트한다', async () => {
-      const mockProfile: OAuthProfile = {
-        provider: 'kakao',
-        providerId: '67890',
-        avatarUrl: 'https://example.com/kakao-avatar.jpg',
-      }
-
-      const mockUser = {
-        id: 'user-123',
-        provider: 'kakao',
-        providerId: '67890',
-        nickname: '사용자 67890',
-        avatarUrl: 'https://example.com/kakao-avatar.jpg',
-      }
-
-      const mockTokens = {
-        accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
-        user: mockUser,
-      }
-
-      const mockReq = {
-        user: mockProfile,
-      } as unknown as expressReq
-
-      const mockRedirect = jest.fn()
-      const mockRes = {
-        cookie: jest.fn(),
-        redirect: mockRedirect,
-      } as unknown as expressRes
-
-      mockOauthService.loginWithKakao.mockResolvedValue(mockTokens)
-      mockOauthService.isInitialNickname.mockReturnValue(true)
-
-      await controller.kakaoCallback(mockReq, mockRes)
-
-      expect(mockOauthService.isInitialNickname).toHaveBeenCalledWith(mockUser)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/nickname')
     })
   })
 

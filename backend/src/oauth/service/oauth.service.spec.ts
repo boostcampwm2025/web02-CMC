@@ -297,15 +297,7 @@ describe('OauthService', () => {
 
       const result = await service.loginWithKakao(profile)
 
-      expect(result).toEqual({
-        ...mockTokens,
-        user: expect.objectContaining({
-          id: expect.any(String),
-          provider: 'kakao',
-          providerId: '67890',
-          nickname: '사용자 67890',
-        }),
-      })
+      expect(result).toEqual(mockTokens)
       expect(mockTokenService.generateTokens).toHaveBeenCalledTimes(1)
     })
   })

@@ -26,18 +26,14 @@ export class OauthController {
   @HttpCode(302)
   async githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken, user } = await this.oauthService.loginWithGithub(profile)
+    const { accessToken, refreshToken } = await this.oauthService.loginWithGithub(profile)
 
     // 쿠키에 토큰 저장
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 사용자 정보 확인
-    const isInitialNickname = this.oauthService.isInitialNickname(user)
-
     // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
-    const redirectTo = isInitialNickname ? '/nickname' : '/'
-    res.redirect(`${frontendUrl}${redirectTo}`)
+    res.redirect(`${frontendUrl}/`)
   }
 
   @Get('kakao')
@@ -49,17 +45,12 @@ export class OauthController {
   @HttpCode(302)
   async kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken, user } = await this.oauthService.loginWithKakao(profile)
+    const { accessToken, refreshToken } = await this.oauthService.loginWithKakao(profile)
 
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
-    // 사용자 정보 확인
-    const isInitialNickname = this.oauthService.isInitialNickname(user)
-
-    // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
-    const redirectTo = isInitialNickname ? '/nickname' : '/'
-    res.redirect(`${frontendUrl}${redirectTo}`)
+    res.redirect(`${frontendUrl}/`)
   }
 
   @Post('refresh')
