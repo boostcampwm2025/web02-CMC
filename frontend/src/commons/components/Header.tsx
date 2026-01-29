@@ -5,7 +5,6 @@ import UserProfileDropdown from './UserProfileDropdown';
 import tierBronze from '@/assets/icon/bronze.png';
 import tierSilver from '@/assets/icon/silver.png';
 import tierGold from '@/assets/icon/gold.png';
-import tierPlatinum from '@/assets/icon/platinum.png';
 import tierDiamond from '@/assets/icon/diamond.png';
 import tierMaster from '@/assets/icon/master.png';
 import tierGrandmaster from '@/assets/icon/grandmaster.png';
@@ -14,7 +13,6 @@ const TIER_ICON_MAP: Record<string, string> = {
   BRONZE: tierBronze,
   SILVER: tierSilver,
   GOLD: tierGold,
-  PLATINUM: tierPlatinum,
   DIAMOND: tierDiamond,
   MASTER: tierMaster,
   GRANDMASTER: tierGrandmaster
