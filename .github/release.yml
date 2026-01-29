@@ -3,8 +3,8 @@ changelog:
     - title: "🚀 기능"
       labels:
         - "task"
-        - "FE"
-        - "BE"
+        - "story"
+        - "epic"
 
     - title: "🛠 버그 수정"
       labels:
