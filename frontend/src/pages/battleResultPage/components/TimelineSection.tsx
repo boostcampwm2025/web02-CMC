@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import RoundCard from '@/commons/components/timeline/RoundCard';
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import { organizeTimelineByRounds } from '../utils/organizeTimelineByRounds';
@@ -10,6 +11,14 @@ interface TimelineSectionProps {
 
 export default function TimelineSection({ timelines, topics }: TimelineSectionProps) {
   const roundsData = organizeTimelineByRounds({ timelines, topics });
+  const [expandedRounds, setExpandedRounds] = useState<Record<string, boolean>>({});
+
+  const handleToggle = (round: string) => {
+    setExpandedRounds((prev) => ({
+      ...prev,
+      [round]: !prev[round]
+    }));
+  };
 
   const formatTime = (timestamp?: number) => {
     if (!timestamp) return '알 수 없음';
@@ -28,8 +37,8 @@ export default function TimelineSection({ timelines, topics }: TimelineSectionPr
             <RoundCard
               key={roundData.round}
               roundData={roundData}
-              isExpanded={true}
-              onToggle={() => {}}
+              isExpanded={expandedRounds[roundData.round] ?? false}
+              onToggle={() => handleToggle(roundData.round)}
               formatTime={formatTime}
               showStatus={false}
             />
