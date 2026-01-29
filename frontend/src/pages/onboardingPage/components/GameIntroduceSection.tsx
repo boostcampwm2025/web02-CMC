@@ -29,23 +29,23 @@ export default function GameIntroduceSection() {
       <div className="relative z-10 mx-auto w-[55rem] h-[32rem] max-w-[85%] shadow-2xl">
         <Carousel>
           <OnBoardingIntroduceCard
-            image="/public/images/onBoarding/bigTitle.png"
+            image="/images/onBoarding/bigTitle.png"
             description="주어지는 주제에 맞춰 두 팀이 코드를 분석하고 토론하는 실시간 토론을 진행해보세요."
           />
           <OnBoardingIntroduceCard
-            image="/public/images/onBoarding/gameChat.png"
+            image="/images/onBoarding/gameChat.png"
             description="실시간 채팅을 통해 팀원들과 전략을 논의하고, 코드의 문제점을 함께 파헤치며 최적의 솔루션을 찾아내세요."
           />
           <OnBoardingIntroduceCard
-            image="/public/images/onBoarding/teamSelect.png"
+            image="/images/onBoarding/teamSelect.png"
             description="두 팀으로 나뉘어, 각자의 코드를 분석하고 토론하며 최고의 해결책을 제시하세요."
           />
           <OnBoardingIntroduceCard
-            image="/public/images/onBoarding/attack.png"
+            image="/images/onBoarding/attack.png"
             description="상대의 코드의 문제점을 파악하고, 이의를 제기 하세요! 효과적인 공격은 팀의 승리를 이끌어냅니다."
           />
           <OnBoardingIntroduceCard
-            image="/public/images/onBoarding/gameResult.png"
+            image="/images/onBoarding/gameResult.png"
             description="배틀이 끝난 후, 상세한 분석 결과와 피드백을 확인하세요. 승패를 떠나 한 단계 더 성장하는 계기가 될 것입니다."
           />
         </Carousel>

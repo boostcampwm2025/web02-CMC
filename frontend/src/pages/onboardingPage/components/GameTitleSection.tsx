@@ -1,8 +1,8 @@
 import { Play, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import onBoardingBackgroundImage from '/public/images/onBoarding/gameLogo.png';
-import onBoardingPeoplesImage1 from '/public/images/onBoarding/onBoardingPeople1.png';
-import onBoardingPeoplesImage2 from '/public/images/onBoarding/onBoardingPeople2.png';
+import onBoardingBackgroundImage from '/images/onBoarding/gameLogo.png';
+import onBoardingPeoplesImage1 from '/images/onBoarding/onBoardingPeople1.png';
+import onBoardingPeoplesImage2 from '/images/onBoarding/onBoardingPeople2.png';
 
 export default function GameTitleSection() {
   const navigate = useNavigate();
