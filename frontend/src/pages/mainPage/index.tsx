@@ -60,10 +60,10 @@ export default function MainPage() {
               </Link>
 
               <Link
-                to={`/battle/1/team-select`}
+                to="/tutorial/team-select"
                 className="flex items-center rounded-xl px-5 py-3 bg-[#1A1A2E] border border-[#364153] hover:bg-[#20203A]"
               >
-                배틀 참여
+                튜토리얼
               </Link>
             </div>
           </section>

@@ -94,12 +94,10 @@ export default function BattlePage() {
     isModalOpen: isTutorialOpen,
     currentStep,
     dontShowAgain,
-    skipTutorial,
     startTutorial,
     nextStep,
     prevStep,
-    setDontShowAgain,
-    closeTutorial
+    setDontShowAgain
   } = useTutorial();
 
   // 사운드 초기화
@@ -294,7 +292,6 @@ export default function BattlePage() {
         )}
         <TutorialModal
           isOpen={isTutorialOpen && currentStep === 'welcome'}
-          onClose={skipTutorial}
           onStart={startTutorial}
           dontShowAgain={dontShowAgain}
           onDontShowAgainChange={setDontShowAgain}
@@ -304,8 +301,6 @@ export default function BattlePage() {
           currentStep={currentStep}
           onNext={nextStep}
           onPrev={prevStep}
-          onSkip={skipTutorial}
-          onClose={closeTutorial}
         />
       </div>
     </div>
