@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
@@ -12,22 +12,16 @@ import NicknamePage from './pages/nicknamePage';
 import OnboardingPage from './pages/onboardingPage';
 import TutorialTeamSelectPage from './pages/tutorialTeamSelectPage';
 import TutorialBattlePage from './pages/tutorialBattlePage';
-import { useAuthStore } from './commons/stores/authStore';
+import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
-import { useEffect } from 'react';
-import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
+import { useAuthStore } from './commons/stores/authStore';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <MainPage />,
-    errorElement: <ErrorPage />,
-    loader: async () => {
-      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-      await useAuthStore.getState().getOAuthUser();
-      return null;
-    }
+    errorElement: <ErrorPage />
   },
   {
     path: '/onboarding',
@@ -76,7 +70,15 @@ const router = createBrowserRouter([
   {
     path: '/battle/create',
     element: <BattleCreatePage />,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
+    loader: async () => {
+      const oauthUser = await useAuthStore.getState().getOAuthUser();
+      if (!oauthUser) {
+        alert('로그인이 필요합니다.');
+        return redirect('/login');
+      }
+      return null;
+    }
   },
   {
     path: '/tutorial/team-select',
@@ -103,14 +105,6 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  useEffect(() => {
-    async function getUserInfo() {
-      await useAuthStore.getState().getOAuthUser();
-    }
-
-    getUserInfo();
-  }, []);
-
   return (
     <>
       <ToastContainer />
