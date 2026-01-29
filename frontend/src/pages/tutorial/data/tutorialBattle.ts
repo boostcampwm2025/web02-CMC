@@ -141,6 +141,43 @@ export const TUTORIAL_BATTLE_INFO: BattleInfo = {
   timelines: {
     attacks,
     defenses
+  },
+  referenceData: {
+    commonConcepts: {
+      summary:
+        'if문 스타일은 가독성, 팀 컨벤션, 확장성 관점에서 논의됩니다. 핵심은 팀이 읽기 쉽고 유지보수하기 쉬운 규칙을 합의하는 것입니다.',
+      terms: [
+        {
+          term: 'early return',
+          description:
+            '조건을 만족하지 않으면 빠르게 함수에서 빠져나오는 패턴입니다. 들여쓰기를 줄여 흐름을 단순화합니다.'
+        },
+        {
+          term: '팀 컨벤션',
+          description: '팀이 합의한 코드 스타일 규칙으로, 리뷰 기준과 코드 일관성을 유지하는 기준입니다.'
+        }
+      ]
+    },
+    teamA: {
+      perspective: '블록 if는 조건 분기를 명확히 드러내고, 추후 로직 확장에 유리하다는 관점입니다.',
+      references: [
+        {
+          title: '블록 if의 가독성 장점',
+          url: 'https://google.github.io/styleguide/jsguide.html#s4.1.1-braces-all',
+          summary: '조건 분기에서 중괄호를 사용하는 이유와 일관성에 대한 가이드를 제공합니다.'
+        }
+      ]
+    },
+    teamB: {
+      perspective: '한 줄 if는 간결하고 흐름을 빠르게 파악할 수 있다는 관점입니다.',
+      references: [
+        {
+          title: '한 줄 if와 early return',
+          url: 'https://www.typescriptlang.org/docs/handbook/2/narrowing.html',
+          summary: '조건문을 통한 early return 흐름을 설명하며, 코드 분기를 단순화하는 패턴을 확인할 수 있습니다.'
+        }
+      ]
+    }
   }
 };
 

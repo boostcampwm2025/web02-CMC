@@ -7,15 +7,18 @@ import StepIndicator from '@/pages/teamSelectPage/components/StepIndicator';
 import StepNavigation from '@/pages/teamSelectPage/components/StepNavigation';
 import Step1BattleInfo from '@/pages/teamSelectPage/components/steps/Step1BattleInfo';
 import Step2CodeCompare from '@/pages/teamSelectPage/components/steps/Step2CodeCompare';
-import Step3Timeline from '@/pages/teamSelectPage/components/steps/Step3Timeline';
-import Step4TeamSelect from '@/pages/teamSelectPage/components/steps/Step4TeamSelect';
+import Step3ReferenceData from '@/pages/teamSelectPage/components/steps/Step3ReferenceData';
+import Step4Timeline from '@/pages/teamSelectPage/components/steps/Step4Timeline';
+import Step5TeamSelect from '@/pages/teamSelectPage/components/steps/Step5TeamSelect';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 import { TUTORIAL_BATTLE_ID, TUTORIAL_BATTLE_INFO } from '@/pages/tutorial/data/tutorialBattle';
 
 export default function TutorialTeamSelectPage() {
   const navigate = useNavigate();
   const battleInfo = TUTORIAL_BATTLE_INFO;
-  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow();
+  const hasReferenceData = !!battleInfo.referenceData;
+  const totalSteps = hasReferenceData ? 5 : 4;
+  const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const [introStep, setIntroStep] = useState<0 | 1>(0);
   const [showIntro, setShowIntro] = useState(true);
@@ -53,8 +56,11 @@ export default function TutorialTeamSelectPage() {
       case 2:
         return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
       case 3:
+        if (hasReferenceData && battleInfo.referenceData) {
+          return <Step3ReferenceData referenceData={battleInfo.referenceData} />;
+        }
         return (
-          <Step3Timeline
+          <Step4Timeline
             timelines={[...attacks, ...defenses]}
             topics={battleInfo.topics}
             currentRound={battleInfo.currentRound}
@@ -62,7 +68,19 @@ export default function TutorialTeamSelectPage() {
           />
         );
       case 4:
-        return <Step4TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+        if (hasReferenceData) {
+          return (
+            <Step4Timeline
+              timelines={[...attacks, ...defenses]}
+              topics={battleInfo.topics}
+              currentRound={battleInfo.currentRound}
+              totalRounds={battleInfo.totalRounds}
+            />
+          );
+        }
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
+      case 5:
+        return <Step5TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} />;
       default:
         return null;
     }
@@ -90,8 +108,9 @@ export default function TutorialTeamSelectPage() {
                 <h2 className="text-xl font-bold mb-3">진영 선택 튜토리얼</h2>
                 <ul className="text-sm text-[#C5CBD6] space-y-2">
                   <li>1) 상황 요약에서 ‘if 한 줄 vs 블록’ 주제를 확인합니다.</li>
-                  <li>2) 쟁점과 타임라인으로 핵심 주장들을 살펴봅니다.</li>
-                  <li>3) 마지막 단계에서 A/B/중립을 선택하고 배틀로 이동합니다.</li>
+                  <li>2) 참고 자료에서 핵심 개념과 팀별 관점을 확인합니다.</li>
+                  <li>3) 쟁점과 타임라인으로 핵심 주장들을 살펴봅니다.</li>
+                  <li>4) 마지막 단계에서 A/B/중립을 선택하고 배틀로 이동합니다.</li>
                 </ul>
               </>
             )}
@@ -132,7 +151,7 @@ export default function TutorialTeamSelectPage() {
 
         <p className="text-center text-[#99A1AF] mb-8">튜토리얼 배틀 정보를 확인하고 진영을 선택하세요</p>
 
-        <StepIndicator currentStep={currentStep} />
+        <StepIndicator currentStep={currentStep} hasReferenceData={hasReferenceData} />
 
         <div className="relative mb-8">
           <div className="flex items-center justify-center relative">
@@ -149,7 +168,7 @@ export default function TutorialTeamSelectPage() {
                 </button>
               )}
 
-              {currentStep < 4 && (
+              {currentStep < totalSteps && (
                 <button
                   onClick={goToNext}
                   disabled={!canGoNext}
@@ -175,8 +194,9 @@ export default function TutorialTeamSelectPage() {
           onPrev={goToPrev}
           onNext={goToNext}
           onSubmit={handleSubmit}
-          canGoNext={currentStep === 4 ? selectedTeam !== null : canGoNext}
+          canGoNext={currentStep === totalSteps ? selectedTeam !== null : canGoNext}
           isSubmitting={false}
+          totalSteps={totalSteps}
         />
       </div>
     </main>
