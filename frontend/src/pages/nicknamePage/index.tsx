@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserIcon from '@/assets/icon/user.svg?react';
 import { useAuthStore } from '@/commons/stores/authStore';
-import updateOAuthNickname from '@/commons/apis/patchOAuthNickname';
+import updateOAuthNickname from '@/commons/apis/updateOAuthNickname';
 
 export default function NicknamePage() {
   const navigate = useNavigate();

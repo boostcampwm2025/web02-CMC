@@ -4,7 +4,6 @@ import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
 import TeamSelectPage from './pages/teamSelectPage';
 import InvitePage from './pages/invitePage';
-import fetchBattleInfo from './commons/apis/getBattleInfo';
 import './App.css';
 import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
@@ -16,6 +15,7 @@ import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import ErrorPage from './pages/errorPage';
 import { useAuthStore } from './commons/stores/authStore';
+import GlobalErrorBoundary from './commons/components/ErrorBoundary/GlobalErrorBoundary';
 
 const router = createBrowserRouter([
   {
@@ -25,8 +25,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/onboarding',
-    element: <OnboardingPage />,
-    errorElement: <ErrorPage />
+    element: <OnboardingPage />
+  },
+  {
+    path: '/error',
+    element: <ErrorPage />
   },
   {
     path: '/error',
@@ -34,28 +37,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/nickname',
-    element: <NicknamePage />,
-    errorElement: <ErrorPage />,
-    loader: async () => {
-      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-      await useAuthStore.getState().getOAuthUser();
-      return null;
-    }
+    element: <NicknamePage />
   },
   {
     path: '/login',
-    element: <LoginPage />,
-    errorElement: <ErrorPage />
+    element: <LoginPage />
   },
   {
     path: '/battle/:id',
-    element: <BattlePage />,
-    errorElement: <ErrorPage />
+    element: <BattlePage />
   },
   {
-    path: '/battle/:id/team-select/',
-    element: <TeamSelectPage />,
-    errorElement: <ErrorPage />
+    path: '/battle/:id/team-select',
+    element: <TeamSelectPage />
   },
   {
     path: '/battle/create',
@@ -78,28 +72,24 @@ const router = createBrowserRouter([
   },
   {
     path: '/tutorial/battle',
-    element: <TutorialBattlePage />,
-    errorElement: <ErrorPage />,
-    loader: () => TUTORIAL_BATTLE_INFO
+    element: <TutorialBattlePage />
   },
   {
     path: '/battles/:inviteCode',
-    element: <InvitePage />,
-    errorElement: <ErrorPage />
+    element: <InvitePage />
   },
   {
     path: '/battles/:id/result',
-    element: <BattleResultPage />,
-    errorElement: <ErrorPage />
+    element: <BattleResultPage />
   }
 ]);
 
 function App() {
   return (
-    <>
+    <GlobalErrorBoundary>
       <ToastContainer />
       <RouterProvider router={router} />
-    </>
+    </GlobalErrorBoundary>
   );
 }
 
