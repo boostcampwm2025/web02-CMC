@@ -8,6 +8,21 @@ interface WinnerSectionProps {
   teamBVotes: number;
 }
 
+const WINNER_STYLES = {
+  A: {
+    gradient: 'bg-gradient-to-br from-[#155DFC] to-[#1447E6]',
+    shadow: 'shadow-blue-500/40'
+  },
+  B: {
+    gradient: 'bg-gradient-to-br from-[#DC2626] to-[#B91C1C]',
+    shadow: 'shadow-red-500/40'
+  },
+  DRAW: {
+    gradient: 'bg-gradient-to-br from-[#4B5563] to-[#374151]',
+    shadow: 'shadow-gray-500/40'
+  }
+} as const;
+
 export default function WinnerSection({
   winner,
   teamAPercentage,
@@ -16,10 +31,11 @@ export default function WinnerSection({
   teamBVotes
 }: WinnerSectionProps) {
   const winnerTeam = winner === 'A' ? 'A' : winner === 'B' ? 'B' : '무승부';
+  const style = WINNER_STYLES[winner];
 
   return (
     <div className="max-w-7xl mx-auto mb-12">
-      <div className="bg-gradient-to-br from-[#155DFC] to-[#1447E6] rounded-3xl p-8 md:p-12 text-center shadow-2xl shadow-blue-500/40">
+      <div className={`${style.gradient} rounded-3xl p-8 md:p-12 text-center shadow-2xl ${style.shadow}`}>
         <div className="flex justify-center mb-4">
           <TrophyIcon className="w-[48px] h-[48px]" />
         </div>
