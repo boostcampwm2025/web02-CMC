@@ -380,7 +380,7 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
-    const isPrivate = payload.isPrivate
+    const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
     // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
     let referenceData: BattleReferenceData | null = null
