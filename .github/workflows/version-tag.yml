@@ -130,21 +130,13 @@ jobs:
       # === GitHub Release 생성 ===
       - name: Create GitHub Release
         if: steps.pr_labels.outputs.should_skip != 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.semver.outputs.version_tag }}
-          release_name: Release ${{ steps.semver.outputs.version_tag }}
-          body: |
-            ## Release ${{ steps.semver.outputs.version_tag }}
-            
-            ### Changes
-            - Merged PR: #${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-            
-            ### Version Bump
-            - Type: ${{ steps.pr_labels.outputs.bump_type }}
-            - Previous version: ${{ steps.get_latest_tag.outputs.latest_tag }}
-            - New version: ${{ steps.semver.outputs.version_tag }}
+          name: Release ${{ steps.semver.outputs.version_tag }}
+          generate_release_notes: true
+          previous_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
