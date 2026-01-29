@@ -9,7 +9,6 @@ import './App.css';
 import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
-import OAuthCallbackPage from './pages/OAuthCallbackPage';
 import OnboardingPage from './pages/onboardingPage';
 import TutorialTeamSelectPage from './pages/tutorialTeamSelectPage';
 import TutorialBattlePage from './pages/tutorialBattlePage';
@@ -23,11 +22,12 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <MainPage />,
-    errorElement: <ErrorPage />
-    // loader: async () => {
-    //   // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
-    //   return await useAuthStore.getState().getOAuthUser();
-    // }
+    errorElement: <ErrorPage />,
+    loader: async () => {
+      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+      await useAuthStore.getState().getOAuthUser();
+      return null;
+    }
   },
   {
     path: '/onboarding',
@@ -39,14 +39,14 @@ const router = createBrowserRouter([
     element: <ErrorPage />
   },
   {
-    path: '/auth/callback',
-    element: <OAuthCallbackPage />,
-    errorElement: <ErrorPage />
-  },
-  {
     path: '/nickname',
     element: <NicknamePage />,
-    errorElement: <ErrorPage />
+    errorElement: <ErrorPage />,
+    loader: async () => {
+      // OAuth 로그인 후 리다이렉트 시 인증 상태 확인
+      await useAuthStore.getState().getOAuthUser();
+      return null;
+    }
   },
   {
     path: '/login',

@@ -24,7 +24,7 @@ export class OauthService {
       return OAuthUserDto.fromEntity({ user: existingOAuth.user, oauth: existingOAuth })
     }
 
-    const nickname = 'anonymous'
+    const nickname = `사용자 ${p.providerId}`
     const userId = uuidv7()
     const oauthId = uuidv7()
 
@@ -57,6 +57,7 @@ export class OauthService {
   async loginWithGithub(profile: OAuthProfile): Promise<{
     accessToken: string
     refreshToken: string
+    user: User
   }> {
     const loginUser = await this.findOrCreateUser(profile)
     const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
@@ -64,6 +65,7 @@ export class OauthService {
     return {
       accessToken,
       refreshToken,
+      user: loginUser,
     }
   }
 

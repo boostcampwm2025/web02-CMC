@@ -15,50 +15,59 @@ describe('OauthService', () => {
 
   let users: Array<{ id: string; nickname: string; avatarUrl: string | null; tier: string; rating: number }>
   let oauths: Array<{ id: string; userId: string; provider: string; code: string }>
-  const mockPrisma = {
+
+  const createMockPrismaBase = () => ({
     user: {
       findUnique: jest.fn(({ where }: { where: { id?: string; nickname?: string } }) => {
-        if (where.id) return users.find(u => u.id === where.id) ?? null
-        if (where.nickname) return users.find(u => u.nickname === where.nickname) ?? null
-        return null
+        if (where.id) return Promise.resolve(users.find(u => u.id === where.id) ?? null)
+        if (where.nickname) return Promise.resolve(users.find(u => u.nickname === where.nickname) ?? null)
+        return Promise.resolve(null)
       }),
       create: jest.fn(({ data }: { data: { id: string; nickname: string; avatarUrl: string | null; tier: string; rating: number } }) => {
         const record = { ...data }
         users.push(record)
-        return record
+        return Promise.resolve(record)
       }),
       update: jest.fn(({ where, data }: { where: { id: string }; data: { nickname: string } }) => {
         const user = users.find(u => u.id === where.id)
-        if (!user) return null
+        if (!user) return Promise.resolve(null)
         user.nickname = data.nickname
-        return user
+        return Promise.resolve(user)
       }),
     },
     oAuth: {
       findFirst: jest.fn(({ where }: { where: { provider?: string; code?: string; userId?: string } }) => {
         if (where.userId) {
-          return oauths.find(o => o.userId === where.userId) ?? null
+          return Promise.resolve(oauths.find(o => o.userId === where.userId) ?? null)
         }
         if (where.provider && where.code) {
           const oauth = oauths.find(o => o.provider === where.provider && o.code === where.code)
-          if (!oauth) return null
+          if (!oauth) return Promise.resolve(null)
           const user = users.find(u => u.id === oauth.userId)
-          return { ...oauth, user }
+          return Promise.resolve({ ...oauth, user })
         }
-        return null
+        return Promise.resolve(null)
       }),
       create: jest.fn(({ data }: { data: { id: string; userId: string; provider: string; code: string } }) => {
         const record = { ...data }
         oauths.push(record)
-        return record
+        return Promise.resolve(record)
       }),
     },
-    $transaction: jest.fn((callback: (tx: typeof mockPrisma) => Promise<unknown>) => callback(mockPrisma)),
-  }
+  })
+
+  let mockPrismaBase: ReturnType<typeof createMockPrismaBase>
+  let mockPrisma: ReturnType<typeof createMockPrismaBase> & { $transaction: jest.Mock }
 
   beforeEach(async () => {
     users = []
     oauths = []
+
+    mockPrismaBase = createMockPrismaBase()
+    mockPrisma = {
+      ...mockPrismaBase,
+      $transaction: jest.fn((callback: (tx: typeof mockPrismaBase) => Promise<unknown>) => callback(mockPrismaBase)),
+    }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,7 +103,7 @@ describe('OauthService', () => {
       expect(user).toBeDefined()
       expect(user.provider).toBe('github')
       expect(user.providerId).toBe('12345')
-      expect(user.nickname).toBe('anonymous')
+      expect(user.nickname).toBe('사용자 12345')
       expect(user.avatarUrl).toBe('https://example.com/avatar.jpg')
       expect(user.id).toBeDefined()
       expect(typeof user.id).toBe('string')
@@ -161,17 +170,40 @@ describe('OauthService', () => {
         providerId: '12345',
         avatarUrl: 'https://example.com/avatar.jpg',
       }
-
       const mockTokens = {
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
       }
 
       mockTokenService.generateTokens.mockReturnValue(mockTokens)
+      mockPrisma.oAuth.findFirst.mockResolvedValue(null as never)
+      mockPrisma.user.create.mockResolvedValue({
+        id: 'user-id',
+        nickname: '사용자 12345',
+        tier: 'UNRANKED',
+        rating: 0,
+        avatarUrl: 'https://example.com/avatar.jpg',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as never)
+      mockPrisma.oAuth.create.mockResolvedValue({
+        id: 'oauth-id',
+        userId: 'user-id',
+        provider: 'github',
+        code: '12345',
+      } as never)
 
       const result = await service.loginWithGithub(profile)
 
-      expect(result).toEqual(mockTokens)
+      expect(result).toEqual({
+        ...mockTokens,
+        user: expect.objectContaining({
+          id: expect.any(String),
+          provider: 'github',
+          providerId: '12345',
+          nickname: '사용자 12345',
+        }),
+      })
       expect(mockTokenService.generateTokens).toHaveBeenCalledTimes(1)
     })
 
@@ -193,12 +225,41 @@ describe('OauthService', () => {
       }
 
       mockTokenService.generateTokens.mockReturnValueOnce(mockTokens1).mockReturnValueOnce(mockTokens2)
+      mockPrisma.oAuth.findFirst.mockResolvedValue({
+        id: 'oauth-id',
+        userId: 'user-id',
+        provider: 'github',
+        code: '12345',
+        user: {
+          id: 'user-id',
+          nickname: '사용자 12345',
+          tier: 'UNRANKED',
+          rating: 0,
+          avatarUrl: 'https://example.com/avatar.jpg',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      } as never)
 
       const result1 = await service.loginWithGithub(profile)
       const result2 = await service.loginWithGithub(profile)
 
-      expect(result1).toEqual(mockTokens1)
-      expect(result2).toEqual(mockTokens2)
+      expect(result1).toEqual({
+        ...mockTokens1,
+        user: expect.objectContaining({
+          id: 'user-id',
+          provider: 'github',
+          providerId: '12345',
+        }),
+      })
+      expect(result2).toEqual({
+        ...mockTokens2,
+        user: expect.objectContaining({
+          id: 'user-id',
+          provider: 'github',
+          providerId: '12345',
+        }),
+      })
       expect(mockTokenService.generateTokens).toHaveBeenCalledTimes(2)
     })
   })
@@ -217,6 +278,22 @@ describe('OauthService', () => {
       }
 
       mockTokenService.generateTokens.mockReturnValue(mockTokens)
+      mockPrisma.oAuth.findFirst.mockResolvedValue(null as never)
+      mockPrisma.user.create.mockResolvedValue({
+        id: 'user-id',
+        nickname: '사용자 67890',
+        tier: 'UNRANKED',
+        rating: 0,
+        avatarUrl: 'https://example.com/kakao-avatar.jpg',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as never)
+      mockPrisma.oAuth.create.mockResolvedValue({
+        id: 'oauth-id',
+        userId: 'user-id',
+        provider: 'kakao',
+        code: '67890',
+      } as never)
 
       const result = await service.loginWithKakao(profile)
 
