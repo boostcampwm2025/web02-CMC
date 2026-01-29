@@ -380,7 +380,7 @@ export class BattlesService extends EventEmitter {
     const now = new Date()
     const battleId = this.generateId()
     const shuffledTopics = this.shuffleTopics(payload.topics, payload.playTime)
-    const isPrivate = true
+    const isPrivate = payload.isPrivate
 
     // AI 참고 자료 생성 (실패해도 배틀 생성은 진행)
     let referenceData: BattleReferenceData | null = null
@@ -443,7 +443,7 @@ export class BattlesService extends EventEmitter {
   //실시간 배틀 목록 조회
   async getOpenBattles(limit: number, offset: number) {
     const where = {
-      // isPrivate: false,
+      isPrivate: false,
       status: { in: [BATTLE_STATUS.OPEN, BATTLE_STATUS.PENDING] },
     }
 

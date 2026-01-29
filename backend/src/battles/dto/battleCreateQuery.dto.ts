@@ -1,4 +1,4 @@
-import { IsArray, IsIn, IsNotEmpty, IsString } from 'class-validator'
+import { IsArray, IsBoolean, IsIn, IsNotEmpty, IsString } from 'class-validator'
 import type { BattleLanguage, BattleCategory, BattleType, BattlePlayTimeName } from '../types/battles.types'
 
 export class BattleCreateQueryDto {
@@ -43,4 +43,8 @@ export class BattleCreateQueryDto {
   @IsString({ each: true })
   @IsNotEmpty()
   topics: string[]
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isPrivate!: boolean
 }
