@@ -13,4 +13,6 @@ export interface User {
   providerId: string
   nickname: string
   avatarUrl?: string
+  tier: string
+  rating: number
 }

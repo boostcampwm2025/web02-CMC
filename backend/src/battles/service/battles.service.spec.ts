@@ -1,5 +1,6 @@
 import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
-import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam, BattleLanguage, BattleCategory } from '../types/battles.types'
+import { Battle, FinishedBattleState, BattleDefense, ActiveBattleState, BattleTeam } from '../types/battles.types'
+import type { Mvp } from '../types/battleResult.types'
 import { BattlesService } from './battles.service'
 import {
   BATTLE_TYPE,
@@ -12,6 +13,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 import type { PrismaService } from 'src/prisma/prisma.service'
+import type { ConfigService } from '@nestjs/config'
 
 type BattleRecord = {
   id: string
@@ -69,6 +71,22 @@ type BattleUpdateArgs = {
   data: Partial<BattleRecord>
 }
 
+type UserRecord = {
+  id: string
+  rating: number
+  tier: string | null
+}
+
+type UserFindManyArgs = {
+  where?: { id?: { in: string[] } }
+  select?: { id?: true; rating?: true; tier?: true }
+}
+
+type UserUpdateArgs = {
+  where: { id: string }
+  data: { rating?: number; tier?: string }
+}
+
 type BattleCreateArgs = {
   data: BattleRecord
 }
@@ -85,8 +103,9 @@ type MockPrisma = {
     update: jest.Mock
     create: jest.Mock
   }
-  battleParticipant: { upsert: jest.Mock }
-  user: { findUnique: jest.Mock }
+  battleParticipant: { upsert: jest.Mock; updateMany: jest.Mock }
+  user: { findUnique: jest.Mock; findMany: jest.Mock; update: jest.Mock }
+  $transaction: jest.Mock
 }
 
 type BattleStateAccess = {
@@ -191,7 +210,9 @@ describe('BattlesService', () => {
   let service: BattlesService
   let battleStore: Map<string, BattleRecord>
   let stateStore: Map<string, ActiveBattleState>
+  let userStore: Map<string, UserRecord>
   let mockPrisma: MockPrisma
+  let mockConfigService: { get: jest.Mock }
 
   const toRecord = (battle: Battle, overrides: Partial<BattleRecord> = {}): BattleRecord => ({
     id: battle.id,
@@ -238,6 +259,10 @@ describe('BattlesService', () => {
     battleStore = new Map()
     battles.forEach(battle => battleStore.set(battle.id, toRecord(battle)))
   }
+  const seedUsers = (users: UserRecord[]) => {
+    userStore = new Map()
+    users.forEach(user => userStore.set(user.id, user))
+  }
   const getState = async (battleId: string): Promise<ActiveBattleState> => {
     const { battleState } = await service.getBattleState(battleId)
     return battleState
@@ -263,6 +288,7 @@ describe('BattlesService', () => {
   beforeEach(() => {
     battleStore = new Map()
     stateStore = new Map()
+    userStore = new Map()
     mockPrisma = {
       battle: {
         findUnique: jest.fn(({ where }: BattleFindUniqueArgs) => {
@@ -321,11 +347,35 @@ describe('BattlesService', () => {
           return data
         }),
       },
-      battleParticipant: { upsert: jest.fn() },
-      // eslint-disable-next-line no-empty-pattern
-      user: { findUnique: jest.fn(({}: { where: { id: string }; select?: { id: true } }) => null) },
+      battleParticipant: {
+        upsert: jest.fn(),
+        updateMany: jest.fn(() => ({ count: 0 })),
+      },
+      user: {
+        findUnique: jest.fn(() => null),
+        findMany: jest.fn(({ where }: UserFindManyArgs) => {
+          if (!where?.id?.in) return []
+          return where.id.in.map(id => userStore.get(id)).filter((user): user is UserRecord => Boolean(user))
+        }),
+        update: jest.fn(({ where, data }: UserUpdateArgs) => {
+          const existing = userStore.get(where.id)
+          if (!existing) return null
+          const updated: UserRecord = {
+            ...existing,
+            ...data,
+            rating: data.rating ?? existing.rating,
+            tier: data.tier ?? existing.tier,
+          }
+          userStore.set(where.id, updated)
+          return updated
+        }),
+      },
+      $transaction: jest.fn(async (actions: Array<unknown>) => Promise.all(actions)),
     }
-    service = new BattlesService(mockPrisma as unknown as PrismaService)
+    mockConfigService = {
+      get: jest.fn(() => undefined),
+    }
+    service = new BattlesService(mockPrisma as unknown as PrismaService, mockConfigService as unknown as ConfigService)
     const originalGetBattleState: BattlesService['getBattleState'] = service.getBattleState.bind(service)
     jest.spyOn(service, 'getBattleState').mockImplementation(async (battleId: string) => {
       const res = await originalGetBattleState(battleId)
@@ -991,6 +1041,78 @@ describe('BattlesService', () => {
       const result = await service.getBattleResult('battle-1')
       result.timeline.forEach(item => {
         expect(['ATTACK', 'DEFENSE']).toContain(item.type)
+      })
+    })
+  })
+
+  describe('applyRatingChanges', () => {
+    it('승/패 가중치와 MVP 보너스를 반영하고 NONE 팀은 제외한다', async () => {
+      seedBattles([createBattle({ id: 'battle-1' })])
+      seedUsers([
+        { id: 'user-a', rating: 0, tier: 'BRONZE' },
+        { id: 'user-b', rating: 3, tier: 'BRONZE' },
+        { id: 'user-c', rating: 610, tier: 'DIAMOND' },
+        { id: 'user-none', rating: 450, tier: 'GOLD' },
+      ])
+
+      const state = await updateState('battle-1', battleState => {
+        battleState.participants.set('user-a', BATTLE_TEAM.A)
+        battleState.participants.set('user-b', BATTLE_TEAM.B)
+        battleState.participants.set('user-c', BATTLE_TEAM.A)
+        battleState.participants.set('user-none', BATTLE_TEAM.NONE)
+        ;(service as unknown as { rebuildTeamUsers: (s: ActiveBattleState) => void }).rebuildTeamUsers(battleState)
+      })
+
+      const mvps: Mvp[] = [
+        { userId: 'user-a', nickname: 'A', team: 'A', score: 1, totalVotes: 10, opinionCount: 1, selectedOpinionCount: 0, joinedAt: 0 },
+        { userId: 'user-b', nickname: 'B', team: 'B', score: 1, totalVotes: 9, opinionCount: 1, selectedOpinionCount: 0, joinedAt: 1 },
+        { userId: 'user-c', nickname: 'C', team: 'A', score: 1, totalVotes: 8, opinionCount: 1, selectedOpinionCount: 0, joinedAt: 2 },
+      ]
+
+      await (
+        service as unknown as { applyRatingChanges: (s: ActiveBattleState, w: 'A' | 'B' | 'DRAW', m: Mvp[]) => Promise<void> }
+      ).applyRatingChanges(state, 'A', mvps)
+
+      expect(userStore.get('user-a')?.rating).toBe(40)
+      expect(userStore.get('user-a')?.tier).toBe('BRONZE')
+      expect(userStore.get('user-b')?.rating).toBe(0)
+      expect(userStore.get('user-b')?.tier).toBe('BRONZE')
+      expect(userStore.get('user-c')?.rating).toBe(628)
+      expect(userStore.get('user-c')?.tier).toBe('DIAMOND')
+      expect(userStore.get('user-none')?.rating).toBe(450)
+
+      expect(mockPrisma.battleParticipant.updateMany).toHaveBeenCalledWith({
+        where: { battleId: 'battle-1' },
+        data: { isMvp: false },
+      })
+      expect(mockPrisma.battleParticipant.updateMany).toHaveBeenCalledWith({
+        where: { battleId: 'battle-1', userId: { in: ['user-a', 'user-b', 'user-c'] } },
+        data: { isMvp: true },
+      })
+    })
+
+    it('무승부는 승/무 가중치를 적용한다', async () => {
+      seedBattles([createBattle({ id: 'battle-2' })])
+      seedUsers([
+        { id: 'user-d', rating: 210, tier: 'SILVER' },
+        { id: 'user-e', rating: 410, tier: 'GOLD' },
+      ])
+
+      const state = await updateState('battle-2', battleState => {
+        battleState.participants.set('user-d', BATTLE_TEAM.A)
+        battleState.participants.set('user-e', BATTLE_TEAM.B)
+        ;(service as unknown as { rebuildTeamUsers: (s: ActiveBattleState) => void }).rebuildTeamUsers(battleState)
+      })
+
+      await (
+        service as unknown as { applyRatingChanges: (s: ActiveBattleState, w: 'A' | 'B' | 'DRAW', m: Mvp[]) => Promise<void> }
+      ).applyRatingChanges(state, 'DRAW', [])
+
+      expect(userStore.get('user-d')?.rating).toBe(218)
+      expect(userStore.get('user-e')?.rating).toBe(416)
+      expect(mockPrisma.battleParticipant.updateMany).toHaveBeenCalledWith({
+        where: { battleId: 'battle-2' },
+        data: { isMvp: false },
       })
     })
   })

@@ -65,6 +65,7 @@ import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto
 import { GuestAccount } from '../types/auth.types'
 import { BattleLeaveResponseDto } from '../dto/battleLeaveResponse.dto'
 import { generateNickname } from './utils/nickname.util'
+import { calculateRatingDelta, coerceTierName, getMvpBonus, getTierFromRating } from './utils/rating.util'
 import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 
@@ -779,6 +780,10 @@ export class BattlesService extends EventEmitter {
     const { battleState } = await this.getBattleState(battleId)
 
     const nickname = this.getNicknameByUserId(battleState, userId) || ''
+    const userTier = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { tier: true },
+    })
 
     const chat = {
       messageId: this.generateId(),
@@ -786,6 +791,7 @@ export class BattlesService extends EventEmitter {
       sender: {
         userId,
         nickname,
+        tier: userTier?.tier ?? undefined,
       },
       text: text.trim(),
       createdAt: new Date(),
@@ -1042,7 +1048,75 @@ export class BattlesService extends EventEmitter {
       },
     })
 
+    await this.applyRatingChanges(state, winningTeam, calculatedMvps)
     this.emit('battle:closed', BattleClosedResponseDto.of({ battleId }))
+  }
+
+  private getBattleResultForTeam(team: BattleTeam, winningTeam: 'A' | 'B' | 'DRAW'): 'WIN' | 'LOSE' | 'DRAW' | null {
+    if (team === BATTLE_TEAM.NONE) return null
+    if (winningTeam === 'DRAW') return 'DRAW'
+    if (team === BATTLE_TEAM.A) return winningTeam === 'A' ? 'WIN' : 'LOSE'
+    if (team === BATTLE_TEAM.B) return winningTeam === 'B' ? 'WIN' : 'LOSE'
+    return null
+  }
+
+  private async applyRatingChanges(state: ActiveBattleState, winningTeam: 'A' | 'B' | 'DRAW', mvps: Mvp[]): Promise<void> {
+    const participantIds = [...state.participants.keys()]
+    if (participantIds.length === 0) return
+
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: participantIds } },
+      select: { id: true, rating: true, tier: true },
+    })
+    if (users.length === 0) return
+
+    const topMvps = mvps.slice(0, 3)
+    const mvpBonusByUserId = new Map<string, number>()
+    topMvps.forEach((mvp, index) => {
+      const bonus = getMvpBonus(index)
+      if (bonus > 0) mvpBonusByUserId.set(mvp.userId, bonus)
+    })
+
+    const updates = [
+      this.prisma.battleParticipant.updateMany({
+        where: { battleId: state.battleId },
+        data: { isMvp: false },
+      }),
+      ...(topMvps.length > 0
+        ? [
+            this.prisma.battleParticipant.updateMany({
+              where: { battleId: state.battleId, userId: { in: topMvps.map(mvp => mvp.userId) } },
+              data: { isMvp: true },
+            }),
+          ]
+        : []),
+    ]
+
+    const userUpdates = users.flatMap(user => {
+      const team = state.participants.get(user.id)
+      if (!team) return []
+      const result = this.getBattleResultForTeam(team, winningTeam)
+      if (!result) return []
+
+      const currentRating = user.rating ?? 0
+      const currentTier = coerceTierName(user.tier)
+      const delta = calculateRatingDelta(result, currentTier)
+      const mvpBonus = mvpBonusByUserId.get(user.id) ?? 0
+      const nextRating = Math.max(0, currentRating + delta + mvpBonus)
+      const nextTier = getTierFromRating(nextRating)
+
+      if (nextRating === currentRating && nextTier === currentTier) return []
+
+      return [
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: { rating: nextRating, tier: nextTier },
+        }),
+      ]
+    })
+
+    if (updates.length === 0 && userUpdates.length === 0) return
+    await this.prisma.$transaction([...updates, ...userUpdates])
   }
 
   private buildTimeline(state: ActiveBattleState): TimelineItem[] {
