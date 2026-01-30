@@ -43,7 +43,7 @@ export default function DiscussionVoteItem({
         </div>
       </div>
 
-      <p className="text-sm text-white mb-3">{content}</p>
+      <p className="text-sm text-white mb-3 break-words">{content}</p>
 
       <div className="space-y-2">
         <div className="flex items-center gap-2">
