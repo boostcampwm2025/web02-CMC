@@ -80,7 +80,9 @@ describe('Header', () => {
       id: 'oauth-1',
       nickname: 'OAuth유저',
       type: 'oauth' as const,
-      avatarUrl: 'https://example.com/avatar.jpg'
+      avatarUrl: 'https://example.com/avatar.jpg',
+      tier: 'GOLD',
+      rating: 520
     };
 
     vi.mocked(useAuthStore).mockImplementation((selector) => {
@@ -93,6 +95,7 @@ describe('Header', () => {
 
     expect(screen.getByTestId('user-profile-dropdown')).toBeInTheDocument();
     expect(screen.getByText('OAuth유저')).toBeInTheDocument();
+    expect(screen.getByAltText('GOLD tier')).toBeInTheDocument();
     expect(screen.queryByText('로그인')).not.toBeInTheDocument();
     expect(screen.queryByText('가입하기')).not.toBeInTheDocument();
   });
@@ -101,7 +104,9 @@ describe('Header', () => {
     const mockUser = {
       id: 'oauth-1',
       nickname: 'OAuth유저',
-      type: 'oauth' as const
+      type: 'oauth' as const,
+      tier: 'BRONZE',
+      rating: 10
     };
 
     vi.mocked(useAuthStore).mockImplementation((selector) => {
@@ -114,5 +119,6 @@ describe('Header', () => {
 
     expect(screen.getByTestId('user-profile-dropdown')).toBeInTheDocument();
     expect(screen.getByText('OAuth유저')).toBeInTheDocument();
+    expect(screen.getByAltText('BRONZE tier')).toBeInTheDocument();
   });
 });

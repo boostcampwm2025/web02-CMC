@@ -9,6 +9,8 @@ type UserEntityLike = {
   id: string
   nickname: string
   avatarUrl: string | null
+  tier: string
+  rating: number
 }
 
 export class OAuthUserDto implements User {
@@ -17,6 +19,8 @@ export class OAuthUserDto implements User {
   providerId: string
   nickname: string
   avatarUrl?: string
+  tier: string
+  rating: number
 
   static fromEntity(payload: { user: UserEntityLike; oauth: OAuthEntityLike }): User {
     return {
@@ -25,6 +29,8 @@ export class OAuthUserDto implements User {
       providerId: payload.oauth.code,
       nickname: payload.user.nickname,
       avatarUrl: payload.user.avatarUrl ?? undefined,
+      tier: payload.user.tier,
+      rating: payload.user.rating,
     }
   }
 }

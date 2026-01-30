@@ -3,7 +3,7 @@ export interface BattleChat {
   battleId: string;
   scope: 'TEAM' | 'ALL';
   messageId: string;
-  sender: { userId: string; nickname: string };
+  sender: { userId: string; nickname: string; tier?: string };
   team: Team;
   text: string;
   createdAt: Date | string;
