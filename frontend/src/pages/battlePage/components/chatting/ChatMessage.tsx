@@ -45,7 +45,7 @@ export default function ChatMessage({ user, team, content, timestamp, showTeamBa
         <span className="text-[0.688rem] text-[#666]">{getTimeAgo(timestamp)}</span>
       </div>
       <div className={`flex items-center gap-2 ${isYou ? 'flex-row-reverse' : ''}`}>
-        <div className={`${isYou ? 'bg-[#6B3410]' : 'bg-[#2D2D3F]'}  rounded-lg px-3 py-2 max-w-[17.5rem]`}>
+        <div className={`${isYou ? 'bg-[#6B3410]' : 'bg-[#2D2D3F]'}  rounded-lg px-3 py-2 max-w-[17.5rem] break-words`}>
           <p className="text-xs text-white text-left">{content}</p>
         </div>
       </div>
