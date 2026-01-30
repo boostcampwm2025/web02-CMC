@@ -58,6 +58,7 @@ export interface BattleChat {
   sender: {
     userId: string
     nickname: string
+    tier?: string
   }
   text: string
   createdAt: Date

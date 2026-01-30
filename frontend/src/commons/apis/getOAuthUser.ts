@@ -7,6 +7,8 @@ interface OAuthUserResponse {
   providerId: string;
   nickname: string;
   avatarUrl?: string;
+  tier: string;
+  rating: number;
 }
 
 function isOAuthUserResponse(data: unknown): data is OAuthUserResponse {
@@ -28,7 +30,9 @@ function isOAuthUserResponse(data: unknown): data is OAuthUserResponse {
     typeof obj.provider === 'string' &&
     (obj.provider === 'github' || obj.provider === 'kakao') &&
     typeof obj.providerId === 'string' &&
-    (obj.avatarUrl === undefined || typeof obj.avatarUrl === 'string')
+    (obj.avatarUrl === undefined || typeof obj.avatarUrl === 'string') &&
+    typeof obj.tier === 'string' &&
+    typeof obj.rating === 'number'
   );
 }
 
@@ -59,7 +63,9 @@ const getOAuthUser = async (): Promise<AuthUser> => {
           id: retryData.id,
           nickname: retryData.nickname,
           type: 'oauth',
-          avatarUrl: retryData.avatarUrl
+          avatarUrl: retryData.avatarUrl,
+          tier: retryData.tier,
+          rating: retryData.rating
         };
 
         return user;
@@ -82,7 +88,9 @@ const getOAuthUser = async (): Promise<AuthUser> => {
       id: data.id,
       nickname: data.nickname,
       type: 'oauth',
-      avatarUrl: data.avatarUrl
+      avatarUrl: data.avatarUrl,
+      tier: data.tier,
+      rating: data.rating
     };
 
     return user;

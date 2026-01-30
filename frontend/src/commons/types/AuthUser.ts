@@ -5,5 +5,7 @@ export interface AuthUser {
   nickname: string;
   type: UserType;
   avatarUrl?: string;
+  tier?: string;
+  rating?: number;
   battleId?: string; // 비회원 로그인인 경우에만 존재
 }

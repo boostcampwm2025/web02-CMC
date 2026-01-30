@@ -73,7 +73,8 @@ export function useBattleChat() {
         battleId,
         sender: {
           userId: user.id,
-          nickname: user.nickname
+          nickname: user.nickname,
+          tier: user.tier
         },
         team,
         scope,

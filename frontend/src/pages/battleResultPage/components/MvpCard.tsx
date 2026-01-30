@@ -67,7 +67,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
                   <Award className="w-4 h-4 text-yellow-300 flex-shrink-0 mt-1" />
                   <div className="flex-1 text-left">
                     <div className="text-white/90 text-xs font-medium mb-1">가장 많은 좋아요를 받은 의견</div>
-                    <p className="text-white text-sm leading-relaxed">{bestOpinion.content}</p>
+                    <p className="text-white text-sm leading-relaxed break-all">{bestOpinion.content}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-white/10">

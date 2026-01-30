@@ -33,7 +33,7 @@ export class OauthService {
         data: {
           id: userId,
           nickname,
-          tier: 'UNRANKED',
+          tier: 'BRONZE',
           rating: 0,
           avatarUrl: p.avatarUrl ?? null,
         },

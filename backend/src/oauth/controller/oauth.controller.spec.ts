@@ -225,6 +225,8 @@ describe('OauthController', () => {
         providerId: '12345',
         nickname: '사용자_12345',
         avatarUrl: 'https://example.com/avatar.jpg',
+        tier: 'BRONZE',
+        rating: 0,
       }
 
       const mockReq = {
@@ -254,6 +256,8 @@ describe('OauthController', () => {
         id: 'user-123',
         nickname: 'newNickname',
         avatarUrl: 'https://example.com/avatar.jpg',
+        tier: 'BRONZE',
+        rating: 0,
       }
 
       const mockReq = {
