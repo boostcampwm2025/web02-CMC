@@ -2,23 +2,23 @@ changelog:
   categories:
     - title: "🚀 기능"
       labels:
-        - "task"
-        - "story"
-        - "epic"
+        - "🎯 task"
+        - "📖 story"
+        - "⭐️ epic"
 
     - title: "🛠 버그 수정"
       labels:
-        - "fix"
-        - "test"
+        - "🔥 fix"
+        - "🪄 test"
 
     - title: "♻️ 리팩토링"
       labels:
-        - "refactoring"
+        - "🔍 refactoring"
 
     - title: "⚙️ 설정/인프라"
       labels:
-        - "settings"
-        - "documentation"
+        - "⚙️ settings"
+        - "📄 documentation"
 
   exclude:
     labels:
