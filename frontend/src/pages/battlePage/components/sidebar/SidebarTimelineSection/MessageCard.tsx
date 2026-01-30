@@ -34,7 +34,7 @@ export default function MessageCard({ message, team, type }: MessageCardProps) {
           <span className="text-gray-500 text-[0.625rem]">{message.upvotes}명 지지</span>
         </div>
       </div>
-      <p className="text-gray-300 mb-2 leading-relaxed text-[0.688rem] break-words">{message.content}</p>
+      <p className="text-gray-300 mb-2 leading-relaxed text-[0.688rem] break-all">{message.content}</p>
     </div>
   );
 }

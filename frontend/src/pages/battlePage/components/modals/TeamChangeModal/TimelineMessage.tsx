@@ -38,7 +38,7 @@ export default function TimelineMessage({ message, team, type }: TimelineMessage
       </div>
 
       {/* 메시지 내용 */}
-      <p className="text-gray-300 leading-relaxed text-sm">{message.content}</p>
+      <p className="text-gray-300 leading-relaxed text-sm break-words">{message.content}</p>
     </div>
   );
 }
