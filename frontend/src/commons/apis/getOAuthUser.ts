@@ -1,4 +1,5 @@
 import type { AuthUser } from '@/commons/types/AuthUser';
+import refreshToken from './postRefreshToken';
 
 interface OAuthUserResponse {
   id: string;
