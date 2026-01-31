@@ -3,10 +3,10 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import BattleCreatePage from './index';
-import * as postCreateBattleApi from '@/commons/apis/postCreateBattle';
+import * as postCreateBattleApi from './api/createBattle';
 import * as formatCodeUtil from '@/commons/utils/codeFormatter';
 
-vi.mock('@/commons/apis/postCreateBattle');
+vi.mock('./api/createBattle');
 vi.mock('@/commons/utils/codeFormatter');
 vi.mock('@/commons/stores/authStore', () => ({
   useAuthStore: vi.fn((selector: any) => {

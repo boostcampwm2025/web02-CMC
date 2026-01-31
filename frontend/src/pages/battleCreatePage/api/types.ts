@@ -18,6 +18,7 @@ export interface CreateBattleRequest {
 
 export interface CreateBattleResponse {
   battleId: string;
+  inviteCode?: string;
 }
 
 export function isCreateBattleResponse(data: unknown): data is CreateBattleResponse {
