@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
 import NicknamePage from './index';
 import { useAuthStore } from '@/commons/stores/authStore';
 import updateOAuthNickname from './apis/updateOAuthNickname';
+import { renderWithProviders } from '@/test/testUtils';
 
 // 모킹
 vi.mock('@/commons/stores/authStore', () => ({
@@ -43,16 +43,8 @@ describe('NicknamePage', () => {
     vi.mocked(useAuthStore.setState).mockImplementation(() => {});
   });
 
-  const renderWithRouter = () => {
-    return render(
-      <BrowserRouter>
-        <NicknamePage />
-      </BrowserRouter>
-    );
-  };
-
   it('닉네임 페이지가 올바르게 렌더링된다', () => {
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     expect(screen.getByText('코문철')).toBeInTheDocument();
     expect(screen.getByText('닉네임 설정')).toBeInTheDocument();
@@ -63,7 +55,7 @@ describe('NicknamePage', () => {
 
   it('닉네임 입력 필드에 값을 입력할 수 있다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -73,7 +65,7 @@ describe('NicknamePage', () => {
 
   it('닉네임이 비어있으면 에러 메시지를 표시한다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const submitButton = screen.getByRole('button', { name: '시작하기' });
     await user.click(submitButton);
@@ -85,7 +77,7 @@ describe('NicknamePage', () => {
 
   it('닉네임이 8글자를 초과하면 에러 메시지를 표시한다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)') as HTMLInputElement;
 
@@ -104,7 +96,7 @@ describe('NicknamePage', () => {
   it('닉네임 앞뒤 공백을 제거하고 제출한다', async () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockResolvedValue();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '  테스트  ');
@@ -121,7 +113,7 @@ describe('NicknamePage', () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockResolvedValue();
 
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -139,7 +131,7 @@ describe('NicknamePage', () => {
   it('닉네임 제출 중에는 버튼이 비활성화되고 로딩 텍스트가 표시된다', async () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockImplementation(() => new Promise(() => {})); // 무한 대기
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -157,7 +149,7 @@ describe('NicknamePage', () => {
     const user = userEvent.setup();
     const errorMessage = '닉네임 설정에 실패했습니다.';
     vi.mocked(updateOAuthNickname).mockRejectedValue(new Error(errorMessage));
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -174,7 +166,7 @@ describe('NicknamePage', () => {
   it('에러 메시지가 표시된 후 입력하면 에러가 사라진다', async () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockRejectedValue(new Error('에러'));
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -194,7 +186,7 @@ describe('NicknamePage', () => {
   });
 
   it('입력 필드의 maxLength가 8로 설정되어 있다', () => {
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     expect(input).toHaveAttribute('maxLength', '8');

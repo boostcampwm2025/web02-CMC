@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
 import BattleCreatePage from './index';
 import * as postCreateBattleApi from './api/createBattle';
 import * as formatCodeUtil from '@/commons/utils/codeFormatter';
+import { renderWithProviders } from '@/test/testUtils';
 
 vi.mock('./api/createBattle');
 vi.mock('@/commons/utils/codeFormatter');
@@ -32,10 +32,6 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-const renderWithRouter = (component: React.ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
-};
-
 describe('BattleCreatePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,7 +40,7 @@ describe('BattleCreatePage', () => {
   });
 
   it('배틀 생성 페이지가 올바르게 렌더링된다', () => {
-    renderWithRouter(<BattleCreatePage />);
+    renderWithProviders(<BattleCreatePage />);
 
     expect(screen.getByText('새 배틀 생성')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/예: 배열에서 중복 제거하기/i)).toBeInTheDocument();
@@ -58,7 +54,7 @@ describe('BattleCreatePage', () => {
       inviteCode: 'test-invite-code'
     });
 
-    renderWithRouter(<BattleCreatePage />);
+    renderWithProviders(<BattleCreatePage />);
 
     await user.type(screen.getByPlaceholderText(/예: 배열에서 중복 제거하기/i), 'Test Battle');
     await user.type(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i), 'Test Description');
@@ -80,7 +76,7 @@ describe('BattleCreatePage', () => {
     const errorMessage = '배틀 생성에 실패했습니다.';
     vi.mocked(postCreateBattleApi.default).mockRejectedValue(new Error(errorMessage));
 
-    renderWithRouter(<BattleCreatePage />);
+    renderWithProviders(<BattleCreatePage />);
 
     await user.type(screen.getByPlaceholderText(/예: 배열에서 중복 제거하기/i), 'Test Battle');
     await user.type(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i), 'Test Description');
