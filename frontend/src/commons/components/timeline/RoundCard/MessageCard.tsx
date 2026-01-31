@@ -34,7 +34,7 @@ export default function MessageCard({ message, team, formatTime }: MessageCardPr
         <span className="text-gray-500 text-xs">{formatTime(new Date(message.createdAt).getTime())}</span>
       </div>
 
-      <p className="text-gray-300 mb-4 leading-relaxed text-sm">{message.content}</p>
+      <p className="text-gray-300 mb-4 leading-relaxed text-sm break-all">{message.content}</p>
       <div
         className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 w-fit ${
           isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'

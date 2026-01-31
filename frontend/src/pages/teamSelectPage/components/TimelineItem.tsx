@@ -90,12 +90,12 @@ export default function TimelineItem({
             <span className="text-[#4CAF50] text-xs font-semibold">이의제기</span>
             <span className="text-[#99A1AF] text-xs">by {relatedAttack.author}</span>
           </div>
-          <p className="text-[#B0B0B0] text-xs line-clamp-2">{relatedAttack.content}</p>
+          <p className="text-[#B0B0B0] text-xs line-clamp-2 break-words">{relatedAttack.content}</p>
         </div>
       )}
 
       {/* 내용 */}
-      <p className="text-[#E0E0E0] text-sm mb-3">{content}</p>
+      <p className="text-[#E0E0E0] text-sm mb-3 break-words">{content}</p>
 
       {/* 좋아요 */}
       <div className="flex items-center gap-1">

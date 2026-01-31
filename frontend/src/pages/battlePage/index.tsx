@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
-import { useTutorial } from './hooks/useTutorial';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
@@ -16,8 +15,6 @@ import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
-import TutorialModal from './components/tutorial/TutorialModal';
-import TutorialStepModal from './components/tutorial/TutorialStepModal';
 import TeamChangeModal from './components/modals/TeamChangeModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
@@ -38,7 +35,6 @@ export default function BattlePage() {
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
-  const sidebarOpenedForTutorial = useRef(false);
   const user = useAuthStore(selectUser);
   const leaveBattle = useBattleStore((s) => s.leaveBattle);
   const battleProgress = useBattleStore(selectBattleProgress);
@@ -89,17 +85,6 @@ export default function BattlePage() {
     };
   }, [safeLeaveBattle]);
 
-  // 튜토리얼 관리
-  const {
-    isModalOpen: isTutorialOpen,
-    currentStep,
-    dontShowAgain,
-    startTutorial,
-    nextStep,
-    prevStep,
-    setDontShowAgain
-  } = useTutorial();
-
   // 사운드 초기화
   useEffect(() => {
     soundManager.preload('timerWarning', '/sounds/timerSound.wav');
@@ -121,22 +106,6 @@ export default function BattlePage() {
       soundManager.playBGM(BGM_OPTIONS[0].key);
     }
   }, []);
-
-  useEffect(() => {
-    const shouldOpenSidebar = isTutorialOpen && currentStep === 'sidebarPanel';
-
-    if (shouldOpenSidebar && !isSidebarOpen) {
-      setActiveSidebarTab('info');
-      handleOpenSidebar();
-      sidebarOpenedForTutorial.current = true;
-      return;
-    }
-
-    if (!shouldOpenSidebar && sidebarOpenedForTutorial.current) {
-      handleCloseSidebar();
-      sidebarOpenedForTutorial.current = false;
-    }
-  }, [currentStep, isSidebarOpen, isTutorialOpen, handleCloseSidebar, handleOpenSidebar]);
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -186,7 +155,6 @@ export default function BattlePage() {
           handleOpenSidebar();
         }}
         isOpen={isSidebarOpen}
-        highlight={isTutorialOpen && currentStep === 'sidebar'}
         hasReferenceData={!!battleInfo.referenceData}
       />
 
@@ -199,7 +167,6 @@ export default function BattlePage() {
         language={battleInfo.language}
         category={battleInfo.category}
         topics={battleInfo.topics}
-        raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
         referenceData={battleInfo.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
@@ -295,18 +262,6 @@ export default function BattlePage() {
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
-        <TutorialModal
-          isOpen={isTutorialOpen && currentStep === 'welcome'}
-          onStart={startTutorial}
-          dontShowAgain={dontShowAgain}
-          onDontShowAgainChange={setDontShowAgain}
-        />
-        <TutorialStepModal
-          isOpen={isTutorialOpen && currentStep !== 'welcome' && currentStep !== 'completed'}
-          currentStep={currentStep}
-          onNext={nextStep}
-          onPrev={prevStep}
-        />
       </div>
     </div>
   );

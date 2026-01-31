@@ -81,10 +81,10 @@ export default function Step1BattleInfo({
         {/* 배틀 정보 카드 */}
         <div className="bg-[#16162a] rounded-lg battle-info-card-padding border border-[#2d2d3f] mb-4 shadow-lg w-full">
           <div className="flex items-center gap-2 mb-3">
-            <Swords className="battle-info-swords-size text-orange-500" />
-            <h3 className="text-white battle-info-title-size font-bold">{title}</h3>
+            <Swords className="battle-info-swords-size text-orange-500 flex-shrink-0" />
+            <h3 className="text-white battle-info-title-size font-bold break-words min-w-0 text-left">{title}</h3>
           </div>
-          <p className="text-gray-400 battle-info-desc-size mb-4 text-left">{description}</p>
+          <p className="text-gray-400 battle-info-desc-size mb-4 text-left break-words">{description}</p>
           <div className="flex flex-wrap gap-3">
             <div className="flex flex-col gap-1">
               <span className="text-xs text-gray-500">카테고리</span>
