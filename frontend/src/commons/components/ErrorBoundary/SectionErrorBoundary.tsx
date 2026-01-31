@@ -1,8 +1,10 @@
 import React, { Component, type ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
   fallback: (error: Error, reset: () => void) => ReactNode;
+  section?: string; // 섹션 이름
 }
 
 interface State {
@@ -28,6 +30,28 @@ export default class SectionErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Section error:', error, errorInfo);
+
+    const errorComponent = errorInfo.componentStack?.split('\n')[1]?.trim() || 'Unknown';
+
+    Sentry.captureException(error, {
+      level: 'warning',
+      tags: {
+        errorBoundary: 'section',
+        section: this.props.section || 'unknown',
+        component: errorComponent
+      },
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack
+        }
+      },
+      extra: {
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        errorMessage: error.message,
+        errorName: error.name
+      }
+    });
   }
 
   reset = () => {
