@@ -1,4 +1,5 @@
 import React, { Component, type ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 import ErrorPage from '../../../pages/errorPage';
 
 interface Props {
@@ -9,8 +10,6 @@ interface State {
   hasError: boolean;
   error: Error | null;
 }
-
-// @Todos 센트리 도입 시 에러 로깅 추가
 
 export default class GlobalErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -29,7 +28,26 @@ export default class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    const errorComponent = errorInfo.componentStack?.split('\n')[1]?.trim() || 'Unknown';
+
+    Sentry.captureException(error, {
+      level: 'error',
+      tags: {
+        errorBoundary: 'global',
+        component: errorComponent
+      },
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack
+        }
+      },
+      extra: {
+        url: window.location.href,
+        timestamp: new Date().toISOString(),
+        errorMessage: error.message,
+        errorName: error.name
+      }
+    });
   }
 
   render() {
