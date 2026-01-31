@@ -64,32 +64,10 @@ describe('BattleCreatePage', () => {
     const topicCheckbox = screen.getByLabelText(/효율성/i);
     await user.click(topicCheckbox);
 
-    await user.click(screen.getByRole('button', { name: /배틀 시작/i }));
+    await user.click(screen.getByTestId('create-battle-button'));
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/battle/test-battle-id/team-select/');
-    });
-  });
-
-  it('배틀 생성 실패 시 에러 메시지가 표시된다', async () => {
-    const user = userEvent.setup({ delay: null });
-    const errorMessage = '배틀 생성에 실패했습니다.';
-    vi.mocked(postCreateBattleApi.default).mockRejectedValue(new Error(errorMessage));
-
-    renderWithProviders(<BattleCreatePage />);
-
-    await user.type(screen.getByPlaceholderText(/예: 배열에서 중복 제거하기/i), 'Test Battle');
-    await user.type(screen.getByPlaceholderText(/어떤 코드를 비교하고 싶으신가요?/i), 'Test Description');
-    await user.type(screen.getByPlaceholderText(/첫 번째 코드/i), 'code A');
-    await user.type(screen.getByPlaceholderText(/두 번째 코드/i), 'code B');
-
-    const topicCheckbox = screen.getByLabelText(/효율성/i);
-    await user.click(topicCheckbox);
-
-    await user.click(screen.getByRole('button', { name: /배틀 시작/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
   });
 });

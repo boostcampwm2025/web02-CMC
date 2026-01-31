@@ -22,7 +22,7 @@ export default function NicknamePage() {
     }
 
     setError(null);
-    await updateNickname(trimmedNickname);
+    updateNickname(trimmedNickname);
   };
 
   return (

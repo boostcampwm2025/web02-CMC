@@ -72,7 +72,7 @@ export default function BattleCreatePage() {
       return;
     }
 
-    await createBattle({
+    createBattle({
       authorId,
       title: title.trim(),
       description: description.trim(),
@@ -239,6 +239,7 @@ export default function BattleCreatePage() {
                   type="button"
                   disabled={!canSubmit || isPending}
                   onClick={handleSubmit}
+                  data-testid="create-battle-button"
                   className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4" />

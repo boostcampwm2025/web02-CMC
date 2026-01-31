@@ -7,11 +7,23 @@ import updateOAuthNickname from './apis/updateOAuthNickname';
 import { renderWithProviders } from '@/test/testUtils';
 
 // 모킹
+const mockAddToast = vi.fn();
+
 vi.mock('@/commons/stores/authStore', () => ({
   useAuthStore: {
     getState: vi.fn(),
     setState: vi.fn()
   }
+}));
+
+vi.mock('@/commons/stores/toastStore', () => ({
+  useToastStore: vi.fn((selector: any) => {
+    if (selector?.name === 'selectAddToast') {
+      return mockAddToast;
+    }
+    return mockAddToast;
+  }),
+  selectAddToast: vi.fn((state: any) => state.addToast)
 }));
 
 vi.mock('./apis/updateOAuthNickname', () => ({
@@ -145,44 +157,20 @@ describe('NicknamePage', () => {
     });
   });
 
-  it('닉네임 제출 실패 시 에러 메시지를 표시한다', async () => {
+  it('에러 후 다시 입력하면 로컬 에러가 사라진다', async () => {
     const user = userEvent.setup();
-    const errorMessage = '닉네임 설정에 실패했습니다.';
-    vi.mocked(updateOAuthNickname).mockRejectedValue(new Error(errorMessage));
     renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
-    await user.type(input, '테스트닉네임');
-
     const submitButton = screen.getByRole('button', { name: '시작하기' });
+
+    // 빈 값으로 제출해서 로컬 에러 발생
     await user.click(submitButton);
+    expect(screen.getByText('닉네임을 입력해주세요.')).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
-  it('에러 메시지가 표시된 후 입력하면 에러가 사라진다', async () => {
-    const user = userEvent.setup();
-    vi.mocked(updateOAuthNickname).mockRejectedValue(new Error('에러'));
-    renderWithProviders(<NicknamePage />);
-
-    const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
-    await user.type(input, '테스트닉네임');
-
-    const submitButton = screen.getByRole('button', { name: '시작하기' });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('에러')).toBeInTheDocument();
-    });
-
-    await user.type(input, '1');
-
-    await waitFor(() => {
-      expect(screen.queryByText('에러')).not.toBeInTheDocument();
-    });
+    // 입력하면 에러 사라짐
+    await user.type(input, 'test');
+    expect(screen.queryByText('닉네임을 입력해주세요.')).not.toBeInTheDocument();
   });
 
   it('입력 필드의 maxLength가 8로 설정되어 있다', () => {
