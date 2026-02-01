@@ -48,8 +48,8 @@ export function useBattleSocket() {
       });
     });
 
-    // 배틀 참여 성공시 데이터 수신
-    newSocket.once('battle:joined', (data: BattleJoinData) => {
+    // 배틀 참여 성공시 데이터 동기화
+    newSocket.on('battle:joined', (data: BattleJoinData) => {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
