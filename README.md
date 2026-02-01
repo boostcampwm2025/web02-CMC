@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="image" src="https://github.com/user-attachments/assets/7f37e5c4-7cb2-46a2-9aa4-cbeb0693c522" />
+  <img alt="fight" src="https://velog.velcdn.com/images/d159123/post/b373ceea-8986-486d-b1a9-97f01f2cffb8/image.gif" />
 </p>
 
 <div align="center">
@@ -36,7 +36,7 @@
 # 🥊 코드 리뷰 배틀 아레나 — **코문철(CMC)**
 
 ![status](https://img.shields.io/badge/status-active-success)
-![updated](https://img.shields.io/badge/updated-2026.01.29-blue)
+![updated](https://img.shields.io/badge/updated-2026.02.01-blue)
 
 > 안녕하세요, 코문철 TV입니다.
 >
@@ -146,6 +146,8 @@
 
 ## 🧩 기능 하이라이트
 
+🔗 [코문철의 서비스가 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EB%8A%A5#%EA%B8%B0%EB%8A%A5-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8A%B8)
+
 | ⭐ 기능                           | 📝 설명                                                                                |
 | --------------------------------- | -------------------------------------------------------------------------------------- |
 | **1️⃣ 튜토리얼**                   | 처음 사용하는 사용자도 쉽게 적응할 수 있도록 기본 규칙과 진행 방식을 안내합니다.       |
@@ -154,34 +156,17 @@
 | **4️⃣ 다양한 애니메이션과 효과음** | 몰입감을 높이고 재미있는 사용자 경험을 제공하기 위해 시각적·청각적 요소를 추가합니다.  |
 | **5️⃣ MVP 선정 및 티어 시스템**    | 토론 기여도를 기반으로 MVP를 선정하고 티어를 부여하여 참여 동기를 강화합니다.          |
 
-🔗 [코문철의 기능이 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EB%8A%A5#%EA%B8%B0%EB%8A%A5-%ED%95%98%EC%9D%B4%EB%9D%BC%EC%9D%B4%ED%8A%B8)
+## 👷 시스템 아키텍처
+
+🔗 [코문철의 아키텍처가 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D#%EF%B8%8F-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D)
+<img width="800" alt="web02_Architecture V2" src="https://github.com/user-attachments/assets/b4180bc5-7078-4f14-9173-f9ed2357699b" />
 
 ## 🛠️ 기술 스택
 
 🔗 [코문철의 기술스택이 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D#%EF%B8%8F-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D)
 
+<img width="800" alt="web02_tech_stack" src="https://github.com/user-attachments/assets/0a57c077-0de7-4d8e-815f-48b6e540815c" />
+
 ## 🤔 우리의 프로젝트가 더 궁금하다면?
 
-### 위키
-
-📒 **[회의록](https://lovely-sunstone-c80.notion.site/2c4d7ffb4ba480eb898dc1c5de86ba71)**
-
-❕ **[이슈](https://github.com/orgs/boostcampwm2025/projects/213)**
-
-📖 **[Wiki](https://github.com/boostcampwm2025/web02-CMC/wiki)**
-
-### 기획/디자인 링크
-
-🎨 **[Figjam 보드](https://www.figma.com/board/INklVDO6dIMFGDE7FX6JHm/GP_web_02?node-id=0-1&p=f&t=71H5fpkiii9inLLO-0)**
-
-## 회의록/이슈/위키 연결 : 협업과 개발 과정의 문서 자료
-
-📒 **[회의록](https://lovely-sunstone-c80.notion.site/2c4d7ffb4ba480eb898dc1c5de86ba71)**
-
-❕ **[이슈](https://github.com/orgs/boostcampwm2025/projects/213)**
-
-📖 **[Wiki](https://github.com/boostcampwm2025/web02-CMC/wiki)**
-
-## 배포 링크가 있을 경우 해당 링크도 기술
-
-- 나중에 추가
+[👉 위키 구경하기](https://github.com/boostcampwm2025/web02-CMC/wiki)
