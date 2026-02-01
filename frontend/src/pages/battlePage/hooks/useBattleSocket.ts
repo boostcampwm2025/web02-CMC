@@ -30,8 +30,8 @@ export function useBattleSocket() {
       auth: { userId },
       reconnection: true,
       reconnectionAttempts: 3,
-      reconnectionDelay: 500,
-      reconnectionDelayMax: 3000,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
       timeout: 5000,
       upgrade: false
     });

@@ -59,7 +59,7 @@ export default function StageIndicator() {
   const battleInfo = useLoaderData<BattleInfo>();
   if (!battleProgress) return;
 
-  const topics = battleInfo.topics;
+  const topics = battleInfo?.topics || [];
   const { round, phaseCount } = battleProgress;
   const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
   const { IconComponent, category, message, container, icon } = PHASE_CONFIG[phase] || PHASE_CONFIG.PENDING;

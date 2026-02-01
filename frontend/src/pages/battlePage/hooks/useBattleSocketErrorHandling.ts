@@ -7,9 +7,20 @@ export function useBattleSocketErrorHandling() {
   useEffect(() => {
     if (!socket) return;
 
+    // 연결 성공 핸들러
+    socket.on('connect', () => {
+      setIsConnected(true);
+      setConnectionError({ type: null, attemptCount: 0, message: '' });
+    });
+
+    // 재연결 성공 핸들러
+    socket.io.on('reconnect', () => {
+      setIsConnected(true);
+      setConnectionError({ type: null, attemptCount: 0, message: '' });
+    });
+
     // 연결 해제 핸들러
     socket.on('disconnect', (reason) => {
-      console.log('[Socket] Disconnected:', reason);
       setIsConnected(false);
       setConnectionError({ type: 'disconnected', attemptCount: 0, message: '소켓 연결이 끊어졌습니다' });
 
@@ -29,7 +40,7 @@ export function useBattleSocketErrorHandling() {
     });
 
     // 재연결 시도 핸들러
-    socket.on('reconnect_attempt', (attemptNumber) => {
+    socket.io.on('reconnect_attempt', (attemptNumber) => {
       console.log(`[Socket] Reconnecting... (${attemptNumber}/3)`);
       setConnectionError({
         type: 'reconnecting',
@@ -39,20 +50,22 @@ export function useBattleSocketErrorHandling() {
     });
 
     // 재연결 실패 핸들러
-    socket.on('reconnect_failed', () => {
-      console.error('[Socket] Reconnection failed after 3 attempts');
+    socket.io.on('reconnect_failed', () => {
+      setIsConnected(false);
       setConnectionError({
         type: 'failed',
         attemptCount: 3,
-        message: '재연결에 실패했습니다'
+        message: '재연결에 실패했습니다. 다시 시도해주세요.'
       });
     });
 
     return () => {
+      socket.off('connect');
       socket.off('disconnect');
       socket.off('connect_error');
-      socket.off('reconnect_attempt');
-      socket.off('reconnect_failed');
+      socket.io.off('reconnect');
+      socket.io.off('reconnect_attempt');
+      socket.io.off('reconnect_failed');
     };
   }, [socket, setIsConnected, setConnectionError]);
 }
