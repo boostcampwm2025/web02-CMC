@@ -57,42 +57,52 @@
 
 ## 🧑‍💻 팀원 소개
 
-<br/>
-
 <div align="center">
 
-<table>
-  <tr>
-    <td align="center">
-      <b>Danny</b><br/>
-      <img src="https://github.com/HoonDongKang.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
-    </td>
-    <td align="center">
-      <b>Ricky</b><br/>
-      <img src="https://github.com/rhxfkg.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
-    </td>
-    <td align="center">
-      <b>Steve</b><br/>
-      <img src="https://github.com/U-S-jun.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
-    </td>
-    <td align="center">
-      <b>Liger</b><br/>
-      <img src="https://github.com/JuJangGwon.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
-    </td>
-    <td align="center">
-      <b>Leo</b><br/>
-      <img src="https://github.com/jjjjjinseo.png?size=120" width="150" height="150" style="border-radius:50%"><br/>
-    </td>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><b><a href="https://github.com/HoonDongKang">J003_강동훈<a/></b></td>
-    <td align="center"><b><a href="https://github.com/rhxfkg">J120_박주형</a></b></td>
-    <td align="center"><b><a href="https://github.com/U-S-jun">J162_유승준</a></b></td>
-    <td align="center"><b><a href="https://github.com/JuJangGwon">J259_주장권</a></b></td>
-    <td align="center"><b><a href="https://github.com/jjjjjinseo">J263_진서연</a></b></td>
-  </tr>
+<table align="center">
+<tr>
+<td align="center">
+<a href="https://github.com/HoonDongKang">
+<img width="140" alt="image" src="https://github.com/user-attachments/assets/0d0cbaa8-1bc4-4a6c-a2b7-e6bcf930091d" /><br/>
+<b>Danny</b><br/>
+J003_강동훈
+</a>
+</td>
+
+<td align="center">
+<a href="https://github.com/JuJangGwon">
+<img width="140" alt="image" src="https://github.com/user-attachments/assets/4213f7b6-37e5-458b-a4e8-36d6819fa1bb" /><br/>
+<b>Liger</b><br/>
+J259_주장권
+</a>
+</td>
+
+<td align="center">
+<a href="https://github.com/rhxfkg">
+<img width="145" alt="image" src="https://github.com/user-attachments/assets/00338d1d-0d61-4d00-a344-a013c261e312" /><br/>
+<b>Ricky</b><br/>
+J120_박주형
+</a>
+</td>
+
+<td align="center">
+<a href="https://github.com/jjjjjinseo">
+<img width="140" alt="image" src="https://github.com/user-attachments/assets/7f378b0f-d915-4baf-a9fe-f502dac0c808" /><br/>
+<b>Leo</b><br/>
+J263_진서연
+</a>
+</td>
+
+<td align="center">
+<a href="https://github.com/U-S-jun">
+<img width="140" src="https://github.com/user-attachments/assets/30102ce3-0c8b-494f-a497-5dc7f679f2c3" /><br/>
+<b>Steve</b><br/>
+J162_유승준
+</a>
+</td>
+</tr>
 </table>
+
 </div>
 
 <br>
