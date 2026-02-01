@@ -159,7 +159,8 @@
 ## 👷 시스템 아키텍처
 
 🔗 [코문철의 아키텍처가 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D#%EF%B8%8F-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D)
-<img width="800" alt="web02_Architecture V2" src="https://github.com/user-attachments/assets/b4180bc5-7078-4f14-9173-f9ed2357699b" />
+
+<img width="800" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/c57601e7-0227-4077-98c2-c2f8021b6b8c/image.png" />
 
 ## 🛠️ 기술 스택
 
