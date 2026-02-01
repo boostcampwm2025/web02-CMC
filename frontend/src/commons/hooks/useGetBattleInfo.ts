@@ -7,7 +7,8 @@ export function useGetBattleInfo(battleId: string) {
     queryFn: () => getBattleInfo(battleId),
     staleTime: 0,
     gcTime: 1000 * 60 * 5,
-    enabled: !!battleId
+    enabled: !!battleId,
+    throwOnError: true
   });
 
   return {

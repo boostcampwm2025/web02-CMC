@@ -18,7 +18,7 @@ import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { battleInfo: battleInfoData, isLoading } = useGetBattleInfo(id!);
+  const { battleInfo: battleInfoData } = useGetBattleInfo(id!);
   const hasReferenceData = !!battleInfoData?.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
@@ -28,13 +28,8 @@ export default function TeamSelectPage() {
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
-  // Early return after all hooks
-  if (isLoading || !battleInfoData) {
-    return (
-      <main className="min-h-screen bg-[#0a0a1a] flex items-center justify-center">
-        <div className="text-white">로딩 중...</div>
-      </main>
-    );
+  if (!battleInfoData) {
+    return null;
   }
 
   const battleInfo = battleInfoData;
