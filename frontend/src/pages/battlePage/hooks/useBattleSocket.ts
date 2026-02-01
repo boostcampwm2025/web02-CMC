@@ -134,8 +134,19 @@ export function useBattleSocket() {
       });
     });
 
+    // 연결 해제 핸들러
+    newSocket.on('disconnect', (reason) => {
+      console.log('[Socket] Disconnected:', reason);
+      setIsConnected(false);
+
+      if (reason === 'io server disconnect') {
+        newSocket.connect();
+      }
+    });
+
     return () => {
       newSocket.off('connect');
+      newSocket.off('disconnect');
       newSocket.off('battle:joined');
       newSocket.off('battle:phase:updated');
       newSocket.off('battle:round:updated');
