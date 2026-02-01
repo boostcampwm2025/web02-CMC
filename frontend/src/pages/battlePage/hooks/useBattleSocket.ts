@@ -27,7 +27,13 @@ export function useBattleSocket() {
 
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket'],
-      auth: { userId }
+      auth: { userId },
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 3000,
+      timeout: 5000,
+      upgrade: false
     });
 
     setSocket(newSocket);
