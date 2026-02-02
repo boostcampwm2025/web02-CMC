@@ -1860,4 +1860,21 @@ export class BattlesService extends EventEmitter {
     await this.updatePhase(battleId)
     this.broadcaster.emitPhaseSkipped(battleId)
   }
+
+  // ==================== 채팅 메시지 추가 ====================
+  async appendChatMessage(dto: BattleChatDto, userId: string) {
+    const { battleId, scope, team, text } = dto
+    if (!battleId || !scope) throw new BadRequestException('잘못된 요청입니다.')
+    if (!text.trim()) throw new BadRequestException('메시지가 비어 있습니다.')
+
+    const { battleState } = await this.getBattleState(battleId)
+    const nickname = this.guestBuilder.getNicknameByUserId(battleState, userId) || ''
+    const userTier = await this.repository.findUniqueUser(userId, { tier: true })
+
+    const chat = this.chatHandler.createChatMessage(this.battleUtil.generateId(), userId, nickname, userTier?.tier ?? undefined, team, text)
+
+    this.chatHandler.handleChatMessage(battleState, chat, scope, team)
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    return { battleId, scope, ...chat }
+  }
 }
