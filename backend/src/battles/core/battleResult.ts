@@ -6,7 +6,7 @@ import { BATTLE_TEAM } from '../const/battles.const'
 type TeamBattleResult = 'WIN' | 'LOSE' | 'DRAW'
 
 @Injectable()
-export class BattleResultFactory {
+export class BattleResultBuilder {
   //배틀 결과 생성
   build(teamACount: number, teamBCount: number, totalParticipantsCount?: number | null, winningTeam?: string | null): BattleResult {
     const total = totalParticipantsCount ?? teamACount + teamBCount
