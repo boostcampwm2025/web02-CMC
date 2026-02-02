@@ -23,8 +23,8 @@ export class GeminiService implements OnModuleInit {
   private keyStats: Map<string, KeyUsageStats> = new Map()
   private keys: string[] = []
 
-  private rateLimitPerMinute: number = 15
-  private rateLimitPerDay: number = 1500
+  private rateLimitPerMinute: number = 5
+  private rateLimitPerDay: number = 20
   private readonly MINUTE_MS = 60 * 1000
   private readonly DAY_MS = 24 * 60 * 60 * 1000
   private readonly MAX_RETRIES = 3
@@ -48,8 +48,8 @@ export class GeminiService implements OnModuleInit {
       throw new Error('GEMINI_API_KEYS에 유효한 키가 없습니다.')
     }
 
-    this.rateLimitPerMinute = this.configService.get<number>('GEMINI_RATE_LIMIT_PER_MINUTE') ?? 15
-    this.rateLimitPerDay = this.configService.get<number>('GEMINI_RATE_LIMIT_PER_DAY') ?? 1500
+    this.rateLimitPerMinute = this.configService.get<number>('GEMINI_RATE_LIMIT_PER_MINUTE') ?? 5
+    this.rateLimitPerDay = this.configService.get<number>('GEMINI_RATE_LIMIT_PER_DAY') ?? 20
 
     for (const key of this.keys) {
       this.keyStats.set(key, {
@@ -104,7 +104,7 @@ export class GeminiService implements OnModuleInit {
         stats.consecutiveFailures++
 
         const errorType = this.classifyError(error)
-        this.logger.warn(`Gemini API 호출 실패 (시도 ${attempt + 1}/${this.MAX_RETRIES}, 키: ${apiKey.substring(0, 8)}...): ${errorType}`)
+        this.logger.warn(`Gemini API 호출 실패 (시도 ${attempt + 1}/${this.MAX_RETRIES}, 키: ${apiKey.substring(6, 14)}...): ${errorType}`)
 
         this.handleKeyFailure(apiKey, errorType)
 
@@ -189,7 +189,7 @@ export class GeminiService implements OnModuleInit {
     if (stats.consecutiveFailures >= 3) {
       stats.isDisabled = true
       stats.disabledUntil = Date.now() + disableDuration
-      this.logger.warn(`API 키 비활성화: ${apiKey.substring(0, 8)}... (${errorType})`)
+      this.logger.warn(`API 키 비활성화: ${apiKey.substring(6, 14)}... (${errorType})`)
     }
   }
 
@@ -241,7 +241,7 @@ export class GeminiService implements OnModuleInit {
     const keyStatuses = Array.from(this.keyStats.entries()).map(([key, stats]) => {
       this.cleanupOldRequests(stats, now)
       return {
-        keyPrefix: key.substring(0, 8) + '...',
+        keyPrefix: key.substring(6, 14) + '...',
         minuteUsage: stats.minuteRequests.length,
         dailyUsage: stats.dailyRequests.length,
         isDisabled: stats.isDisabled,
