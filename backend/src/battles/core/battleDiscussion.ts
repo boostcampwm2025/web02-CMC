@@ -94,4 +94,21 @@ export class BattleDiscussionHandler {
     state.teamA.defenses = []
     state.teamB.defenses = []
   }
+
+  createNullPlaceholder(team: 'A' | 'B', type: 'ATTACK' | 'DEFENSE'): BattleDiscussion {
+    const now = Date.now()
+    const discussionId = `null-${team}-${type}-${now}`
+    const teamValue = team === 'A' ? BATTLE_TEAM.A : BATTLE_TEAM.B
+
+    const base =
+      type === 'ATTACK'
+        ? this.createAttack(discussionId, '', '', '투표로 선정된 의견이 없습니다', teamValue)
+        : this.createDefense(discussionId, '', '', '투표로 선정된 의견이 없습니다', teamValue)
+
+    return {
+      ...base,
+      status: 'SELECTED',
+      selectedAt: now,
+    }
+  }
 }
