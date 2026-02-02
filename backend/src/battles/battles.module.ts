@@ -4,11 +4,13 @@ import { AuthController } from './controller/auth.controller'
 import { BattlesGateway } from './gateway/battles.gateway'
 import { BattlesService } from './service/battles.service'
 import { AuthService } from './service/auth.service'
+import { GuestService } from './service/guest.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
 
 // Core
+import { BattleResultBuilder } from './core/battleResult'
 import { BattleTimelineBuilder } from './core/battleTimeline'
 import { BattleMvpCalculator } from './core/battleMvp'
 import { BattleTierCalculator } from './core/battleTier'
@@ -22,8 +24,10 @@ import { BattleSkipHandler } from './core/battleSkip'
 
 // Infra
 import { BattleRepository } from './infra/battle.repository'
+import { BattleStateRepository } from './infra/battleState.repository'
 import { BattleBroadcaster } from './infra/battle.broadcaster'
 import { BattleUtil } from './infra/battle.util'
+import { BattleReferenceGenerator } from './infra/battleReference'
 
 // Runtime
 import { BattleTimerScheduler } from './runtime/battleTimerScheduler'
@@ -39,7 +43,9 @@ import { GuestBuilder } from './guest/guest.builder'
     BattlesService,
     PrismaService,
     AuthService,
+    GuestService,
     // Core
+    BattleResultBuilder,
     BattleTimelineBuilder,
     BattleMvpCalculator,
     BattleTierCalculator,
@@ -52,8 +58,10 @@ import { GuestBuilder } from './guest/guest.builder'
     BattleSkipHandler,
     // Infra
     BattleRepository,
+    BattleStateRepository,
     BattleBroadcaster,
     BattleUtil,
+    BattleReferenceGenerator,
     // Runtime
     BattleTimerScheduler,
     // Guest

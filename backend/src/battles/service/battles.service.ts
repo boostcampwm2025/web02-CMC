@@ -1878,6 +1878,13 @@ export class BattlesService extends EventEmitter {
     return { battleId, scope, ...chat }
   }
 
+  // ==================== 진영 변경 투표표 ====================
+  async voteTeam(dto: BattleTeamVoteDto, userId: string) {
+    const { battleState: state } = await this.getBattleState(dto.battleId)
+    this.teamSwitchHandler.voteTeam(state, userId, dto.team)
+    await this.stateRepository.saveBattleState(dto.battleId, state)
+  }
+
   // ==================== 페이즈 업데이트 ====================
   private async updatePhase(battleId: string): Promise<void> {
     const { battleState: state } = await this.getBattleState(battleId)
