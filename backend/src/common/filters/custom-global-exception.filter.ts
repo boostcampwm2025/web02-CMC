@@ -31,6 +31,14 @@ export class CustomGlobalExceptionFilter implements ExceptionFilter {
         message = exception.message
       }
 
+      // HTTP 예외 로깅 (5xx는 error, 4xx는 warn)
+      const logMessage = `[${request.method}] ${request.url} - ${status} ${message}`
+      if (status >= 500) {
+        this.logger.error(logMessage, exception.stack)
+      } else {
+        this.logger.warn(logMessage)
+      }
+
       response.status(status).json({
         statusCode: status,
         message,
@@ -42,8 +50,10 @@ export class CustomGlobalExceptionFilter implements ExceptionFilter {
       return
     }
 
-    // 예상치 못한 에러
-    this.logger.error('Unexpected error:', exception)
+    // 예상치 못한 에러 (Error 객체가 아닌 경우 포함)
+    const errorMessage = exception instanceof Error ? exception.message : String(exception)
+    const errorStack = exception instanceof Error ? exception.stack : undefined
+    this.logger.error(`[${request.method}] ${request.url} - 500 ${errorMessage}`, errorStack)
 
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
