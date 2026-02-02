@@ -76,12 +76,12 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     }
   }
 
-  handleDisconnect(client: SocketWithUserId) {
+  async handleDisconnect(client: SocketWithUserId) {
     const userId = client.data.userId
     const battleId = client.data.battleId
     if (userId && battleId) {
       try {
-        const result = this.battlesService.leaveBattle(userId, battleId)
+        const result = await this.battlesService.leaveBattle(userId, battleId)
         const battleRoomId = this.battlesService.getBattleRoomId(battleId)
         this.server.to(battleRoomId).emit('battle:leaved', result)
       } catch (error) {
