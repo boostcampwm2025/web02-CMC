@@ -1,0 +1,48 @@
+name: deploy-fe
+
+on:
+  workflow_dispatch:
+
+jobs:
+  upload-fe:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm" # pnpm 캐싱 활성화
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        env:
+          HUSKY: 0
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: pnpm -C frontend build
+
+      - name: Install AWS CLI (NCP compatible)
+        run: pip install awscli==1.15.85
+
+      - name: Upload to NCP Object Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
+        run: |
+          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/ \
+            --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
+            --delete \
+            --acl public-read
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Frontend deployed successfully!"
