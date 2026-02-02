@@ -2,6 +2,9 @@ name: deploy-fe
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/#334-object-storage-cicd
 
 jobs:
   upload-fe:
@@ -11,12 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # d
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -49,6 +54,5 @@ jobs:
             --acl public-read
 
       - name: Deployment summary
-        if: success()
         run: |
           echo "✅ Frontend deployed successfully!"
