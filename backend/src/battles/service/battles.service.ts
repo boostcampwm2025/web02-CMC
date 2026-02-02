@@ -1778,4 +1778,36 @@ export class BattlesService extends EventEmitter {
 
     return BattleLeaveResponseDto.of(battleState)
   }
+
+  // ==================== 공격 제출 ====================
+  async handleAttack(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): Promise<BattleDiscussion> {
+    const { authorId, content, team } = data
+    const { battleState } = await this.getBattleState(battleId)
+
+    const discussionId = this.battleUtil.generateId()
+    const getNickname = (userId: string) => this.guestBuilder.getNicknameByUserId(battleState, userId)
+
+    const attack = this.discussionHandler.handleAttack(battleState, authorId, content, team, discussionId, getNickname, (state, userTeam) =>
+      this.discussionPolicy.canUserSubmitAttack(state, userTeam),
+    )
+
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    return attack
+  }
+
+  // ==================== 반론 제출 ====================
+  async handleDefense(battleId: string, data: { authorId: string; content: string; team: BattleTeam }): Promise<BattleDefense> {
+    const { authorId, content, team } = data
+    const { battleState } = await this.getBattleState(battleId)
+
+    const discussionId = this.battleUtil.generateId()
+    const getNickname = (userId: string) => this.guestBuilder.getNicknameByUserId(battleState, userId)
+
+    const defense = this.discussionHandler.handleDefense(battleState, authorId, content, team, discussionId, getNickname, (state, userTeam) =>
+      this.discussionPolicy.canUserSubmitDefense(state, userTeam),
+    )
+
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    return defense
+  }
 }
