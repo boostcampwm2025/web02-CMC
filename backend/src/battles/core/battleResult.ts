@@ -1,8 +1,13 @@
 ﻿import { Injectable } from '@nestjs/common'
 import { BattleResult } from '../types/battleResult.types'
+import { BattleTeam } from '../types/battles.types'
+import { BATTLE_TEAM } from '../const/battles.const'
+
+type TeamBattleResult = 'WIN' | 'LOSE' | 'DRAW'
 
 @Injectable()
-export class BattleResultBuilder {
+export class BattleResultFactory {
+  //배틀 결과 생성
   build(teamACount: number, teamBCount: number, totalParticipantsCount?: number | null, winningTeam?: string | null): BattleResult {
     const total = totalParticipantsCount ?? teamACount + teamBCount
     const neutral = Math.max(total - teamACount - teamBCount, 0)
@@ -15,5 +20,14 @@ export class BattleResultBuilder {
       teamB: { votes: teamBCount, percentage: percentage(teamBCount) },
       neutral: { votes: neutral, percentage: percentage(neutral) },
     }
+  }
+
+  //배틀 결과 조회회
+  getBattleResultForTeam(team: BattleTeam, winningTeam: 'A' | 'B' | 'DRAW'): TeamBattleResult | null {
+    if (team === BATTLE_TEAM.NONE) return null
+    if (winningTeam === 'DRAW') return 'DRAW'
+    if (team === BATTLE_TEAM.A) return winningTeam === 'A' ? 'WIN' : 'LOSE'
+    if (team === BATTLE_TEAM.B) return winningTeam === 'B' ? 'WIN' : 'LOSE'
+    return null
   }
 }
