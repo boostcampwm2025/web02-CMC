@@ -1727,4 +1727,38 @@ export class BattlesService extends EventEmitter {
     await this.stateRepository.saveBattleState(battleId, state)
     return { battleState: state, team }
   }
+
+  // ==================== 배틀 시작 ====================
+  async startBattle(battleId: string) {
+    const { battleState } = await this.getBattleState(battleId)
+
+    const startedAt = Date.now()
+    const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
+
+    battleState.startedAt = startedAt
+    battleState.expiredAt = expiredAt
+    await this.repository.update(battleId, {
+      status: BATTLE_STATUS.OPEN,
+      updatedAt: new Date(),
+    })
+    await this.stateRepository.saveBattleState(battleId, battleState)
+
+    const phaseRes = BattlePhaseResponseDto.of({
+      battleId,
+      phase: battleState.phase,
+      phaseCount: battleState.phaseCount,
+      startedAt,
+      expiredAt,
+    })
+
+    const roundRes = BattleRoundResponseDto.of({
+      battleId,
+      round: 1,
+      topic: battleState.topics[0],
+    })
+
+    this.broadcaster.emitPhaseUpdated(phaseRes)
+    this.broadcaster.emitRoundUpdated(roundRes)
+    void this.scheduleNextTick(battleId)
+  }
 }
