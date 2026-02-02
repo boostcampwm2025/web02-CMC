@@ -1761,4 +1761,21 @@ export class BattlesService extends EventEmitter {
     this.broadcaster.emitRoundUpdated(roundRes)
     void this.scheduleNextTick(battleId)
   }
+
+  // ==================== 배틀 나가기 ====================
+  async leaveBattle(userId: string, battleId: string): Promise<BattleLeaveResponseDto> {
+    if (!userId || !battleId) throw new BadRequestException('유효하지 않은 요청입니다.')
+
+    const { state: battleState } = await this.stateRepository.loadBattleState(battleId)
+    battleState.teamA.users = battleState.teamA.users.filter(id => id !== userId)
+    battleState.teamB.users = battleState.teamB.users.filter(id => id !== userId)
+    battleState.teamVotes.delete(userId)
+    battleState.participants.delete(userId)
+    battleState.skipState.delete(userId)
+
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    await this.checkAndSkipPhase(battleId, battleState)
+
+    return BattleLeaveResponseDto.of(battleState)
+  }
 }
