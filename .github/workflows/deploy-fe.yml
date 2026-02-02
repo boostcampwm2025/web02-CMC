@@ -15,12 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        uses: pnpm/action-setup@v4"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -40,19 +35,22 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: pnpm -C frontend build
 
-      - name: Install AWS CLI (NCP compatible)
-        run: pip install awscli==1.15.85
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
 
-      - name: Upload to NCP Object Storage
+      - name: Deploy to NCP Object Storage
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
         run: |
-          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/ \
-            --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
+          aws --endpoint-url=${{ secrets.NCP_ENDPOINT }} \
+            s3 sync ./dist \
+            s3://${{ secrets.NCP_BUCKET }} \
             --delete \
             --acl public-read
 
-      - name: Deployment summary
-        run: |
-          echo "✅ Frontend deployed successfully!"
+      - name: Deployment success
+        if: success()
+        run: echo "✅ Frontend deployment to NCP Object Storage completed successfully!"
