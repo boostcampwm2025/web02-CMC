@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import UserIcon from '@/assets/icon/user.svg?react';
-import { useAuthStore } from '@/commons/stores/authStore';
-import updateOAuthNickname from '@/commons/apis/patchOAuthNickname';
+import { useUpdateNickname } from './queries/useUpdateNickname';
 
 export default function NicknamePage() {
-  const navigate = useNavigate();
   const [inputNickname, setInputNickname] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { mutateAsync: updateNickname, isPending } = useUpdateNickname();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,18 +21,8 @@ export default function NicknamePage() {
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
-
-    try {
-      await updateOAuthNickname(trimmedNickname);
-      // store의 user를 null로 설정하여 메인 페이지 loader에서 최신 정보를 가져오도록 함
-      useAuthStore.setState({ user: null });
-      navigate('/');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '닉네임 설정에 실패했습니다.');
-      setIsSubmitting(false);
-    }
+    updateNickname(trimmedNickname);
   };
 
   return (
@@ -79,11 +67,11 @@ export default function NicknamePage() {
             </div>
 
             <button
-              disabled={isSubmitting}
+              disabled={isPending}
               type="submit"
               className="w-full px-5 lg:px-6 py-3 lg:py-4 rounded-xl font-semibold text-sm lg:text-base xl:text-lg bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all duration-200 hover:from-orange-400 hover:to-orange-500 hover:shadow-orange-500/40 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:from-orange-500 disabled:hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
             >
-              {isSubmitting ? '설정 중...' : '시작하기'}
+              {isPending ? '설정 중...' : '시작하기'}
             </button>
           </form>
         </div>

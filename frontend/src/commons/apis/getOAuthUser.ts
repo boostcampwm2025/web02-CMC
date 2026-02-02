@@ -42,7 +42,7 @@ const getOAuthUser = async (): Promise<AuthUser> => {
     credentials: 'include'
   });
 
-  // 401 에러 시 refresh token으로 재시도
+  // 401 에러 시 에러 던지기 (인증 실패)
   if (response.status === 401) {
     try {
       await refreshToken();

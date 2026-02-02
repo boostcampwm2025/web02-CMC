@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import WinnerSection from './components/WinnerSection';
@@ -8,24 +8,12 @@ import CodeViewerSection from './components/CodeViewerSection';
 import TimelineSection from './components/TimelineSection';
 import MvpCard from './components/MvpCard';
 import { Trophy, Activity } from 'lucide-react';
-import { getBattleResult } from './apis/getBattleResult';
-import type { BattleResultApiResponse } from './types';
+import { useGetBattleResult } from './hooks/useGetBattleResult';
 
 export default function BattleResultPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [battleData, setBattleData] = useState<BattleResultApiResponse | null>(null);
-
-  useEffect(() => {
-    const fetchBattleResult = async () => {
-      if (!id) return;
-
-      const data = await getBattleResult(id);
-      setBattleData(data);
-    };
-
-    fetchBattleResult();
-  }, [id]);
+  const { battleResult: battleData, isLoading } = useGetBattleResult(id!);
 
   const bestOpinion = useMemo(() => {
     if (!battleData?.mvps?.length || !battleData.timeline.length) return null;
@@ -35,7 +23,7 @@ export default function BattleResultPage() {
     return mvpOpinions.reduce((max, current) => (current.upvotes > max.upvotes ? current : max), mvpOpinions[0]);
   }, [battleData]);
 
-  if (!battleData) {
+  if (isLoading || !battleData) {
     return <div>로딩 중...</div>;
   }
 

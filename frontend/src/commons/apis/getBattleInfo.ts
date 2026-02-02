@@ -29,7 +29,7 @@ function isBattleInfo(data: unknown): data is BattleInfo {
   );
 }
 
-const fetchBattleInfo = async (id: string) => {
+const getBattleInfo = async (id: string) => {
   try {
     const response = await fetch(`/api/battles/${id}/join`, {
       method: 'POST',
@@ -59,4 +59,4 @@ const fetchBattleInfo = async (id: string) => {
   }
 };
 
-export default fetchBattleInfo;
+export default getBattleInfo;

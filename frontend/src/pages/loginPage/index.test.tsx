@@ -2,11 +2,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LoginPage from './index';
-import * as oauthApi from './api/oauth';
+import * as loginWithGithubApi from './api/loginWithGithub';
+import * as loginWithKakaoApi from './api/loginWithKakao';
 
 // OAuth API 모킹
-vi.mock('./api/oauth', () => ({
-  loginWithGitHub: vi.fn(),
+vi.mock('./api/loginWithGithub', () => ({
+  loginWithGitHub: vi.fn()
+}));
+
+vi.mock('./api/loginWithKakao', () => ({
   loginWithKakao: vi.fn()
 }));
 
@@ -44,7 +48,7 @@ describe('LoginPage', () => {
     const githubButton = screen.getByRole('button', { name: /GitHub로 계속하기/i });
     await user.click(githubButton);
 
-    expect(oauthApi.loginWithGitHub).toHaveBeenCalledTimes(1);
+    expect(loginWithGithubApi.loginWithGitHub).toHaveBeenCalledTimes(1);
   });
 
   it('Kakao 로그인 버튼 클릭 시 loginWithKakao가 호출된다', async () => {
@@ -54,7 +58,7 @@ describe('LoginPage', () => {
     const kakaoButton = screen.getByRole('button', { name: /카카오로 계속하기/i });
     await user.click(kakaoButton);
 
-    expect(oauthApi.loginWithKakao).toHaveBeenCalledTimes(1);
+    expect(loginWithKakaoApi.loginWithKakao).toHaveBeenCalledTimes(1);
   });
 
   it('안내 문구가 표시된다', () => {

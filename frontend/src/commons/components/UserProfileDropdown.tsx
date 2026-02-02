@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UserIcon from '@/assets/icon/user.svg?react';
-import { useAuthStore } from '@/commons/stores/authStore';
+import { useLogout } from '@/commons/hooks/useLogout';
 
 interface UserProfileDropdownProps {
   user: {
@@ -15,7 +15,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const logout = useAuthStore((state) => state.logout);
+  const { mutate: logout } = useLogout();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,15 +33,9 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
     };
   }, [isOpen]);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      // 로그아웃 성공했을 때만 드롭다운 닫고 홈으로 이동
-      setIsOpen(false);
-      navigate('/');
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-    }
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
   };
 
   return (

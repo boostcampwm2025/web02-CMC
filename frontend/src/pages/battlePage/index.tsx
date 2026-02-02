@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams, useLoaderData } from 'react-router-dom';
-import type { BattleInfo } from '@/commons/types/battle';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -31,7 +31,7 @@ type Tab = 'info' | 'timeline' | 'reference';
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const battleInfo = useLoaderData<BattleInfo>();
+  const { battleInfo: battleInfoData, isLoading } = useGetBattleInfo(battleId!);
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
@@ -133,6 +133,11 @@ export default function BattlePage() {
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
+
+  if (isLoading || !battleInfoData) {
+    return <div className="min-h-screen w-full flex items-center justify-center text-white">로딩 중...</div>;
+  }
+  const battleInfo = battleInfoData;
 
   const handleLeaveBattle = () => {
     if (!user) return;
