@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { v7 as uuidv7 } from 'uuid'
 import { EventEmitter } from 'node:events'
 import {
   Injectable,
@@ -8,7 +8,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { GeminiService } from '../../gemini/gemini.service'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
@@ -53,6 +53,7 @@ import {
   BUILD_AI_REFERENCE_PROMPT,
   AI_REFERENCE_SCHEMA,
 } from '../const/battles.const'
+import { ConfigService } from '@nestjs/config'
 import type { BattleReferenceData } from '../types/ai.types'
 import type { GenerateReferenceRequestDto } from '../dto/generateReference.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
@@ -69,10 +70,12 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 
 @Injectable()
-export class BattlesService extends EventEmitter {
+export class BattlesOldService extends EventEmitter {
+  private battleTimers: Map<string, NodeJS.Timeout> = new Map()
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly geminiService: GeminiService,
+    private readonly configService: ConfigService,
   ) {
     super()
   }
@@ -1599,6 +1602,11 @@ export class BattlesService extends EventEmitter {
   }
 
   async generateReferenceData(dto: GenerateReferenceRequestDto): Promise<BattleReferenceData> {
+    const apiKey = this.configService.get<string>('GEMINI_API_KEY')
+    if (!apiKey) {
+      throw new InternalServerErrorException('AI 서비스를 사용할 수 없습니다.')
+    }
+
     const prompt = BUILD_AI_REFERENCE_PROMPT({
       title: dto.title,
       description: dto.description,
@@ -1610,19 +1618,21 @@ export class BattlesService extends EventEmitter {
     })
 
     try {
-      return await this.geminiService.execute(
-        async model => {
-          const result = await model.generateContent(prompt)
-          const response = result.response
-          const text = response.text()
-          return JSON.parse(text) as BattleReferenceData
-        },
-        'gemini-3-flash-preview',
-        {
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const model = genAI.getGenerativeModel({
+        model: 'gemini-3-flash-preview',
+        generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: AI_REFERENCE_SCHEMA,
         },
-      )
+      })
+
+      const result = await model.generateContent(prompt)
+      const response = result.response
+      const text = response.text()
+
+      const referenceData = JSON.parse(text) as BattleReferenceData
+      return referenceData
     } catch (error: unknown) {
       if (error instanceof InternalServerErrorException) {
         throw error
