@@ -1,5 +1,3 @@
-/* eslint-disable */
-// @ts-nocheck
 import { Injectable, Scope, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
 import { EventEmitter } from 'node:events'
 import {
@@ -1654,7 +1652,8 @@ export class BattlesService extends EventEmitter {
     dto.status = 'CLOSED'
     dto.language = battle.language
     dto.category = battle.category
-    dto.playTime = BATTLE_PLAYTIME[battle.playTime as any]?.time ?? 0
+    const playTimeKey = battle.playTime as keyof typeof BATTLE_PLAYTIME
+    dto.playTime = BATTLE_PLAYTIME[playTimeKey]?.time ?? 0
     dto.topics = battle.topics
     dto.createdAt = battle.createdAt.toISOString()
     dto.finishedAt = battle.finishedAt ? battle.finishedAt.toISOString() : (battle.updatedAt?.toISOString() ?? battle.createdAt.toISOString())
@@ -1677,7 +1676,7 @@ export class BattlesService extends EventEmitter {
       },
     ]
     dto.timeline = timeline
-    const mvpsState = this.stateRepository.parseMvpsState((battle as any).mvpsState)
+    const mvpsState = this.stateRepository.parseMvpsState(battle.mvpsState as unknown)
     dto.mvps = mvpsState.length > 0 ? mvpsState : this.mvpCalculator.buildLegacyMvpsFromNicknames(battle.mvps ?? [], timeline)
 
     return dto
@@ -1878,10 +1877,10 @@ export class BattlesService extends EventEmitter {
     return { battleId, scope, ...chat }
   }
 
-  // ==================== 진영 변경 투표표 ====================
+  // ==================== 진영 변경 투표 ====================
   async voteTeam(dto: BattleTeamVoteDto, userId: string) {
     const { battleState: state } = await this.getBattleState(dto.battleId)
-    this.teamSwitchHandler.voteTeam(state, userId, dto.team)
+    this.teamSwitchHandler.handleVoteTeam(state, userId, dto.team)
     await this.stateRepository.saveBattleState(dto.battleId, state)
   }
 
@@ -1906,9 +1905,12 @@ export class BattlesService extends EventEmitter {
       state => this.discussionHandler.resetDiscussions(state),
       async state => await this.finishBattle(state),
       state => {
-        this.teamSwitchHandler.handleTeamSwitch(state, (battleId, round, beforeCounts, afterCounts, changes) => {
-          this.broadcaster.emitTeamUpdated(BattleTeamUpdateAllResponseDto.of(battleId, round, beforeCounts, afterCounts, changes))
-        })
+        this.teamSwitchHandler.handleTeamSwitch(
+          state,
+          (battleId: string, round: number, beforeCounts: TeamCounts, afterCounts: TeamCounts, changes: TeamChange[]) => {
+            this.broadcaster.emitTeamUpdated(BattleTeamUpdateAllResponseDto.of(battleId, round, beforeCounts, afterCounts, changes))
+          },
+        )
       },
     )
 
@@ -1988,7 +1990,7 @@ export class BattlesService extends EventEmitter {
   }
 
   // ==================== 레이팅 변경 적용 ====================
-  private async applyRatingChanges(state: ActiveBattleState, winningTeam: 'A' | 'B' | 'DRAW', mvps: any[]): Promise<void> {
+  private async applyRatingChanges(state: ActiveBattleState, winningTeam: 'A' | 'B' | 'DRAW', mvps: Mvp[]): Promise<void> {
     const participantIds = [...state.participants.keys()]
     if (participantIds.length === 0) return
 
@@ -2026,7 +2028,7 @@ export class BattlesService extends EventEmitter {
     ]
 
     if (dbUpdates.length > 0) {
-      await this.repository.transaction(async prisma => {
+      await this.repository.transaction(async () => {
         await Promise.all(dbUpdates.map(update => update))
       })
     }
