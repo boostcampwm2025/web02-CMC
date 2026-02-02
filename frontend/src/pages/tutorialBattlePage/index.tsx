@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
 import type { BattleInfo, Team } from '@/commons/types/battle';
 import useModal from '@/commons/hooks/useModal';
@@ -101,7 +101,11 @@ export default function TutorialBattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(selectedTeam, phase);
 
-  useAutoExitOnDone(practicePhase === 'done', () => navigate('/'));
+  const handleAutoExit = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
+
+  useAutoExitOnDone(practicePhase === 'done', handleAutoExit);
 
   return (
     <div className="text-white relative">
