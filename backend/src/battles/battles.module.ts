@@ -9,7 +9,6 @@ import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
 
 // Core
-import { BattleResultBuilder } from './core/battleResult'
 import { BattleTimelineBuilder } from './core/battleTimeline'
 import { BattleMvpCalculator } from './core/battleMvp'
 import { BattleTierCalculator } from './core/battleTier'
@@ -24,6 +23,7 @@ import { BattleSkipHandler } from './core/battleSkip'
 // Infra
 import { BattleRepository } from './infra/battle.repository'
 import { BattleBroadcaster } from './infra/battle.broadcaster'
+import { BattleUtil } from './infra/battle.util'
 
 // Runtime
 import { BattleTimerScheduler } from './runtime/battleTimerScheduler'
@@ -40,7 +40,6 @@ import { GuestBuilder } from './guest/guest.builder'
     PrismaService,
     AuthService,
     // Core
-    BattleResultBuilder,
     BattleTimelineBuilder,
     BattleMvpCalculator,
     BattleTierCalculator,
@@ -54,6 +53,7 @@ import { GuestBuilder } from './guest/guest.builder'
     // Infra
     BattleRepository,
     BattleBroadcaster,
+    BattleUtil,
     // Runtime
     BattleTimerScheduler,
     // Guest

@@ -23,6 +23,33 @@ export class BattleRepository {
     return this.prisma.battle.findMany(args)
   }
 
+  async findBattleList(params: {
+    onlyPublic?: boolean
+    status?: string | { in?: string[] }
+    limit: number
+    offset: number
+    orderBy?: { createdAt?: 'asc' | 'desc' } | { finishedAt?: 'asc' | 'desc' }
+  }) {
+    return this.prisma.battle.findMany({
+      where: {
+        isPrivate: params.onlyPublic ? false : undefined,
+        status: params.status,
+      },
+      orderBy: params.orderBy || { createdAt: 'desc' },
+      skip: params.offset,
+      take: params.limit,
+    })
+  }
+
+  async countBattleList(params: { onlyPublic?: boolean; status?: string | { in?: string[] } }): Promise<number> {
+    return this.prisma.battle.count({
+      where: {
+        isPrivate: params.onlyPublic ? false : undefined,
+        status: params.status,
+      },
+    })
+  }
+
   async count(args: { where?: { isPrivate?: boolean; status?: { in?: string[] } } }) {
     return this.prisma.battle.count(args)
   }
