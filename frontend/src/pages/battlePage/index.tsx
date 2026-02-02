@@ -16,6 +16,7 @@ import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import TeamChangeModal from './components/modals/TeamChangeModal';
+import ConnectionErrorModal from './components/modals/ConnectionErrorModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
@@ -262,6 +263,7 @@ export default function BattlePage() {
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
+        <ConnectionErrorModal />
       </div>
     </div>
   );

@@ -27,7 +27,13 @@ export function useBattleSocket() {
 
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket'],
-      auth: { userId }
+      auth: { userId },
+      reconnection: true,
+      reconnectionAttempts: 3,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 5000,
+      timeout: 5000,
+      upgrade: false
     });
 
     setSocket(newSocket);
@@ -42,8 +48,8 @@ export function useBattleSocket() {
       });
     });
 
-    // 배틀 참여 성공시 데이터 수신
-    newSocket.once('battle:joined', (data: BattleJoinData) => {
+    // 배틀 참여 성공시 데이터 동기화
+    newSocket.on('battle:joined', (data: BattleJoinData) => {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,

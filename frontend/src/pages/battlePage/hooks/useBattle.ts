@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useBattleStore } from '../stores/battleStore';
 import { useBattleSocket } from './useBattleSocket';
+import { useBattleSocketErrorHandling } from './useBattleSocketErrorHandling';
 import { useBattleProgress } from './useBattleProgress';
 import { useBattleDiscussions } from './useBattleDiscussions';
 import { useBattleTimeline } from './useBattleTimeline';
@@ -36,6 +37,7 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
 
   // 모든 배틀 관련 훅 초기화
   useBattleSocket();
+  useBattleSocketErrorHandling();
 
   const { handleVote, handleDiscussionSubmit } = useBattleDiscussions();
   const { roundModal, hideRoundEffect } = useBattleProgress();
