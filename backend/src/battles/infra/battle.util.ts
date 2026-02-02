@@ -76,6 +76,22 @@ export class BattleUtil {
     })
   }
 
+  shuffleTopics(topics: string[], playTime: BattlePlayTimeName): string[] {
+    const playTimeConfig = this.getPlayTime(playTime)
+    const rounds = playTimeConfig.rounds
+    if (topics.length !== rounds) throw new BadRequestException('대주제의 개수가 라운드 수와 일치하지 않습니다.')
+
+    const shuffled = [...topics]
+    if (topics.length === 1) return shuffled
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+
+    return shuffled
+  }
+
   private getPlayTime(playTimeName: string): BattlePlayTime {
     const playTime = BATTLE_PLAYTIME[playTimeName as BattlePlayTimeName]
     if (!playTime) {
