@@ -1877,4 +1877,62 @@ export class BattlesService extends EventEmitter {
     await this.stateRepository.saveBattleState(battleId, battleState)
     return { battleId, scope, ...chat }
   }
+
+  // ==================== 페이즈 업데이트 ====================
+  private async updatePhase(battleId: string): Promise<void> {
+    const { battleState: state } = await this.getBattleState(battleId)
+
+    const prevPhase = state.phase
+    const prevRound = state.round
+    const now = Date.now()
+
+    const nextPhase = this.phaseHandler.getNextPhase(
+      state,
+      state => {
+        const top = this.voteHandler.calculateAttackedResult(state, (team, type) => this.discussionHandler.createNullPlaceholder(team, type))
+        this.broadcaster.emitAttacked(DiscussionVoteResultDto.attacked(state.battleId, top))
+      },
+      state => {
+        const top = this.voteHandler.calculateDefensedResult(state, (team, type) => this.discussionHandler.createNullPlaceholder(team, type))
+        this.broadcaster.emitDefensed(DiscussionVoteResultDto.defensed(state.battleId, top))
+      },
+      state => this.discussionHandler.resetDiscussions(state),
+      async state => await this.finishBattle(state),
+      state => {
+        this.teamSwitchHandler.handleTeamSwitch(state, (battleId, round, beforeCounts, afterCounts, changes) => {
+          this.broadcaster.emitTeamUpdated(BattleTeamUpdateAllResponseDto.of(battleId, round, beforeCounts, afterCounts, changes))
+        })
+      },
+    )
+
+    if (!nextPhase) return
+
+    state.phase = nextPhase.name
+    state.startedAt = now
+    state.expiredAt = now + nextPhase.time
+    state.skipState = new Set<string>()
+
+    if (prevRound !== state.round) {
+      const res = BattleRoundResponseDto.of({
+        battleId,
+        round: state.round,
+        topic: state.topics[state.round - 1],
+      })
+      this.broadcaster.emitRoundUpdated(res)
+    }
+
+    if (prevPhase !== state.phase) {
+      const res = BattlePhaseResponseDto.of({
+        battleId,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt,
+        expiredAt: state.expiredAt,
+      })
+      this.broadcaster.emitPhaseUpdated(res)
+    }
+
+    await this.stateRepository.saveBattleState(battleId, state)
+    void this.scheduleNextTick(battleId)
+  }
 }
