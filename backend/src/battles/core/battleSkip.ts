@@ -39,4 +39,8 @@ export class BattleSkipHandler {
   calculateSkipCount(skipped: boolean, skipStateSize: number): number {
     return skipped ? 0 : skipStateSize
   }
+
+  getActiveParticipantsCount(state: ActiveBattleState): number {
+    return [...state.participants.values()].filter(team => team !== BATTLE_TEAM.NONE).length
+  }
 }

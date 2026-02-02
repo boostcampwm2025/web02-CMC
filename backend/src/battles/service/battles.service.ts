@@ -1842,4 +1842,22 @@ export class BattlesService extends EventEmitter {
     await this.stateRepository.saveBattleState(battleId, battleState)
     return updatedDiscussions
   }
+
+  // ==================== 페이즈 스킵 ====================
+  async handlePhaseSkip(payload: { battleId: string; userId: string; skip: boolean }): Promise<number> {
+    const { battleId, skip, userId } = payload
+    const { battleState } = await this.getBattleState(battleId)
+
+    this.skipHandler.handlePhaseSkip(battleState, userId, skip)
+    await this.stateRepository.updateSkipState(battleId, battleState.skipState)
+
+    const skipped = await this.checkAndSkipPhase(battleId, battleState)
+    return skipped ? 0 : battleState.skipState.size
+  }
+
+  async skipPhase(battleId: string) {
+    await this.stateRepository.updateSkipState(battleId, new Set<string>())
+    await this.updatePhase(battleId)
+    this.broadcaster.emitPhaseSkipped(battleId)
+  }
 }
