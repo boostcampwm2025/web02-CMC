@@ -95,7 +95,7 @@ export default function TutorialBattlePage() {
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
 
   const handleLeaveBattle = () => {
-    navigate('/');
+    navigate('/main');
   };
 
   const phase = battleProgress?.phase;

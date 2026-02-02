@@ -129,7 +129,7 @@ export default function TeamSelectPage() {
         <div className="relative mb-8">
           <div className="flex items-center justify-between gap-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/main')}
               className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기

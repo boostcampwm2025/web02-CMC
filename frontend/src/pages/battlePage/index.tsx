@@ -142,8 +142,7 @@ export default function BattlePage() {
 
   const handleLeaveBattle = () => {
     if (!user) return;
-    // TODO 추후에 서버에서 Disconnect 관리
-    navigate('/');
+    navigate('/main');
     safeLeaveBattle();
   };
 
