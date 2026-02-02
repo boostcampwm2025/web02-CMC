@@ -1810,4 +1810,36 @@ export class BattlesService extends EventEmitter {
     await this.stateRepository.saveBattleState(battleId, battleState)
     return defense
   }
+
+  // ==================== 공격 투표 ====================
+  async handleAttackVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): Promise<DiscussionVoteResponseDto[]> {
+    const { userId, team } = data
+    if (team === BATTLE_TEAM.NONE) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+
+    const { battleState } = await this.getBattleState(battleId)
+    const updatedDiscussions = this.voteHandler.handleAttackVote(battleState, discussionId, userId, team, state =>
+      this.discussionPolicy.canUserVoteAttack(state),
+    )
+
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    return updatedDiscussions
+  }
+
+  // ==================== 반론 투표 ====================
+  async handleDefenseVote(battleId: string, discussionId: string, data: { userId: string; team: BattleTeam }): Promise<DiscussionVoteResponseDto[]> {
+    const { userId, team } = data
+    if (team === BATTLE_TEAM.NONE) {
+      throw new ForbiddenException('중립 진영은 투표할 수 없습니다.')
+    }
+
+    const { battleState } = await this.getBattleState(battleId)
+    const updatedDiscussions = this.voteHandler.handleDefenseVote(battleState, discussionId, userId, team, state =>
+      this.discussionPolicy.canUserVoteDefense(state),
+    )
+
+    await this.stateRepository.saveBattleState(battleId, battleState)
+    return updatedDiscussions
+  }
 }
