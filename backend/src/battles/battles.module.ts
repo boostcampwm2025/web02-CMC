@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common'
 import { BattlesController } from './controller/battles.controller'
-import { AuthController } from './controller/auth.controller'
+import { GuestController } from './controller/guests.controller'
 import { BattlesGateway } from './gateway/battles.gateway'
 import { BattlesService } from './service/battles.service'
-import { AuthService } from './service/auth.service'
 import { GuestService } from './service/guest.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
@@ -37,12 +36,11 @@ import { GuestBuilder } from './guest/guest.builder'
 
 @Module({
   imports: [OauthModule, MetricsModule],
-  controllers: [BattlesController, AuthController],
+  controllers: [BattlesController, GuestController],
   providers: [
     BattlesGateway,
     BattlesService,
     PrismaService,
-    AuthService,
     GuestService,
     // Core
     BattleResultBuilder,

@@ -1,12 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { ActiveBattleState, BattleTeam } from '../types/battles.types'
 import { BATTLE_TEAM, BATTLE_PHASE } from '../const/battles.const'
+import type { TeamCounts, TeamChange } from '../dto/battleTeamUpdateAllResponse.dto'
 
 @Injectable()
 export class BattleTeamSwitchHandler {
   handleTeamSwitch(
     state: ActiveBattleState,
-    emitTeamUpdated: (battleId: string, round: number, beforeCounts: any, afterCounts: any, changes: any[]) => void,
+    emitTeamUpdated: (battleId: string, round: number, beforeCounts: TeamCounts, afterCounts: TeamCounts, changes: TeamChange[]) => void,
   ): void {
     const changes: Array<{ userId: string; from: BattleTeam; to: BattleTeam }> = []
 
