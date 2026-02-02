@@ -36,8 +36,8 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: pnpm -C frontend build
 
-      - name: Install AWS CLI (NCP compatible)
-        run: pip install awscli==1.15.85
+      - name: Install AWS CLI
+        run: sudo apt-get update && sudo apt-get install -y awscli
 
       - name: Upload to NCP Object Storage
         env:
