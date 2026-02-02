@@ -1935,4 +1935,114 @@ export class BattlesService extends EventEmitter {
     await this.stateRepository.saveBattleState(battleId, state)
     void this.scheduleNextTick(battleId)
   }
+
+  // ==================== 배틀 종료 ====================
+  private async finishBattle(state: ActiveBattleState) {
+    const battleId = state.battleId
+    this.timerScheduler.cancel(battleId)
+
+    const finishedAt = new Date()
+    const totalParticipants = state.participants.size
+    const teamACount = state.teamA.users.length
+    const teamBCount = state.teamB.users.length
+    const winningTeam = this.resultBuilder.calculateWinningTeam(teamACount, teamBCount)
+    const timeline = this.timelineBuilder.build(state)
+    const calculatedMvps = this.mvpCalculator.calculate(state, winningTeam)
+
+    await this.repository.update(battleId, {
+      status: BATTLE_STATUS.CLOSED,
+      finishedAt,
+      teamACount,
+      teamBCount,
+      totalParticipantsCount: totalParticipants,
+      winningTeam,
+      timeline: timeline as unknown as Prisma.InputJsonValue,
+      mvps: calculatedMvps.map(mvp => mvp.nickname),
+      mvpsState: calculatedMvps as unknown as Prisma.InputJsonValue,
+      updatedAt: finishedAt,
+      currentRound: null,
+      currentPhase: null,
+      phaseCount: null,
+      startedAt: null,
+      expiredAt: null,
+      participantsState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      teamVotesState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      userInfoState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      attacksState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      defensesState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      opinionHistoryState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      chatsAllState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      chatsTeamAState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+      chatsTeamBState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
+    })
+
+    await this.applyRatingChanges(state, winningTeam, calculatedMvps)
+    this.broadcaster.emitBattleClosed(BattleClosedResponseDto.of({ battleId }))
+  }
+
+  // ==================== 레이팅 변경 적용 ====================
+  private async applyRatingChanges(state: ActiveBattleState, winningTeam: 'A' | 'B' | 'DRAW', mvps: any[]): Promise<void> {
+    const participantIds = [...state.participants.keys()]
+    if (participantIds.length === 0) return
+
+    const users = await this.repository.findManyUsers({
+      where: { id: { in: participantIds } },
+      select: { id: true, rating: true, tier: true },
+    })
+    if (users.length === 0) return
+
+    const updates = this.tierCalculator.calculate(state.participants, users, winningTeam, mvps, (team, winningTeam) =>
+      this.resultBuilder.getBattleResultForTeam(team, winningTeam),
+    )
+
+    const topMvps = mvps.slice(0, 3)
+    const topMvpUserIds = topMvps.map(mvp => mvp.userId)
+    const dbUpdates = [
+      this.repository.updateManyBattleParticipants({
+        where: { battleId: state.battleId },
+        data: { isMvp: false },
+      }),
+      ...(topMvpUserIds.length > 0
+        ? [
+            this.repository.updateManyBattleParticipants({
+              where: { battleId: state.battleId, userId: { in: topMvpUserIds } },
+              data: { isMvp: true },
+            }),
+          ]
+        : []),
+      ...updates.map(update =>
+        this.repository.updateUser(update.userId, {
+          rating: update.nextRating,
+          tier: update.nextTier,
+        }),
+      ),
+    ]
+
+    if (dbUpdates.length > 0) {
+      await this.repository.transaction(async prisma => {
+        await Promise.all(dbUpdates.map(update => update))
+      })
+    }
+  }
+
+  // ==================== 타이머 스케줄링 ====================
+  private async scheduleNextTick(battleId: string) {
+    try {
+      const { battleState: state } = await this.getBattleState(battleId)
+      if (!state.expiredAt) return
+
+      this.timerScheduler.schedule(battleId, state, async battleId => await this.updatePhase(battleId))
+    } catch {
+      // ignore if battle not found or closed
+    }
+  }
+
+  // ==================== 스킵 체크 ====================
+  private async checkAndSkipPhase(battleId: string, state: ActiveBattleState): Promise<boolean> {
+    return await this.skipHandler.checkAndSkipPhase(
+      state,
+      state => this.skipHandler.getActiveParticipantsCount(state),
+      async battleId => await this.skipPhase(battleId),
+    )
+  }
 }
