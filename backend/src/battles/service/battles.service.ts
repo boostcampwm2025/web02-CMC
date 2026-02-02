@@ -1632,4 +1632,54 @@ export class BattlesService extends EventEmitter {
       throw new InternalServerErrorException('AI 참고 자료 생성에 실패했습니다.')
     }
   }
+
+  // ==================== 배틀 결과 조회 ====================
+  async getBattleResult(battleId: string): Promise<BattleResultResponseDto> {
+    const battle = await this.repository.findUnique(battleId)
+    if (battle.status !== BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('배틀이 아직 진행 중입니다.')
+    }
+
+    const teamACount = battle.teamACount ?? 0
+    const teamBCount = battle.teamBCount ?? 0
+    const totalParticipants = battle.totalParticipantsCount ?? teamACount + teamBCount
+    const timeline = this.timelineBuilder.normalize(battle.timeline)
+    const result = this.resultBuilder.build(teamACount, teamBCount, battle.totalParticipantsCount, battle.winningTeam)
+
+    const dto = new BattleResultResponseDto()
+    dto.battleId = battle.id
+    dto.authorId = battle.userId
+    dto.title = battle.title
+    dto.description = battle.description
+    dto.status = 'CLOSED'
+    dto.language = battle.language
+    dto.category = battle.category
+    dto.playTime = BATTLE_PLAYTIME[battle.playTime as any]?.time ?? 0
+    dto.topics = battle.topics
+    dto.createdAt = battle.createdAt.toISOString()
+    dto.finishedAt = battle.finishedAt ? battle.finishedAt.toISOString() : (battle.updatedAt?.toISOString() ?? battle.createdAt.toISOString())
+    dto.codeA = battle.codeA
+    dto.codeB = battle.codeB
+    dto.result = result
+    dto.metrics = {
+      totalParticipants,
+      totalViews: totalParticipants,
+      strategiesCount: timeline.length,
+      totalChats: 0,
+    }
+    dto.voteTimeline = [
+      {
+        turn: 1,
+        teamAVotes: teamACount,
+        teamBVotes: teamBCount,
+        neutralVotes: Math.max(totalParticipants - teamACount - teamBCount, 0),
+        timestamp: dto.finishedAt,
+      },
+    ]
+    dto.timeline = timeline
+    const mvpsState = this.stateRepository.parseMvpsState((battle as any).mvpsState)
+    dto.mvps = mvpsState.length > 0 ? mvpsState : this.mvpCalculator.buildLegacyMvpsFromNicknames(battle.mvps ?? [], timeline)
+
+    return dto
+  }
 }

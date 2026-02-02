@@ -15,6 +15,7 @@ import {
 } from '../types/battles.types'
 import { BATTLE_PHASE, BATTLE_TEAM, BATTLE_PLAYTIME } from '../const/battles.const'
 import type { BattlePlayTimeName } from '../types/battles.types'
+import type { Mvp } from '../types/battleResult.types'
 
 @Injectable()
 export class BattleStateRepository {
@@ -214,5 +215,27 @@ export class BattleStateRepository {
       if (team === BATTLE_TEAM.A) state.teamA.users.push(userId)
       if (team === BATTLE_TEAM.B) state.teamB.users.push(userId)
     }
+  }
+
+  parseMvpsState(value: unknown): Mvp[] {
+    if (!Array.isArray(value)) return []
+    return value
+      .filter(item => item && typeof item === 'object')
+      .map(item => {
+        const mvp = item as Partial<Mvp>
+        const team: 'A' | 'B' | 'NONE' = mvp.team === 'A' ? 'A' : mvp.team === 'B' ? 'B' : 'NONE'
+        const parsed: Mvp = {
+          userId: typeof mvp.userId === 'string' ? mvp.userId : '',
+          nickname: typeof mvp.nickname === 'string' ? mvp.nickname : '',
+          team,
+          score: typeof mvp.score === 'number' ? mvp.score : 0,
+          totalVotes: typeof mvp.totalVotes === 'number' ? mvp.totalVotes : 0,
+          opinionCount: typeof mvp.opinionCount === 'number' ? mvp.opinionCount : 0,
+          selectedOpinionCount: typeof mvp.selectedOpinionCount === 'number' ? mvp.selectedOpinionCount : 0,
+          joinedAt: typeof mvp.joinedAt === 'number' ? mvp.joinedAt : 0,
+        }
+        return parsed
+      })
+      .filter(mvp => mvp.nickname)
   }
 }

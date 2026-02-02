@@ -1,5 +1,5 @@
 ﻿import { Injectable } from '@nestjs/common'
-import { Mvp } from '../types/battleResult.types'
+import { Mvp, TimelineItem } from '../types/battleResult.types'
 import { ActiveBattleState, BattleDiscussion } from '../types/battles.types'
 import { MVP_DISPLAY_COUNT, BATTLE_TEAM } from '../const/battles.const'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from '../service/utils/mvp.util'
@@ -81,6 +81,22 @@ export class BattleMvpCalculator {
     const candidates = [...candidateMap.values()]
     candidates.sort((a, b) => compareMvpCandidates(a, b, winner))
     return candidates.slice(0, MVP_DISPLAY_COUNT)
+  }
+
+  buildLegacyMvpsFromNicknames(nicknames: string[], timeline: TimelineItem[]): Mvp[] {
+    return nicknames.map((nickname, index) => {
+      const fromTimeline = timeline.find(item => item.author.nickname === nickname)
+      return {
+        userId: fromTimeline?.author.id ?? `legacy-mvp-${index}`,
+        nickname,
+        team: fromTimeline?.team === 'B' ? 'B' : 'A',
+        score: 0,
+        totalVotes: 0,
+        opinionCount: 0,
+        selectedOpinionCount: 0,
+        joinedAt: 0,
+      }
+    })
   }
 
   // participants Map의 삽입 순서를 기반으로 참가 순서 반환
