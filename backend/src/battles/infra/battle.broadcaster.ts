@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, Scope } from '@nestjs/common'
 import { EventEmitter } from 'node:events'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
 import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
@@ -6,7 +6,7 @@ import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllRespon
 import { BattleClosedResponseDto } from '../dto/battleClosedResponse.dto'
 import { DiscussionVoteResultDto } from '../dto/discussionVoteResult.dto'
 
-@Injectable()
+@Injectable({ scope: Scope.DEFAULT })
 export class BattleBroadcaster extends EventEmitter {
   emitPhaseUpdated(phaseRes: BattlePhaseResponseDto): void {
     this.emit('battle:phase:updated', phaseRes)

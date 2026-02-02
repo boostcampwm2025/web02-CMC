@@ -1682,4 +1682,49 @@ export class BattlesService extends EventEmitter {
 
     return dto
   }
+
+  // ==================== 배틀 참가 정보 조회 ====================
+  async joinBattleInfo(battleId: string): Promise<BattleJoinInfoResponseDto> {
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
+
+    const battle = await this.repository.findUnique(battleId)
+    let activeBattleState: ActiveBattleState | undefined
+    let participantCount = battle.totalParticipantsCount ?? 0
+    if (battle.status !== BATTLE_STATUS.CLOSED) {
+      const loaded = await this.stateRepository.loadBattleState(battleId)
+      activeBattleState = loaded.state
+      participantCount = loaded.state.participants.size
+    }
+
+    const mapped = this.battleUtil.toBattleEntity(battle, participantCount)
+    return BattleJoinInfoResponseDto.of(mapped, activeBattleState)
+  }
+
+  // ==================== 배틀 참가 ====================
+  async joinBattle(battleJoinRequestDto: BattleJoinRequestDto, userId: string) {
+    const { battleId, team, nickname } = battleJoinRequestDto
+    if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
+
+    const { battle, state } = await this.stateRepository.loadBattleState(battleId)
+    if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
+
+    const existingTeam = state.participants.get(userId)
+    if (!state.userInfoMap.has(userId)) {
+      state.userInfoMap.set(userId, nickname)
+    }
+
+    if (!existingTeam || existingTeam !== team) {
+      this.teamSwitchHandler.addParticipant(state, userId, team, (battleId, counts) => {
+        this.broadcaster.emitUserUpdated(BattleUserUpdateResponseDto.of(battleId, counts))
+      })
+    }
+
+    const userExists = await this.repository.findUniqueUser(userId, { id: true })
+    if (userExists) {
+      await this.repository.upsertBattleParticipant({ userId, battleId, team, isMvp: false })
+    }
+
+    await this.stateRepository.saveBattleState(battleId, state)
+    return { battleState: state, team }
+  }
 }

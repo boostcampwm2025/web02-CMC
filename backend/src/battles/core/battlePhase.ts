@@ -11,6 +11,7 @@ export class BattlePhaseHandler {
     emitDefensedResult: (state: ActiveBattleState) => void,
     resetDiscussions: (state: ActiveBattleState) => void,
     finishBattle: (state: ActiveBattleState) => Promise<void>,
+    applyTeamVotes: (state: ActiveBattleState) => void,
   ): BattlePhase | null {
     switch (state.phase) {
       case BATTLE_PHASE.PENDING.name:
@@ -40,6 +41,7 @@ export class BattlePhaseHandler {
         return BATTLE_PHASE.TEAM_SWITCH
 
       case BATTLE_PHASE.TEAM_SWITCH.name: {
+        applyTeamVotes(state)
         const isNextRound = this.updateRound(state, finishBattle)
 
         return isNextRound ? BATTLE_PHASE.OPINION_SHARE : null
