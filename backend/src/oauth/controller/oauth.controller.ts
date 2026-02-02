@@ -33,7 +33,7 @@ export class OauthController {
 
     // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
-    res.redirect(`${frontendUrl}/`)
+    res.redirect(`${frontendUrl}/main`)
   }
 
   @Get('kakao')
@@ -50,7 +50,7 @@ export class OauthController {
     this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
-    res.redirect(`${frontendUrl}/`)
+    res.redirect(`${frontendUrl}/main`)
   }
 
   @Post('refresh')
