@@ -160,10 +160,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       if (chat.scope === 'TEAM') {
         return { teamChats: [...state.teamChats, chat] };
       } else {
-        return {
-          allChats: [...state.allChats, chat],
-          teamChats: [...state.teamChats, chat]
-        };
+        return { allChats: [...state.allChats, chat] };
       }
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team }),
