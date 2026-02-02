@@ -2,9 +2,6 @@ name: deploy-fe
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/#334-object-storage-cicd
 
 jobs:
   upload-fe:
@@ -14,14 +11,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm" # pnpm 캐싱 활성화
 
       - name: Enable corepack
         run: corepack enable
@@ -35,11 +33,6 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: pnpm -C frontend build
-
-      - name: Install build dependencies for AWS CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-dev build-essential
 
       - name: Install AWS CLI (NCP compatible)
         run: pip install awscli==1.15.85
@@ -55,5 +48,6 @@ jobs:
             --acl public-read
 
       - name: Deployment summary
+        if: success()
         run: |
           echo "✅ Frontend deployed successfully!"
