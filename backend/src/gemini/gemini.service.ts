@@ -27,7 +27,6 @@ export class GeminiService implements OnModuleInit {
   private rateLimitPerDay: number = 20
   private readonly MINUTE_MS = 60 * 1000
   private readonly DAY_MS = 24 * 60 * 60 * 1000
-  private readonly MAX_RETRIES = 3
   private readonly BACKOFF_BASE_MS = 1000
 
   constructor(private readonly configService: ConfigService) {}
@@ -74,7 +73,9 @@ export class GeminiService implements OnModuleInit {
     const triedKeys = new Set<string>()
     let lastError: Error | null = null
 
-    for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
+    const maxAttempts = this.keys.length
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const apiKey = this.getBestAvailableKey(triedKeys)
 
       if (!apiKey) {
@@ -104,11 +105,11 @@ export class GeminiService implements OnModuleInit {
         stats.consecutiveFailures++
 
         const errorType = this.classifyError(error)
-        this.logger.warn(`Gemini API 호출 실패 (시도 ${attempt + 1}/${this.MAX_RETRIES}, 키: ${apiKey.substring(6, 14)}...): ${errorType}`)
+        this.logger.warn(`Gemini API 호출 실패 (시도 ${attempt + 1}/${maxAttempts}, 키: ${apiKey.substring(6, 14)}...): ${errorType}`)
 
         this.handleKeyFailure(apiKey, errorType)
 
-        if (attempt < this.MAX_RETRIES - 1) {
+        if (attempt < maxAttempts - 1) {
           const backoffMs = this.BACKOFF_BASE_MS * Math.pow(2, attempt)
           await this.sleep(backoffMs)
         }
