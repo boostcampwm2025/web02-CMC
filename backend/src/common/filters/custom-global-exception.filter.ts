@@ -1,5 +1,6 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger } from '@nestjs/common'
 import { Request, Response } from 'express'
+import { ErrorResponse } from '../responses/error-response'
 
 @Catch()
 export class CustomGlobalExceptionFilter implements ExceptionFilter {
@@ -39,14 +40,7 @@ export class CustomGlobalExceptionFilter implements ExceptionFilter {
         this.logger.warn(logMessage)
       }
 
-      response.status(status).json({
-        statusCode: status,
-        message,
-        error: HttpStatus[status],
-        ...(details && { details }),
-        timestamp: new Date().toISOString(),
-        path: request.url,
-      })
+      response.status(status).json(new ErrorResponse(status, message, HttpStatus[status], request.url, details))
       return
     }
 
@@ -55,12 +49,7 @@ export class CustomGlobalExceptionFilter implements ExceptionFilter {
     const errorStack = exception instanceof Error ? exception.stack : undefined
     this.logger.error(`[${request.method}] ${request.url} - 500 ${errorMessage}`, errorStack)
 
-    response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: '서버 내부 오류가 발생했습니다.',
-      error: 'Internal Server Error',
-      timestamp: new Date().toISOString(),
-      path: request.url,
-    })
+    const internalError = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, '서버 내부 오류가 발생했습니다.', 'Internal Server Error', request.url)
+    response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(internalError)
   }
 }
