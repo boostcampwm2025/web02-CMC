@@ -11,4 +11,8 @@ export interface BattleStatePort {
   updateSkipState(battleId: string, skipList: Set<string>): Promise<void>
   //MVP 상태 파싱
   parseMvpsState(value: unknown): Mvp[]
+  //사용자 ID로 닉네임 조회
+  getNicknameByUserId(state: ActiveBattleState, userId: string): string | null
+  //닉네임 중복 체크
+  isNicknameDuplicate(battleId: string, nickname: string): Promise<boolean>
 }
