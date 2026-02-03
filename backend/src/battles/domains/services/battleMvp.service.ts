@@ -1,22 +1,40 @@
-﻿import { Injectable } from '@nestjs/common'
-import { Mvp, TimelineItem } from '../types/battleResult.types'
-import { ActiveBattleState, BattleDiscussion } from '../types/battles.types'
-import { MVP_DISPLAY_COUNT, BATTLE_TEAM } from '../const/battles.const'
-import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from '../service/utils/mvp.util'
+import { Injectable } from '@nestjs/common'
+import { Mvp, TimelineItem } from '../models/types/battleResult.types'
+import { ActiveBattleState, BattleDiscussion } from '../models/types/battle.types'
+import { MVP_DISPLAY_COUNT, BATTLE_TEAM } from '../models/const/battles.const'
+import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from '../../service/utils/mvp.util'
 
 @Injectable()
-export class BattleMvpCalculator {
-  calculate(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
+export class BattleMvpService {
+  // MVP 계산
+  buildMvps(state: ActiveBattleState, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
     const allOpinions = state.opinionHistory
     if (allOpinions.length === 0) return []
 
     const candidateMap = this.buildCandidateMap(state, allOpinions)
     if (candidateMap.size === 0) return []
 
-    this.setFinalTeams(state, candidateMap)
+    this.applyFinalTeams(state, candidateMap)
     this.applyWinnerBonuses(candidateMap, winner)
 
-    return this.selectTopCandidates(candidateMap, winner)
+    return this.buildTopCandidates(candidateMap, winner)
+  }
+
+  // 레거시 MVP 생성
+  buildLegacyMvpsFromNicknames(nicknames: string[], timeline: TimelineItem[]): Mvp[] {
+    return nicknames.map((nickname, index) => {
+      const fromTimeline = timeline.find(item => item.author.nickname === nickname)
+      return {
+        userId: fromTimeline?.author.id ?? `legacy-mvp-${index}`,
+        nickname,
+        team: fromTimeline?.team === 'B' ? 'B' : 'A',
+        score: 0,
+        totalVotes: 0,
+        opinionCount: 0,
+        selectedOpinionCount: 0,
+        joinedAt: 0,
+      }
+    })
   }
 
   // MVP 후보 데이터 집계
@@ -41,7 +59,7 @@ export class BattleMvpCalculator {
           existing.selectedOpinionCount += 1
         }
       } else {
-        const joinedAt = this.getParticipantJoinedAt(state, authorId)
+        const joinedAt = this.toParticipantJoinedAt(state, authorId)
         candidateMap.set(
           authorId,
           createMvpCandidate({
@@ -62,7 +80,7 @@ export class BattleMvpCalculator {
   }
 
   // 최종 팀 기준으로 MVP 팀 설정 (팀 변경 반영)
-  private setFinalTeams(state: ActiveBattleState, candidateMap: Map<string, Mvp>): void {
+  private applyFinalTeams(state: ActiveBattleState, candidateMap: Map<string, Mvp>): void {
     candidateMap.forEach((candidate, userId) => {
       const finalTeam = state.participants.get(userId)
       candidate.team = finalTeam === BATTLE_TEAM.A ? 'A' : finalTeam === BATTLE_TEAM.B ? 'B' : 'NONE'
@@ -77,30 +95,14 @@ export class BattleMvpCalculator {
   }
 
   // 후보자 정렬 및 상위 3명 반환
-  private selectTopCandidates(candidateMap: Map<string, Mvp>, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
+  private buildTopCandidates(candidateMap: Map<string, Mvp>, winner: 'A' | 'B' | 'DRAW'): Mvp[] {
     const candidates = [...candidateMap.values()]
     candidates.sort((a, b) => compareMvpCandidates(a, b, winner))
     return candidates.slice(0, MVP_DISPLAY_COUNT)
   }
 
-  buildLegacyMvpsFromNicknames(nicknames: string[], timeline: TimelineItem[]): Mvp[] {
-    return nicknames.map((nickname, index) => {
-      const fromTimeline = timeline.find(item => item.author.nickname === nickname)
-      return {
-        userId: fromTimeline?.author.id ?? `legacy-mvp-${index}`,
-        nickname,
-        team: fromTimeline?.team === 'B' ? 'B' : 'A',
-        score: 0,
-        totalVotes: 0,
-        opinionCount: 0,
-        selectedOpinionCount: 0,
-        joinedAt: 0,
-      }
-    })
-  }
-
   // participants Map의 삽입 순서를 기반으로 참가 순서 반환
-  private getParticipantJoinedAt(state: ActiveBattleState, userId: string): number {
+  private toParticipantJoinedAt(state: ActiveBattleState, userId: string): number {
     const participantOrder = [...state.participants.keys()].indexOf(userId)
     return participantOrder >= 0 ? participantOrder : 0
   }

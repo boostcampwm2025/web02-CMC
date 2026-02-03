@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
-import { ActiveBattleState, BattleDiscussion, BattleTeam, BattleTopOpinions } from '../types/battles.types'
-import { BATTLE_TEAM } from '../const/battles.const'
-import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
+import { ActiveBattleState, BattleDiscussion, BattleTeam, BattleTopOpinions } from '../models/types/battle.types'
+import { BATTLE_TEAM } from '../models/const/battles.const'
+import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
 
 @Injectable()
-export class BattleVoteHandler {
-  //공격 투표 처리
-  handleAttackVote(
+export class BattleVoteService {
+  //공격 투표 적용
+  applyAttackVote(
     battleState: ActiveBattleState,
     discussionId: string,
     userId: string,
@@ -40,7 +40,7 @@ export class BattleVoteHandler {
     // 다른 항목에 투표한 기록이 있으면 취소
     discussions.forEach((discussion, i) => {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
-        const canceled = this.removeVote(discussion, userId)
+        const canceled = this.revokeVote(discussion, userId)
         discussions[i] = canceled
         this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleState.battleId, canceled))
@@ -56,8 +56,8 @@ export class BattleVoteHandler {
     return updatedDiscussions
   }
 
-  //반론 투표 처리
-  handleDefenseVote(
+  //반론 투표 적용
+  applyDefenseVote(
     battleState: ActiveBattleState,
     discussionId: string,
     userId: string,
@@ -91,7 +91,7 @@ export class BattleVoteHandler {
     // 다른 항목에 투표한 기록이 있으면 취소
     discussions.forEach((discussion, i) => {
       if (i !== idx && discussion && this.hasAlreadyVoted(discussion.votes, userId)) {
-        const canceled = this.removeVote(discussion, userId)
+        const canceled = this.revokeVote(discussion, userId)
         discussions[i] = canceled
         this.syncOpinionHistory(battleState, discussion.discussionId, canceled)
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleState.battleId, canceled))
@@ -108,15 +108,15 @@ export class BattleVoteHandler {
   }
 
   //공격 투표 결과 계산
-  calculateAttackedResult(
+  buildAttackedResult(
     battleState: ActiveBattleState,
     createNullPlaceholder: (team: 'A' | 'B', type: 'ATTACK' | 'DEFENSE') => BattleDiscussion,
   ): BattleTopOpinions {
     // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
-    this.recordVoterCountAtPhase(battleState.teamA.attacks, BATTLE_TEAM.A)
-    this.recordVoterCountAtPhase(battleState.teamB.attacks, BATTLE_TEAM.B)
+    this.applyVoterCountAtPhase(battleState.teamA.attacks, BATTLE_TEAM.A)
+    this.applyVoterCountAtPhase(battleState.teamB.attacks, BATTLE_TEAM.B)
 
-    const top = this.pickTopVotedAttack(battleState)
+    const top = this.buildTopVotedAttack(battleState)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : createNullPlaceholder('A', 'ATTACK')
@@ -128,15 +128,15 @@ export class BattleVoteHandler {
   }
 
   //반론 투표 결과 계산
-  calculateDefensedResult(
+  buildDefensedResult(
     battleState: ActiveBattleState,
     createNullPlaceholder: (team: 'A' | 'B', type: 'ATTACK' | 'DEFENSE') => BattleDiscussion,
   ): BattleTopOpinions {
     // 페이즈 종료 시 각 팀의 투표 참가자 수 계산 및 의견에 기록
-    this.recordVoterCountAtPhase(battleState.teamA.defenses, BATTLE_TEAM.A)
-    this.recordVoterCountAtPhase(battleState.teamB.defenses, BATTLE_TEAM.B)
+    this.applyVoterCountAtPhase(battleState.teamA.defenses, BATTLE_TEAM.A)
+    this.applyVoterCountAtPhase(battleState.teamB.defenses, BATTLE_TEAM.B)
 
-    const top = this.pickTopVotedDefense(battleState)
+    const top = this.buildTopVotedDefense(battleState)
 
     const { aTeam, bTeam } = top
     const aEntry = aTeam ? aTeam : createNullPlaceholder('A', 'DEFENSE')
@@ -159,7 +159,7 @@ export class BattleVoteHandler {
     }
   }
 
-  private removeVote<T extends { votes: string[]; upvotes: number }>(discussion: T, userId: string): T {
+  private revokeVote<T extends { votes: string[]; upvotes: number }>(discussion: T, userId: string): T {
     return {
       ...discussion,
       votes: discussion.votes.filter(id => id !== userId),
@@ -174,7 +174,7 @@ export class BattleVoteHandler {
     }
   }
 
-  private getTopOpinion(opinions: (BattleDiscussion | null)[]): BattleDiscussion | null {
+  private buildTopOpinion(opinions: (BattleDiscussion | null)[]): BattleDiscussion | null {
     const filteredOpinion = opinions.filter((opinion): opinion is BattleDiscussion => opinion !== null)
 
     // 의견이 없으면 null 반환
@@ -193,21 +193,21 @@ export class BattleVoteHandler {
     return top
   }
 
-  private pickTopVotedAttack(state: ActiveBattleState): BattleTopOpinions {
+  private buildTopVotedAttack(state: ActiveBattleState): BattleTopOpinions {
     return {
-      aTeam: this.getTopOpinion(state.teamA.attacks),
-      bTeam: this.getTopOpinion(state.teamB.attacks),
+      aTeam: this.buildTopOpinion(state.teamA.attacks),
+      bTeam: this.buildTopOpinion(state.teamB.attacks),
     }
   }
 
-  private pickTopVotedDefense(state: ActiveBattleState): BattleTopOpinions {
+  private buildTopVotedDefense(state: ActiveBattleState): BattleTopOpinions {
     return {
-      aTeam: this.getTopOpinion(state.teamA.defenses),
-      bTeam: this.getTopOpinion(state.teamB.defenses),
+      aTeam: this.buildTopOpinion(state.teamA.defenses),
+      bTeam: this.buildTopOpinion(state.teamB.defenses),
     }
   }
 
-  private recordVoterCountAtPhase(opinions: (BattleDiscussion | null)[], team: BattleTeam): void {
+  private applyVoterCountAtPhase(opinions: (BattleDiscussion | null)[], team: BattleTeam): void {
     // 해당 팀의 이번 페이즈 투표 참가자 수 계산
     const allVoters = new Set<string>()
     opinions.forEach(o => {

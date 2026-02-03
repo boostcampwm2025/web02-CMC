@@ -1,11 +1,11 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { ActiveBattleState, BattleChat, BattleTeam } from '../types/battles.types'
-import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../const/battles.const'
+import { ActiveBattleState, BattleChat, BattleTeam } from '../models/types/battle.types'
+import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../models/const/battles.const'
 
 @Injectable()
-export class BattleChatHandler {
-  //채팅 메시지 생성
-  createChatMessage(
+export class BattleChatService {
+  //채팅 메세지 생성
+  buildChatMessage(
     messageId: string,
     userId: string,
     nickname: string,
@@ -26,7 +26,8 @@ export class BattleChatHandler {
     } as BattleChat
   }
 
-  handleChatMessage(battleState: ActiveBattleState, chat: BattleChat, scope: string, team?: BattleTeam): void {
+  //채팅 메세지 상태 적용
+  applyChatMessage(battleState: ActiveBattleState, chat: BattleChat, scope: string, team?: BattleTeam): void {
     if (scope === BATTLE_CHAT_SCOPE.ALL) {
       battleState.all.chats.push(chat)
       return

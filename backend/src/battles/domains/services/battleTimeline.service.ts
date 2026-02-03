@@ -1,11 +1,12 @@
-﻿import { Injectable } from '@nestjs/common'
-import { TimelineItem } from '../types/battleResult.types'
-import { ActiveBattleState, BattleDiscussion } from '../types/battles.types'
-import { BATTLE_TEAM } from '../const/battles.const'
+import { Injectable } from '@nestjs/common'
+import { TimelineItem } from '../models/types/battleResult.types'
+import { ActiveBattleState, BattleDiscussion } from '../models/types/battle.types'
+import { BATTLE_TEAM } from '../models/const/battles.const'
 
 @Injectable()
-export class BattleTimelineBuilder {
-  build(state: ActiveBattleState): TimelineItem[] {
+export class BattleTimelineService {
+  //타임라인 생성
+  buildTimeline(state: ActiveBattleState): TimelineItem[] {
     const toTimelineItem = (discussion: BattleDiscussion, index: number, type: 'ATTACK' | 'DEFENSE'): TimelineItem => {
       const createdAt = new Date(discussion.selectedAt ?? Date.now()).toISOString()
       return {
@@ -33,7 +34,8 @@ export class BattleTimelineBuilder {
     return [...attacks, ...defenses].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
   }
 
-  normalize(timeline: unknown): TimelineItem[] {
+  //타임라인 정규화
+  toTimeline(timeline: unknown): TimelineItem[] {
     return Array.isArray(timeline) ? (timeline as TimelineItem[]) : []
   }
 }

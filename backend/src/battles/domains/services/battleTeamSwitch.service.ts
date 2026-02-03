@@ -1,11 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { ActiveBattleState, BattleTeam } from '../types/battles.types'
-import { BATTLE_TEAM, BATTLE_PHASE } from '../const/battles.const'
-import type { TeamCounts, TeamChange } from '../dto/battleTeamUpdateAllResponse.dto'
+import { ActiveBattleState, BattleTeam } from '../models/types/battle.types'
+import { BATTLE_TEAM, BATTLE_PHASE } from '../models/const/battles.const'
+import type { TeamCounts, TeamChange } from '../../dto/battleTeamUpdateAllResponse.dto'
 
 @Injectable()
-export class BattleTeamSwitchHandler {
-  handleTeamSwitch(
+export class BattleTeamSwitchService {
+  // 팀 변경 적용
+  applyTeamSwitch(
     state: ActiveBattleState,
     emitTeamUpdated: (battleId: string, round: number, beforeCounts: TeamCounts, afterCounts: TeamCounts, changes: TeamChange[]) => void,
   ): void {
@@ -42,8 +43,8 @@ export class BattleTeamSwitchHandler {
     }
   }
 
-  // 팀 변경 투표 처리
-  handleVoteTeam(state: ActiveBattleState, userId: string, team: BattleTeam): void {
+  // 팀 변경 투표 적용
+  applyTeamVote(state: ActiveBattleState, userId: string, team: BattleTeam): void {
     if (state.phase !== BATTLE_PHASE.TEAM_SWITCH.name) {
       throw new BadRequestException('팀 변경 투표는 TEAM_SWITCH 페이즈에서만 가능합니다.')
     }
@@ -55,7 +56,8 @@ export class BattleTeamSwitchHandler {
     state.teamVotes.set(userId, team)
   }
 
-  addParticipant(
+  // 참가자 추가
+  applyParticipant(
     state: ActiveBattleState,
     userId: string,
     team: BattleTeam,
@@ -73,6 +75,7 @@ export class BattleTeamSwitchHandler {
     emitUserUpdated(state.battleId, counts)
   }
 
+  // 팀 사용자 재구성
   rebuildTeamUsers(state: ActiveBattleState): void {
     state.teamA.users = []
     state.teamB.users = []

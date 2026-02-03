@@ -1,10 +1,11 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common'
-import { ActiveBattleState } from '../types/battles.types'
-import { BATTLE_PHASE, BATTLE_TEAM } from '../const/battles.const'
+import { ActiveBattleState } from '../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_TEAM } from '../models/const/battles.const'
 
 @Injectable()
-export class BattleSkipHandler {
-  handlePhaseSkip(battleState: ActiveBattleState, userId: string, skip: boolean): void {
+export class BattleSkipService {
+  // 페이즈 스킵 적용
+  applyPhaseSkip(battleState: ActiveBattleState, userId: string, skip: boolean): void {
     const participant = battleState.participants.get(userId)
 
     if (battleState.phase === BATTLE_PHASE.TEAM_SWITCH.name) {
@@ -21,7 +22,18 @@ export class BattleSkipHandler {
     }
   }
 
-  async checkAndSkipPhase(
+  // 스킵 카운트 계산
+  buildSkipCount(skipped: boolean, skipStateSize: number): number {
+    return skipped ? 0 : skipStateSize
+  }
+
+  // 활성 참가자 수 계산
+  buildActiveParticipantsCount(state: ActiveBattleState): number {
+    return [...state.participants.values()].filter(team => team !== BATTLE_TEAM.NONE).length
+  }
+
+  // 페이즈 스킵 여부 확인
+  async shouldSkipPhase(
     state: ActiveBattleState,
     getActiveParticipantsCount: (state: ActiveBattleState) => number,
     skipPhase: (battleId: string) => Promise<void>,
@@ -34,13 +46,5 @@ export class BattleSkipHandler {
     }
 
     return false
-  }
-
-  calculateSkipCount(skipped: boolean, skipStateSize: number): number {
-    return skipped ? 0 : skipStateSize
-  }
-
-  getActiveParticipantsCount(state: ActiveBattleState): number {
-    return [...state.participants.values()].filter(team => team !== BATTLE_TEAM.NONE).length
   }
 }

@@ -1,7 +1,7 @@
-﻿import { Injectable } from '@nestjs/common'
-import { BattleTeam } from '../types/battles.types'
-import { calculateRatingDelta, coerceTierName, getMvpBonus, getTierFromRating } from '../service/utils/rating.util'
-import type { Mvp } from '../types/battleResult.types'
+import { Injectable } from '@nestjs/common'
+import { BattleTeam } from '../models/types/battle.types'
+import { calculateRatingDelta, coerceTierName, getMvpBonus, getTierFromRating } from '../../service/utils/rating.util'
+import type { Mvp } from '../models/types/battleResult.types'
 
 type TeamBattleResult = 'WIN' | 'LOSE' | 'DRAW'
 
@@ -16,8 +16,9 @@ export interface UserRatingUpdate {
 }
 
 @Injectable()
-export class BattleTierCalculator {
-  calculate(
+export class BattleTierService {
+  // 티어 업데이트 계산
+  buildRatingUpdates(
     participants: Map<string, BattleTeam>,
     users: Array<{ id: string; rating: number | null; tier: string | null }>,
     winningTeam: 'A' | 'B' | 'DRAW',
@@ -25,7 +26,7 @@ export class BattleTierCalculator {
     getBattleResultForTeam: (team: BattleTeam, winningTeam: 'A' | 'B' | 'DRAW') => TeamBattleResult | null,
   ): UserRatingUpdate[] {
     const mvpBonusByUserId = this.buildMvpBonusMap(mvps)
-    return this.calculateUserUpdates(participants, users, winningTeam, mvpBonusByUserId, getBattleResultForTeam)
+    return this.buildUserUpdates(participants, users, winningTeam, mvpBonusByUserId, getBattleResultForTeam)
   }
 
   private buildMvpBonusMap(mvps: Mvp[]): Map<string, number> {
@@ -38,7 +39,7 @@ export class BattleTierCalculator {
     return mvpBonusByUserId
   }
 
-  private calculateUserUpdates(
+  private buildUserUpdates(
     participants: Map<string, BattleTeam>,
     users: Array<{ id: string; rating: number | null; tier: string | null }>,
     winningTeam: 'A' | 'B' | 'DRAW',
@@ -48,7 +49,7 @@ export class BattleTierCalculator {
     const updates: UserRatingUpdate[] = []
 
     users.forEach(user => {
-      const update = this.calculateUserUpdate(participants, user, winningTeam, mvpBonusByUserId, getBattleResultForTeam)
+      const update = this.buildUserUpdate(participants, user, winningTeam, mvpBonusByUserId, getBattleResultForTeam)
       if (update) {
         updates.push(update)
       }
@@ -57,7 +58,7 @@ export class BattleTierCalculator {
     return updates
   }
 
-  private calculateUserUpdate(
+  private buildUserUpdate(
     participants: Map<string, BattleTeam>,
     user: { id: string; rating: number | null; tier: string | null },
     winningTeam: 'A' | 'B' | 'DRAW',

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { ActiveBattleState, BattlePhase } from '../types/battles.types'
-import { BATTLE_MAX_PHASE_COUNT, BATTLE_PHASE } from '../const/battles.const'
+import { ActiveBattleState, BattlePhase } from '../models/types/battle.types'
+import { BATTLE_MAX_PHASE_COUNT, BATTLE_PHASE } from '../models/const/battles.const'
 
 @Injectable()
-export class BattlePhaseHandler {
-  //다음 phase 조회
-  getNextPhase(
+export class BattlePhaseService {
+  // 다음 페이즈 조회
+  nextPhase(
     state: ActiveBattleState,
     emitAttackedResult: (state: ActiveBattleState) => void,
     emitDefensedResult: (state: ActiveBattleState) => void,
@@ -52,7 +52,6 @@ export class BattlePhaseHandler {
     }
   }
 
-  //라운드 업데이트
   updateRound(state: ActiveBattleState, finishBattle: (state: ActiveBattleState) => Promise<void>): boolean {
     const nextRound = state.round + 1
     const maxRounds = state.totalRounds
