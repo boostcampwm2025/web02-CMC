@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import { useBattleStore } from '../stores/battleStore';
 import { useToastStore } from '@/commons/stores/toastStore';
 
@@ -7,7 +8,7 @@ interface ErrorPayload {
 }
 
 export function useBattleSocketErrorHandling() {
-  const { socket, setIsConnected, setConnectionError } = useBattleStore();
+  const { socket, setIsConnected, setConnectionError, battleId } = useBattleStore();
   const addToast = useToastStore((state) => state.addToast);
 
   useEffect(() => {
@@ -37,11 +38,29 @@ export function useBattleSocketErrorHandling() {
 
     // 연결 에러 핸들러
     socket.on('connect_error', (error) => {
-      console.error('[Socket] Connection error:', error.message);
       setConnectionError({
         type: 'disconnected',
         attemptCount: 0,
         message: '서버 연결에 실패했습니다'
+      });
+
+      // Sentry로 연결 에러 전송
+      Sentry.captureException(error, {
+        level: 'error',
+        tags: {
+          errorType: '웹 소켓 연결 에러',
+          battleId: battleId
+        },
+        contexts: {
+          websocket: {
+            socketId: socket.id,
+            connected: socket.connected,
+            battleId: battleId
+          }
+        },
+        extra: {
+          errorMessage: error.message
+        }
       });
     });
 
