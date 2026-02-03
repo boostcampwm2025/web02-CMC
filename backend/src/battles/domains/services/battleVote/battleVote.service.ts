@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
-import { ActiveBattleState, BattleDiscussion, BattleTeam, BattleTopOpinions } from '../models/types/battle.types'
-import { BATTLE_TEAM } from '../models/const/battles.const'
-import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
+import { ActiveBattleState, BattleDiscussion, BattleTeam, BattleTopOpinions } from '../../models/types/battle.types'
+import { BATTLE_TEAM } from '../../models/const/battles.const'
+import { DiscussionVoteResponseDto } from '../../../dto/discussionVoteResponse.dto'
 
 @Injectable()
 export class BattleVoteService {

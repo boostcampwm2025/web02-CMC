@@ -8,11 +8,11 @@ import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '.
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
-import { BattlePhaseService } from '../../domains/services/battlePhase.service'
-import { BattleVoteService } from '../../domains/services/battleVote.service'
-import { BattleDiscussionService } from '../../domains/services/battleDiscussion.service'
-import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch.service'
-import { BattleSkipService } from '../../domains/services/battleSkip.service'
+import { BattlePhaseService } from '../../domains/services/battlePhase/battlePhase.service'
+import { BattleVoteService } from '../../domains/services/battleVote/battleVote.service'
+import { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
+import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
+import { BattleSkipService } from '../../domains/services/battleSkip/battleSkip.service'
 import { BattleTerminationUseCase } from './battleTermination.usecase'
 
 @Injectable()

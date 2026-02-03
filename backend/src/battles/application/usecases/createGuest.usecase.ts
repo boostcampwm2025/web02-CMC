@@ -5,7 +5,7 @@ import { BATTLE_STATE_PORT, BATTLE_IDENTIFIER_PORT, GUEST_CHECK_PORT } from '../
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 import type { GuestCheckPort } from '../ports/out/guestCheck.port'
-import { BattleGuestService } from '../../domains/services/battleGuest.service'
+import { BattleGuestService } from '../../domains/services/battleGuest/battleGuest.service'
 
 @Injectable()
 export class CreateGuestUseCase {

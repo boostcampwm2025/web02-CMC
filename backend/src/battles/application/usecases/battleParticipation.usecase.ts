@@ -8,7 +8,7 @@ import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { ActiveBattleState, BattleTeam } from '../../domains/models/types/battle.types'
-import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch.service'
+import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
 import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 
 @Injectable()
@@ -26,7 +26,7 @@ export class BattleParticipationUseCase {
    */
   async join(battleJoinRequestDto: BattleJoinRequestDto, userId: string): Promise<{ battleState: ActiveBattleState; team: BattleTeam }> {
     const battleId: string = String(battleJoinRequestDto.battleId)
-    const team: BattleTeam = battleJoinRequestDto.team as BattleTeam
+    const team: BattleTeam = battleJoinRequestDto.team
     const nickname: string = String(battleJoinRequestDto.nickname)
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 

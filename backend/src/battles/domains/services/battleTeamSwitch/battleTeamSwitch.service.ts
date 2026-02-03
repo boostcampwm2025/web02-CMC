@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { ActiveBattleState, BattleTeam } from '../models/types/battle.types'
-import { BATTLE_TEAM, BATTLE_PHASE } from '../models/const/battles.const'
-import type { TeamCounts, TeamChange } from '../../dto/battleTeamUpdateAllResponse.dto'
+import { ActiveBattleState, BattleTeam } from '../../models/types/battle.types'
+import { BATTLE_TEAM, BATTLE_PHASE } from '../../models/const/battles.const'
+import type { TeamCounts, TeamChange } from '../../../dto/battleTeamUpdateAllResponse.dto'
 
 @Injectable()
 export class BattleTeamSwitchService {

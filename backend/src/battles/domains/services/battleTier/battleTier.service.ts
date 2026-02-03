@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { BattleTeam } from '../models/types/battle.types'
-import { calculateRatingDelta, coerceTierName, getMvpBonus, getTierFromRating } from './utils/rating.util'
-import type { Mvp } from '../models/types/battleResult.types'
+import { BattleTeam } from '../../models/types/battle.types'
+import { calculateRatingDelta, coerceTierName, getMvpBonus, getTierFromRating } from '../utils/rating.util'
+import type { Mvp } from '../../models/types/battleResult.types'
 
 type TeamBattleResult = 'WIN' | 'LOSE' | 'DRAW'
 

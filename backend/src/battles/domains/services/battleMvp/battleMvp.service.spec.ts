@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BattleMvpService } from './battleMvp.service'
-import { ActiveBattleState, BattleDefense } from '../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM } from '../models/const/battles.const'
+import { ActiveBattleState, BattleDefense } from '../../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_TEAM } from '../../models/const/battles.const'
 
 describe('BattleMvpService', () => {
   let service: BattleMvpService

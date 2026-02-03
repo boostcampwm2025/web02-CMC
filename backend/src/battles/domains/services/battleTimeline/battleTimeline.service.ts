@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { TimelineItem } from '../models/types/battleResult.types'
-import { ActiveBattleState, BattleDiscussion } from '../models/types/battle.types'
-import { BATTLE_TEAM } from '../models/const/battles.const'
+import { TimelineItem } from '../../models/types/battleResult.types'
+import { ActiveBattleState, BattleDiscussion } from '../../models/types/battle.types'
+import { BATTLE_TEAM } from '../../models/const/battles.const'
 
 @Injectable()
 export class BattleTimelineService {

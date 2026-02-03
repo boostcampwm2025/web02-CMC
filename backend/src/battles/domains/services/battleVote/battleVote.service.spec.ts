@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { BattleVoteService } from './battleVote.service'
-import { ActiveBattleState } from '../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../models/const/battles.const'
+import { ActiveBattleState } from '../../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../../models/const/battles.const'
 
 describe('BattleVoteService', () => {
   let service: BattleVoteService

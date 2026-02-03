@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { ActiveBattleState, BattlePhase } from '../models/types/battle.types'
-import { BATTLE_MAX_PHASE_COUNT, BATTLE_PHASE } from '../models/const/battles.const'
+import { ActiveBattleState, BattlePhase } from '../../models/types/battle.types'
+import { BATTLE_MAX_PHASE_COUNT, BATTLE_PHASE } from '../../models/const/battles.const'
 
 @Injectable()
 export class BattlePhaseService {

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { BattleTeamSwitchService } from './battleTeamSwitch.service'
-import { ActiveBattleState } from '../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM } from '../models/const/battles.const'
+import { ActiveBattleState } from '../../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_TEAM } from '../../models/const/battles.const'
 
 describe('BattleTeamSwitchService', () => {
   let service: BattleTeamSwitchService

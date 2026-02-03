@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException, NotFoundException } from '@nestjs/common'
 import { BattleQueryService } from './battleQuery.service'
-import { BattleResultService } from './battleResult.service'
-import { BattleTimelineService } from './battleTimeline.service'
-import { BattleMvpService } from './battleMvp.service'
-import { BATTLE_REPO_PORT, BATTLE_STATE_PORT } from '../../application/ports/tokens'
-import type { BattleRepoPort } from '../../application/ports/out/battleRepository.port'
-import type { BattleStatePort } from '../../application/ports/out/battleState.port'
-import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM } from '../models/const/battles.const'
-import type { ActiveBattleState } from '../models/types/battle.types'
+import { BattleResultService } from '../battleResult/battleResult.service'
+import { BattleTimelineService } from '../battleTimeline/battleTimeline.service'
+import { BattleMvpService } from '../battleMvp/battleMvp.service'
+import { BATTLE_REPO_PORT, BATTLE_STATE_PORT } from '../../../application/ports/tokens'
+import type { BattleRepoPort } from '../../../application/ports/out/battleRepository.port'
+import type { BattleStatePort } from '../../../application/ports/out/battleState.port'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM } from '../../models/const/battles.const'
+import type { ActiveBattleState } from '../../models/types/battle.types'
 
 describe('BattleQueryService', () => {
   let service: BattleQueryService

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import { BattleResult } from '../models/types/battleResult.types'
-import { BattleTeam } from '../models/types/battle.types'
-import { BATTLE_TEAM } from '../models/const/battles.const'
+import { BattleResult } from '../../models/types/battleResult.types'
+import { BattleTeam } from '../../models/types/battle.types'
+import { BATTLE_TEAM } from '../../models/const/battles.const'
 
 type TeamBattleResult = 'WIN' | 'LOSE' | 'DRAW'
 

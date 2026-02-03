@@ -9,10 +9,10 @@ import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
-import { BattleResultService } from '../../domains/services/battleResult.service'
-import { BattleTimelineService } from '../../domains/services/battleTimeline.service'
-import { BattleMvpService } from '../../domains/services/battleMvp.service'
-import { BattleTierService } from '../../domains/services/battleTier.service'
+import { BattleResultService } from '../../domains/services/battleResult/battleResult.service'
+import { BattleTimelineService } from '../../domains/services/battleTimeline/battleTimeline.service'
+import { BattleMvpService } from '../../domains/services/battleMvp/battleMvp.service'
+import { BattleTierService } from '../../domains/services/battleTier/battleTier.service'
 
 @Injectable()
 export class BattleTerminationUseCase {

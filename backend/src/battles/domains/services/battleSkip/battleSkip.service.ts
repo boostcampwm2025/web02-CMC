@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common'
-import { ActiveBattleState } from '../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM } from '../models/const/battles.const'
+import { ActiveBattleState } from '../../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_TEAM } from '../../models/const/battles.const'
 
 @Injectable()
 export class BattleSkipService {

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BattlePhaseService } from './battlePhase.service'
-import { BATTLE_PHASE, BATTLE_MAX_PHASE_COUNT } from '../models/const/battles.const'
-import { ActiveBattleState } from '../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_MAX_PHASE_COUNT } from '../../models/const/battles.const'
+import { ActiveBattleState } from '../../models/types/battle.types'
 
 describe('BattlePhaseService', () => {
   let service: BattlePhaseService

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
-import { ActiveBattleState, BattleChat, BattleTeam } from '../models/types/battle.types'
-import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../models/const/battles.const'
+import { ActiveBattleState, BattleChat, BattleTeam } from '../../models/types/battle.types'
+import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../models/const/battles.const'
 
 @Injectable()
 export class BattleChatService {

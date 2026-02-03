@@ -10,10 +10,10 @@ import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 
-import { BattleVoteService } from '../../domains/services/battleVote.service'
-import { BattleDiscussionService } from '../../domains/services/battleDiscussion.service'
-import { BattleChatService } from '../../domains/services/battleChat.service'
-import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch.service'
+import { BattleVoteService } from '../../domains/services/battleVote/battleVote.service'
+import { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
+import { BattleChatService } from '../../domains/services/battleChat/battleChat.service'
+import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
 
 @Injectable()
 export class BattleInteractionUseCase {

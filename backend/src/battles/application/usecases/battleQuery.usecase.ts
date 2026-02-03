@@ -9,9 +9,9 @@ import { BattleResultResponseDto } from '../../dto/battleResult.dto'
 import { BattleResponseDto } from '../../dto/battleResponse.dto'
 import { ClosedBattleResponseDto } from '../../dto/closedBattleResponse.dto'
 import type { ActiveBattleState } from '../../domains/models/types/battle.types'
-import { BattleResultService } from '../../domains/services/battleResult.service'
-import { BattleTimelineService } from '../../domains/services/battleTimeline.service'
-import { BattleMvpService } from '../../domains/services/battleMvp.service'
+import { BattleResultService } from '../../domains/services/battleResult/battleResult.service'
+import { BattleTimelineService } from '../../domains/services/battleTimeline/battleTimeline.service'
+import { BattleMvpService } from '../../domains/services/battleMvp/battleMvp.service'
 
 @Injectable()
 export class BattleQueryUseCase {
