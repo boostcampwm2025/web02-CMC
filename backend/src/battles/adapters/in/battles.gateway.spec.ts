@@ -10,8 +10,8 @@ import { BattleParticipationUseCase } from '../../application/usecases/battlePar
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
-import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
-import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
+import { BATTLE_IDENTIFIER_PORT } from '../../application/ports/tokens'
+import { getBattleRoomId } from '../../domains/services/utils/battle.util'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../../dto/discussion.dto'
 import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../../domains/models/const/battles.const'
 import { BattleDiscussion, BattleDefense } from '../../domains/models/types/battle.types'
@@ -25,7 +25,6 @@ import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.a
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
   let interactionUseCase: jest.Mocked<BattleInteractionUseCase>
-  let utilPort: jest.Mocked<BattleUtilPort>
   let mockClient: any
   let mockServer: any
 
@@ -68,9 +67,10 @@ describe('BattlesGateway - Discussion Events', () => {
           },
         },
         {
-          provide: BATTLE_UTIL_PORT,
+          provide: BATTLE_IDENTIFIER_PORT,
           useValue: {
-            getBattleRoomId: jest.fn(),
+            generateId: jest.fn(),
+            generateInviteCode: jest.fn(),
           },
         },
         {
@@ -99,7 +99,6 @@ describe('BattlesGateway - Discussion Events', () => {
 
     gateway = module.get(BattlesGateway)
     interactionUseCase = module.get(BattleInteractionUseCase)
-    utilPort = module.get(BATTLE_UTIL_PORT)
 
     mockClient = {
       id: 'client-123',
@@ -146,13 +145,11 @@ describe('BattlesGateway - Discussion Events', () => {
       }
 
       interactionUseCase.submitDiscussion.mockResolvedValue(mockAttack)
-      utilPort.getBattleRoomId.mockReturnValue('battle-1:A')
 
       await gateway.handleAttack(dto, mockClient)
 
       expect(interactionUseCase.submitDiscussion).toHaveBeenCalledWith('battle-1', 'user-1', '퀵소트가 더 빠릅니다', BATTLE_TEAM.A, 'attack')
-      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
-      expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
+      expect(mockServer.to).toHaveBeenCalledWith(getBattleRoomId('battle-1', BATTLE_TEAM.A))
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
 
@@ -196,7 +193,6 @@ describe('BattlesGateway - Discussion Events', () => {
       }
 
       interactionUseCase.submitDiscussion.mockResolvedValue(mockDefense)
-      utilPort.getBattleRoomId.mockReturnValue('battle-1:B')
 
       await gateway.handleDefense(dto, mockClient)
 
@@ -207,8 +203,7 @@ describe('BattlesGateway - Discussion Events', () => {
         BATTLE_TEAM.B,
         'defense',
       )
-      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
-      expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
+      expect(mockServer.to).toHaveBeenCalledWith(getBattleRoomId('battle-1', BATTLE_TEAM.B))
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
 
@@ -252,13 +247,11 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       interactionUseCase.submitVote.mockResolvedValue([mockResponse])
-      utilPort.getBattleRoomId.mockReturnValue('battle-1:A')
 
       await gateway.handleAttackVote(dto, mockClient)
 
       expect(interactionUseCase.submitVote).toHaveBeenCalledWith('battle-1', 'attack-1', 'user-1', BATTLE_TEAM.A, 'attack')
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:voted', mockResponse)
     })
   })
@@ -286,13 +279,11 @@ describe('BattlesGateway - Discussion Events', () => {
       })
 
       interactionUseCase.submitVote.mockResolvedValue([mockResponse])
-      utilPort.getBattleRoomId.mockReturnValue('battle-1:B')
 
       await gateway.handleDefenseVote(dto, mockClient)
 
       expect(interactionUseCase.submitVote).toHaveBeenCalledWith('battle-1', 'defense-1', 'user-1', BATTLE_TEAM.B, 'defense')
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:voted', mockResponse)
     })
   })
@@ -305,12 +296,9 @@ describe('BattlesGateway - Discussion Events', () => {
         teamNone: 2,
       })
 
-      utilPort.getBattleRoomId.mockReturnValue('battle:battle-1')
-
       gateway.userUpdate(payload)
 
-      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1')
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith(getBattleRoomId('battle-1'))
       expect(mockServer.emit).toHaveBeenCalledWith('battle:user:updated', payload)
     })
   })
@@ -337,11 +325,6 @@ describe('BattlesGateway - Discussion Events', () => {
         { userId: 'user-1', from: BATTLE_TEAM.A, to: BATTLE_TEAM.B },
         { userId: 'user-2', from: BATTLE_TEAM.B, to: BATTLE_TEAM.A },
       ])
-
-      utilPort.getBattleRoomId.mockImplementation((battleId: string, team?: string) => {
-        if (!team) return `battle:${battleId}`
-        return `battle:${battleId}:${team}`
-      })
 
       gateway.teamUpdate(payload)
 

@@ -1,4 +1,4 @@
-import { Logger, UnauthorizedException, NotFoundException, ForbiddenException, Inject } from '@nestjs/common'
+import { Logger, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../../domains/models/types/socket.types'
 import type { BattleTeam } from '../../domains/models/types/battle.types'
@@ -29,8 +29,7 @@ import { BattleCreationUseCase } from '../../application/usecases/battleCreation
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
-import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
-import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
+import { getBattleRoomId } from '../../domains/services/utils/battle.util'
 import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
 
 @WebSocketGateway({
@@ -52,7 +51,6 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     private readonly interactionUseCase: BattleInteractionUseCase,
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
     private readonly queryUseCase: BattleQueryUseCase,
-    @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
     private readonly metricsService: MetricsService,
     private readonly broadcaster: BattleBroadcasterAdapter,
   ) {}
@@ -96,7 +94,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     if (userId && battleId) {
       try {
         const result = await this.participationUseCase.leave(userId, battleId)
-        const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+        const battleRoomId = getBattleRoomId(battleId)
         this.server.to(battleRoomId).emit('battle:leaved', result)
       } catch (error) {
         if (!(error instanceof NotFoundException)) {
@@ -138,8 +136,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const { battleState, team } = await this.participationUseCase.join(battleJoinRequestDto, userId)
 
       const res = BattleJoinResponseDto.of(battleState, team)
-      const battleRoomId = this.utilPort.getBattleRoomId(battleId)
-      const battleTeamRoom = this.utilPort.getBattleRoomId(battleId, team)
+      const battleRoomId = getBattleRoomId(battleId)
+      const battleTeamRoom = getBattleRoomId(battleId, team)
 
       client.data.battleId = battleId
       await client.join(battleRoomId)
@@ -161,7 +159,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   async handleLeave(@MessageBody() dto: { battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
     const { battleId } = dto
     const userId = this.getUserIdFromSocket(client)
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     const result = await this.participationUseCase.leave(userId, battleId)
     client.data.battleId = undefined
@@ -176,7 +174,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const { battleId } = dto
       await this.creationUseCase.start(battleId)
 
-      const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+      const battleRoomId = getBattleRoomId(battleId)
 
       this.server.to(battleRoomId).emit('battle:started')
       stopTimer('success')
@@ -195,7 +193,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const content: string = dto.content
       const team: BattleTeam = dto.team
       const attack = await this.interactionUseCase.submitDiscussion(battleId, userId, content, team, 'attack')
-      const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
+      const teamRoom = getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:attack:created', attack)
       stopTimer('success')
@@ -218,7 +216,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const content: string = dto.content
       const team: BattleTeam = dto.team
       const defense = await this.interactionUseCase.submitDiscussion(battleId, userId, content, team, 'defense')
-      const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
+      const teamRoom = getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:defense:created', defense)
       stopTimer('success')
@@ -241,7 +239,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const discussionId: string = dto.discussionId
       const team: BattleTeam = dto.team
       const updates = await this.interactionUseCase.submitVote(battleId, discussionId, userId, team, 'attack')
-      const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
+      const teamRoom = getBattleRoomId(battleId, team)
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
@@ -267,7 +265,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const discussionId: string = dto.discussionId
       const team: BattleTeam = dto.team
       const updates = await this.interactionUseCase.submitVote(battleId, discussionId, userId, team, 'defense')
-      const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
+      const teamRoom = getBattleRoomId(battleId, team)
 
       // 모든 변경된 항목(기존 투표 취소 + 새 투표)을 전송
       updates.forEach(update => {
@@ -291,7 +289,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     try {
       const { skip, battleId } = dto
       const totalSkips = await this.phaseTransitionUseCase.handlePhaseSkip(battleId, userId, skip)
-      const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+      const battleRoomId = getBattleRoomId(battleId)
 
       this.server.to(battleRoomId).emit('battle:user:skipped', { totalSkips })
 
@@ -308,37 +306,37 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   phaseUpdate(payload: BattlePhaseResponseDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:phase:updated', payload)
   }
 
   roundUpdate(payload: BattleRoundResponseDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:round:updated', payload)
   }
 
   onAttacked(payload: DiscussionVoteResultDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:attacked', payload)
   }
 
   onDefensed(payload: DiscussionVoteResultDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:defensed', payload)
   }
 
   closeBattle(payload: BattleClosedResponseDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
-    const battleARoomId = this.utilPort.getBattleRoomId(battleId, 'A')
-    const battleBRoomId = this.utilPort.getBattleRoomId(battleId, 'B')
+    const battleRoomId = getBattleRoomId(battleId)
+    const battleARoomId = getBattleRoomId(battleId, 'A')
+    const battleBRoomId = getBattleRoomId(battleId, 'B')
 
     this.server.to(battleRoomId).emit('battle:closed', payload)
 
@@ -349,14 +347,14 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   userUpdate(payload: BattleUserUpdateResponseDto) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:user:updated', payload)
   }
 
   skipPhase(payload: { battleId: string }) {
     const { battleId } = payload
-    const battleRoomId = this.utilPort.getBattleRoomId(battleId)
+    const battleRoomId = getBattleRoomId(battleId)
 
     this.server.to(battleRoomId).emit('battle:phase:skipped')
   }
@@ -371,7 +369,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const battleId: string = battleChatDto.battleId
       const scope: typeof BATTLE_CHAT_SCOPE.ALL | typeof BATTLE_CHAT_SCOPE.TEAM = battleChatDto.scope
       const team: BattleTeam = battleChatDto.team
-      const roomId = scope === BATTLE_CHAT_SCOPE.ALL ? this.utilPort.getBattleRoomId(battleId) : this.utilPort.getBattleRoomId(battleId, team)
+      const roomId = scope === BATTLE_CHAT_SCOPE.ALL ? getBattleRoomId(battleId) : getBattleRoomId(battleId, team)
 
       // this.server.to(roomId).emit('battle:chatted', saved)
       this.server.to(roomId).except(client.id).emit('battle:chatted', saved)
@@ -403,7 +401,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
   }
 
   teamUpdate(payload: BattleTeamUpdateAllResponseDto) {
-    const battleRoomId = this.utilPort.getBattleRoomId(payload.battleId)
+    const battleRoomId = getBattleRoomId(payload.battleId)
 
     // 각 클라이언트의 소켓 룸 이동 및 개별 알림
     for (const change of payload.changes) {
@@ -413,8 +411,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const battleId: string = payload.battleId
       const fromTeam: BattleTeam = change.from
       const toTeam: BattleTeam = change.to
-      const fromRoom = this.utilPort.getBattleRoomId(battleId, fromTeam)
-      const toRoom = this.utilPort.getBattleRoomId(battleId, toTeam)
+      const fromRoom = getBattleRoomId(battleId, fromTeam)
+      const toRoom = getBattleRoomId(battleId, toTeam)
 
       void socket.leave(fromRoom)
       void socket.join(toRoom)

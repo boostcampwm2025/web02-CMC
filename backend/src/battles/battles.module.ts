@@ -37,7 +37,7 @@ import { BattleStateRepositoryAdapter } from './adapters/out/state/battleStateRe
 import { BattleBroadcasterAdapter } from './adapters/out/broadcaster/battleBroadcaster.adapter'
 import { BattleTimerAdapter } from './adapters/out/timer/battleTimer.adapter'
 import { BattleReferenceGeneratorAdapter } from './adapters/out/reference/battleReferenceGenerator.adapter'
-import { BattleUtilAdapter } from './adapters/out/util/battleUtil.adapter'
+import { BattleIdentifierAdapter } from './adapters/out/battleIdentifier/battleIdentifier.adapter'
 import { GuestCheckAdapter } from './adapters/out/guestCheck/guestCheck.adapter'
 import { BattlePrivacyCheckAdapter } from './adapters/out/battlePrivacyCheck/battlePrivacyCheck.adapter'
 
@@ -48,7 +48,7 @@ import {
   BATTLE_BROADCASTER_PORT,
   BATTLE_TIMER_PORT,
   BATTLE_REFERENCE_PORT,
-  BATTLE_UTIL_PORT,
+  BATTLE_IDENTIFIER_PORT,
   GUEST_CHECK_PORT,
   BATTLE_PRIVACY_CHECK_PORT,
 } from './application/ports/tokens'
@@ -89,7 +89,7 @@ import {
     BattleStateRepositoryAdapter,
     BattleTimerAdapter,
     BattleReferenceGeneratorAdapter,
-    BattleUtilAdapter,
+    BattleIdentifierAdapter,
     GuestCheckAdapter,
     BattlePrivacyCheckAdapter,
 
@@ -100,7 +100,7 @@ import {
     { provide: BATTLE_BROADCASTER_PORT, useExisting: BattleBroadcasterAdapter },
     { provide: BATTLE_TIMER_PORT, useClass: BattleTimerAdapter },
     { provide: BATTLE_REFERENCE_PORT, useClass: BattleReferenceGeneratorAdapter },
-    { provide: BATTLE_UTIL_PORT, useClass: BattleUtilAdapter },
+    { provide: BATTLE_IDENTIFIER_PORT, useClass: BattleIdentifierAdapter },
     { provide: GUEST_CHECK_PORT, useClass: GuestCheckAdapter },
     { provide: BATTLE_PRIVACY_CHECK_PORT, useClass: BattlePrivacyCheckAdapter },
   ],

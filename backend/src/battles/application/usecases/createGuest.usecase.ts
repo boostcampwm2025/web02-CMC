@@ -1,9 +1,9 @@
 import { Injectable, Inject, NotFoundException } from '@nestjs/common'
 import { BATTLE_STATUS } from '../../domains/models/const/battles.const'
 import type { GuestAccount } from '../../domains/models/types/auth.types'
-import { BATTLE_STATE_PORT, BATTLE_UTIL_PORT, GUEST_CHECK_PORT } from '../ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_IDENTIFIER_PORT, GUEST_CHECK_PORT } from '../ports/tokens'
 import type { BattleStatePort } from '../ports/out/battleState.port'
-import type { BattleUtilPort } from '../ports/out/battleUtil.port'
+import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 import type { GuestCheckPort } from '../ports/out/guestCheck.port'
 import { BattleGuestService } from '../../domains/services/battleGuest.service'
 
@@ -11,7 +11,7 @@ import { BattleGuestService } from '../../domains/services/battleGuest.service'
 export class CreateGuestUseCase {
   constructor(
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
-    @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
+    @Inject(BATTLE_IDENTIFIER_PORT) private readonly identifierPort: BattleIdentifierPort,
     @Inject(GUEST_CHECK_PORT) private readonly guestCheckPort: GuestCheckPort,
     private readonly guestService: BattleGuestService,
   ) {}
@@ -31,7 +31,7 @@ export class CreateGuestUseCase {
       (battleId, nickname) => this.stateRepo.isNicknameDuplicate(battleId, nickname),
     )
 
-    const guest: GuestAccount = this.guestService.buildGuest(guestNickname, () => this.utilPort.generateId())
+    const guest: GuestAccount = this.guestService.buildGuest(guestNickname, () => this.identifierPort.generateId())
 
     this.guestService.applyGuestToState(battleState, guest)
     await this.stateRepo.saveBattleState(battleId, battleState)

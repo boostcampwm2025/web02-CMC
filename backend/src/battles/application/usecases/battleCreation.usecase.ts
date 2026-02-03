@@ -11,14 +11,17 @@ import {
   BATTLE_BROADCASTER_PORT,
   BATTLE_TIMER_PORT,
   BATTLE_REFERENCE_PORT,
-  BATTLE_UTIL_PORT,
+  BATTLE_IDENTIFIER_PORT,
 } from '../ports/tokens'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
 import type { BattleReferencePort } from '../ports/out/battleReference.port'
-import type { BattleUtilPort } from '../ports/out/battleUtil.port'
+import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
+
+import { shuffleTopics } from '../../domains/services/utils/battle.util'
+import { toBattleEntity } from '../mappers/battle.mapper'
 import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 
 @Injectable()
@@ -29,15 +32,15 @@ export class BattleCreationUseCase {
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
     @Inject(BATTLE_REFERENCE_PORT) private readonly referencePort: BattleReferencePort,
-    @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
+    @Inject(BATTLE_IDENTIFIER_PORT) private readonly identifierPort: BattleIdentifierPort,
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
   ) {}
 
   //배틀 생성
   async create(payload: BattleCreateQueryDto): Promise<Battle> {
     const now = new Date()
-    const battleId = this.utilPort.generateId()
-    const shuffledTopics = this.utilPort.shuffleTopics(payload.topics, payload.playTime)
+    const battleId = this.identifierPort.generateId()
+    const shuffledTopics = shuffleTopics(payload.topics, payload.playTime)
     const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
     let referenceData: BattleReferenceData | null = null
@@ -62,7 +65,7 @@ export class BattleCreationUseCase {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
 
-    const inviteCode: string | null = isPrivate ? this.utilPort.generateInviteCode() : null
+    const inviteCode: string | null = isPrivate ? this.identifierPort.generateInviteCode() : null
 
     const createData = {
       id: battleId,
@@ -98,7 +101,7 @@ export class BattleCreationUseCase {
     }
     const created = await this.repo.create(createData)
 
-    const battleEntity = this.utilPort.toBattleEntity(created, 1)
+    const battleEntity = toBattleEntity(created, 1)
     return battleEntity
   }
 

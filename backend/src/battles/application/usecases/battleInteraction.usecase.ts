@@ -5,10 +5,10 @@ import { BattleDiscussion, BattleTeam, ActiveBattleState } from '../../domains/m
 import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
 import type { BattleChatDto } from '../../dto/battleChat.dto'
 
-import { BATTLE_STATE_PORT, BATTLE_REPO_PORT, BATTLE_UTIL_PORT } from '../ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_REPO_PORT, BATTLE_IDENTIFIER_PORT } from '../ports/tokens'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
-import type { BattleUtilPort } from '../ports/out/battleUtil.port'
+import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 
 import { BattleVoteService } from '../../domains/services/battleVote.service'
 import { BattleDiscussionService } from '../../domains/services/battleDiscussion.service'
@@ -20,7 +20,7 @@ export class BattleInteractionUseCase {
   constructor(
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
-    @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
+    @Inject(BATTLE_IDENTIFIER_PORT) private readonly identifierPort: BattleIdentifierPort,
     private readonly voteService: BattleVoteService,
     private readonly discussionService: BattleDiscussionService,
     private readonly chatService: BattleChatService,
@@ -37,7 +37,7 @@ export class BattleInteractionUseCase {
   ): Promise<BattleDiscussion> {
     const battleStateResult = await this.stateRepo.loadBattleState(battleId)
     const state: ActiveBattleState = battleStateResult.state
-    const discussionId = this.utilPort.generateId()
+    const discussionId = this.identifierPort.generateId()
     const getNickname = (userId: string) => this.stateRepo.getNicknameByUserId(state, userId) || ''
 
     if (discussionType === 'attack') {
@@ -106,7 +106,7 @@ export class BattleInteractionUseCase {
     const nickname = this.stateRepo.getNicknameByUserId(state, userId) || ''
     const userTier = await this.repo.findUniqueUser(userId, { tier: true })
 
-    const chat = this.chatService.buildChatMessage(this.utilPort.generateId(), userId, nickname, userTier?.tier ?? undefined, team, text)
+    const chat = this.chatService.buildChatMessage(this.identifierPort.generateId(), userId, nickname, userTier?.tier ?? undefined, team, text)
 
     this.chatService.applyChatMessage(state, chat, scope, team)
     await this.stateRepo.saveBattleState(battleId, state)

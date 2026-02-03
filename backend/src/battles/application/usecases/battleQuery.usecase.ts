@@ -1,11 +1,13 @@
 import { Injectable, Inject, BadRequestException, NotFoundException } from '@nestjs/common'
-import { BATTLE_REPO_PORT, BATTLE_STATE_PORT, BATTLE_UTIL_PORT } from '../ports/tokens'
+import { BATTLE_REPO_PORT, BATTLE_STATE_PORT } from '../ports/tokens'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
-import type { BattleUtilPort } from '../ports/out/battleUtil.port'
+import { toBattleEntity } from '../mappers/battle.mapper'
 import { BATTLE_STATUS, BATTLE_PLAYTIME } from '../../domains/models/const/battles.const'
 import { BattleJoinInfoResponseDto } from '../../dto/battleJoinResponse.dto'
 import { BattleResultResponseDto } from '../../dto/battleResult.dto'
+import { BattleResponseDto } from '../../dto/battleResponse.dto'
+import { ClosedBattleResponseDto } from '../../dto/closedBattleResponse.dto'
 import type { ActiveBattleState } from '../../domains/models/types/battle.types'
 import { BattleResultService } from '../../domains/services/battleResult.service'
 import { BattleTimelineService } from '../../domains/services/battleTimeline.service'
@@ -16,7 +18,6 @@ export class BattleQueryUseCase {
   constructor(
     @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
-    @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
     private readonly resultService: BattleResultService,
     private readonly timelineService: BattleTimelineService,
     private readonly mvpService: BattleMvpService,
@@ -37,10 +38,29 @@ export class BattleQueryUseCase {
       }),
     ])
 
-    const battles = this.utilPort.buildOpenBattleList(records)
+    const battles = (
+      records as Array<{
+        id: string
+        userId: string
+        title: string
+        description: string
+        codeA: string
+        codeB: string
+        language: string
+        category: string
+        playTime: string
+        topics: string[]
+        inviteCode: string | null
+        isPrivate: boolean
+        status: string
+        createdAt: Date
+        updatedAt: Date | null
+        referenceData?: unknown
+      }>
+    ).map(battle => toBattleEntity(battle, 0))
 
     return {
-      battles,
+      battles: BattleResponseDto.of(battles),
       meta: { offset, limit, total },
     }
   }
@@ -58,7 +78,37 @@ export class BattleQueryUseCase {
       }),
     ])
 
-    const battles = this.utilPort.buildClosedBattleList(records, this.resultService)
+    const battles = (
+      records as Array<{
+        id: string
+        userId: string
+        title: string
+        description: string
+        codeA: string
+        codeB: string
+        language: string
+        category: string
+        playTime: string
+        topics: string[]
+        inviteCode: string | null
+        isPrivate: boolean
+        status: string
+        createdAt: Date
+        updatedAt: Date | null
+        teamACount: number | null
+        teamBCount: number | null
+        totalParticipantsCount: number | null
+        winningTeam: string | null
+        referenceData?: unknown
+      }>
+    ).map(record => {
+      const teamACount = record.teamACount ?? 0
+      const teamBCount = record.teamBCount ?? 0
+      const result = this.resultService.buildBattleResult(teamACount, teamBCount, record.totalParticipantsCount, record.winningTeam)
+      const battle = toBattleEntity(record, record.totalParticipantsCount ?? teamACount + teamBCount)
+
+      return ClosedBattleResponseDto.of(battle, result)
+    })
 
     return {
       battles,
@@ -94,7 +144,7 @@ export class BattleQueryUseCase {
       participantCount = loaded.state.participants.size
     }
 
-    const mapped = this.utilPort.toBattleEntity(battle, participantCount)
+    const mapped = toBattleEntity(battle, participantCount)
     return BattleJoinInfoResponseDto.of(mapped, activeBattleState)
   }
 

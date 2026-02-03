@@ -4,18 +4,16 @@ import { BattleQueryService } from './battleQuery.service'
 import { BattleResultService } from './battleResult.service'
 import { BattleTimelineService } from './battleTimeline.service'
 import { BattleMvpService } from './battleMvp.service'
-import { BATTLE_REPO_PORT, BATTLE_STATE_PORT, BATTLE_UTIL_PORT } from '../../application/ports/tokens'
+import { BATTLE_REPO_PORT, BATTLE_STATE_PORT } from '../../application/ports/tokens'
 import type { BattleRepoPort } from '../../application/ports/out/battleRepository.port'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
-import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
-import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM } from '../models/const/battles.const'
-import type { ActiveBattleState, Battle } from '../models/types/battle.types'
+import { BATTLE_PHASE, BATTLE_STATUS, BATTLE_TEAM } from '../models/const/battles.const'
+import type { ActiveBattleState } from '../models/types/battle.types'
 
 describe('BattleQueryService', () => {
   let service: BattleQueryService
   let repo: jest.Mocked<BattleRepoPort>
   let stateRepo: jest.Mocked<BattleStatePort>
-  let utilPort: jest.Mocked<BattleUtilPort>
   let resultService: jest.Mocked<BattleResultService>
   let timelineService: jest.Mocked<BattleTimelineService>
   let mvpService: jest.Mocked<BattleMvpService>
@@ -38,14 +36,6 @@ describe('BattleQueryService', () => {
           useValue: {
             loadBattleState: jest.fn(),
             parseMvpsState: jest.fn(),
-          },
-        },
-        {
-          provide: BATTLE_UTIL_PORT,
-          useValue: {
-            buildOpenBattleList: jest.fn(),
-            buildClosedBattleList: jest.fn(),
-            toBattleEntity: jest.fn(),
           },
         },
         {
@@ -72,7 +62,6 @@ describe('BattleQueryService', () => {
     service = module.get(BattleQueryService)
     repo = module.get(BATTLE_REPO_PORT)
     stateRepo = module.get(BATTLE_STATE_PORT)
-    utilPort = module.get(BATTLE_UTIL_PORT)
     resultService = module.get(BattleResultService)
     timelineService = module.get(BattleTimelineService)
     mvpService = module.get(BattleMvpService)
@@ -90,28 +79,72 @@ describe('BattleQueryService', () => {
 
   describe('getOpenBattles', () => {
     it('returns open battle list and meta', async () => {
-      const mockRecords = [{ id: 'battle-1' }]
+      const mockRecords = [
+        {
+          id: 'battle-1',
+          userId: 'user-1',
+          title: 'Test Battle',
+          description: 'Test Description',
+          codeA: 'codeA',
+          codeB: 'codeB',
+          language: 'TS',
+          category: 'ALGORITHM',
+          playTime: 'FIFTEEN_MIN',
+          topics: ['topic'],
+          inviteCode: null,
+          isPrivate: false,
+          status: 'OPEN',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
       repo.findBattleList.mockResolvedValue(mockRecords as never)
       repo.countBattleList.mockResolvedValue(1)
-      utilPort.buildOpenBattleList.mockReturnValue(mockRecords)
 
       const result = await service.getOpenBattles(10, 0)
 
-      expect(result.battles).toEqual(mockRecords)
+      expect(result.battles).toHaveLength(1)
       expect(result.meta).toEqual({ offset: 0, limit: 10, total: 1 })
     })
   })
 
   describe('getClosedBattles', () => {
     it('returns closed battle list and meta', async () => {
-      const mockRecords = [{ id: 'battle-1' }]
+      const mockRecords = [
+        {
+          id: 'battle-1',
+          userId: 'user-1',
+          title: 'Test Battle',
+          description: 'Test Description',
+          codeA: 'codeA',
+          codeB: 'codeB',
+          language: 'TS',
+          category: 'ALGORITHM',
+          playTime: 'FIFTEEN_MIN',
+          topics: ['topic'],
+          inviteCode: null,
+          isPrivate: false,
+          status: 'CLOSED',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          teamACount: 5,
+          teamBCount: 3,
+          totalParticipantsCount: 8,
+          winningTeam: 'A',
+        },
+      ]
       repo.findBattleList.mockResolvedValue(mockRecords as never)
       repo.countBattleList.mockResolvedValue(1)
-      utilPort.buildClosedBattleList.mockReturnValue(mockRecords)
+      resultService.buildBattleResult.mockReturnValue({
+        winner: 'A',
+        teamAVotes: 5,
+        teamBVotes: 3,
+        neutralVotes: 0,
+      } as never)
 
       const result = await service.getClosedBattles(10, 0)
 
-      expect(result.battles).toEqual(mockRecords)
+      expect(result.battles).toHaveLength(1)
       expect(result.meta).toEqual({ offset: 0, limit: 10, total: 1 })
     })
   })
@@ -192,32 +225,24 @@ describe('BattleQueryService', () => {
 
   describe('getJoinBattleInfo', () => {
     it('returns join info dto', async () => {
-      const mockBattleRecord = { id: 'battle-1', status: BATTLE_STATUS.OPEN, totalParticipantsCount: 5 }
-
-      const mappedBattle: Battle = {
+      const mockBattleRecord = {
         id: 'battle-1',
-        authorId: 'user-1',
+        userId: 'user-1',
         title: 'Test Battle',
         description: 'Test Description',
-        aCode: 'codeA',
-        bCode: 'codeB',
+        codeA: 'codeA',
+        codeB: 'codeB',
         language: 'TS',
-        type: 'PUBLIC',
         category: 'ALGORITHM',
-        playTime: BATTLE_PLAYTIME.FIFTEEN_MIN,
+        playTime: 'FIFTEEN_MIN',
         topics: ['topic'],
+        inviteCode: null,
+        isPrivate: false,
         status: BATTLE_STATUS.OPEN,
-        participantCount: 1,
-        initialState: {
-          round: 1,
-          phase: BATTLE_PHASE.PENDING.name,
-          phaseCount: 1,
-          timeRemainingSeconds: 15 * 60,
-        },
-        referenceData: null,
+        totalParticipantsCount: 5,
         createdAt: new Date(),
         updatedAt: new Date(),
-      } as never
+      }
 
       const activeState: ActiveBattleState = {
         battleId: 'battle-1',
@@ -240,7 +265,7 @@ describe('BattleQueryService', () => {
 
       jest.spyOn(repo, 'findUnique').mockResolvedValue(mockBattleRecord as never)
       stateRepo.loadBattleState.mockResolvedValue({ state: activeState } as never)
-      utilPort.toBattleEntity.mockReturnValue(mappedBattle)
+      // toBattleEntity는 순수 함수이므로 mock 불필요
 
       const result = await service.getJoinBattleInfo('battle-1')
 
