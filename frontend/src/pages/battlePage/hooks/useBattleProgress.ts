@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import type { BattleProgressState } from '@/commons/types/battle';
 import { useBattleStore, selectSocket } from '../stores/battleStore';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
@@ -27,6 +28,16 @@ export function useBattleProgress() {
       });
       setCurrentStage(data.phase);
 
+      Sentry.addBreadcrumb({
+        category: 'battle',
+        message: `배틀 페이즈 변경 - ${data.phase}`,
+        level: 'info',
+        data: {
+          phase: data.phase,
+          round: useBattleStore.getState().battleProgress?.round
+        }
+      });
+
       // 페이즈가 변경되면 투표 리스트 초기화
       useBattleStore.getState().setDiscussions([]);
       useBattleStore.getState().commitOpponentNotice();
@@ -37,6 +48,16 @@ export function useBattleProgress() {
       updateBattleProgress({
         round: data.round,
         topic: data.topic
+      });
+
+      Sentry.addBreadcrumb({
+        category: 'battle',
+        message: `배틀 라운드 변경 - Round ${data.round}`,
+        level: 'info',
+        data: {
+          round: data.round,
+          topic: data.topic
+        }
       });
 
       showEffect(data.round, data.topic);
@@ -52,7 +73,7 @@ export function useBattleProgress() {
         setPendingBattleClosed(true);
       } else {
         soundManager.stopAllBGM();
-      navigate(`/battles/${data.battleId}/result`);
+        navigate(`/battles/${data.battleId}/result`);
       }
     };
     socket.on('battle:closed', handleBattleClosed);

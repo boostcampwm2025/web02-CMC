@@ -180,6 +180,7 @@ export function useBattleSocketErrorHandling() {
       socket.io.off('reconnect');
       socket.io.off('reconnect_attempt');
       socket.io.off('reconnect_failed');
+      socket.off('battle:phase:updated');
       socket.off('battle:join:error');
       socket.off('battle:attack:error');
       socket.off('battle:defense:error');
