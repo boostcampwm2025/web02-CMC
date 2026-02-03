@@ -136,7 +136,7 @@ describe('NicknamePage', () => {
     await waitFor(() => {
       expect(updateOAuthNickname).toHaveBeenCalledWith('테스트닉네임');
       expect(useAuthStore.setState).toHaveBeenCalledWith({ user: null });
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/main');
     });
   });
 
