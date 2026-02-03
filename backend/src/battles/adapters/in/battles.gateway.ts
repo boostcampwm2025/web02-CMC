@@ -28,7 +28,7 @@ import { BattleParticipationUseCase } from '../../application/usecases/battlePar
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
-import { IsPrivateBattleUseCase } from '../../application/usecases/isPrivateBattle.usecase'
+import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
 import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
 import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
 import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
@@ -51,7 +51,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     private readonly creationUseCase: BattleCreationUseCase,
     private readonly interactionUseCase: BattleInteractionUseCase,
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
-    private readonly isPrivateBattleUseCase: IsPrivateBattleUseCase,
+    private readonly queryUseCase: BattleQueryUseCase,
     @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
     private readonly metricsService: MetricsService,
     private readonly broadcaster: BattleBroadcasterAdapter,
@@ -126,7 +126,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const { battleId } = battleJoinRequestDto
 
       // 비공개 배틀이면 초대 코드로 접근했는지 확인
-      const isPrivate = await this.isPrivateBattleUseCase.execute(battleId)
+      const isPrivate = await this.queryUseCase.isPrivateBattle(battleId)
       if (isPrivate) {
         const cookieHeader = client.handshake.headers.cookie
         const cookieName = `inviteAccess_${battleId}`

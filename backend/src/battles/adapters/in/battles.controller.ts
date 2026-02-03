@@ -10,21 +10,13 @@ import { InviteAccessGuard } from '../../guards/inviteAccess.guard'
 import { BATTLE_TYPE } from '../../domains/models/const/battles.const'
 
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
-import { GetOpenBattlesUseCase } from '../../application/usecases/getOpenBattles.usecase'
-import { GetClosedBattlesUseCase } from '../../application/usecases/getClosedBattles.usecase'
-import { GetBattleByInviteCodeUseCase } from '../../application/usecases/getBattleByInviteCode.usecase'
-import { GetJoinBattleInfoUseCase } from '../../application/usecases/getJoinBattleInfo.usecase'
-import { GetBattleResultUseCase } from '../../application/usecases/getBattleResult.usecase'
+import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
 
 @Controller('battles')
 export class BattlesController {
   constructor(
     private readonly creationUseCase: BattleCreationUseCase,
-    private readonly getOpenBattlesUseCase: GetOpenBattlesUseCase,
-    private readonly getClosedBattlesUseCase: GetClosedBattlesUseCase,
-    private readonly getBattleByInviteCodeUseCase: GetBattleByInviteCodeUseCase,
-    private readonly getJoinBattleInfoUseCase: GetJoinBattleInfoUseCase,
-    private readonly getBattleResultUseCase: GetBattleResultUseCase,
+    private readonly queryUseCase: BattleQueryUseCase,
   ) {}
 
   @Post()
@@ -43,18 +35,18 @@ export class BattlesController {
 
   @Get('open')
   async getOpenBattles(@Query() query: BattleListRequestQueryDto) {
-    return this.getOpenBattlesUseCase.execute(query.limit, query.offset)
+    return this.queryUseCase.getOpenBattles(query.limit, query.offset)
   }
 
   @Get('closed')
   async getClosedBattles(@Query() query: BattleListRequestQueryDto) {
-    return this.getClosedBattlesUseCase.execute(query.limit, query.offset)
+    return this.queryUseCase.getClosedBattles(query.limit, query.offset)
   }
 
   @Get(':inviteCode')
   @HttpCode(303)
   async getBattleByInviteCode(@Param('inviteCode') inviteCode: string, @Res() res: Response) {
-    const { battleId } = await this.getBattleByInviteCodeUseCase.execute(inviteCode)
+    const { battleId } = await this.queryUseCase.getBattleByInviteCode(inviteCode)
 
     // 초대 코드로 접근했음을 쿠키에 기록
     this.setInviteAccessCookie(battleId, res)
@@ -67,14 +59,14 @@ export class BattlesController {
   @HttpCode(200)
   @UseGuards(InviteAccessGuard)
   async joinBattleInfo(@Param('id') battleId: string): Promise<BattleJoinInfoResponseDto> {
-    return this.getJoinBattleInfoUseCase.execute(battleId)
+    return this.queryUseCase.getJoinBattleInfo(battleId)
   }
 
   @Get(':id/result')
   @HttpCode(200)
   async getBattleResult(@Param('id') battleId: string): Promise<BattleResultResponseDto> {
     try {
-      return await this.getBattleResultUseCase.execute(battleId)
+      return await this.queryUseCase.getBattleResult(battleId)
     } catch (error) {
       if (error instanceof HttpException) {
         throw error

@@ -4,11 +4,7 @@ import type { Response } from 'express'
 import type { BattleLanguage, BattleCategory } from '../../domains/models/types/battle.types'
 import { BattlesController } from './battles.controller'
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
-import { GetOpenBattlesUseCase } from '../../application/usecases/getOpenBattles.usecase'
-import { GetClosedBattlesUseCase } from '../../application/usecases/getClosedBattles.usecase'
-import { GetBattleByInviteCodeUseCase } from '../../application/usecases/getBattleByInviteCode.usecase'
-import { GetJoinBattleInfoUseCase } from '../../application/usecases/getJoinBattleInfo.usecase'
-import { GetBattleResultUseCase } from '../../application/usecases/getBattleResult.usecase'
+import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
 import { BattleListRequestQueryDto } from '../../dto/battleListRequestQuery.dto'
 import { BattleResultResponseDto } from '../../dto/battleResult.dto'
 import { BATTLE_TYPE, BATTLE_PLAYTIME } from '../../domains/models/const/battles.const'
@@ -17,11 +13,7 @@ import { InviteAccessGuard } from '../../guards/inviteAccess.guard'
 describe('BattlesController', () => {
   let controller: BattlesController
   let creationUseCase: jest.Mocked<BattleCreationUseCase>
-  let getOpenBattlesUseCase: jest.Mocked<GetOpenBattlesUseCase>
-  let getClosedBattlesUseCase: jest.Mocked<GetClosedBattlesUseCase>
-  let getBattleByInviteCodeUseCase: jest.Mocked<GetBattleByInviteCodeUseCase>
-  let getJoinBattleInfoUseCase: jest.Mocked<GetJoinBattleInfoUseCase>
-  let getBattleResultUseCase: jest.Mocked<GetBattleResultUseCase>
+  let queryUseCase: jest.Mocked<BattleQueryUseCase>
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,24 +24,14 @@ describe('BattlesController', () => {
           useValue: { create: jest.fn() },
         },
         {
-          provide: GetOpenBattlesUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
-          provide: GetClosedBattlesUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
-          provide: GetBattleByInviteCodeUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
-          provide: GetJoinBattleInfoUseCase,
-          useValue: { execute: jest.fn() },
-        },
-        {
-          provide: GetBattleResultUseCase,
-          useValue: { execute: jest.fn() },
+          provide: BattleQueryUseCase,
+          useValue: {
+            getOpenBattles: jest.fn(),
+            getClosedBattles: jest.fn(),
+            getBattleByInviteCode: jest.fn(),
+            getJoinBattleInfo: jest.fn(),
+            getBattleResult: jest.fn(),
+          },
         },
         {
           provide: InviteAccessGuard,
@@ -63,11 +45,7 @@ describe('BattlesController', () => {
 
     controller = module.get(BattlesController)
     creationUseCase = module.get(BattleCreationUseCase)
-    getOpenBattlesUseCase = module.get(GetOpenBattlesUseCase)
-    getClosedBattlesUseCase = module.get(GetClosedBattlesUseCase)
-    getBattleByInviteCodeUseCase = module.get(GetBattleByInviteCodeUseCase)
-    getJoinBattleInfoUseCase = module.get(GetJoinBattleInfoUseCase)
-    getBattleResultUseCase = module.get(GetBattleResultUseCase)
+    queryUseCase = module.get(BattleQueryUseCase)
   })
 
   afterEach(() => {
@@ -83,12 +61,12 @@ describe('BattlesController', () => {
         meta: { limit: 10, offset: 0, total: 0 },
       }
 
-      const executeSpy = jest.spyOn(getOpenBattlesUseCase, 'execute')
-      executeSpy.mockResolvedValue(mockResult)
+      const getOpenBattlesSpy = jest.spyOn(queryUseCase, 'getOpenBattles')
+      getOpenBattlesSpy.mockResolvedValue(mockResult)
 
       const result = await controller.getOpenBattles(query)
 
-      expect(executeSpy).toHaveBeenCalledWith(10, 0)
+      expect(getOpenBattlesSpy).toHaveBeenCalledWith(10, 0)
       expect(result).toBe(mockResult)
     })
   })
@@ -102,12 +80,12 @@ describe('BattlesController', () => {
         meta: { limit: 5, offset: 20, total: 0 },
       }
 
-      const executeSpy = jest.spyOn(getClosedBattlesUseCase, 'execute')
-      executeSpy.mockResolvedValue(mockResult)
+      const getClosedBattlesSpy = jest.spyOn(queryUseCase, 'getClosedBattles')
+      getClosedBattlesSpy.mockResolvedValue(mockResult)
 
       const result = await controller.getClosedBattles(query)
 
-      expect(executeSpy).toHaveBeenCalledWith(5, 20)
+      expect(getClosedBattlesSpy).toHaveBeenCalledWith(5, 20)
       expect(result).toBe(mockResult)
     })
   })
@@ -231,8 +209,8 @@ describe('BattlesController', () => {
   describe('getBattleByInviteCode', () => {
     it('inviteCode로 배틀을 찾고 리다이렉트한다', async () => {
       const mockResult = { battleId: 'battle-1' }
-      const executeSpy = jest.spyOn(getBattleByInviteCodeUseCase, 'execute')
-      executeSpy.mockResolvedValue(mockResult)
+      const getBattleByInviteCodeSpy = jest.spyOn(queryUseCase, 'getBattleByInviteCode')
+      getBattleByInviteCodeSpy.mockResolvedValue(mockResult)
 
       const redirectMock = jest.fn()
       const cookieMock = jest.fn()
@@ -240,13 +218,13 @@ describe('BattlesController', () => {
 
       await controller.getBattleByInviteCode('test-invite-code', res)
 
-      expect(executeSpy).toHaveBeenCalledWith('test-invite-code')
+      expect(getBattleByInviteCodeSpy).toHaveBeenCalledWith('test-invite-code')
       expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
     it('존재하지 않는 inviteCode면 NotFoundException을 던진다', async () => {
-      getBattleByInviteCodeUseCase.execute.mockRejectedValue(new NotFoundException())
+      queryUseCase.getBattleByInviteCode.mockRejectedValue(new NotFoundException())
 
       const res = {
         redirect: jest.fn(),
@@ -276,12 +254,12 @@ describe('BattlesController', () => {
         referenceData: null,
       }
 
-      const executeSpy = jest.spyOn(getJoinBattleInfoUseCase, 'execute')
-      executeSpy.mockResolvedValue(mockResult)
+      const getJoinBattleInfoSpy = jest.spyOn(queryUseCase, 'getJoinBattleInfo')
+      getJoinBattleInfoSpy.mockResolvedValue(mockResult)
 
       const result = await controller.joinBattleInfo('battle-1')
 
-      expect(executeSpy).toHaveBeenCalledWith('battle-1')
+      expect(getJoinBattleInfoSpy).toHaveBeenCalledWith('battle-1')
       expect(result).toBe(mockResult)
     })
   })
@@ -293,23 +271,23 @@ describe('BattlesController', () => {
         status: 'CLOSED' as const,
       }
 
-      const executeSpy = jest.spyOn(getBattleResultUseCase, 'execute')
-      executeSpy.mockResolvedValue(mockResult as BattleResultResponseDto)
+      const getBattleResultSpy = jest.spyOn(queryUseCase, 'getBattleResult')
+      getBattleResultSpy.mockResolvedValue(mockResult as BattleResultResponseDto)
 
       const result = await controller.getBattleResult('battle-1')
 
-      expect(executeSpy).toHaveBeenCalledWith('battle-1')
+      expect(getBattleResultSpy).toHaveBeenCalledWith('battle-1')
       expect(result.battleId).toBe('battle-1')
     })
 
     it('존재하지 않는 배틀 조회 시 404 에러를 반환한다', async () => {
-      getBattleResultUseCase.execute.mockRejectedValue(new NotFoundException())
+      queryUseCase.getBattleResult.mockRejectedValue(new NotFoundException())
 
       await expect(controller.getBattleResult('battle-999')).rejects.toThrow(NotFoundException)
     })
 
     it('진행 중인 배틀 조회 시 400 에러를 반환한다', async () => {
-      getBattleResultUseCase.execute.mockRejectedValue(new BadRequestException())
+      queryUseCase.getBattleResult.mockRejectedValue(new BadRequestException())
 
       await expect(controller.getBattleResult('battle-open-1')).rejects.toThrow(BadRequestException)
     })

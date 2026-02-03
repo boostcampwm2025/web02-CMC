@@ -9,7 +9,7 @@ import { BattleInteractionUseCase } from '../../application/usecases/battleInter
 import { BattleParticipationUseCase } from '../../application/usecases/battleParticipation.usecase'
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
-import { IsPrivateBattleUseCase } from '../../application/usecases/isPrivateBattle.usecase'
+import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
 import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
 import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
 import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../../dto/discussion.dto'
@@ -62,9 +62,9 @@ describe('BattlesGateway - Discussion Events', () => {
           },
         },
         {
-          provide: IsPrivateBattleUseCase,
+          provide: BattleQueryUseCase,
           useValue: {
-            execute: jest.fn(),
+            isPrivateBattle: jest.fn(),
           },
         },
         {

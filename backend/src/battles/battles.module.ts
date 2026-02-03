@@ -29,12 +29,7 @@ import { BattlePhaseTransitionUseCase } from './application/usecases/battlePhase
 import { BattleTerminationUseCase } from './application/usecases/battleTermination.usecase'
 import { BattleInteractionUseCase } from './application/usecases/battleInteraction.usecase'
 import { CreateGuestUseCase } from './application/usecases/createGuest.usecase'
-import { GetOpenBattlesUseCase } from './application/usecases/getOpenBattles.usecase'
-import { GetClosedBattlesUseCase } from './application/usecases/getClosedBattles.usecase'
-import { GetBattleByInviteCodeUseCase } from './application/usecases/getBattleByInviteCode.usecase'
-import { GetJoinBattleInfoUseCase } from './application/usecases/getJoinBattleInfo.usecase'
-import { GetBattleResultUseCase } from './application/usecases/getBattleResult.usecase'
-import { IsPrivateBattleUseCase } from './application/usecases/isPrivateBattle.usecase'
+import { BattleQueryUseCase } from './application/usecases/battleQuery.usecase'
 
 // Adapters (Out)
 import { BattleRepositoryAdapter } from './adapters/out/persistence/battleRepository.adapter'
@@ -87,12 +82,7 @@ import {
     BattleTerminationUseCase,
     BattleInteractionUseCase,
     CreateGuestUseCase,
-    GetOpenBattlesUseCase,
-    GetClosedBattlesUseCase,
-    GetBattleByInviteCodeUseCase,
-    GetJoinBattleInfoUseCase,
-    GetBattleResultUseCase,
-    IsPrivateBattleUseCase,
+    BattleQueryUseCase,
 
     // Adapters (Out)
     BattleRepositoryAdapter,
