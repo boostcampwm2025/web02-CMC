@@ -1,5 +1,4 @@
 import type { AuthUser } from '@/commons/types/AuthUser';
-import refreshToken from './postRefreshToken';
 
 interface OAuthUserResponse {
   id: string;
@@ -88,6 +87,7 @@ const getOAuthUser = async (): Promise<AuthUser> => {
       id: data.id,
       nickname: data.nickname,
       type: 'oauth',
+      provider: data.provider,
       avatarUrl: data.avatarUrl,
       tier: data.tier,
       rating: data.rating

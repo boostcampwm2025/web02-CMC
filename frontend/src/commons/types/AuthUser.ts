@@ -9,4 +9,5 @@ export interface AuthUser {
   rating?: number;
   battleId?: string;
   selectedTeam?: 'A' | 'B';
+  provider?: 'GITHUB' | 'KAKAO';
 }
