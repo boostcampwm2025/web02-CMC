@@ -49,22 +49,20 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
         run: |
           # 1. 정적 자원 (JS, CSS, 이미지) - 1년 캐시 (index.html 제외)
-          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/ \
+          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/{{ secrets.NCP_BUCKET_ROOT }} \
             --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
             --exclude "index.html" \
             --delete \
             --acl public-read \
             --cache-control "max-age=31536000, immutable" \
-            --checksum-mode WHEN_REQUIRED
 
           # 2. index.html - 캐시 없음 (항상 최신 버전 유지)
-          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/ \
+          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/{{ secrets.NCP_BUCKET_ROOT }} \
             --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
             --exclude "*" \
             --include "index.html" \
             --acl public-read \
             --cache-control "no-cache, no-store, must-revalidate" \
-            --checksum-mode WHEN_REQUIRED
 
       - name: Deployment summary
         run: |
