@@ -20,6 +20,7 @@ import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../../dto/battleTeamUpdateAllResponse.dto'
 import { MetricsService } from '../../../metrics/metrics.service'
+import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
@@ -77,6 +78,20 @@ describe('BattlesGateway - Discussion Events', () => {
           useValue: {
             startSocketTimer: jest.fn(() => jest.fn()),
             setActiveSocketConnections: jest.fn(),
+          },
+        },
+        {
+          provide: BattleBroadcasterAdapter,
+          useValue: {
+            setServer: jest.fn(),
+            emitPhaseUpdated: jest.fn(),
+            emitRoundUpdated: jest.fn(),
+            emitUserUpdated: jest.fn(),
+            emitTeamUpdated: jest.fn(),
+            emitBattleClosed: jest.fn(),
+            emitPhaseSkipped: jest.fn(),
+            emitAttacked: jest.fn(),
+            emitDefensed: jest.fn(),
           },
         },
       ],
