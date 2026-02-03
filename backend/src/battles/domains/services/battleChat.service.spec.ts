@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { NotFoundException } from '@nestjs/common'
 import { BattleChatService } from './battleChat.service'
 import { ActiveBattleState } from '../models/types/battle.types'
 import { BATTLE_TEAM, BATTLE_CHAT_SCOPE } from '../models/const/battles.const'

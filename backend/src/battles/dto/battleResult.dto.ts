@@ -51,12 +51,7 @@ export class BattleResultResponseDto {
   /**
    * PrismaBattle에서 BattleResultResponseDto 생성 (기존 getBattleResult 로직)
    */
-  static fromPrismaBattle(
-    battle: PrismaBattle,
-    result: BattleResult,
-    timeline: TimelineItem[],
-    mvps: Mvp[],
-  ): BattleResultResponseDto {
+  static fromPrismaBattle(battle: PrismaBattle, result: BattleResult, timeline: TimelineItem[], mvps: Mvp[]): BattleResultResponseDto {
     const teamACount = battle.teamACount ?? 0
     const teamBCount = battle.teamBCount ?? 0
     const totalParticipants = battle.totalParticipantsCount ?? teamACount + teamBCount

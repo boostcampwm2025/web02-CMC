@@ -96,7 +96,7 @@ export class BattleInteractionUseCase {
   }> {
     const battleId: string = String(dto.battleId)
     const scope: string = String(dto.scope)
-    const team: BattleTeam = dto.team as BattleTeam
+    const team: BattleTeam = dto.team
     const text: string = String(dto.text)
     if (!battleId || !scope) throw new BadRequestException('잘못된 요청입니다.')
     if (!text.trim()) throw new BadRequestException('메시지가 비어 있습니다.')

@@ -3,10 +3,10 @@ import { ConfigModule } from '@nestjs/config'
 import { BattlesController } from './adapters/in/battles.controller'
 import { GuestController } from './adapters/in/guests.controller'
 import { BattlesGateway } from './adapters/in/battles.gateway'
-import { BattlesService } from './service/battles.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
+import { InviteAccessGuard } from './guards/inviteAccess.guard'
 
 // Domain Services
 import { BattleResultService } from './domains/services/battleResult.service'
@@ -44,6 +44,7 @@ import { BattleTimerAdapter } from './adapters/out/timer/battleTimer.adapter'
 import { BattleReferenceGeneratorAdapter } from './adapters/out/reference/battleReferenceGenerator.adapter'
 import { BattleUtilAdapter } from './adapters/out/util/battleUtil.adapter'
 import { GuestCheckAdapter } from './adapters/out/guestCheck/guestCheck.adapter'
+import { BattlePrivacyCheckAdapter } from './adapters/out/battlePrivacyCheck/battlePrivacyCheck.adapter'
 
 // Port Tokens
 import {
@@ -54,6 +55,7 @@ import {
   BATTLE_REFERENCE_PORT,
   BATTLE_UTIL_PORT,
   GUEST_CHECK_PORT,
+  BATTLE_PRIVACY_CHECK_PORT,
 } from './application/ports/tokens'
 
 @Module({
@@ -62,7 +64,7 @@ import {
   providers: [
     PrismaService,
     BattlesGateway,
-    BattlesService,
+    InviteAccessGuard,
     // Domain Services
     BattleResultService,
     BattleTimelineService,
@@ -129,7 +131,10 @@ import {
       provide: GUEST_CHECK_PORT,
       useClass: GuestCheckAdapter,
     },
+    {
+      provide: BATTLE_PRIVACY_CHECK_PORT,
+      useClass: BattlePrivacyCheckAdapter,
+    },
   ],
-  exports: [BattlesService],
 })
 export class BattlesModule {}

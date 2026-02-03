@@ -8,7 +8,8 @@ import { BATTLE_REPO_PORT, BATTLE_STATE_PORT, BATTLE_UTIL_PORT } from '../../app
 import type { BattleRepoPort } from '../../application/ports/out/battleRepository.port'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
-import { BATTLE_STATUS } from '../models/const/battles.const'
+import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM } from '../models/const/battles.const'
+import type { ActiveBattleState, Battle } from '../models/types/battle.types'
 
 describe('BattleQueryService', () => {
   let service: BattleQueryService
@@ -78,21 +79,17 @@ describe('BattleQueryService', () => {
   })
 
   describe('isPrivateBattle', () => {
-    it('비공개 배틀을 올바르게 확인한다', async () => {
-      repo.findUnique.mockResolvedValue({
-        id: 'battle-1',
-        isPrivate: true,
-      } as never)
+    it('returns whether battle is private', async () => {
+      const findUniqueSpy = jest.spyOn(repo, 'findUnique')
+      findUniqueSpy.mockResolvedValue({ id: 'battle-1', isPrivate: true } as never)
 
-      const result = await service.isPrivateBattle('battle-1')
-
-      expect(result).toBe(true)
-      expect(repo.findUnique).toHaveBeenCalledWith('battle-1')
+      await expect(service.isPrivateBattle('battle-1')).resolves.toBe(true)
+      expect(findUniqueSpy).toHaveBeenCalledWith('battle-1')
     })
   })
 
   describe('getOpenBattles', () => {
-    it('열린 배틀 목록을 반환한다', async () => {
+    it('returns open battle list and meta', async () => {
       const mockRecords = [{ id: 'battle-1' }]
       repo.findBattleList.mockResolvedValue(mockRecords as never)
       repo.countBattleList.mockResolvedValue(1)
@@ -106,7 +103,7 @@ describe('BattleQueryService', () => {
   })
 
   describe('getClosedBattles', () => {
-    it('닫힌 배틀 목록을 반환한다', async () => {
+    it('returns closed battle list and meta', async () => {
       const mockRecords = [{ id: 'battle-1' }]
       repo.findBattleList.mockResolvedValue(mockRecords as never)
       repo.countBattleList.mockResolvedValue(1)
@@ -120,7 +117,7 @@ describe('BattleQueryService', () => {
   })
 
   describe('getBattleResult', () => {
-    it('배틀 결과를 반환한다', async () => {
+    it('returns battle result dto', async () => {
       const mockBattle = {
         id: 'battle-1',
         userId: 'user-1',
@@ -129,7 +126,7 @@ describe('BattleQueryService', () => {
         language: 'TS',
         category: 'ALGORITHM',
         playTime: 'FIFTEEN_MIN',
-        topics: ['효율성'],
+        topics: ['topic'],
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
         finishedAt: new Date('2024-01-02'),
@@ -145,7 +142,7 @@ describe('BattleQueryService', () => {
         mvps: [],
       }
 
-      repo.findUnique.mockResolvedValue(mockBattle as never)
+      jest.spyOn(repo, 'findUnique').mockResolvedValue(mockBattle as never)
       timelineService.toTimeline.mockReturnValue([])
       resultService.buildBattleResult.mockReturnValue({
         winner: 'A',
@@ -162,73 +159,102 @@ describe('BattleQueryService', () => {
       expect(result.status).toBe('CLOSED')
     })
 
-    it('진행 중인 배틀 조회 시 BadRequestException을 던진다', async () => {
-      repo.findUnique.mockResolvedValue({
-        id: 'battle-1',
-        status: BATTLE_STATUS.OPEN,
-      } as never)
+    it('throws BadRequestException when battle is not closed', async () => {
+      jest.spyOn(repo, 'findUnique').mockResolvedValue({ id: 'battle-1', status: BATTLE_STATUS.OPEN } as never)
 
       await expect(service.getBattleResult('battle-1')).rejects.toThrow(BadRequestException)
     })
   })
 
   describe('getBattleByInviteCode', () => {
-    it('초대 코드로 배틀을 찾는다', async () => {
-      repo.findUniqueByInviteCode.mockResolvedValue({
-        id: 'battle-1',
-        status: BATTLE_STATUS.OPEN,
-      } as never)
+    it('returns battleId for valid invite code', async () => {
+      repo.findUniqueByInviteCode.mockResolvedValue({ id: 'battle-1', status: BATTLE_STATUS.OPEN } as never)
 
-      const result = await service.getBattleByInviteCode('test-code')
-
-      expect(result.battleId).toBe('battle-1')
+      await expect(service.getBattleByInviteCode('test-code')).resolves.toEqual({ battleId: 'battle-1' })
     })
 
-    it('초대 코드가 없으면 BadRequestException을 던진다', async () => {
+    it('throws BadRequestException when inviteCode is empty', async () => {
       await expect(service.getBattleByInviteCode('')).rejects.toThrow(BadRequestException)
     })
 
-    it('존재하지 않는 초대 코드면 NotFoundException을 던진다', async () => {
+    it('throws NotFoundException when inviteCode does not exist', async () => {
       repo.findUniqueByInviteCode.mockResolvedValue(null)
 
       await expect(service.getBattleByInviteCode('invalid-code')).rejects.toThrow(NotFoundException)
     })
 
-    it('종료된 배틀의 초대 코드면 BadRequestException을 던진다', async () => {
-      repo.findUniqueByInviteCode.mockResolvedValue({
-        id: 'battle-1',
-        status: BATTLE_STATUS.CLOSED,
-      } as never)
+    it('throws BadRequestException when battle is already closed', async () => {
+      repo.findUniqueByInviteCode.mockResolvedValue({ id: 'battle-1', status: BATTLE_STATUS.CLOSED } as never)
 
       await expect(service.getBattleByInviteCode('closed-code')).rejects.toThrow(BadRequestException)
     })
   })
 
   describe('getJoinBattleInfo', () => {
-    it('배틀 참가 정보를 반환한다', async () => {
-      const mockBattle = {
+    it('returns join info dto', async () => {
+      const mockBattleRecord = { id: 'battle-1', status: BATTLE_STATUS.OPEN, totalParticipantsCount: 5 }
+
+      const mappedBattle: Battle = {
         id: 'battle-1',
+        authorId: 'user-1',
+        title: 'Test Battle',
+        description: 'Test Description',
+        aCode: 'codeA',
+        bCode: 'codeB',
+        language: 'TS',
+        type: 'PUBLIC',
+        category: 'ALGORITHM',
+        playTime: BATTLE_PLAYTIME.FIFTEEN_MIN,
+        topics: ['topic'],
         status: BATTLE_STATUS.OPEN,
-        totalParticipantsCount: 5,
+        participantCount: 1,
+        initialState: {
+          round: 1,
+          phase: BATTLE_PHASE.PENDING.name,
+          phaseCount: 1,
+          timeRemainingSeconds: 15 * 60,
+        },
+        referenceData: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as never
+
+      const activeState: ActiveBattleState = {
+        battleId: 'battle-1',
+        all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
+        teamA: { roomId: 'battle:battle-1:A', chats: [], users: [], attacks: [], defenses: [] },
+        teamB: { roomId: 'battle:battle-1:B', chats: [], users: [], attacks: [], defenses: [] },
+        participants: new Map([['user-1', BATTLE_TEAM.A]]),
+        teamVotes: new Map(),
+        userInfoMap: new Map(),
+        opinionHistory: [],
+        skipState: new Set(),
+        round: 1,
+        topics: ['topic'],
+        totalRounds: 1,
+        phase: BATTLE_PHASE.PENDING.name,
+        phaseCount: 1,
+        startedAt: null,
+        expiredAt: null,
       }
 
-      repo.findUnique.mockResolvedValue(mockBattle as never)
-      stateRepo.loadBattleState.mockResolvedValue({
-        state: {
-          participants: new Map([['user-1', 'A']]),
-        },
-      } as never)
-      utilPort.toBattleEntity.mockReturnValue({
-        id: 'battle-1',
-        participantCount: 1,
-      } as never)
+      jest.spyOn(repo, 'findUnique').mockResolvedValue(mockBattleRecord as never)
+      stateRepo.loadBattleState.mockResolvedValue({ state: activeState } as never)
+      utilPort.toBattleEntity.mockReturnValue(mappedBattle)
 
       const result = await service.getJoinBattleInfo('battle-1')
 
-      expect(result).toBeDefined()
+      expect(result).toEqual(
+        expect.objectContaining({
+          title: 'Test Battle',
+          participantCount: 1,
+          totalRounds: 1,
+          currentRound: 1,
+        }),
+      )
     })
 
-    it('battleId가 없으면 BadRequestException을 던진다', async () => {
+    it('throws BadRequestException when battleId is empty', async () => {
       await expect(service.getJoinBattleInfo('')).rejects.toThrow(BadRequestException)
     })
   })

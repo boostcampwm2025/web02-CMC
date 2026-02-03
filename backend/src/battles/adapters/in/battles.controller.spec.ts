@@ -83,12 +83,12 @@ describe('BattlesController', () => {
         meta: { limit: 10, offset: 0, total: 0 },
       }
 
-      getOpenBattlesUseCase.execute.mockResolvedValue(mockResult)
+      const executeSpy = jest.spyOn(getOpenBattlesUseCase, 'execute')
+      executeSpy.mockResolvedValue(mockResult)
 
       const result = await controller.getOpenBattles(query)
 
-      const execute = getOpenBattlesUseCase.execute as jest.Mock
-      expect(execute).toHaveBeenCalledWith(10, 0)
+      expect(executeSpy).toHaveBeenCalledWith(10, 0)
       expect(result).toBe(mockResult)
     })
   })
@@ -102,12 +102,12 @@ describe('BattlesController', () => {
         meta: { limit: 5, offset: 20, total: 0 },
       }
 
-      getClosedBattlesUseCase.execute.mockResolvedValue(mockResult)
+      const executeSpy = jest.spyOn(getClosedBattlesUseCase, 'execute')
+      executeSpy.mockResolvedValue(mockResult)
 
       const result = await controller.getClosedBattles(query)
 
-      const execute = getClosedBattlesUseCase.execute as jest.Mock
-      expect(execute).toHaveBeenCalledWith(5, 20)
+      expect(executeSpy).toHaveBeenCalledWith(5, 20)
       expect(result).toBe(mockResult)
     })
   })
@@ -143,7 +143,8 @@ describe('BattlesController', () => {
       const cookieMock = jest.fn()
       const res = { json: jsonMock, cookie: cookieMock } as unknown as Response
 
-      creationUseCase.create.mockResolvedValue(mockBattle)
+      const createSpy = jest.spyOn(creationUseCase, 'create')
+      createSpy.mockResolvedValue(mockBattle)
 
       await controller.createBattle(
         {
@@ -161,8 +162,7 @@ describe('BattlesController', () => {
         res,
       )
 
-      const create = creationUseCase.create as jest.Mock
-      expect(create).toHaveBeenCalled()
+      expect(createSpy).toHaveBeenCalled()
       expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
@@ -200,7 +200,8 @@ describe('BattlesController', () => {
       const cookieMock = jest.fn()
       const res = { json: jsonMock, cookie: cookieMock } as unknown as Response
 
-      creationUseCase.create.mockResolvedValue(mockBattle)
+      const createSpy = jest.spyOn(creationUseCase, 'create')
+      createSpy.mockResolvedValue(mockBattle)
 
       await controller.createBattle(
         {
@@ -218,8 +219,7 @@ describe('BattlesController', () => {
         res,
       )
 
-      const create = creationUseCase.create as jest.Mock
-      expect(create).toHaveBeenCalled()
+      expect(createSpy).toHaveBeenCalled()
       expect(cookieMock).not.toHaveBeenCalled()
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
@@ -231,7 +231,8 @@ describe('BattlesController', () => {
   describe('getBattleByInviteCode', () => {
     it('inviteCode로 배틀을 찾고 리다이렉트한다', async () => {
       const mockResult = { battleId: 'battle-1' }
-      getBattleByInviteCodeUseCase.execute.mockResolvedValue(mockResult)
+      const executeSpy = jest.spyOn(getBattleByInviteCodeUseCase, 'execute')
+      executeSpy.mockResolvedValue(mockResult)
 
       const redirectMock = jest.fn()
       const cookieMock = jest.fn()
@@ -239,13 +240,9 @@ describe('BattlesController', () => {
 
       await controller.getBattleByInviteCode('test-invite-code', res)
 
-      const execute = getBattleByInviteCodeUseCase.execute as jest.Mock
-      expect(execute).toHaveBeenCalledWith('test-invite-code')
+      expect(executeSpy).toHaveBeenCalledWith('test-invite-code')
       expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
-      expect(redirectMock).toHaveBeenCalledWith(
-        303,
-        'http://localhost:5173/battle/battle-1/team-select',
-      )
+      expect(redirectMock).toHaveBeenCalledWith(303, 'http://localhost:5173/battle/battle-1/team-select')
     })
 
     it('존재하지 않는 inviteCode면 NotFoundException을 던진다', async () => {
@@ -256,9 +253,7 @@ describe('BattlesController', () => {
         cookie: jest.fn(),
       } as unknown as Response
 
-      await expect(
-        controller.getBattleByInviteCode('invalid-code', res),
-      ).rejects.toThrow(NotFoundException)
+      await expect(controller.getBattleByInviteCode('invalid-code', res)).rejects.toThrow(NotFoundException)
     })
   })
 
@@ -281,12 +276,12 @@ describe('BattlesController', () => {
         referenceData: null,
       }
 
-      getJoinBattleInfoUseCase.execute.mockResolvedValue(mockResult)
+      const executeSpy = jest.spyOn(getJoinBattleInfoUseCase, 'execute')
+      executeSpy.mockResolvedValue(mockResult)
 
       const result = await controller.joinBattleInfo('battle-1')
 
-      const execute = getJoinBattleInfoUseCase.execute as jest.Mock
-      expect(execute).toHaveBeenCalledWith('battle-1')
+      expect(executeSpy).toHaveBeenCalledWith('battle-1')
       expect(result).toBe(mockResult)
     })
   })
@@ -298,31 +293,25 @@ describe('BattlesController', () => {
         status: 'CLOSED' as const,
       }
 
-      getBattleResultUseCase.execute.mockResolvedValue(
-        mockResult as BattleResultResponseDto,
-      )
+      const executeSpy = jest.spyOn(getBattleResultUseCase, 'execute')
+      executeSpy.mockResolvedValue(mockResult as BattleResultResponseDto)
 
       const result = await controller.getBattleResult('battle-1')
 
-      const execute = getBattleResultUseCase.execute as jest.Mock
-      expect(execute).toHaveBeenCalledWith('battle-1')
+      expect(executeSpy).toHaveBeenCalledWith('battle-1')
       expect(result.battleId).toBe('battle-1')
     })
 
     it('존재하지 않는 배틀 조회 시 404 에러를 반환한다', async () => {
       getBattleResultUseCase.execute.mockRejectedValue(new NotFoundException())
 
-      await expect(
-        controller.getBattleResult('battle-999'),
-      ).rejects.toThrow(NotFoundException)
+      await expect(controller.getBattleResult('battle-999')).rejects.toThrow(NotFoundException)
     })
 
     it('진행 중인 배틀 조회 시 400 에러를 반환한다', async () => {
       getBattleResultUseCase.execute.mockRejectedValue(new BadRequestException())
 
-      await expect(
-        controller.getBattleResult('battle-open-1'),
-      ).rejects.toThrow(BadRequestException)
+      await expect(controller.getBattleResult('battle-open-1')).rejects.toThrow(BadRequestException)
     })
   })
 })

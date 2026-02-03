@@ -37,7 +37,7 @@ export class BattlesController {
 
     res.json({
       battleId: battle.id,
-      inviteCode: battle.inviteCode,
+      inviteCode: battle.inviteCode ?? null,
     })
   }
 

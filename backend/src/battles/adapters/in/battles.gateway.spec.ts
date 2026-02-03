@@ -185,7 +185,13 @@ describe('BattlesGateway - Discussion Events', () => {
 
       await gateway.handleDefense(dto, mockClient)
 
-      expect(interactionUseCase.submitDiscussion).toHaveBeenCalledWith('battle-1', 'user-1', '하지만 최악의 경우 O(n²)입니다', BATTLE_TEAM.B, 'defense')
+      expect(interactionUseCase.submitDiscussion).toHaveBeenCalledWith(
+        'battle-1',
+        'user-1',
+        '하지만 최악의 경우 O(n²)입니다',
+        BATTLE_TEAM.B,
+        'defense',
+      )
       expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)

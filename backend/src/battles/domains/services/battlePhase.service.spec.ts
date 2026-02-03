@@ -35,7 +35,7 @@ describe('BattlePhaseService', () => {
   })
 
   describe('BattlePhaseService', () => {
-    it('PENDING에서 OPINION_SHARE로 전환한다', () => {
+    it('PENDING?�서 OPINION_SHARE�??�환?�다', () => {
       const state = createState({ phase: BATTLE_PHASE.PENDING.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -48,7 +48,7 @@ describe('BattlePhaseService', () => {
       expect(result).toBe(BATTLE_PHASE.OPINION_SHARE)
     })
 
-    it('OPINION_SHARE에서 ATTACK으로 전환한다', () => {
+    it('OPINION_SHARE?�서 ATTACK?�로 ?�환?�다', () => {
       const state = createState({ phase: BATTLE_PHASE.OPINION_SHARE.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -62,7 +62,7 @@ describe('BattlePhaseService', () => {
       expect(state.expiredAt).toBeGreaterThan(Date.now())
     })
 
-    it('ATTACK에서 DEFENSE로 전환한다', () => {
+    it('ATTACK?�서 DEFENSE�??�환?�다', () => {
       const state = createState({ phase: BATTLE_PHASE.ATTACK.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -77,7 +77,7 @@ describe('BattlePhaseService', () => {
       expect(resetDiscussions).toHaveBeenCalledWith(state)
     })
 
-    it('DEFENSE에서 ATTACK으로 전환한다 (phaseCount가 MAX보다 작을 때)', () => {
+    it('DEFENSE?�서 ATTACK?�로 ?�환?�다 (phaseCount가 MAX보다 ?�을 ??', () => {
       const state = createState({ phase: BATTLE_PHASE.DEFENSE.name, phaseCount: 1 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -93,7 +93,7 @@ describe('BattlePhaseService', () => {
       expect(resetDiscussions).toHaveBeenCalledWith(state)
     })
 
-    it('DEFENSE에서 TEAM_SWITCH로 전환한다 (phaseCount가 MAX일 때)', () => {
+    it('DEFENSE?�서 TEAM_SWITCH�??�환?�다 (phaseCount가 MAX????', () => {
       const state = createState({ phase: BATTLE_PHASE.DEFENSE.name, phaseCount: BATTLE_MAX_PHASE_COUNT })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -107,7 +107,7 @@ describe('BattlePhaseService', () => {
       expect(state.phaseCount).toBe(1)
     })
 
-    it('TEAM_SWITCH에서 OPINION_SHARE로 전환한다 (다음 라운드가 있을 때)', () => {
+    it('TEAM_SWITCH?�서 OPINION_SHARE�??�환?�다 (?�음 ?�운?��? ?�을 ??', () => {
       const state = createState({ phase: BATTLE_PHASE.TEAM_SWITCH.name, round: 1, totalRounds: 2 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -122,7 +122,7 @@ describe('BattlePhaseService', () => {
       expect(state.round).toBe(2)
     })
 
-    it('TEAM_SWITCH에서 null을 반환한다 (마지막 라운드일 때)', () => {
+    it('TEAM_SWITCH?�서 null??반환?�다 (마�?�??�운?�일 ??', () => {
       const state = createState({ phase: BATTLE_PHASE.TEAM_SWITCH.name, round: 1, totalRounds: 1 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -138,7 +138,7 @@ describe('BattlePhaseService', () => {
   })
 
   describe('updateRound', () => {
-    it('다음 라운드로 업데이트한다', async () => {
+    it('?�음 ?�운?�로 ?�데?�트?�다', () => {
       const state = createState({ round: 1, totalRounds: 2 })
       const finishBattle = jest.fn()
 
@@ -149,7 +149,7 @@ describe('BattlePhaseService', () => {
       expect(finishBattle).not.toHaveBeenCalled()
     })
 
-    it('마지막 라운드면 finishBattle을 호출하고 false를 반환한다', async () => {
+    it('마�?�??�운?�면 finishBattle???�출?�고 false�?반환?�다', () => {
       const state = createState({ round: 1, totalRounds: 1 })
       const finishBattle = jest.fn()
 

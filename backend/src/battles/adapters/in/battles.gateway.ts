@@ -191,7 +191,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
       const battleId: string = dto.battleId
       const content: string = dto.content
-      const team: BattleTeam = dto.team as BattleTeam
+      const team: BattleTeam = dto.team
       const attack = await this.interactionUseCase.submitDiscussion(battleId, userId, content, team, 'attack')
       const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
 
@@ -214,7 +214,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
       const battleId: string = dto.battleId
       const content: string = dto.content
-      const team: BattleTeam = dto.team as BattleTeam
+      const team: BattleTeam = dto.team
       const defense = await this.interactionUseCase.submitDiscussion(battleId, userId, content, team, 'defense')
       const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
 
@@ -237,7 +237,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
       const battleId: string = dto.battleId
       const discussionId: string = dto.discussionId
-      const team: BattleTeam = dto.team as BattleTeam
+      const team: BattleTeam = dto.team
       const updates = await this.interactionUseCase.submitVote(battleId, discussionId, userId, team, 'attack')
       const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
 
@@ -263,7 +263,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const userId = this.getUserIdFromSocket(client)
       const battleId: string = dto.battleId
       const discussionId: string = dto.discussionId
-      const team: BattleTeam = dto.team as BattleTeam
+      const team: BattleTeam = dto.team
       const updates = await this.interactionUseCase.submitVote(battleId, discussionId, userId, team, 'defense')
       const teamRoom = this.utilPort.getBattleRoomId(battleId, team)
 
@@ -368,7 +368,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const saved = await this.interactionUseCase.sendChat(battleChatDto, userId)
       const battleId: string = battleChatDto.battleId
       const scope: typeof BATTLE_CHAT_SCOPE.ALL | typeof BATTLE_CHAT_SCOPE.TEAM = battleChatDto.scope
-      const team: BattleTeam = battleChatDto.team as BattleTeam
+      const team: BattleTeam = battleChatDto.team
       const roomId = scope === BATTLE_CHAT_SCOPE.ALL ? this.utilPort.getBattleRoomId(battleId) : this.utilPort.getBattleRoomId(battleId, team)
 
       // this.server.to(roomId).emit('battle:chatted', saved)
@@ -388,7 +388,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     try {
       const userId = this.getUserIdFromSocket(client)
       const battleId: string = dto.battleId
-      const team: BattleTeam = dto.team as BattleTeam
+      const team: BattleTeam = dto.team
 
       await this.interactionUseCase.switchTeam(battleId, userId, team)
       stopTimer('success')
@@ -409,8 +409,8 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       if (!socket) continue
 
       const battleId: string = payload.battleId
-      const fromTeam: BattleTeam = change.from as BattleTeam
-      const toTeam: BattleTeam = change.to as BattleTeam
+      const fromTeam: BattleTeam = change.from
+      const toTeam: BattleTeam = change.to
       const fromRoom = this.utilPort.getBattleRoomId(battleId, fromTeam)
       const toRoom = this.utilPort.getBattleRoomId(battleId, toTeam)
 

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BattleMvpService } from './battleMvp.service'
 import { ActiveBattleState, BattleDefense } from '../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM, BATTLE_STATUS } from '../models/const/battles.const'
+import { BATTLE_PHASE, BATTLE_TEAM } from '../models/const/battles.const'
 
 describe('BattleMvpService', () => {
   let service: BattleMvpService
@@ -29,13 +29,6 @@ describe('BattleMvpService', () => {
 
   const getState = (battleId: string): ActiveBattleState => {
     return stateStore.get(battleId) || createActiveState({ battleId })
-  }
-
-  const updateState = (battleId: string, updater: (state: ActiveBattleState) => void): ActiveBattleState => {
-    const state = getState(battleId)
-    updater(state)
-    stateStore.set(battleId, state)
-    return state
   }
 
   beforeEach(async () => {

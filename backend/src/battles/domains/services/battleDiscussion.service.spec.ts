@@ -45,7 +45,7 @@ describe('BattleDiscussionService', () => {
       state.userInfoMap.set('user-2', 'User2')
     })
 
-    it('case', () => {
+    it('applyAttack: opinionHistory에 공격 의견이 저장된다', () => {
       state.phase = BATTLE_PHASE.ATTACK.name
       expect(state.opinionHistory.length).toBe(0)
 
@@ -67,7 +67,7 @@ describe('BattleDiscussionService', () => {
       expect(attack).toBe(state.opinionHistory[0])
     })
 
-    it('case', () => {
+    it('applyDefense: opinionHistory에 수비 의견이 저장된다', () => {
       state.phase = BATTLE_PHASE.DEFENSE.name
       expect(state.opinionHistory.length).toBe(0)
 
@@ -89,28 +89,86 @@ describe('BattleDiscussionService', () => {
       expect(defense).toBe(state.opinionHistory[0])
     })
 
-    it('case', () => {
+    it('공격 2개 + 수비 1개가 opinionHistory에 누적된다', () => {
+      // ATTACK 1
       state.phase = BATTLE_PHASE.ATTACK.name
+      service.applyAttack(
+        state,
+        'user-1',
+        '첫 번째 공격',
+        BATTLE_TEAM.A,
+        'attack-1',
+        () => 'User1',
+        () => true,
+      )
+
+      // ATTACK 2
+      state.phase = BATTLE_PHASE.ATTACK.name
+      service.applyAttack(
+        state,
+        'user-2',
+        '두 번째 공격',
+        BATTLE_TEAM.B,
+        'attack-2',
+        () => 'User2',
+        () => true,
+      )
+
+      // DEFENSE 1
       state.phase = BATTLE_PHASE.DEFENSE.name
+      service.applyDefense(
+        state,
+        'user-1',
+        '첫 번째 수비',
+        BATTLE_TEAM.A,
+        'defense-1',
+        () => 'User1',
+        () => true,
+      )
+
       expect(state.opinionHistory.length).toBe(3)
       expect(state.opinionHistory[0].type).toBe('ATTACK')
       expect(state.opinionHistory[1].type).toBe('ATTACK')
       expect(state.opinionHistory[2].type).toBe('DEFENSE')
     })
 
-    it('case', () => {
+    it('applyAttack 호출 시 opinionHistory와 teamA/teamB 배열이 같은 객체를 참조한다', () => {
       state.phase = BATTLE_PHASE.ATTACK.name
+
+      const attackA = service.applyAttack(
+        state,
+        'user-1',
+        'A팀 공격',
+        BATTLE_TEAM.A,
+        'attack-a',
+        () => 'User1',
+        () => true,
+      )
+
+      const attackB = service.applyAttack(
+        state,
+        'user-2',
+        'B팀 공격',
+        BATTLE_TEAM.B,
+        'attack-b',
+        () => 'User2',
+        () => true,
+      )
 
       // opinionHistory에 모두 저장
       expect(state.opinionHistory.length).toBe(2)
 
-      // teamA/teamB에도 각각 저장
+      // teamA/teamB에도 각각 저장 (applyAttack이 team별 배열에 넣는 구조라는 전제)
       expect(state.teamA.attacks.length).toBe(1)
       expect(state.teamB.attacks.length).toBe(1)
 
-      // 같은 객체를 참조
+      // 같은 객체 참조 확인
       expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
       expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
+
+      // 반환값도 같은 객체인지
+      expect(attackA).toBe(state.opinionHistory[0])
+      expect(attackB).toBe(state.opinionHistory[1])
     })
   })
 })
