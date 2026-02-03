@@ -82,6 +82,22 @@ export function useBattleSocketErrorHandling() {
         attemptCount: 3,
         message: '재연결에 실패했습니다. 다시 시도해주세요.'
       });
+      // 센트리 재연결 실패 로그 전송
+      Sentry.captureException(new Error('웹소켓 재연결 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '웹 소켓 재연결 실패',
+          battleId: battleId
+        },
+        contexts: {
+          websocket: {
+            socketId: socket.id,
+            connected: socket.connected,
+            battleId: battleId,
+            maxAttempts: 3
+          }
+        }
+      });
     });
 
     // 서버 비즈니스 에러 핸들러
