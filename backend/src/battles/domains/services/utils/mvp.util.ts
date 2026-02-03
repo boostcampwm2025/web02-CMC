@@ -1,4 +1,4 @@
-import { Mvp } from '../../types/battleResult.types'
+import { Mvp } from '../../models/types/battleResult.types'
 
 /** 승리 팀 보너스 배율 */
 export const WINNER_TEAM_BONUS_MULTIPLIER = 1.5

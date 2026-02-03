@@ -1,4 +1,4 @@
-import { Mvp } from '../../types/battleResult.types'
+import { Mvp } from '../../models/types/battleResult.types'
 import {
   calculateOpinionScore,
   compareMvpCandidates,

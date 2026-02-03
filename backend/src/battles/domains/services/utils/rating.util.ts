@@ -1,4 +1,4 @@
-import { BASE_DELTA, MVP_BONUS_BY_RANK, TIER_NAMES, TIER_STEP, WIN_DRAW_MULTIPLIER_BY_TIER, type TierName } from '../../const/rating.const'
+import { BASE_DELTA, MVP_BONUS_BY_RANK, TIER_NAMES, TIER_STEP, WIN_DRAW_MULTIPLIER_BY_TIER, type TierName } from '../../models/const/rating.const'
 
 type BattleResult = 'WIN' | 'DRAW' | 'LOSE'
 
