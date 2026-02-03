@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Mvp, TimelineItem } from '../models/types/battleResult.types'
 import { ActiveBattleState, BattleDiscussion } from '../models/types/battle.types'
 import { MVP_DISPLAY_COUNT, BATTLE_TEAM } from '../models/const/battles.const'
-import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from '../../service/utils/mvp.util'
+import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
 
 @Injectable()
 export class BattleMvpService {

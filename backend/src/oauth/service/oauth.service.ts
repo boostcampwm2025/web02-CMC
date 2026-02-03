@@ -5,7 +5,7 @@ import { TokenService } from './token.service'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 import { OAuthUserDto } from '../dto/oauthUser.dto'
 import { PrismaService } from '../../prisma/prisma.service'
-import { isGuestNicknamePattern } from '../../battles/service/utils/nickname.util'
+import { isGuestNicknamePattern } from '../../battles/domains/services/utils/nickname.util'
 
 @Injectable()
 export class OauthService {

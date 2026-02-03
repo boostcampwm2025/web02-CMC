@@ -4,7 +4,6 @@ import { BattlesController } from './adapters/in/battles.controller'
 import { GuestController } from './adapters/in/guests.controller'
 import { BattlesGateway } from './adapters/in/battles.gateway'
 import { BattlesService } from './service/battles.service'
-import { GuestService } from './service/guest.service'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
@@ -64,7 +63,6 @@ import {
     PrismaService,
     BattlesGateway,
     BattlesService,
-    GuestService,
     // Domain Services
     BattleResultService,
     BattleTimelineService,

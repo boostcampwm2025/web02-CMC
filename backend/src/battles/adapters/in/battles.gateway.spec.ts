@@ -5,19 +5,26 @@
 
 import { Test, TestingModule } from '@nestjs/testing'
 import { BattlesGateway } from './battles.gateway'
-import { BattlesService } from '../service/battles.service'
-import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../dto/discussion.dto'
-import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
-import { BattleDiscussion, BattleDefense } from '../types/battles.types'
+import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
+import { BattleParticipationUseCase } from '../../application/usecases/battleParticipation.usecase'
+import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
+import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
+import { IsPrivateBattleUseCase } from '../../application/usecases/isPrivateBattle.usecase'
+import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
+import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
+import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteRequestDto } from '../../dto/discussion.dto'
+import { BATTLE_TEAM, BATTLE_DISCUSSION_TYPE } from '../../domains/models/const/battles.const'
+import { BattleDiscussion, BattleDefense } from '../../domains/models/types/battle.types'
 
-import { DiscussionVoteResponseDto } from '../dto/discussionVoteResponse.dto'
-import { BattleUserUpdateResponseDto } from '../dto/battleUserUpdateResponse.dto'
-import { BattleTeamUpdateAllResponseDto } from '../dto/battleTeamUpdateAllResponse.dto'
-import { MetricsService } from '../../metrics/metrics.service'
+import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
+import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
+import { BattleTeamUpdateAllResponseDto } from '../../dto/battleTeamUpdateAllResponse.dto'
+import { MetricsService } from '../../../metrics/metrics.service'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
-  let service: BattlesService
+  let interactionUseCase: jest.Mocked<BattleInteractionUseCase>
+  let utilPort: jest.Mocked<BattleUtilPort>
   let mockClient: any
   let mockServer: any
 
@@ -26,17 +33,43 @@ describe('BattlesGateway - Discussion Events', () => {
       providers: [
         BattlesGateway,
         {
-          provide: BattlesService,
+          provide: BattleInteractionUseCase,
           useValue: {
-            handleAttack: jest.fn(),
-            handleDefense: jest.fn(),
-            handleAttackVote: jest.fn(),
-            handleDefenseVote: jest.fn(),
+            submitDiscussion: jest.fn(),
+            submitVote: jest.fn(),
+            sendChat: jest.fn(),
+            switchTeam: jest.fn(),
+          },
+        },
+        {
+          provide: BattleParticipationUseCase,
+          useValue: {
+            join: jest.fn(),
+            leave: jest.fn(),
+          },
+        },
+        {
+          provide: BattleCreationUseCase,
+          useValue: {
+            start: jest.fn(),
+          },
+        },
+        {
+          provide: BattlePhaseTransitionUseCase,
+          useValue: {
+            handlePhaseSkip: jest.fn(),
+          },
+        },
+        {
+          provide: IsPrivateBattleUseCase,
+          useValue: {
+            execute: jest.fn(),
+          },
+        },
+        {
+          provide: BATTLE_UTIL_PORT,
+          useValue: {
             getBattleRoomId: jest.fn(),
-            isPrivateBattle: jest.fn(),
-            joinBattle: jest.fn(),
-            on: jest.fn(),
-            emit: jest.fn(),
           },
         },
         {
@@ -50,7 +83,8 @@ describe('BattlesGateway - Discussion Events', () => {
     }).compile()
 
     gateway = module.get(BattlesGateway)
-    service = module.get(BattlesService)
+    interactionUseCase = module.get(BattleInteractionUseCase)
+    utilPort = module.get(BATTLE_UTIL_PORT)
 
     mockClient = {
       id: 'client-123',
@@ -96,17 +130,13 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       }
 
-      jest.spyOn(service, 'handleAttack').mockResolvedValue(mockAttack as never)
-      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
+      interactionUseCase.submitDiscussion.mockResolvedValue(mockAttack)
+      utilPort.getBattleRoomId.mockReturnValue('battle-1:A')
 
       await gateway.handleAttack(dto, mockClient)
 
-      expect(service.handleAttack).toHaveBeenCalledWith('battle-1', {
-        authorId: 'user-1',
-        content: '퀵소트가 더 빠릅니다',
-        team: BATTLE_TEAM.A,
-      })
-      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
+      expect(interactionUseCase.submitDiscussion).toHaveBeenCalledWith('battle-1', 'user-1', '퀵소트가 더 빠릅니다', BATTLE_TEAM.A, 'attack')
+      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.A)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:created', mockAttack)
     })
@@ -118,7 +148,7 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       }
 
-      jest.spyOn(service, 'handleAttack').mockRejectedValue(new Error('Phase가 올바르지 않습니다') as never)
+      interactionUseCase.submitDiscussion.mockRejectedValue(new Error('Phase가 올바르지 않습니다'))
 
       await gateway.handleAttack(dto, mockClient)
 
@@ -150,17 +180,13 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       }
 
-      jest.spyOn(service, 'handleDefense').mockResolvedValue(mockDefense as never)
-      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
+      interactionUseCase.submitDiscussion.mockResolvedValue(mockDefense)
+      utilPort.getBattleRoomId.mockReturnValue('battle-1:B')
 
       await gateway.handleDefense(dto, mockClient)
 
-      expect(service.handleDefense).toHaveBeenCalledWith('battle-1', {
-        authorId: 'user-1',
-        content: '하지만 최악의 경우 O(n²)입니다',
-        team: BATTLE_TEAM.B,
-      })
-      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
+      expect(interactionUseCase.submitDiscussion).toHaveBeenCalledWith('battle-1', 'user-1', '하지만 최악의 경우 O(n²)입니다', BATTLE_TEAM.B, 'defense')
+      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1', BATTLE_TEAM.B)
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:created', mockDefense)
     })
@@ -172,7 +198,7 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       }
 
-      jest.spyOn(service, 'handleDefense').mockRejectedValue(new Error('현재 반론을 등록할 수 없는 단계입니다.') as never)
+      interactionUseCase.submitDiscussion.mockRejectedValue(new Error('현재 반론을 등록할 수 없는 단계입니다.'))
 
       await gateway.handleDefense(dto, mockClient)
 
@@ -204,15 +230,12 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.A,
       })
 
-      jest.spyOn(service, 'handleAttackVote').mockResolvedValue([mockResponse] as never)
-      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:A')
+      interactionUseCase.submitVote.mockResolvedValue([mockResponse])
+      utilPort.getBattleRoomId.mockReturnValue('battle-1:A')
 
       await gateway.handleAttackVote(dto, mockClient)
 
-      expect(service.handleAttackVote).toHaveBeenCalledWith('battle-1', 'attack-1', {
-        userId: 'user-1',
-        team: BATTLE_TEAM.A,
-      })
+      expect(interactionUseCase.submitVote).toHaveBeenCalledWith('battle-1', 'attack-1', 'user-1', BATTLE_TEAM.A, 'attack')
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:A')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attack:voted', mockResponse)
@@ -241,15 +264,12 @@ describe('BattlesGateway - Discussion Events', () => {
         team: BATTLE_TEAM.B,
       })
 
-      jest.spyOn(service, 'handleDefenseVote').mockResolvedValue([mockResponse] as never)
-      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle-1:B')
+      interactionUseCase.submitVote.mockResolvedValue([mockResponse])
+      utilPort.getBattleRoomId.mockReturnValue('battle-1:B')
 
       await gateway.handleDefenseVote(dto, mockClient)
 
-      expect(service.handleDefenseVote).toHaveBeenCalledWith('battle-1', 'defense-1', {
-        userId: 'user-1',
-        team: BATTLE_TEAM.B,
-      })
+      expect(interactionUseCase.submitVote).toHaveBeenCalledWith('battle-1', 'defense-1', 'user-1', BATTLE_TEAM.B, 'defense')
 
       expect(mockServer.to).toHaveBeenCalledWith('battle-1:B')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defense:voted', mockResponse)
@@ -264,11 +284,11 @@ describe('BattlesGateway - Discussion Events', () => {
         teamNone: 2,
       })
 
-      jest.spyOn(service, 'getBattleRoomId').mockReturnValue('battle:battle-1')
+      utilPort.getBattleRoomId.mockReturnValue('battle:battle-1')
 
       gateway.userUpdate(payload)
 
-      expect(service.getBattleRoomId).toHaveBeenCalledWith('battle-1')
+      expect(utilPort.getBattleRoomId).toHaveBeenCalledWith('battle-1')
       expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:user:updated', payload)
     })
@@ -297,7 +317,7 @@ describe('BattlesGateway - Discussion Events', () => {
         { userId: 'user-2', from: BATTLE_TEAM.B, to: BATTLE_TEAM.A },
       ])
 
-      jest.spyOn(service, 'getBattleRoomId').mockImplementation((battleId, team) => {
+      utilPort.getBattleRoomId.mockImplementation((battleId: string, team?: string) => {
         if (!team) return `battle:${battleId}`
         return `battle:${battleId}:${team}`
       })
