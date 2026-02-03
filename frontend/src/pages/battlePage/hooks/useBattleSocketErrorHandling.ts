@@ -18,18 +18,49 @@ export function useBattleSocketErrorHandling() {
     socket.on('connect', () => {
       setIsConnected(true);
       setConnectionError({ type: null, attemptCount: 0, message: '' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket connected',
+        level: 'info',
+        data: {
+          battleId,
+          socketId: socket.id
+        }
+      });
     });
 
     // 재연결 성공 핸들러
     socket.io.on('reconnect', () => {
       setIsConnected(true);
       setConnectionError({ type: null, attemptCount: 0, message: '' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket reconnected',
+        level: 'info',
+        data: {
+          battleId
+        }
+      });
     });
 
     // 연결 해제 핸들러
     socket.on('disconnect', (reason) => {
       setIsConnected(false);
       setConnectionError({ type: 'disconnected', attemptCount: 0, message: '소켓 연결이 끊어졌습니다' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket disconnected',
+        level: 'warning',
+        data: {
+          battleId,
+          reason,
+          isOnline: navigator.onLine,
+          isVisible: document.visibilityState === 'visible'
+        }
+      });
 
       if (reason === 'io server disconnect') {
         socket.connect();
@@ -66,11 +97,20 @@ export function useBattleSocketErrorHandling() {
 
     // 재연결 시도 핸들러
     socket.io.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`[Socket] Reconnecting... (${attemptNumber}/3)`);
       setConnectionError({
         type: 'reconnecting',
         attemptCount: attemptNumber,
         message: `재연결 시도중 (${attemptNumber}/3)`
+      });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: `Reconnecting attempt ${attemptNumber}`,
+        level: 'info',
+        data: {
+          battleId,
+          attemptNumber
+        }
       });
     });
 
