@@ -6,9 +6,10 @@ import { ConfigModule } from '@nestjs/config'
 import { OauthModule } from './oauth/oauth.module'
 import { MetricsModule } from './metrics/metrics.module'
 import { HttpMetricsMiddleware } from './metrics/http-metrics.middleware'
+import { GeminiModule } from './gemini/gemini.module'
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), BattlesModule, OauthModule, MetricsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), GeminiModule, BattlesModule, OauthModule, MetricsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -8,7 +8,7 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GeminiService } from '../../gemini/gemini.service'
 
 import { TimelineItem, Mvp, BattleResult } from '../types/battleResult.types'
 import { calculateOpinionScore, compareMvpCandidates, createMvpCandidate, applyWinnerBonus } from './utils/mvp.util'
@@ -53,7 +53,6 @@ import {
   BUILD_AI_REFERENCE_PROMPT,
   AI_REFERENCE_SCHEMA,
 } from '../const/battles.const'
-import { ConfigService } from '@nestjs/config'
 import type { BattleReferenceData } from '../types/ai.types'
 import type { GenerateReferenceRequestDto } from '../dto/generateReference.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../dto/battleTurnResponse.dto'
@@ -75,7 +74,7 @@ export class BattlesService extends EventEmitter {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly configService: ConfigService,
+    private readonly geminiService: GeminiService,
   ) {
     super()
   }
@@ -1602,11 +1601,6 @@ export class BattlesService extends EventEmitter {
   }
 
   async generateReferenceData(dto: GenerateReferenceRequestDto): Promise<BattleReferenceData> {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY')
-    if (!apiKey) {
-      throw new InternalServerErrorException('AI 서비스를 사용할 수 없습니다.')
-    }
-
     const prompt = BUILD_AI_REFERENCE_PROMPT({
       title: dto.title,
       description: dto.description,
@@ -1618,21 +1612,19 @@ export class BattlesService extends EventEmitter {
     })
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-3-flash-preview',
-        generationConfig: {
+      return await this.geminiService.execute(
+        async model => {
+          const result = await model.generateContent(prompt)
+          const response = result.response
+          const text = response.text()
+          return JSON.parse(text) as BattleReferenceData
+        },
+        'gemini-3-flash-preview',
+        {
           responseMimeType: 'application/json',
           responseSchema: AI_REFERENCE_SCHEMA,
         },
-      })
-
-      const result = await model.generateContent(prompt)
-      const response = result.response
-      const text = response.text()
-
-      const referenceData = JSON.parse(text) as BattleReferenceData
-      return referenceData
+      )
     } catch (error: unknown) {
       if (error instanceof InternalServerErrorException) {
         throw error
