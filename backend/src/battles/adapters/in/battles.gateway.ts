@@ -1,4 +1,4 @@
-import { Logger, OnModuleInit, UnauthorizedException, NotFoundException, ForbiddenException, Inject } from '@nestjs/common'
+import { Logger, UnauthorizedException, NotFoundException, ForbiddenException, Inject } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../../domains/models/types/socket.types'
 import type { BattleTeam } from '../../domains/models/types/battle.types'
@@ -31,6 +31,7 @@ import { BattlePhaseTransitionUseCase } from '../../application/usecases/battleP
 import { IsPrivateBattleUseCase } from '../../application/usecases/isPrivateBattle.usecase'
 import { BATTLE_UTIL_PORT } from '../../application/ports/tokens'
 import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port'
+import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
 
 @WebSocketGateway({
   cors: {
@@ -38,7 +39,7 @@ import type { BattleUtilPort } from '../../application/ports/out/battleUtil.port
     credentials: true,
   },
 })
-export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
+export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server
 
@@ -53,10 +54,11 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     private readonly isPrivateBattleUseCase: IsPrivateBattleUseCase,
     @Inject(BATTLE_UTIL_PORT) private readonly utilPort: BattleUtilPort,
     private readonly metricsService: MetricsService,
+    private readonly broadcaster: BattleBroadcasterAdapter,
   ) {}
 
-  onModuleInit() {
-    // 이벤트 바인딩은 이제 BroadcasterAdapter가 직접 처리합니다.
+  afterInit(server: Server) {
+    this.broadcaster.setServer(server)
   }
 
   private getUserIdFromSocket(client: SocketWithUserId): string {

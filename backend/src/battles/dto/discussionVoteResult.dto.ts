@@ -1,4 +1,4 @@
-import { BattleDiscussion, BattleTeam, BattleTopOpinions } from '../types/battles.types'
+import { BattleDiscussion, BattleTeam, BattleTopOpinions } from '../domains/models/types/battle.types'
 
 export class DiscussionVoteResultItemDto {
   id: string | null

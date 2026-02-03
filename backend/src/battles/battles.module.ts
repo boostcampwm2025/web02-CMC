@@ -65,6 +65,7 @@ import {
     PrismaService,
     BattlesGateway,
     InviteAccessGuard,
+
     // Domain Services
     BattleResultService,
     BattleTimelineService,
@@ -78,6 +79,7 @@ import {
     BattleSkipService,
     BattleGuestService,
     BattleQueryService,
+
     // UseCases
     BattleCreationUseCase,
     BattleParticipationUseCase,
@@ -91,50 +93,26 @@ import {
     GetJoinBattleInfoUseCase,
     GetBattleResultUseCase,
     IsPrivateBattleUseCase,
+
     // Adapters (Out)
     BattleRepositoryAdapter,
     BattleStateRepositoryAdapter,
-    BattleBroadcasterAdapter,
     BattleTimerAdapter,
     BattleReferenceGeneratorAdapter,
     BattleUtilAdapter,
     GuestCheckAdapter,
-    // Port Bindings
-    {
-      provide: BATTLE_REPO_PORT,
-      useClass: BattleRepositoryAdapter,
-    },
-    {
-      provide: BATTLE_STATE_PORT,
-      useClass: BattleStateRepositoryAdapter,
-    },
-    {
-      provide: BATTLE_BROADCASTER_PORT,
-      useFactory: (gateway: BattlesGateway) => {
-        return new BattleBroadcasterAdapter(gateway.server)
-      },
-      inject: [BattlesGateway],
-    },
-    {
-      provide: BATTLE_TIMER_PORT,
-      useClass: BattleTimerAdapter,
-    },
-    {
-      provide: BATTLE_REFERENCE_PORT,
-      useClass: BattleReferenceGeneratorAdapter,
-    },
-    {
-      provide: BATTLE_UTIL_PORT,
-      useClass: BattleUtilAdapter,
-    },
-    {
-      provide: GUEST_CHECK_PORT,
-      useClass: GuestCheckAdapter,
-    },
-    {
-      provide: BATTLE_PRIVACY_CHECK_PORT,
-      useClass: BattlePrivacyCheckAdapter,
-    },
+    BattlePrivacyCheckAdapter,
+
+    BattleBroadcasterAdapter,
+
+    { provide: BATTLE_REPO_PORT, useClass: BattleRepositoryAdapter },
+    { provide: BATTLE_STATE_PORT, useClass: BattleStateRepositoryAdapter },
+    { provide: BATTLE_BROADCASTER_PORT, useExisting: BattleBroadcasterAdapter },
+    { provide: BATTLE_TIMER_PORT, useClass: BattleTimerAdapter },
+    { provide: BATTLE_REFERENCE_PORT, useClass: BattleReferenceGeneratorAdapter },
+    { provide: BATTLE_UTIL_PORT, useClass: BattleUtilAdapter },
+    { provide: GUEST_CHECK_PORT, useClass: GuestCheckAdapter },
+    { provide: BATTLE_PRIVACY_CHECK_PORT, useClass: BattlePrivacyCheckAdapter },
   ],
 })
 export class BattlesModule {}

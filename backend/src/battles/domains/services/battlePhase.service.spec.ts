@@ -35,7 +35,7 @@ describe('BattlePhaseService', () => {
   })
 
   describe('BattlePhaseService', () => {
-    it('PENDING?ì„œ OPINION_SHAREë¡??„í™˜?œë‹¤', () => {
+    it('PENDING?ï¿½ì„œ OPINION_SHAREï¿½??ï¿½í™˜?ï¿½ë‹¤', () => {
       const state = createState({ phase: BATTLE_PHASE.PENDING.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -48,7 +48,7 @@ describe('BattlePhaseService', () => {
       expect(result).toBe(BATTLE_PHASE.OPINION_SHARE)
     })
 
-    it('OPINION_SHARE?ì„œ ATTACK?¼ë¡œ ?„í™˜?œë‹¤', () => {
+    it('OPINION_SHARE?ï¿½ì„œ ATTACK?ï¿½ë¡œ ?ï¿½í™˜?ï¿½ë‹¤', () => {
       const state = createState({ phase: BATTLE_PHASE.OPINION_SHARE.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -62,7 +62,7 @@ describe('BattlePhaseService', () => {
       expect(state.expiredAt).toBeGreaterThan(Date.now())
     })
 
-    it('ATTACK?ì„œ DEFENSEë¡??„í™˜?œë‹¤', () => {
+    it('ATTACK?ï¿½ì„œ DEFENSEï¿½??ï¿½í™˜?ï¿½ë‹¤', () => {
       const state = createState({ phase: BATTLE_PHASE.ATTACK.name })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -77,7 +77,7 @@ describe('BattlePhaseService', () => {
       expect(resetDiscussions).toHaveBeenCalledWith(state)
     })
 
-    it('DEFENSE?ì„œ ATTACK?¼ë¡œ ?„í™˜?œë‹¤ (phaseCountê°€ MAXë³´ë‹¤ ?‘ì„ ??', () => {
+    it('DEFENSE?ï¿½ì„œ ATTACK?ï¿½ë¡œ ?ï¿½í™˜?ï¿½ë‹¤ (phaseCountê°€ MAXë³´ë‹¤ ?ï¿½ì„ ??', () => {
       const state = createState({ phase: BATTLE_PHASE.DEFENSE.name, phaseCount: 1 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -93,7 +93,7 @@ describe('BattlePhaseService', () => {
       expect(resetDiscussions).toHaveBeenCalledWith(state)
     })
 
-    it('DEFENSE?ì„œ TEAM_SWITCHë¡??„í™˜?œë‹¤ (phaseCountê°€ MAX????', () => {
+    it('DEFENSE?ï¿½ì„œ TEAM_SWITCHï¿½??ï¿½í™˜?ï¿½ë‹¤ (phaseCountê°€ MAX????', () => {
       const state = createState({ phase: BATTLE_PHASE.DEFENSE.name, phaseCount: BATTLE_MAX_PHASE_COUNT })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -107,7 +107,7 @@ describe('BattlePhaseService', () => {
       expect(state.phaseCount).toBe(1)
     })
 
-    it('TEAM_SWITCH?ì„œ OPINION_SHAREë¡??„í™˜?œë‹¤ (?¤ìŒ ?¼ìš´?œê? ?ˆì„ ??', () => {
+    it('TEAM_SWITCH?ï¿½ì„œ OPINION_SHAREï¿½??ï¿½í™˜?ï¿½ë‹¤ (?ï¿½ìŒ ?ï¿½ìš´?ï¿½ï¿½? ?ï¿½ì„ ??', () => {
       const state = createState({ phase: BATTLE_PHASE.TEAM_SWITCH.name, round: 1, totalRounds: 2 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -122,7 +122,7 @@ describe('BattlePhaseService', () => {
       expect(state.round).toBe(2)
     })
 
-    it('TEAM_SWITCH?ì„œ null??ë°˜í™˜?œë‹¤ (ë§ˆì?ë§??¼ìš´?œì¼ ??', () => {
+    it('TEAM_SWITCH?ï¿½ì„œ null??ë°˜í™˜?ï¿½ë‹¤ (ë§ˆï¿½?ï¿½??ï¿½ìš´?ï¿½ì¼ ??', () => {
       const state = createState({ phase: BATTLE_PHASE.TEAM_SWITCH.name, round: 1, totalRounds: 1 })
       const emitAttackedResult = jest.fn()
       const emitDefensedResult = jest.fn()
@@ -138,7 +138,7 @@ describe('BattlePhaseService', () => {
   })
 
   describe('updateRound', () => {
-    it('?¤ìŒ ?¼ìš´?œë¡œ ?…ë°?´íŠ¸?œë‹¤', () => {
+    it('?ï¿½ìŒ ?ï¿½ìš´?ï¿½ë¡œ ?ï¿½ë°?ï¿½íŠ¸?ï¿½ë‹¤', () => {
       const state = createState({ round: 1, totalRounds: 2 })
       const finishBattle = jest.fn()
 
@@ -149,7 +149,7 @@ describe('BattlePhaseService', () => {
       expect(finishBattle).not.toHaveBeenCalled()
     })
 
-    it('ë§ˆì?ë§??¼ìš´?œë©´ finishBattle???¸ì¶œ?˜ê³  falseë¥?ë°˜í™˜?œë‹¤', () => {
+    it('ë§ˆï¿½?ï¿½??ï¿½ìš´?ï¿½ë©´ finishBattle???ï¿½ì¶œ?ï¿½ê³  falseï¿½?ë°˜í™˜?ï¿½ë‹¤', () => {
       const state = createState({ round: 1, totalRounds: 1 })
       const finishBattle = jest.fn()
 

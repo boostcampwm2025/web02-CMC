@@ -5,6 +5,7 @@ import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleUtilPort } from '../ports/out/battleUtil.port'
 import { BATTLE_STATUS } from '../../domains/models/const/battles.const'
 import { BattleJoinInfoResponseDto } from '../../dto/battleJoinResponse.dto'
+import type { ActiveBattleState } from '../../domains/models/types/battle.types'
 
 @Injectable()
 export class GetJoinBattleInfoUseCase {
@@ -18,7 +19,7 @@ export class GetJoinBattleInfoUseCase {
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
     const battle = await this.repo.findUnique(battleId)
-    let activeBattleState = undefined
+    let activeBattleState: ActiveBattleState | undefined = undefined
     let participantCount = battle.totalParticipantsCount ?? 0
     if (battle.status !== BATTLE_STATUS.CLOSED) {
       const loaded = await this.stateRepo.loadBattleState(battleId)

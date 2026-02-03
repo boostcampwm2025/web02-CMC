@@ -9,7 +9,7 @@ import {
   BATTLE_DISCUSSION_TYPE,
 } from '../const/battles.const'
 
-import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from '../battleResult.types'
+import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from './battleResult.types'
 import type { BattleReferenceData } from './ai.types'
 export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]

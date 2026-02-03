@@ -1,4 +1,4 @@
-import { Battle, BattleStatus, BattleCategory, BattleLanguage } from '../types/battles.types'
+import { Battle, BattleStatus, BattleCategory, BattleLanguage } from '../domains/models/types/battle.types'
 
 export class BattleResponseDto {
   id: string
