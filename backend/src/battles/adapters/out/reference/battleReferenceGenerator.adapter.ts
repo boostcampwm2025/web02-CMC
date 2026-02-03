@@ -1,20 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { GeminiService } from '../../../../gemini/gemini.service'
 import { BattleReferencePort, GenerateReferenceRequest } from '../../../application/ports/out/battleReference.port'
 import type { BattleReferenceData } from '../../../domains/models/types/ai.types'
 import { BUILD_AI_REFERENCE_PROMPT, AI_REFERENCE_SCHEMA } from '../../../domains/models/const/battles.const'
 
 @Injectable()
 export class BattleReferenceGeneratorAdapter implements BattleReferencePort {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly geminiService: GeminiService) {}
 
   async generate(dto: GenerateReferenceRequest): Promise<BattleReferenceData> {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY')
-    if (!apiKey) {
-      throw new InternalServerErrorException('AI 서비스를 사용할 수 없습니다.')
-    }
-
     const prompt = BUILD_AI_REFERENCE_PROMPT({
       title: dto.title,
       description: dto.description,
@@ -26,21 +20,19 @@ export class BattleReferenceGeneratorAdapter implements BattleReferencePort {
     })
 
     try {
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({
-        model: 'gemini-3-flash-preview',
-        generationConfig: {
+      return await this.geminiService.execute(
+        async model => {
+          const result = await model.generateContent(prompt)
+          const response = result.response
+          const text = response.text()
+          return JSON.parse(text) as BattleReferenceData
+        },
+        'gemini-3-flash-preview',
+        {
           responseMimeType: 'application/json',
           responseSchema: AI_REFERENCE_SCHEMA,
         },
-      })
-
-      const result = await model.generateContent(prompt)
-      const response = result.response
-      const text = response.text()
-
-      const referenceData = JSON.parse(text) as BattleReferenceData
-      return referenceData
+      )
     } catch (error: unknown) {
       if (error instanceof InternalServerErrorException) {
         throw error
