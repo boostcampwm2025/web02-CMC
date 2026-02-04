@@ -64,11 +64,25 @@
       ]
     },
     {
+      "id": 6,
+      "type": "timeseries",
+      "title": "p99 Latency by route/method",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\"}[5m])) by (le, route, method))",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
       "id": 4,
       "type": "timeseries",
       "title": "Average Latency by route/method",
       "datasource": "Prometheus",
-      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "s" } },
       "targets": [
         {
@@ -82,11 +96,67 @@
       "type": "table",
       "title": "Status Code Breakdown",
       "datasource": "Prometheus",
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
       "targets": [
         {
           "expr": "sum(rate(http_requests_total{route=~\"$route\"}[5m])) by (route, method, status_code)",
           "legendFormat": "{{method}} {{route}} {{status_code}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Service Action p95 by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(service_action_duration_seconds_bucket[5m])) by (le, action))",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Service Action p99 by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(service_action_duration_seconds_bucket[5m])) by (le, action))",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Service Action Average by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 32, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "sum(rate(service_action_duration_seconds_sum[5m])) by (action) / sum(rate(service_action_duration_seconds_count[5m])) by (action)",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Service Action Error Rate by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 32, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "percent" } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(service_action_duration_seconds_count{status=\"error\"}[5m])) by (action) / sum(rate(service_action_duration_seconds_count[5m])) by (action)",
+          "legendFormat": "{{action}}"
         }
       ]
     }

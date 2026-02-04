@@ -38,14 +38,22 @@
     {
       "id": 2,
       "type": "timeseries",
-      "title": "p95 Handling Time by event",
+      "title": "Handling Time p50/p95/p99 by event",
       "datasource": "Prometheus",
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
       "fieldConfig": { "defaults": { "unit": "s" } },
       "targets": [
         {
+          "expr": "histogram_quantile(0.5, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event))",
+          "legendFormat": "p50 {{event}}"
+        },
+        {
           "expr": "histogram_quantile(0.95, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event))",
-          "legendFormat": "{{event}}"
+          "legendFormat": "p95 {{event}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event))",
+          "legendFormat": "p99 {{event}}"
         }
       ]
     },
@@ -78,16 +86,86 @@
       ]
     },
     {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Service Action p95 by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(service_action_duration_seconds_bucket[5m])) by (le, action))",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Service Action Average by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "sum(rate(service_action_duration_seconds_sum[5m])) by (action) / sum(rate(service_action_duration_seconds_count[5m])) by (action)",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
       "id": 5,
       "type": "stat",
       "title": "Active Socket Connections",
       "datasource": "Prometheus",
-      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 4 },
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 4 },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
       "targets": [
         {
           "expr": "socket_active_connections",
           "legendFormat": "connections"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Connection Events (rate)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "expr": "sum(rate(socket_connection_events_total[1m])) by (type)",
+          "legendFormat": "{{type}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Service Action p99 by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 34, "w": 12, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(service_action_duration_seconds_bucket[5m])) by (le, action))",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Service Action Error Rate by action",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 34, "w": 12, "h": 6 },
+      "fieldConfig": { "defaults": { "unit": "percent" } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(service_action_duration_seconds_count{status=\"error\"}[5m])) by (action) / sum(rate(service_action_duration_seconds_count[5m])) by (action)",
+          "legendFormat": "{{action}}"
         }
       ]
     }
