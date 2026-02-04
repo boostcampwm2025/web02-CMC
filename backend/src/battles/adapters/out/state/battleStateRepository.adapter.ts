@@ -139,6 +139,10 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     await this.patchSkipCache(battleId, skipList)
   }
 
+  async clearCache(battleId: string): Promise<void> {
+    await this.redis.del(this.getCacheKey(battleId))
+  }
+
   parseMvpsState(value: unknown): Mvp[] {
     if (!Array.isArray(value)) return []
     return value
