@@ -84,14 +84,14 @@ export default function BattleResultPage() {
 
       <div className="max-w-7xl mx-auto mb-12 flex gap-4 justify-center">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/main')}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-pink-500/30"
         >
           <Trophy className="w-5 h-5" />
           다른 배틀 보기
         </button>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/main')}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-green-500/30"
         >
           <Activity className="w-5 h-5" />

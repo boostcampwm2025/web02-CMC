@@ -34,7 +34,7 @@ export default function ErrorPage() {
   }
 
   const handleGoHome = () => {
-    navigate('/');
+    navigate('/main');
   };
 
   return (

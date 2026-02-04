@@ -37,7 +37,7 @@ export default function Header() {
       <div className="h-[64px] w-full bg-[#0A0A1A] border-b border-[#2D2D3F]">
         <div className="w-full px-8 h-full flex items-center justify-between">
           {/* 좌측 로고 */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/main" className="flex items-center gap-2">
             <BattleIcon className="w-6 h-6 text-orange-500" />
             <span className=" font-semibold ">배틀 아레나</span>
           </Link>

@@ -3,7 +3,7 @@ import GameIntroduceSection from './components/GameIntroduceSection';
 import GameTitleSection from './components/GameTitleSection';
 import ServiceValueSection from './components/ServiceValueSection';
 
-export default function OnBoardingPage() {
+export default function EntryPage() {
   useEffect(() => {
     document.documentElement.style.scrollSnapType = 'y mandatory';
 
