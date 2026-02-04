@@ -1,7 +1,8 @@
 import { type GetBattleListParams, type BattleListResponse, isBattleListResponse } from './types';
 
 export async function getOpenBattles({ offset, limit }: GetBattleListParams): Promise<BattleListResponse> {
-  const res = await fetch(`/api/battles/open?offset=${offset}&limit=${limit}`);
+  const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
+  const res = await fetch(`${VITE_API_URL}/api/battles/open?offset=${offset}&limit=${limit}`);
 
   if (!res.ok) {
     throw new Error('배틀 목록을 불러오지 못했습니다.');

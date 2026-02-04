@@ -31,7 +31,7 @@ function isBattleInfo(data: unknown): data is BattleInfo {
 
 const getBattleInfo = async (id: string) => {
   try {
-    const response = await fetch(`/api/battles/${id}/join`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/battles/${id}/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

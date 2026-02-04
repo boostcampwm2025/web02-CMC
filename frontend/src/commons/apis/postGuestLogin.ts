@@ -15,7 +15,8 @@ function isGuestLoginResponse(data: unknown): data is GuestLoginResponse {
 }
 
 const fetchPostGuestLogin = async (battleId: string) => {
-  const response = await fetch(`/api/auth/guest/${battleId}`, {
+  const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
+  const response = await fetch(`${VITE_API_URL}/api/auth/guest/${battleId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
