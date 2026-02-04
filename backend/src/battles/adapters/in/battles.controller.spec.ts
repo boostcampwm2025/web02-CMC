@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
+import { ConfigService } from '@nestjs/config'
 import { NotFoundException, BadRequestException } from '@nestjs/common'
 import type { Response } from 'express'
 import type { BattleLanguage, BattleCategory } from '../../domains/models/types/battle.types'
@@ -31,6 +32,12 @@ describe('BattlesController', () => {
             getBattleByInviteCode: jest.fn(),
             getJoinBattleInfo: jest.fn(),
             getBattleResult: jest.fn(),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockReturnValue(undefined),
           },
         },
         {
