@@ -38,7 +38,7 @@ const router = createBrowserRouter([
         element: <TutorialTeamSelectPage />,
         loader: () => TUTORIAL_BATTLE_INFO
       },
-      { path: 'tutorial/battle', element: <TutorialBattlePage /> },
+      { path: 'tutorial/battle', element: <TutorialBattlePage />, loader: () => TUTORIAL_BATTLE_INFO },
       { path: 'battles/:inviteCode', element: <InvitePage /> },
       { path: 'battles/:id/result', element: <BattleResultPage /> }
     ]
