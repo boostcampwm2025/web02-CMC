@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "battles" ALTER COLUMN "mvps" SET DATA TYPE VARCHAR(20)[];
