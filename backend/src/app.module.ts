@@ -7,9 +7,10 @@ import { OauthModule } from './oauth/oauth.module'
 import { MetricsModule } from './metrics/metrics.module'
 import { HttpMetricsMiddleware } from './metrics/http-metrics.middleware'
 import { GeminiModule } from './gemini/gemini.module'
+import { RedisModule } from './redis/redis.module'
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), GeminiModule, BattlesModule, OauthModule, MetricsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), RedisModule, GeminiModule, BattlesModule, OauthModule, MetricsModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -19,6 +19,9 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
 
   prometheus:
     image: prom/prometheus:latest
@@ -63,3 +66,20 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis-data:
