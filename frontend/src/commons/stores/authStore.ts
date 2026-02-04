@@ -69,12 +69,12 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           isLoggingIn: false
         });
 
-        const { default: Sentry } = await import('@sentry/react');
-        Sentry.setUser({
-          id: user.id,
-          username: user.nickname,
-          type: 'guest'
-        });
+        // const { default: Sentry } = await import('@sentry/react');
+        // Sentry.setUser({
+        //   id: user.id,
+        //   username: user.nickname,
+        //   type: 'guest'
+        // });
 
         return user;
       } catch (e) {
@@ -140,8 +140,8 @@ export const useAuthStore = create<AuthStore>((set, get) => {
         get().clearAuth();
 
         // Sentry 사용자 정보 제거
-        const { default: Sentry } = await import('@sentry/react');
-        Sentry.setUser(null);
+        // const { default: Sentry } = await import('@sentry/react');
+        // Sentry.setUser(null);
       } catch {
         throw new Error('로그아웃 실패');
       }
