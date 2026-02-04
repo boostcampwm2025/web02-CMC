@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { Prisma } from 'generated/prisma/client'
 import { type Battle as PrismaBattle } from 'generated/prisma/client'
 import { PrismaService } from '../../../../prisma/prisma.service'
+import { RedisRepository } from '../../../../redis/redis.repository'
 import {
   ActiveBattleState,
   BattleTeam,
@@ -33,64 +34,64 @@ interface BattleChatSnapshot extends Omit<BattleChat, 'createdAt'> {
   createdAt: string
 }
 
+interface SerializedBattleState {
+  battleId: string
+  all: {
+    roomId: string
+    chats: BattleChatSnapshot[]
+    attacks: (BattleDiscussion | null)[]
+    defenses: (BattleDefense | null)[]
+  }
+  teamA: {
+    roomId: string
+    chats: BattleChatSnapshot[]
+    attacks: (BattleDiscussion | null)[]
+    defenses: (BattleDefense | null)[]
+    users: string[]
+  }
+  teamB: {
+    roomId: string
+    chats: BattleChatSnapshot[]
+    attacks: (BattleDiscussion | null)[]
+    defenses: (BattleDefense | null)[]
+    users: string[]
+  }
+  participants: [string, BattleTeam][]
+  teamVotes: [string, BattleTeam][]
+  userInfoMap: [string, string][]
+  opinionHistory: BattleDiscussion[]
+  skipState: string[]
+  round: number
+  topics: string[]
+  totalRounds: number
+  phase: BattlePhaseName
+  phaseCount: number
+  startedAt: number | null
+  expiredAt: number | null
+}
+
 @Injectable()
 export class BattleStateRepositoryAdapter implements BattleStatePort {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly cachePrefix = 'battle:state:'
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisRepository,
+  ) {}
 
   async loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }> {
+    const cachedState = await this.loadStateFromCache(battleId)
+
     const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
     if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
 
-    const participants = this.parseParticipantsState(battle.participantsState)
-    const teamVotes = this.parseTeamVotesState(battle.teamVotesState)
-    const userInfoMap = this.parseUserInfoState(battle.userInfoState)
-    const attackState = this.parseAttackState(battle.attacksState)
-    const defenseState = this.parseDefenseState(battle.defensesState)
-    const opinionHistory = this.parseOpinionHistoryState(battle.opinionHistoryState)
-    const skipState = new Set<string>(Array.isArray(battle.skipState) ? battle.skipState : [])
-
-    const playTime = BATTLE_PLAYTIME[battle.playTime as keyof typeof BATTLE_PLAYTIME]
-    if (!playTime) {
-      throw new NotFoundException('올바르지 않은 배틀 진행 시간입니다.')
+    //캐시에서 가져온 데이터가 있으면 바로 반환
+    if (cachedState) {
+      return { battle, state: cachedState }
     }
 
-    const state: ActiveBattleState = {
-      battleId,
-      all: {
-        roomId: this.getBattleRoomId(battleId),
-        chats: this.parseChatState(battle.chatsAllState),
-        attacks: attackState.all,
-        defenses: defenseState.all,
-      },
-      teamA: {
-        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.A),
-        users: [],
-        chats: this.parseChatState(battle.chatsTeamAState),
-        attacks: attackState.teamA,
-        defenses: defenseState.teamA,
-      },
-      teamB: {
-        roomId: this.getBattleRoomId(battleId, BATTLE_TEAM.B),
-        users: [],
-        chats: this.parseChatState(battle.chatsTeamBState),
-        attacks: attackState.teamB,
-        defenses: defenseState.teamB,
-      },
-      participants,
-      teamVotes,
-      userInfoMap,
-      opinionHistory,
-      skipState,
-      round: battle.currentRound ?? 1,
-      topics: battle.topics,
-      totalRounds: playTime.rounds,
-      phase: (battle.currentPhase ?? BATTLE_PHASE.PENDING.name) as BattlePhaseName,
-      phaseCount: battle.phaseCount ?? 1,
-      startedAt: battle.startedAt ? battle.startedAt.getTime() : null,
-      expiredAt: battle.expiredAt ? battle.expiredAt.getTime() : null,
-    }
-
-    this.rebuildTeamUsers(state)
+    const state = this.buildStateFromBattle(battle)
+    await this.persistStateCache(state)
     return { battle, state }
   }
 
@@ -124,6 +125,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
         updatedAt: new Date(),
       },
     })
+    await this.persistStateCache(state)
   }
 
   async updateSkipState(battleId: string, skipList: Set<string>): Promise<void> {
@@ -134,6 +136,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
         updatedAt: new Date(),
       },
     })
+    await this.patchSkipCache(battleId, skipList)
   }
 
   parseMvpsState(value: unknown): Mvp[] {
@@ -257,6 +260,171 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     return value.filter(item => item && typeof item === 'object') as BattleDiscussion[]
   }
 
+  //캐시에서 가져오기
+  private async loadStateFromCache(battleId: string): Promise<ActiveBattleState | null> {
+    try {
+      const payload = await this.redis.get(this.getCacheKey(battleId))
+      if (!payload) return null
+      return this.deserializeState(JSON.parse(payload) as SerializedBattleState)
+    } catch {
+      return null
+    }
+  }
+
+  //캐시에 저장하기
+  private async persistStateCache(state: ActiveBattleState): Promise<void> {
+    const payload = this.serializeState(state)
+    await this.redis.set(this.getCacheKey(state.battleId), JSON.stringify(payload))
+  }
+
+  //skipState 업데이트 시 캐시 업데이트
+  private async patchSkipCache(battleId: string, skipList: Set<string>): Promise<void> {
+    const cachedState = await this.loadStateFromCache(battleId)
+    if (!cachedState) return
+    cachedState.skipState = new Set(skipList)
+    await this.persistStateCache(cachedState)
+  }
+
+  //캐시에 저장할 데이터 직렬화
+  private serializeState(state: ActiveBattleState): SerializedBattleState {
+    return {
+      battleId: state.battleId,
+      all: {
+        roomId: state.all.roomId,
+        chats: this.serializeChatState(state.all.chats),
+        attacks: state.all.attacks,
+        defenses: state.all.defenses,
+      },
+      teamA: {
+        roomId: state.teamA.roomId,
+        chats: this.serializeChatState(state.teamA.chats),
+        attacks: state.teamA.attacks,
+        defenses: state.teamA.defenses,
+        users: [...state.teamA.users],
+      },
+      teamB: {
+        roomId: state.teamB.roomId,
+        chats: this.serializeChatState(state.teamB.chats),
+        attacks: state.teamB.attacks,
+        defenses: state.teamB.defenses,
+        users: [...state.teamB.users],
+      },
+      participants: [...state.participants.entries()],
+      teamVotes: [...state.teamVotes.entries()],
+      userInfoMap: [...state.userInfoMap.entries()],
+      opinionHistory: state.opinionHistory,
+      skipState: Array.from(state.skipState),
+      round: state.round,
+      topics: state.topics,
+      totalRounds: state.totalRounds,
+      phase: state.phase,
+      phaseCount: state.phaseCount,
+      startedAt: state.startedAt,
+      expiredAt: state.expiredAt,
+    }
+  }
+
+  //캐시에서 가져온 데이터 역직렬화
+  private deserializeState(payload: SerializedBattleState): ActiveBattleState {
+    const participants = new Map<string, BattleTeam>(payload.participants ?? [])
+    const teamVotes = new Map<string, BattleTeam>(payload.teamVotes ?? [])
+    const userInfoMap = new Map<string, string>(payload.userInfoMap ?? [])
+
+    const state: ActiveBattleState = {
+      battleId: payload.battleId,
+      all: {
+        roomId: payload.all.roomId,
+        chats: this.parseChatState(payload.all.chats),
+        attacks: payload.all.attacks ?? [],
+        defenses: payload.all.defenses ?? [],
+      },
+      teamA: {
+        roomId: payload.teamA.roomId,
+        chats: this.parseChatState(payload.teamA.chats),
+        attacks: payload.teamA.attacks ?? [],
+        defenses: payload.teamA.defenses ?? [],
+        users: payload.teamA.users ?? [],
+      },
+      teamB: {
+        roomId: payload.teamB.roomId,
+        chats: this.parseChatState(payload.teamB.chats),
+        attacks: payload.teamB.attacks ?? [],
+        defenses: payload.teamB.defenses ?? [],
+        users: payload.teamB.users ?? [],
+      },
+      participants,
+      teamVotes,
+      userInfoMap,
+      opinionHistory: payload.opinionHistory ?? [],
+      skipState: new Set(payload.skipState ?? []),
+      round: payload.round,
+      topics: payload.topics,
+      totalRounds: payload.totalRounds,
+      phase: payload.phase,
+      phaseCount: payload.phaseCount,
+      startedAt: payload.startedAt,
+      expiredAt: payload.expiredAt,
+    }
+
+    this.rebuildTeamUsers(state)
+    return state
+  }
+
+  //데이터베이스에서 가져온 데이터 빌드
+  private buildStateFromBattle(battle: PrismaBattle): ActiveBattleState {
+    const participants = this.parseParticipantsState(battle.participantsState)
+    const teamVotes = this.parseTeamVotesState(battle.teamVotesState)
+    const userInfoMap = this.parseUserInfoState(battle.userInfoState)
+    const attackState = this.parseAttackState(battle.attacksState)
+    const defenseState = this.parseDefenseState(battle.defensesState)
+    const opinionHistory = this.parseOpinionHistoryState(battle.opinionHistoryState)
+    const skipState = new Set<string>(Array.isArray(battle.skipState) ? battle.skipState : [])
+
+    const playTime = BATTLE_PLAYTIME[battle.playTime as keyof typeof BATTLE_PLAYTIME]
+    if (!playTime) {
+      throw new NotFoundException('올바르지 않은 배틀 진행 시간입니다.')
+    }
+
+    const state: ActiveBattleState = {
+      battleId: battle.id,
+      all: {
+        roomId: this.getBattleRoomId(battle.id),
+        chats: this.parseChatState(battle.chatsAllState),
+        attacks: attackState.all,
+        defenses: defenseState.all,
+      },
+      teamA: {
+        roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.A),
+        users: [],
+        chats: this.parseChatState(battle.chatsTeamAState),
+        attacks: attackState.teamA,
+        defenses: defenseState.teamA,
+      },
+      teamB: {
+        roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.B),
+        users: [],
+        chats: this.parseChatState(battle.chatsTeamBState),
+        attacks: attackState.teamB,
+        defenses: defenseState.teamB,
+      },
+      participants,
+      teamVotes,
+      userInfoMap,
+      opinionHistory,
+      skipState,
+      round: battle.currentRound ?? 1,
+      topics: battle.topics,
+      totalRounds: playTime.rounds,
+      phase: (battle.currentPhase ?? BATTLE_PHASE.PENDING.name) as BattlePhaseName,
+      phaseCount: battle.phaseCount ?? 1,
+      startedAt: battle.startedAt ? battle.startedAt.getTime() : null,
+      expiredAt: battle.expiredAt ? battle.expiredAt.getTime() : null,
+    }
+
+    this.rebuildTeamUsers(state)
+    return state
+  }
+
   private rebuildTeamUsers(state: ActiveBattleState): void {
     state.teamA.users = []
     state.teamB.users = []
@@ -265,6 +433,10 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       if (team === BATTLE_TEAM.A) state.teamA.users.push(userId)
       if (team === BATTLE_TEAM.B) state.teamB.users.push(userId)
     }
+  }
+
+  private getCacheKey(battleId: string): string {
+    return `${this.cachePrefix}${battleId}`
   }
 
   private getBattleRoomId(battleId: string, team?: BattleTeam): string {
