@@ -46,6 +46,17 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.del(key)
   }
 
+  async incr(key: string, ttl?: number): Promise<number> {
+    if (ttl) {
+      const pipeline = this.redisClient.pipeline()
+      pipeline.incr(key)
+      pipeline.expire(key, ttl, 'NX')
+      const results = await pipeline.exec()
+      return Number(results?.[0][1] ?? 0)
+    }
+    return this.redisClient.incr(key)
+  }
+
   async exists(key: string): Promise<boolean> {
     const result = await this.redisClient.exists(key)
     return result === 1

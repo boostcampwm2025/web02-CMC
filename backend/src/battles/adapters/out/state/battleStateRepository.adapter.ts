@@ -73,7 +73,6 @@ interface SerializedBattleState {
 @Injectable()
 export class BattleStateRepositoryAdapter implements BattleStatePort {
   private readonly cachePrefix = 'battle:state:'
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisRepository,
