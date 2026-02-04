@@ -20,13 +20,18 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
   const selectedTeamFromState = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
   const user = useAuthStore((state) => state.user);
 
-  // 배틀 초기화 (selectedTeam 먼저 설정)
   useEffect(() => {
     if (!battleId || !user) return;
+    let teamToSet: 'A' | 'B' | 'NONE' = 'NONE';
 
-    // selectedTeam을 먼저 설정
-    if (selectedTeamFromState) {
-      useBattleStore.getState().setSelectedTeam(selectedTeamFromState);
+    if (user.type === 'guest' && user.selectedTeam) {
+      teamToSet = user.selectedTeam;
+    } else if (selectedTeamFromState) {
+      teamToSet = selectedTeamFromState;
+    }
+
+    if (teamToSet !== 'NONE') {
+      useBattleStore.getState().setSelectedTeam(teamToSet);
     }
 
     useBattleStore.getState().initializeBattle({
@@ -35,7 +40,6 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
     });
   }, [battleId, selectedTeamFromState, user]);
 
-  // 모든 배틀 관련 훅 초기화
   useBattleSocket();
   useBattleSocketErrorHandling();
 

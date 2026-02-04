@@ -7,5 +7,6 @@ export interface AuthUser {
   avatarUrl?: string;
   tier?: string;
   rating?: number;
-  battleId?: string; // 비회원 로그인인 경우에만 존재
+  battleId?: string;
+  selectedTeam?: 'A' | 'B';
 }
