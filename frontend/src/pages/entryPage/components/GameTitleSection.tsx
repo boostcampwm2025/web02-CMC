@@ -41,7 +41,7 @@ export default function GameTitleSection() {
       <div className="relative z-30">
         <div className="flex gap-12 items-center justify-center">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/main')}
             className="flex items-center justify-center gap-2 text-xl px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 border border-orange-300 rounded-xl cursor-pointer shadow-[0_10px_40px_rgba(251,146,60,0.6)]"
           >
             <Play fill="currentColor" size={20} />

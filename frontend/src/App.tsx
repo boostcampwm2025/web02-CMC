@@ -1,29 +1,31 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
 import TeamSelectPage from './pages/teamSelectPage';
 import InvitePage from './pages/invitePage';
-import './App.css';
 import BattleResultPage from './pages/battleResultPage';
 import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
-import OnboardingPage from './pages/onboardingPage';
+import EntryPage from './pages/entryPage';
 import TutorialTeamSelectPage from './pages/tutorialTeamSelectPage';
+import ErrorPage from './pages/errorPage';
 import TutorialBattlePage from './pages/tutorialBattlePage';
 import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
-import ErrorPage from './pages/errorPage';
 import { useAuthStore } from './commons/stores/authStore';
+
+import './App.css';
 
 const router = createBrowserRouter([
   {
     path: '/',
     errorElement: <ErrorPage />,
     children: [
-      { index: true, element: <MainPage /> },
-      { path: 'onboarding', element: <OnboardingPage /> },
+      { index: true, element: <Navigate to="/entry" replace /> },
+      { path: 'entry', element: <EntryPage /> },
+      { path: 'main', element: <MainPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'nickname', element: <NicknamePage /> },
       { path: 'error', element: <ErrorPage /> },

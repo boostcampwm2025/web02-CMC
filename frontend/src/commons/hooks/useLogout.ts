@@ -18,7 +18,7 @@ export function useLogout() {
       clearAuth();
     },
     onSuccess: () => {
-      navigate('/');
+      navigate('/main');
     },
     onError: (error: Error) => {
       addToast({ message: error.message || '로그아웃에 실패했습니다.' });

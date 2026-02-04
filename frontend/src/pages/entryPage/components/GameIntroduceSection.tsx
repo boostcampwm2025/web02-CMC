@@ -1,5 +1,5 @@
 import Carousel from '@/commons/components/Carousel';
-import OnBoardingIntroduceCard from '@/pages/onboardingPage/components/OnBoardingIntroduceCard';
+import OnBoardingIntroduceCard from './OnBoardingIntroduceCard';
 import { ChevronDown } from 'lucide-react';
 
 export default function GameIntroduceSection() {

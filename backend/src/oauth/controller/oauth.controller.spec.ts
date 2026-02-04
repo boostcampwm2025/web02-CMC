@@ -96,7 +96,7 @@ describe('OauthController', () => {
 
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/main')
     })
   })
 
@@ -138,7 +138,7 @@ describe('OauthController', () => {
 
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
       expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
-      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/')
+      expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/main')
     })
   })
 

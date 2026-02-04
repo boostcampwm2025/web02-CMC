@@ -13,7 +13,7 @@ export function useUpdateNickname() {
     throwOnError: true,
     onSuccess: () => {
       useAuthStore.setState({ user: null });
-      navigate('/');
+      navigate('/main');
     },
     onError: (error: Error) => {
       addToast({ message: error.message || '닉네임 설정에 실패했습니다.' });
