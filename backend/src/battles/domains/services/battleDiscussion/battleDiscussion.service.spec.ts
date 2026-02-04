@@ -1,174 +1,203 @@
-import { Test, TestingModule } from '@nestjs/testing'
+import { BadRequestException } from '@nestjs/common'
 import { BattleDiscussionService } from './battleDiscussion.service'
-import { ActiveBattleState } from '../../models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_TEAM } from '../../models/const/battles.const'
+import { BATTLE_DISCUSSION_TYPE, BATTLE_TEAM, BATTLE_PHASE } from '../../models/const/battles.const'
+import type { ActiveBattleState, BattleTeam, BattleDiscussion, BattleDefense } from '../../models/types/battle.types'
 
 describe('BattleDiscussionService', () => {
   let service: BattleDiscussionService
 
-  const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
-    battleId: 'battle-1',
-    all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
-    teamA: { roomId: 'battle:battle-1:A', chats: [], users: [], attacks: [], defenses: [] },
-    teamB: { roomId: 'battle:battle-1:B', chats: [], users: [], attacks: [], defenses: [] },
-    phase: BATTLE_PHASE.ATTACK.name,
-    participants: new Map(),
-    teamVotes: new Map(),
-    userInfoMap: new Map(),
-    opinionHistory: [],
-    skipState: new Set(),
-    round: 1,
-    topics: [],
-    totalRounds: 1,
-    phaseCount: 1,
-    startedAt: null,
-    expiredAt: null,
-    ...overrides,
+  beforeEach(() => {
+    service = new BattleDiscussionService()
   })
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [BattleDiscussionService],
-    }).compile()
+  const createState = (phase: string): ActiveBattleState =>
+    ({
+      battleId: 'battle-1',
+      phase,
+      teamA: { attacks: [], defenses: [], users: [], chats: [], roomId: 'r-a' },
+      teamB: { attacks: [], defenses: [], users: [], chats: [], roomId: 'r-b' },
+      all: { attacks: [], defenses: [], chats: [], roomId: 'r-all' },
+      opinionHistory: [],
+      participants: new Map(),
+      teamVotes: new Map(),
+      userInfoMap: new Map([['user-1', '테스터']]),
+      skipState: new Set(),
+    }) as unknown as ActiveBattleState
 
-    service = module.get(BattleDiscussionService)
+  describe('buildAttack', () => {
+    it('공격 객체를 생성한다', () => {
+      const attack = service.buildAttack('d-1', 'user-1', '테스터', '  내용  ', BATTLE_TEAM.A)
+      expect(attack.discussionId).toBe('d-1')
+      expect(attack.author.authorId).toBe('user-1')
+      expect(attack.author.nickname).toBe('테스터')
+      expect(attack.type).toBe(BATTLE_DISCUSSION_TYPE.ATTACK)
+      expect(attack.content).toBe('내용')
+      expect(attack.upvotes).toBe(0)
+      expect(attack.votes).toEqual([])
+      expect(attack.status).toBe('PENDING')
+      expect(attack.team).toBe(BATTLE_TEAM.A)
+    })
   })
 
-  describe('BattleDiscussionService', () => {
-    let state: ActiveBattleState
+  describe('buildDefense', () => {
+    it('방어 객체를 생성한다', () => {
+      const defense = service.buildDefense('d-2', 'user-1', '테스터', '반론 내용', BATTLE_TEAM.B)
+      expect(defense.type).toBe(BATTLE_DISCUSSION_TYPE.DEFENSE)
+      expect(defense.team).toBe(BATTLE_TEAM.B)
+    })
+  })
 
-    beforeEach(() => {
-      state = createActiveState({ battleId: 'battle-1' })
-      state.participants.set('user-1', BATTLE_TEAM.A)
-      state.participants.set('user-2', BATTLE_TEAM.B)
-      state.userInfoMap.set('user-1', 'User1')
-      state.userInfoMap.set('user-2', 'User2')
+  describe('buildNullPlaceholder', () => {
+    it('팀A 공격 플레이스홀더를 생성한다', () => {
+      const placeholder = service.buildNullPlaceholder('A', 'ATTACK')
+      expect(placeholder.status).toBe('SELECTED')
+      expect(placeholder.selectedAt).toBeDefined()
+      expect(placeholder.content).toBe('투표로 선정된 의견이 없습니다')
+      expect(placeholder.team).toBe(BATTLE_TEAM.A)
     })
 
-    it('applyAttack: opinionHistory에 공격 의견이 저장된다', () => {
-      state.phase = BATTLE_PHASE.ATTACK.name
-      expect(state.opinionHistory.length).toBe(0)
+    it('팀B 방어 플레이스홀더를 생성한다', () => {
+      const placeholder = service.buildNullPlaceholder('B', 'DEFENSE')
+      expect(placeholder.team).toBe(BATTLE_TEAM.B)
+    })
+  })
 
-      const attack = service.applyAttack(
-        state,
-        'user-1',
-        '공격 의견입니다',
-        BATTLE_TEAM.A,
-        'attack-1',
-        () => 'User1',
-        () => true,
-      )
+  describe('applyAttack', () => {
+    it('공격 의견을 상태에 적용한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      const getNickname = jest.fn().mockReturnValue('테스터')
+      const canSubmit = jest.fn().mockReturnValue(true)
 
-      expect(state.opinionHistory.length).toBe(1)
-      expect(state.opinionHistory[0].content).toBe('공격 의견입니다')
-      expect(state.opinionHistory[0].author.authorId).toBe('user-1')
-      expect(state.opinionHistory[0].status).toBe('PENDING')
-      expect(state.opinionHistory[0].type).toBe('ATTACK')
-      expect(attack).toBe(state.opinionHistory[0])
+      const attack = service.applyAttack(state, 'user-1', '공격 내용', BATTLE_TEAM.A, 'd-1', getNickname, canSubmit)
+
+      expect(attack.content).toBe('공격 내용')
+      expect(state.teamA.attacks).toHaveLength(1)
+      expect(state.opinionHistory).toHaveLength(1)
     })
 
-    it('applyDefense: opinionHistory에 수비 의견이 저장된다', () => {
-      state.phase = BATTLE_PHASE.DEFENSE.name
-      expect(state.opinionHistory.length).toBe(0)
+    it('팀B 공격은 teamB에 추가된다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      const getNickname = jest.fn().mockReturnValue('테스터')
+      const canSubmit = jest.fn().mockReturnValue(true)
 
-      const defense = service.applyDefense(
-        state,
-        'user-2',
-        '수비 의견입니다',
-        BATTLE_TEAM.B,
-        'defense-1',
-        () => 'User2',
-        () => true,
-      )
-
-      expect(state.opinionHistory.length).toBe(1)
-      expect(state.opinionHistory[0].content).toBe('수비 의견입니다')
-      expect(state.opinionHistory[0].author.authorId).toBe('user-2')
-      expect(state.opinionHistory[0].status).toBe('PENDING')
-      expect(state.opinionHistory[0].type).toBe('DEFENSE')
-      expect(defense).toBe(state.opinionHistory[0])
+      service.applyAttack(state, 'user-1', '공격', BATTLE_TEAM.B, 'd-1', getNickname, canSubmit)
+      expect(state.teamB.attacks).toHaveLength(1)
     })
 
-    it('공격 2개 + 수비 1개가 opinionHistory에 누적된다', () => {
-      // ATTACK 1
-      state.phase = BATTLE_PHASE.ATTACK.name
-      service.applyAttack(
-        state,
-        'user-1',
-        '첫 번째 공격',
-        BATTLE_TEAM.A,
-        'attack-1',
-        () => 'User1',
-        () => true,
-      )
+    it('canSubmit이 false면 BadRequestException을 던진다', () => {
+      const state = createState(BATTLE_PHASE.PENDING.name)
+      const getNickname = jest.fn().mockReturnValue('테스터')
+      const canSubmit = jest.fn().mockReturnValue(false)
 
-      // ATTACK 2
-      state.phase = BATTLE_PHASE.ATTACK.name
-      service.applyAttack(
-        state,
-        'user-2',
-        '두 번째 공격',
-        BATTLE_TEAM.B,
-        'attack-2',
-        () => 'User2',
-        () => true,
-      )
+      expect(() => service.applyAttack(state, 'user-1', '공격', BATTLE_TEAM.A, 'd-1', getNickname, canSubmit)).toThrow(BadRequestException)
+    })
+  })
 
-      // DEFENSE 1
-      state.phase = BATTLE_PHASE.DEFENSE.name
-      service.applyDefense(
-        state,
-        'user-1',
-        '첫 번째 수비',
-        BATTLE_TEAM.A,
-        'defense-1',
-        () => 'User1',
-        () => true,
-      )
+  describe('applyDefense', () => {
+    it('반론 의견을 상태에 적용한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      const getNickname = jest.fn().mockReturnValue('테스터')
+      const canSubmit = jest.fn().mockReturnValue(true)
 
-      expect(state.opinionHistory.length).toBe(3)
-      expect(state.opinionHistory[0].type).toBe('ATTACK')
-      expect(state.opinionHistory[1].type).toBe('ATTACK')
-      expect(state.opinionHistory[2].type).toBe('DEFENSE')
+      const defense = service.applyDefense(state, 'user-1', '반론 내용', BATTLE_TEAM.A, 'd-1', getNickname, canSubmit)
+
+      expect(defense.content).toBe('반론 내용')
+      expect(state.teamA.defenses).toHaveLength(1)
     })
 
-    it('applyAttack 호출 시 opinionHistory와 teamA/teamB 배열이 같은 객체를 참조한다', () => {
-      state.phase = BATTLE_PHASE.ATTACK.name
+    it('팀B 반론은 teamB에 추가된다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      const getNickname = jest.fn().mockReturnValue('테스터')
+      const canSubmit = jest.fn().mockReturnValue(true)
 
-      const attackA = service.applyAttack(
-        state,
-        'user-1',
-        'A팀 공격',
-        BATTLE_TEAM.A,
-        'attack-a',
-        () => 'User1',
-        () => true,
-      )
+      service.applyDefense(state, 'user-1', '반론', BATTLE_TEAM.B, 'd-1', getNickname, canSubmit)
+      expect(state.teamB.defenses).toHaveLength(1)
+    })
 
-      const attackB = service.applyAttack(
-        state,
-        'user-2',
-        'B팀 공격',
-        BATTLE_TEAM.B,
-        'attack-b',
-        () => 'User2',
-        () => true,
-      )
+    it('canSubmit이 false면 BadRequestException을 던진다', () => {
+      const state = createState(BATTLE_PHASE.PENDING.name)
+      const getNickname = jest.fn().mockReturnValue('')
+      const canSubmit = jest.fn().mockReturnValue(false)
 
-      // opinionHistory에 모두 저장
-      expect(state.opinionHistory.length).toBe(2)
+      expect(() => service.applyDefense(state, 'user-1', '반론', BATTLE_TEAM.A, 'd-1', getNickname, canSubmit)).toThrow(BadRequestException)
+    })
+  })
 
-      // teamA/teamB에도 각각 저장 (applyAttack이 team별 배열에 넣는 구조라는 전제)
-      expect(state.teamA.attacks.length).toBe(1)
-      expect(state.teamB.attacks.length).toBe(1)
+  describe('resetDiscussions', () => {
+    it('모든 토론 데이터를 초기화한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      state.teamA.attacks = [{ discussionId: '1' } as BattleDiscussion]
+      state.teamB.defenses = [{ discussionId: '2' } as BattleDefense]
 
-      // 같은 객체 참조 확인
-      expect(state.opinionHistory[0]).toBe(state.teamA.attacks[0])
-      expect(state.opinionHistory[1]).toBe(state.teamB.attacks[0])
+      service.resetDiscussions(state)
 
-      // 반환값도 같은 객체인지
-      expect(attackA).toBe(state.opinionHistory[0])
-      expect(attackB).toBe(state.opinionHistory[1])
+      expect(state.teamA.attacks).toHaveLength(0)
+      expect(state.teamB.attacks).toHaveLength(0)
+      expect(state.teamA.defenses).toHaveLength(0)
+      expect(state.teamB.defenses).toHaveLength(0)
+    })
+  })
+
+  describe('canUserSubmitAttack', () => {
+    it('OPINION_SHARE 단계에서 true를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.OPINION_SHARE.name)
+      expect(service.canUserSubmitAttack(state, BATTLE_TEAM.A)).toBe(true)
+    })
+
+    it('ATTACK 단계에서 true를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      expect(service.canUserSubmitAttack(state, BATTLE_TEAM.B)).toBe(true)
+    })
+
+    it('NONE 팀은 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      expect(service.canUserSubmitAttack(state, BATTLE_TEAM.NONE as BattleTeam)).toBe(false)
+    })
+
+    it('다른 단계에서는 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      expect(service.canUserSubmitAttack(state, BATTLE_TEAM.A)).toBe(false)
+    })
+  })
+
+  describe('canUserSubmitDefense', () => {
+    it('DEFENSE 단계에서 true를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      expect(service.canUserSubmitDefense(state, BATTLE_TEAM.A)).toBe(true)
+    })
+
+    it('NONE 팀은 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      expect(service.canUserSubmitDefense(state, BATTLE_TEAM.NONE as BattleTeam)).toBe(false)
+    })
+
+    it('다른 단계에서는 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      expect(service.canUserSubmitDefense(state, BATTLE_TEAM.A)).toBe(false)
+    })
+  })
+
+  describe('canUserVoteAttack', () => {
+    it('ATTACK 단계에서 true를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      expect(service.canUserVoteAttack(state)).toBe(true)
+    })
+
+    it('다른 단계에서는 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      expect(service.canUserVoteAttack(state)).toBe(false)
+    })
+  })
+
+  describe('canUserVoteDefense', () => {
+    it('DEFENSE 단계에서 true를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.DEFENSE.name)
+      expect(service.canUserVoteDefense(state)).toBe(true)
+    })
+
+    it('다른 단계에서는 false를 반환한다', () => {
+      const state = createState(BATTLE_PHASE.ATTACK.name)
+      expect(service.canUserVoteDefense(state)).toBe(false)
     })
   })
 })
