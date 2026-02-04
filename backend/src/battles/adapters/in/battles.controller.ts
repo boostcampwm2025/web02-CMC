@@ -1,4 +1,5 @@
 import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException, Res, UseGuards } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import type { Response } from 'express'
 import { BattleResultResponseDto } from '../../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../../dto/battleCreateQuery.dto'
@@ -17,6 +18,7 @@ export class BattlesController {
   constructor(
     private readonly creationUseCase: BattleCreationUseCase,
     private readonly queryUseCase: BattleQueryUseCase,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post()
@@ -78,7 +80,7 @@ export class BattlesController {
   private setInviteAccessCookie(battleId: string, res: Response) {
     res.cookie(`inviteAccess_${battleId}`, 'true', {
       httpOnly: true,
-      secure: false,
+      secure: this.configService.get<string>('NODE_ENV') === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 1000, // 1시간
