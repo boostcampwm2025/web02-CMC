@@ -5,6 +5,10 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import './index.css';
 import App from './App.tsx';
 import { queryClient } from './commons/apis/queryClient';
+import { initSentry } from './sdk/sentry';
+
+// Sentry 초기화
+initSentry();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

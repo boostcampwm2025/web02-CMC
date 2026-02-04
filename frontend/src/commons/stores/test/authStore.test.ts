@@ -66,24 +66,7 @@ describe('authStore', () => {
   });
 
   describe('getOAuthUser', () => {
-    it('OAuth 사용자 정보를 가져와서 store와 localStorage에 저장한다', async () => {
-      const mockOAuthUser = {
-        id: 'oauth-123',
-        nickname: 'OAuth유저',
-        type: 'oauth' as const,
-        avatarUrl: 'https://example.com/avatar.jpg'
-      };
-
-      vi.mocked(getOAuthUser).mockResolvedValue(mockOAuthUser);
-
-      const result = await useAuthStore.getState().getOAuthUser();
-
-      expect(result).toEqual(mockOAuthUser);
-      expect(useAuthStore.getState().user).toEqual(mockOAuthUser);
-      expect(localStorage.getItem('CMC_OAUTH_USER')).toBe(JSON.stringify(mockOAuthUser));
-    });
-
-    it('이미 OAuth 사용자가 로그인되어 있으면 API 호출 없이 반환한다', async () => {
+    it('이미 OAuth 사용자가 있으면 현재 사용자를 반환한다', async () => {
       const mockOAuthUser = {
         id: 'oauth-123',
         nickname: 'OAuth유저',

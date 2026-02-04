@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
 import BattlePage from './pages/battlePage';
@@ -15,10 +16,11 @@ import TutorialBattlePage from './pages/tutorialBattlePage';
 import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
 import { useAuthStore } from './commons/stores/authStore';
-
 import './App.css';
 
-const router = createBrowserRouter([
+const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV6(createBrowserRouter);
+
+const router = sentryCreateBrowserRouter([
   {
     path: '/',
     errorElement: <ErrorPage />,
