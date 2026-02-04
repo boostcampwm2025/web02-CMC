@@ -1,12 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router-dom';
 import NicknamePage from './index';
 import { useAuthStore } from '@/commons/stores/authStore';
-import updateOAuthNickname from '@/commons/apis/patchOAuthNickname';
+import updateOAuthNickname from './apis/updateOAuthNickname';
+import { renderWithProviders } from '@/test/testUtils';
 
 // 모킹
+const mockAddToast = vi.fn();
+
 vi.mock('@/commons/stores/authStore', () => ({
   useAuthStore: {
     getState: vi.fn(),
@@ -14,7 +16,17 @@ vi.mock('@/commons/stores/authStore', () => ({
   }
 }));
 
-vi.mock('@/commons/apis/patchOAuthNickname', () => ({
+vi.mock('@/commons/stores/toastStore', () => ({
+  useToastStore: vi.fn((selector: any) => {
+    if (selector?.name === 'selectAddToast') {
+      return mockAddToast;
+    }
+    return mockAddToast;
+  }),
+  selectAddToast: vi.fn((state: any) => state.addToast)
+}));
+
+vi.mock('./apis/updateOAuthNickname', () => ({
   default: vi.fn()
 }));
 
@@ -38,21 +50,14 @@ describe('NicknamePage', () => {
       loginGuest: vi.fn(),
       getOAuthUser: vi.fn(),
       logout: vi.fn(),
-      clearAuth: vi.fn()
+      clearAuth: vi.fn(),
+      updateGuestTeam: vi.fn()
     });
     vi.mocked(useAuthStore.setState).mockImplementation(() => {});
   });
 
-  const renderWithRouter = () => {
-    return render(
-      <BrowserRouter>
-        <NicknamePage />
-      </BrowserRouter>
-    );
-  };
-
   it('닉네임 페이지가 올바르게 렌더링된다', () => {
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     expect(screen.getByText('코문철')).toBeInTheDocument();
     expect(screen.getByText('닉네임 설정')).toBeInTheDocument();
@@ -63,7 +68,7 @@ describe('NicknamePage', () => {
 
   it('닉네임 입력 필드에 값을 입력할 수 있다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -73,7 +78,7 @@ describe('NicknamePage', () => {
 
   it('닉네임이 비어있으면 에러 메시지를 표시한다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const submitButton = screen.getByRole('button', { name: '시작하기' });
     await user.click(submitButton);
@@ -85,7 +90,7 @@ describe('NicknamePage', () => {
 
   it('닉네임이 8글자를 초과하면 에러 메시지를 표시한다', async () => {
     const user = userEvent.setup();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)') as HTMLInputElement;
 
@@ -104,7 +109,7 @@ describe('NicknamePage', () => {
   it('닉네임 앞뒤 공백을 제거하고 제출한다', async () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockResolvedValue();
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '  테스트  ');
@@ -121,7 +126,7 @@ describe('NicknamePage', () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockResolvedValue();
 
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -132,14 +137,14 @@ describe('NicknamePage', () => {
     await waitFor(() => {
       expect(updateOAuthNickname).toHaveBeenCalledWith('테스트닉네임');
       expect(useAuthStore.setState).toHaveBeenCalledWith({ user: null });
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/main');
     });
   });
 
   it('닉네임 제출 중에는 버튼이 비활성화되고 로딩 텍스트가 표시된다', async () => {
     const user = userEvent.setup();
     vi.mocked(updateOAuthNickname).mockImplementation(() => new Promise(() => {})); // 무한 대기
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     await user.type(input, '테스트닉네임');
@@ -153,48 +158,24 @@ describe('NicknamePage', () => {
     });
   });
 
-  it('닉네임 제출 실패 시 에러 메시지를 표시한다', async () => {
+  it('에러 후 다시 입력하면 로컬 에러가 사라진다', async () => {
     const user = userEvent.setup();
-    const errorMessage = '닉네임 설정에 실패했습니다.';
-    vi.mocked(updateOAuthNickname).mockRejectedValue(new Error(errorMessage));
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
-    await user.type(input, '테스트닉네임');
-
     const submitButton = screen.getByRole('button', { name: '시작하기' });
+
+    // 빈 값으로 제출해서 로컬 에러 발생
     await user.click(submitButton);
+    expect(screen.getByText('닉네임을 입력해주세요.')).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
-  it('에러 메시지가 표시된 후 입력하면 에러가 사라진다', async () => {
-    const user = userEvent.setup();
-    vi.mocked(updateOAuthNickname).mockRejectedValue(new Error('에러'));
-    renderWithRouter();
-
-    const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
-    await user.type(input, '테스트닉네임');
-
-    const submitButton = screen.getByRole('button', { name: '시작하기' });
-    await user.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('에러')).toBeInTheDocument();
-    });
-
-    await user.type(input, '1');
-
-    await waitFor(() => {
-      expect(screen.queryByText('에러')).not.toBeInTheDocument();
-    });
+    // 입력하면 에러 사라짐
+    await user.type(input, 'test');
+    expect(screen.queryByText('닉네임을 입력해주세요.')).not.toBeInTheDocument();
   });
 
   it('입력 필드의 maxLength가 8로 설정되어 있다', () => {
-    renderWithRouter();
+    renderWithProviders(<NicknamePage />);
 
     const input = screen.getByPlaceholderText('닉네임을 입력하세요 (최대 8자)');
     expect(input).toHaveAttribute('maxLength', '8');

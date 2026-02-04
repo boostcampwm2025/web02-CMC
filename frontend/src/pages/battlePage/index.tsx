@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams, useLoaderData } from 'react-router-dom';
-import type { BattleInfo } from '@/commons/types/battle';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -16,6 +16,7 @@ import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import TeamChangeModal from './components/modals/TeamChangeModal';
+import ConnectionErrorModal from './components/modals/ConnectionErrorModal';
 import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
@@ -31,7 +32,7 @@ type Tab = 'info' | 'timeline' | 'reference';
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const battleInfo = useLoaderData<BattleInfo>();
+  const { battleInfo: battleInfoData, isLoading } = useGetBattleInfo(battleId!);
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
@@ -55,13 +56,6 @@ export default function BattlePage() {
     hasLeftRef.current = true;
     leaveBattle();
   }, [leaveBattle]);
-
-  useEffect(() => {
-    if (!user) {
-      alert('잘못된 진입입니다.');
-      navigate(`/battle/${battleId}/team-select`, { replace: true });
-    }
-  }, [user, navigate, battleId]);
 
   useEffect(() => {
     const handlePageHide = () => {
@@ -134,10 +128,14 @@ export default function BattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
+  if (isLoading || !battleInfoData) {
+    return <div className="min-h-screen w-full flex items-center justify-center text-white">로딩 중...</div>;
+  }
+  const battleInfo = battleInfoData;
+
   const handleLeaveBattle = () => {
     if (!user) return;
-    // TODO 추후에 서버에서 Disconnect 관리
-    navigate('/');
+    navigate('/main');
     safeLeaveBattle();
   };
 
@@ -257,6 +255,7 @@ export default function BattlePage() {
         {roundModal.isPending && !isVoteResultModalOpen && (
           <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
         )}
+        <ConnectionErrorModal />
       </div>
     </div>
   );

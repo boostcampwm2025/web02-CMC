@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import * as Sentry from '@sentry/react';
 import {
   useBattleStore,
   selectBattleProgress,
@@ -43,6 +44,16 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       if (data.battleId !== battleId) return;
 
       setSelectedTeam(data.team);
+
+      Sentry.addBreadcrumb({
+        category: 'battle',
+        message: `팀 변경 - ${data.team}`,
+        level: 'info',
+        data: {
+          battleId: data.battleId,
+          team: data.team
+        }
+      });
     };
 
     socket.on('battle:team:updated', handleChangedTeam);

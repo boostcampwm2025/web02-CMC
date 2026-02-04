@@ -7,6 +7,11 @@ interface BattleStore {
   battleId: string;
   socket: Socket | null;
   isConnected: boolean;
+  connectionError: {
+    type: 'disconnected' | 'reconnecting' | 'failed' | null;
+    attemptCount: number;
+    message: string;
+  };
   currentStage: string | null;
   battleProgress: BattleProgressState | null;
   discussions: Array<{
@@ -40,6 +45,11 @@ interface BattleStore {
   initializeBattle: (config: { userId: string; battleId: string }) => void;
   setSocket: (socket: Socket | null) => void;
   setIsConnected: (connected: boolean) => void;
+  setConnectionError: (error: {
+    type: 'disconnected' | 'reconnecting' | 'failed' | null;
+    attemptCount: number;
+    message: string;
+  }) => void;
   setCurrentStage: (stage: string | null) => void;
   setBattleProgress: (progress: BattleProgressState | null) => void;
   updateBattleProgress: (updates: Partial<BattleProgressState>) => void;
@@ -67,6 +77,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   battleId: '',
   socket: null,
   isConnected: false,
+  connectionError: { type: null, attemptCount: 0, message: '' },
   currentStage: null,
   battleProgress: null,
   discussions: [],
@@ -82,9 +93,12 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   isTeamVoteResultShowing: false,
   pendingBattleClosed: false,
 
-  initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
+  initializeBattle: (config) => {
+    set({ userId: config.userId, battleId: config.battleId, chatInitialized: false });
+  },
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
+  setConnectionError: (error) => set({ connectionError: error }),
   setCurrentStage: (stage) => set({ currentStage: stage }),
   setBattleProgress: (progress) => set({ battleProgress: progress }),
   updateBattleProgress: (updates) =>
@@ -118,7 +132,6 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   addAttackTimeline: (attack) =>
     set((state) => {
       const existingAttacks = state.timelines?.attacks || [];
-      // 중복 체크: 같은 discussionId가 이미 있으면 추가하지 않음
       const isDuplicate = existingAttacks.some((a) => a.discussionId === attack.discussionId);
 
       return {
@@ -148,10 +161,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       if (chat.scope === 'TEAM') {
         return { teamChats: [...state.teamChats, chat] };
       } else {
-        return {
-          allChats: [...state.allChats, chat],
-          teamChats: [...state.teamChats, chat]
-        };
+        return { allChats: [...state.allChats, chat] };
       }
     }),
   setSelectedTeam: (team) => set({ selectedTeam: team }),
@@ -177,6 +187,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
       battleId: '',
       socket: null,
       isConnected: false,
+      connectionError: { type: null, attemptCount: 0, message: '' },
       currentStage: null,
       battleProgress: null,
       discussions: [],

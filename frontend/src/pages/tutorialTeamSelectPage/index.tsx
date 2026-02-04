@@ -98,7 +98,7 @@ export default function TutorialTeamSelectPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/main')}
             className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
           >
             ← 돌아가기

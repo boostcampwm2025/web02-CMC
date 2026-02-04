@@ -36,14 +36,22 @@ describe('authStore', () => {
 
       const result = await useAuthStore.getState().loginGuest('battle-1');
 
-      expect(result).toEqual(mockGuestData);
+      expect(result).toEqual({
+        id: 'guest-123',
+        nickname: '심심한 레오',
+        type: 'guest',
+        battleId: 'battle-1',
+        selectedTeam: undefined
+      });
       expect(useAuthStore.getState().user).toEqual({
         id: 'guest-123',
         nickname: '심심한 레오',
-        type: 'guest'
+        type: 'guest',
+        battleId: 'battle-1',
+        selectedTeam: undefined
       });
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBe(
-        JSON.stringify({ id: 'guest-123', nickname: '심심한 레오' })
+      expect(localStorage.getItem('CMC_GUEST_USER')).toBe(
+        JSON.stringify({ id: 'guest-123', nickname: '심심한 레오', type: 'guest', battleId: 'battle-1' })
       );
       expect(vi.mocked(fetchPostGuestLogin)).toHaveBeenCalledWith('battle-1');
     });
@@ -58,24 +66,7 @@ describe('authStore', () => {
   });
 
   describe('getOAuthUser', () => {
-    it('OAuth 사용자 정보를 가져와서 store와 localStorage에 저장한다', async () => {
-      const mockOAuthUser = {
-        id: 'oauth-123',
-        nickname: 'OAuth유저',
-        type: 'oauth' as const,
-        avatarUrl: 'https://example.com/avatar.jpg'
-      };
-
-      vi.mocked(getOAuthUser).mockResolvedValue(mockOAuthUser);
-
-      const result = await useAuthStore.getState().getOAuthUser();
-
-      expect(result).toEqual(mockOAuthUser);
-      expect(useAuthStore.getState().user).toEqual(mockOAuthUser);
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBe(JSON.stringify({ id: 'oauth-123', nickname: 'OAuth유저' }));
-    });
-
-    it('이미 OAuth 사용자가 로그인되어 있으면 API 호출 없이 반환한다', async () => {
+    it('이미 OAuth 사용자가 있으면 현재 사용자를 반환한다', async () => {
       const mockOAuthUser = {
         id: 'oauth-123',
         nickname: 'OAuth유저',
@@ -143,7 +134,7 @@ describe('authStore', () => {
 
       expect(vi.mocked(logoutApi)).not.toHaveBeenCalled();
       expect(useAuthStore.getState().user).toBeNull();
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBeNull();
+      expect(localStorage.getItem('CMC_GUEST_USER')).toBeNull();
     });
 
     it('로그아웃 API 실패 시에는 에러를 던진다', async () => {
@@ -163,19 +154,21 @@ describe('authStore', () => {
 
       // 로그아웃 실패 시에는 clearAuth가 호출되지 않아야 함
       expect(useAuthStore.getState().user).toEqual(mockOAuthUser);
-      expect(localStorage.getItem('CMC_BATTLE_USER')).not.toBeNull();
+      expect(localStorage.getItem('CMC_OAUTH_USER')).not.toBeNull();
     });
   });
 
   describe('clearAuth', () => {
     it('store의 user를 null로 설정하고 localStorage를 삭제한다', () => {
-      localStorage.setItem('CMC_BATTLE_USER', JSON.stringify({ id: 'test', nickname: 'test' }));
+      localStorage.setItem('CMC_GUEST_USER', JSON.stringify({ id: 'test', nickname: 'test' }));
+      localStorage.setItem('CMC_OAUTH_USER', JSON.stringify({ id: 'test', nickname: 'test' }));
       useAuthStore.setState({ user: { id: 'test', nickname: 'test', type: 'guest' } });
 
       useAuthStore.getState().clearAuth();
 
       expect(useAuthStore.getState().user).toBeNull();
-      expect(localStorage.getItem('CMC_BATTLE_USER')).toBeNull();
+      expect(localStorage.getItem('CMC_GUEST_USER')).toBeNull();
+      expect(localStorage.getItem('CMC_OAUTH_USER')).toBeNull();
     });
   });
 

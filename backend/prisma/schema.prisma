@@ -56,7 +56,7 @@ model Battle {
   teamBCount               Int?       @map("team_b_count")
   totalParticipantsCount   Int?       @map("total_participants_count")
   winningTeam              String?    @db.VarChar(10) @map("winning_team")
-  mvps                     String[]   @db.VarChar(10)
+  mvps                     String[]   @db.VarChar(20)
   mvpsState                Json?      @map("mvps_state")
     
   /* 시간 */

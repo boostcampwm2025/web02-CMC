@@ -1,5 +1,7 @@
 import { useNavigate, useRouteError, isRouteErrorResponse } from 'react-router-dom';
 import { AlertTriangle, Home } from 'lucide-react';
+import * as Sentry from '@sentry/react';
+import { useEffect } from 'react';
 
 const ERROR_CODE_SNIPPET = `// 오류 발생 
 function findPage(url) {
@@ -25,7 +27,7 @@ export default function ErrorPage() {
   if (isRouteErrorResponse(error)) {
     errorCode = error.status.toString();
     if (error.status === 404) {
-      errorMessage = '배틀 아레나를 찾을 수 없습니다!';
+      errorMessage = '페이지를 찾을 수 없습니다!';
       errorDescription = '존재하지 않는 경로이거나 삭제된 배틀입니다.';
     } else if (error.status === 500) {
       errorMessage = '서버 오류가 발생했습니다!';
@@ -33,8 +35,27 @@ export default function ErrorPage() {
     }
   }
 
+  useEffect(() => {
+    if (error) {
+      Sentry.captureException(error, {
+        level: 'error',
+        tags: {
+          errorBoundary: 'router',
+          errorCode: errorCode
+        },
+        extra: {
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+          errorMessage: errorMessage,
+          isRouteError: isRouteErrorResponse(error),
+          routeErrorStatus: isRouteErrorResponse(error) ? error.status : undefined
+        }
+      });
+    }
+  }, [error, errorCode, errorMessage]);
+
   const handleGoHome = () => {
-    navigate('/');
+    navigate('/main');
   };
 
   return (

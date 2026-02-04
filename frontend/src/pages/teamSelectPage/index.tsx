@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { selectIsLoggingIn, selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
-import { useNavigate, useLoaderData, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { BattleInfo } from '@/commons/types/battle';
 import { useStepFlow } from './hooks/useStepFlow';
 import StepIndicator from './components/StepIndicator';
 import StepNavigation from './components/StepNavigation';
@@ -14,12 +13,13 @@ import Step5TeamSelect from './components/steps/Step5TeamSelect';
 import type { Team } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 export default function TeamSelectPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const battleInfo = useLoaderData<BattleInfo>();
-  const hasReferenceData = !!battleInfo.referenceData;
+  const { battleInfo: battleInfoData } = useGetBattleInfo(id!);
+  const hasReferenceData = !!battleInfoData?.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
   const { currentStep, goToNext, goToPrev, canGoNext } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -28,7 +28,12 @@ export default function TeamSelectPage() {
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
-  // API 데이터 사용 - type 필드 추가
+  if (!battleInfoData) {
+    return null;
+  }
+
+  const battleInfo = battleInfoData;
+
   const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
   const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
 
@@ -47,7 +52,7 @@ export default function TeamSelectPage() {
 
       // 비회원이거나 로그인 안 된 경우 서버에서 랜덤 닉네임 생성 후 로그인
       try {
-        const guestUser = await loginGuest(id);
+        const guestUser = await loginGuest(id, selectedTeam !== 'NONE' ? selectedTeam : undefined);
 
         useBattleStore.getState().initializeBattle({
           userId: guestUser.id,
@@ -119,7 +124,7 @@ export default function TeamSelectPage() {
         <div className="relative mb-8">
           <div className="flex items-center justify-between gap-4">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/main')}
               className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기
