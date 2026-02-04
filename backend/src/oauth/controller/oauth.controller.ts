@@ -6,6 +6,7 @@ import { OauthService } from '../service/oauth.service'
 import { TokenService } from '../service/token.service'
 import type { OAuthProfile } from '../types/oauth.types'
 import { JwtAuthGuard } from '../guard/jwt-auth.guard'
+import { RefreshGuard } from '../strategy/jwt-refresh.strategy'
 import { UpdateNicknameDto } from '../dto/updateNickname.dto'
 import { OAuthUserResponseDto } from '../dto/oauthUserResponse.dto'
 
@@ -26,12 +27,10 @@ export class OauthController {
   @HttpCode(302)
   async githubCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = await this.oauthService.loginWithGithub(profile)
+    const { accessToken, sessionId } = await this.oauthService.loginWithGithub(profile)
 
-    // 쿠키에 토큰 저장
-    this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
+    this.tokenService.setTokensInCookie(res, accessToken, sessionId)
 
-    // 프론트엔드로 직접 리다이렉트
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/main`)
   }
@@ -45,34 +44,32 @@ export class OauthController {
   @HttpCode(302)
   async kakaoCallback(@Req() req: expressReq, @Res() res: expressRes) {
     const profile = req.user as OAuthProfile
-    const { accessToken, refreshToken } = await this.oauthService.loginWithKakao(profile)
+    const { accessToken, sessionId } = await this.oauthService.loginWithKakao(profile)
 
-    this.tokenService.setTokensInCookie(res, accessToken, refreshToken)
+    this.tokenService.setTokensInCookie(res, accessToken, sessionId)
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL') || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/main`)
   }
 
   @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
+  @UseGuards(RefreshGuard)
   @HttpCode(200)
-  refresh(@Req() req: expressReq, @Res() res: expressRes) {
-    const user = req.user as { userId: string; refreshToken: string }
-    const { accessToken, refreshToken: newRefreshToken } = this.oauthService.refreshToken(user.refreshToken)
-    // 새로운 토큰을 쿠키에 설정
-    this.tokenService.setTokensInCookie(res, accessToken, newRefreshToken)
+  async refresh(@Req() req: expressReq, @Res() res: expressRes) {
+    const user = req.user as { userId: string; sessionId: string }
+    const { accessToken, sessionId: newSessionId } = await this.oauthService.refreshToken(user.sessionId)
+    this.tokenService.setTokensInCookie(res, accessToken, newSessionId)
     return res.json({ success: true })
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  logout(@Req() req: expressReq, @Res() res: expressRes): void {
-    const refreshToken = req.cookies?.refresh_token as string | undefined
+  async logout(@Req() req: expressReq, @Res() res: expressRes): Promise<void> {
+    const sessionId = req.cookies?.session_id as string | undefined
 
-    // refreshToken이 있으면 무효화
-    if (refreshToken) {
-      this.tokenService.revokeRefreshToken(refreshToken)
+    if (sessionId) {
+      await this.tokenService.revokeRefreshToken(sessionId)
     }
 
     this.tokenService.clearAuthCookies(res)

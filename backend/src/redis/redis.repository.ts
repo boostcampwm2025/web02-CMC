@@ -71,6 +71,10 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.lrange(key, start, stop)
   }
 
+  async keys(pattern: string): Promise<string[]> {
+    return this.redisClient.keys(pattern)
+  }
+
   getRedisClient(): Redis {
     return this.redisClient
   }

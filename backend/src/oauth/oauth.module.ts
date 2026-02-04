@@ -9,8 +9,9 @@ import { GithubStrategy } from './strategy/github.strategy'
 import { KakaoStrategy } from './strategy/kakao.strategy'
 import { TokenService } from './service/token.service'
 import { JwtStrategy } from './strategy/jwt.strategy'
-import { RefreshStrategy } from './strategy/jwt-refresh.strategy'
+import { RefreshGuard } from './strategy/jwt-refresh.strategy'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { RedisModule } from 'src/redis/redis.module'
 
 @Module({
   imports: [
@@ -28,9 +29,10 @@ import { PrismaService } from 'src/prisma/prisma.service'
         }
       },
     }),
+    RedisModule,
   ],
   controllers: [OauthController],
-  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshStrategy, TokenService, PrismaService],
+  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshGuard, TokenService, PrismaService],
   exports: [OauthService],
 })
 export class OauthModule {}

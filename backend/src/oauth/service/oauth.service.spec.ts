@@ -173,9 +173,10 @@ describe('OauthService', () => {
       const mockTokens = {
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
+        sessionId: 'mock-session-id',
       }
 
-      mockTokenService.generateTokens.mockReturnValue(mockTokens)
+      mockTokenService.generateTokens.mockResolvedValue(mockTokens)
       mockPrisma.oAuth.findFirst.mockResolvedValue(null as never)
       mockPrisma.user.create.mockResolvedValue({
         id: 'user-id',
@@ -217,14 +218,16 @@ describe('OauthService', () => {
       const mockTokens1 = {
         accessToken: 'mock-access-token-1',
         refreshToken: 'mock-refresh-token-1',
+        sessionId: 'mock-session-id-1',
       }
 
       const mockTokens2 = {
         accessToken: 'mock-access-token-2',
         refreshToken: 'mock-refresh-token-2',
+        sessionId: 'mock-session-id-2',
       }
 
-      mockTokenService.generateTokens.mockReturnValueOnce(mockTokens1).mockReturnValueOnce(mockTokens2)
+      mockTokenService.generateTokens.mockResolvedValueOnce(mockTokens1).mockResolvedValueOnce(mockTokens2)
       mockPrisma.oAuth.findFirst.mockResolvedValue({
         id: 'oauth-id',
         userId: 'user-id',
@@ -275,9 +278,10 @@ describe('OauthService', () => {
       const mockTokens = {
         accessToken: 'mock-access-token',
         refreshToken: 'mock-refresh-token',
+        sessionId: 'mock-session-id',
       }
 
-      mockTokenService.generateTokens.mockReturnValue(mockTokens)
+      mockTokenService.generateTokens.mockResolvedValue(mockTokens)
       mockPrisma.oAuth.findFirst.mockResolvedValue(null as never)
       mockPrisma.user.create.mockResolvedValue({
         id: 'user-id',
@@ -303,19 +307,20 @@ describe('OauthService', () => {
   })
 
   describe('refreshToken', () => {
-    it('Refresh Token으로 새로운 토큰 쌍을 발급한다', () => {
-      const refreshToken = 'old-refresh-token'
+    it('세션 ID로 새로운 토큰 쌍을 발급한다', async () => {
+      const sessionId = 'old-session-id'
       const mockNewTokens = {
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
+        sessionId: 'new-session-id',
       }
 
-      mockTokenService.refresh.mockReturnValue(mockNewTokens)
+      mockTokenService.refresh.mockResolvedValue(mockNewTokens)
 
-      const result = service.refreshToken(refreshToken)
+      const result = await service.refreshToken(sessionId)
 
       expect(result).toEqual(mockNewTokens)
-      expect(mockTokenService.refresh).toHaveBeenCalledWith(refreshToken)
+      expect(mockTokenService.refresh).toHaveBeenCalledWith(sessionId)
     })
   })
 
@@ -327,9 +332,10 @@ describe('OauthService', () => {
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
-      mockTokenService.generateTokens.mockReturnValue({
+      mockTokenService.generateTokens.mockResolvedValue({
         accessToken: 'token',
         refreshToken: 'refresh',
+        sessionId: 'session',
       })
 
       await service.loginWithGithub(profile)
@@ -358,9 +364,10 @@ describe('OauthService', () => {
         avatarUrl: 'https://example.com/avatar2.jpg',
       }
 
-      mockTokenService.generateTokens.mockReturnValue({
+      mockTokenService.generateTokens.mockResolvedValue({
         accessToken: 'token',
         refreshToken: 'refresh',
+        sessionId: 'session',
       })
 
       await service.loginWithGithub(profile1)
@@ -386,9 +393,10 @@ describe('OauthService', () => {
         avatarUrl: 'https://example.com/avatar.jpg',
       }
 
-      mockTokenService.generateTokens.mockReturnValue({
+      mockTokenService.generateTokens.mockResolvedValue({
         accessToken: 'token',
         refreshToken: 'refresh',
+        sessionId: 'session',
       })
 
       await service.loginWithGithub(profile)

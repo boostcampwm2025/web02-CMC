@@ -1,42 +1,18 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { PassportStrategy } from '@nestjs/passport'
-import { ExtractJwt, Strategy } from 'passport-jwt'
+import { Injectable, UnauthorizedException, CanActivate, ExecutionContext } from '@nestjs/common'
 import type { Request } from 'express'
-import { ConfigService } from '@nestjs/config'
-
-interface JwtRefreshPayload {
-  sub: string
-  iat?: number
-  exp?: number
-}
-
-interface RefreshUser {
-  userId: string
-  refreshToken: string
-}
 
 @Injectable()
-export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
-  constructor(private readonly config: ConfigService) {
-    super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => {
-          const cookies = req.cookies as Record<string, string> | undefined
-          return cookies?.refresh_token || null
-        },
-      ]),
-      secretOrKey: config.getOrThrow<string>('JWT_REFRESH_SECRET'),
-      passReqToCallback: true,
-    })
-  }
+export class RefreshGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<Request>()
+    const cookies = request.cookies as Record<string, string> | undefined
+    const sessionId = cookies?.session_id
 
-  validate(req: Request, payload: JwtRefreshPayload): RefreshUser {
-    if (!payload?.sub) throw new UnauthorizedException('유효하지 않은 Refresh Token입니다.')
+    if (!sessionId) {
+      throw new UnauthorizedException('세션이 없습니다.')
+    }
 
-    const cookies = req.cookies as Record<string, string> | undefined
-    const refreshToken = cookies?.refresh_token
-    if (!refreshToken) throw new UnauthorizedException('Refresh Token이 없습니다.')
-
-    return { userId: payload.sub, refreshToken }
+    request.user = { userId: '', sessionId }
+    return true
   }
 }
