@@ -3,8 +3,7 @@ import { isBattleResultApiResponse } from './types';
 
 export async function getBattleResult(battleId: string): Promise<BattleResultApiResponse> {
   try {
-    const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
-    const response = await fetch(`${VITE_API_URL}/api/battles/${battleId}/result`);
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/battles/${battleId}/result`);
 
     if (!response.ok) {
       throw new Error('배틀 결과를 불러오는데 실패했습니다.');

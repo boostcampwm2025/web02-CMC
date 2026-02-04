@@ -36,8 +36,7 @@ function isOAuthUserResponse(data: unknown): data is OAuthUserResponse {
 }
 
 const getOAuthUser = async (): Promise<AuthUser> => {
-  const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
-  const response = await fetch(`${VITE_API_URL}/api/auth/me`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
     method: 'GET',
     credentials: 'include'
   });

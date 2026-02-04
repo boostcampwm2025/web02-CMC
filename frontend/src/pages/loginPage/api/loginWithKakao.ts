@@ -1,8 +1,7 @@
 export async function loginWithKakao(): Promise<void> {
   try {
     const controller = new AbortController();
-    const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
-    const response = await fetch(`${VITE_API_URL}/api/auth/kakao`, {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/kakao`, {
       method: 'GET',
       redirect: 'manual',
       signal: controller.signal

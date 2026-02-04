@@ -108,13 +108,13 @@ export const useAuthStore = create<AuthStore>((set, get) => {
 
         set({ user: oauthUser });
 
-        const { default: Sentry } = await import('@sentry/react');
-        Sentry.setUser({
-          id: oauthUser.id,
-          username: oauthUser.nickname,
-          provider: oauthUser.provider,
-          type: 'oauth'
-        });
+        // const { default: Sentry } = await import('@sentry/react');
+        // Sentry.setUser({
+        //   id: oauthUser.id,
+        //   username: oauthUser.nickname,
+        //   provider: oauthUser.provider,
+        //   type: 'oauth'
+        // });
 
         localStorage.setItem(
           OAUTH_KEY,

@@ -12,8 +12,7 @@ function isLogoutResponse(data: unknown): data is LogoutResponse {
 }
 
 const logout = async () => {
-  const VITE_API_URL = import.meta.env.VITE_API_URL ?? '';
-  const response = await fetch(`${VITE_API_URL}/api/auth/logout`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
     method: 'POST',
     credentials: 'include'
   });
