@@ -2,15 +2,11 @@ import { useGetClosedBattles } from '../hooks/useGetClosedBattles';
 import PastBattleCard from './PastBattleCard';
 
 export default function PastBattlesList() {
-  const { battles: closedBattles, isError, error } = useGetClosedBattles({ offset: 0, limit: 6 });
-
-  if (isError) {
-    throw error;
-  }
+  const { battles: closedBattles } = useGetClosedBattles({ offset: 0, limit: 6 });
 
   return (
     <div className="grid grid-cols-3 gap-4 h-[36rem]">
-      {closedBattles?.map((b) => (
+      {closedBattles.map((b) => (
         <PastBattleCard key={b.id} item={b} />
       ))}
     </div>
