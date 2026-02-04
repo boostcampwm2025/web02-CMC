@@ -69,8 +69,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       client.data.userId = userId
       this.userIdToSocketMap.set(userId, client)
       this.metricsService.setActiveSocketConnections(this.userIdToSocketMap.size)
+      this.metricsService.incSocketConnectionEvent('connect')
       this.logger.log(`[소켓 연결] userId: ${userId}`)
     } catch {
+      this.metricsService.incSocketConnectionEvent('connect_error')
       this.logger.error(`[소켓 연결 실패] - ${client.id}`)
       client.disconnect()
     }
@@ -95,6 +97,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
     if (userId) {
       this.userIdToSocketMap.delete(userId)
       this.metricsService.setActiveSocketConnections(this.userIdToSocketMap.size)
+      this.metricsService.incSocketConnectionEvent('disconnect')
       this.logger.log(`[소켓 연결 해제] userId: ${userId}`)
     } else {
       this.logger.log(`[소켓 연결 해제] - ${client.id}`)
@@ -106,6 +109,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:join')
   async joinBattle(@MessageBody() battleJoinRequestDto: BattleJoinRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:join')
+    const stopServiceTimer = this.metricsService.startServiceTimer('joinBattle')
     try {
       const userId = this.getUserIdFromSocket(client)
 
@@ -132,8 +136,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       await client.join(battleTeamRoom)
 
       client.emit('battle:joined', { ...res })
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:join:error', {
@@ -145,19 +151,30 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
   @SubscribeMessage('battle:leave')
   async handleLeave(@MessageBody() dto: { battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
+    const stopTimer = this.metricsService.startSocketTimer('battle:leave')
+    const stopServiceTimer = this.metricsService.startServiceTimer('leaveBattle')
     const { battleId } = dto
-    const userId = this.getUserIdFromSocket(client)
-    const battleRoomId = this.battlesService.getBattleRoomId(battleId)
+    try {
+      const userId = this.getUserIdFromSocket(client)
+      const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
-    const result = await this.battlesService.leaveBattle(userId, battleId)
-    client.data.battleId = undefined
+      const result = await this.battlesService.leaveBattle(userId, battleId)
+      client.data.battleId = undefined
 
-    this.server.to(battleRoomId).emit('battle:leaved', result)
+      this.server.to(battleRoomId).emit('battle:leaved', result)
+      stopServiceTimer('success')
+      stopTimer('success')
+    } catch (error) {
+      stopServiceTimer('error')
+      stopTimer('error')
+      throw error
+    }
   }
 
   @SubscribeMessage('battle:start')
   async handleStart(@MessageBody() dto: BattleStartDto) {
     const stopTimer = this.metricsService.startSocketTimer('battle:start')
+    const stopServiceTimer = this.metricsService.startServiceTimer('startBattle')
     try {
       const { battleId } = dto
       await this.battlesService.startBattle(battleId)
@@ -165,8 +182,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const battleRoomId = this.battlesService.getBattleRoomId(battleId)
 
       this.server.to(battleRoomId).emit('battle:started')
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       throw error
     }
@@ -175,6 +194,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:attack')
   async handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:attack')
+    const stopServiceTimer = this.metricsService.startServiceTimer('handleAttack')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, content, team } = dto
@@ -182,8 +202,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:attack:created', attack)
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:attack:error', {
@@ -196,6 +218,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:defense')
   async handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:defense')
+    const stopServiceTimer = this.metricsService.startServiceTimer('handleDefense')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, content, team } = dto
@@ -203,8 +226,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       const teamRoom = this.battlesService.getBattleRoomId(battleId, team)
 
       this.server.to(teamRoom).emit('battle:defense:created', defense)
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:defense:error', {
@@ -217,6 +242,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:attack:vote')
   async handleAttackVote(@MessageBody() dto: AttackVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:attack:vote')
+    const stopServiceTimer = this.metricsService.startServiceTimer('handleAttackVote')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, discussionId, team } = dto
@@ -227,8 +253,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       updates.forEach(update => {
         this.server.to(teamRoom).emit('battle:attack:voted', update)
       })
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:attack:vote:error', {
@@ -241,6 +269,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:defense:vote')
   async handleDefenseVote(@MessageBody() dto: DefenseVoteRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:defense:vote')
+    const stopServiceTimer = this.metricsService.startServiceTimer('handleDefenseVote')
     try {
       const userId = this.getUserIdFromSocket(client)
       const { battleId, discussionId, team } = dto
@@ -251,8 +280,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
       updates.forEach(update => {
         this.server.to(teamRoom).emit('battle:defense:voted', update)
       })
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:defense:vote:error', {
@@ -265,6 +296,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:user:skip')
   async handlePhaseSkip(@MessageBody() dto: { skip: boolean; battleId: string }, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:user:skip')
+    const stopServiceTimer = this.metricsService.startServiceTimer('handlePhaseSkip')
     const userId = this.getUserIdFromSocket(client)
     try {
       const { skip, battleId } = dto
@@ -273,8 +305,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       this.server.to(battleRoomId).emit('battle:user:skipped', { totalSkips })
 
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:user:skip:error', {
@@ -360,6 +394,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:chat')
   async handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:chat')
+    const stopServiceTimer = this.metricsService.startServiceTimer('appendChatMessage')
     try {
       const userId = this.getUserIdFromSocket(client)
 
@@ -371,8 +406,10 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
 
       // this.server.to(roomId).emit('battle:chatted', saved)
       this.server.to(roomId).except(client.id).emit('battle:chatted', saved)
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:chat:error', { message: error.message })
@@ -383,12 +420,15 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect,
   @SubscribeMessage('battle:team:vote')
   async handleTeamVote(@MessageBody() dto: BattleTeamVoteDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:team:vote')
+    const stopServiceTimer = this.metricsService.startServiceTimer('voteTeam')
     try {
       const userId = this.getUserIdFromSocket(client)
 
       await this.battlesService.voteTeam(dto, userId)
+      stopServiceTimer('success')
       stopTimer('success')
     } catch (error) {
+      stopServiceTimer('error')
       stopTimer('error')
       if (error instanceof Error) {
         client.emit('battle:team:vote:error', { message: error.message })

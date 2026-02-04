@@ -13,7 +13,8 @@ export class HttpMetricsMiddleware implements NestMiddleware {
       const routeInfo = (req as { route?: { path?: unknown } }).route
       const routePath = typeof routeInfo?.path === 'string' ? routeInfo.path : undefined
       const baseUrl = req.baseUrl ?? ''
-      const routeLabel = routePath ? `${baseUrl}${routePath}` : 'unmatched'
+      const rawPath = routePath ? `${baseUrl}${routePath}` : `${baseUrl}${req.path || req.url || ''}`
+      const routeLabel = rawPath ? this.normalizePath(rawPath) : 'unmatched'
       const durationSeconds = this.getDurationSeconds(start)
 
       this.metricsService.observeHttpRequest(req.method, routeLabel, res.statusCode, durationSeconds)
@@ -25,5 +26,11 @@ export class HttpMetricsMiddleware implements NestMiddleware {
   private getDurationSeconds(start: [number, number]) {
     const diff = process.hrtime(start)
     return diff[0] + diff[1] / 1e9
+  }
+
+  private normalizePath(path: string) {
+    const withoutQuery = path.split('?')[0] || ''
+    const normalizedUuid = withoutQuery.replace(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/g, ':id')
+    return normalizedUuid.replace(/\/\d+(?=\/|$)/g, '/:id')
   }
 }

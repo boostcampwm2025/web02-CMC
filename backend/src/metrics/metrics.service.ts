@@ -12,6 +12,8 @@ export class MetricsService {
   private readonly socketEventCount: Counter<'event' | 'status'>
   private readonly socketEventErrors: Counter<'event'>
   private readonly socketActiveConnections: Gauge<'scope'>
+  private readonly socketConnectionEvents: Counter<'type'>
+  private readonly serviceActionDuration: Histogram<'action' | 'status'>
 
   constructor() {
     collectDefaultMetrics({ register: this.registry })
@@ -59,6 +61,21 @@ export class MetricsService {
       labelNames: ['scope'],
       registers: [this.registry],
     })
+
+    this.socketConnectionEvents = new Counter({
+      name: 'socket_connection_events_total',
+      help: 'Total socket connection events',
+      labelNames: ['type'],
+      registers: [this.registry],
+    })
+
+    this.serviceActionDuration = new Histogram({
+      name: 'service_action_duration_seconds',
+      help: 'Service action duration in seconds',
+      labelNames: ['action', 'status'],
+      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
+      registers: [this.registry],
+    })
   }
 
   get contentType() {
@@ -93,6 +110,18 @@ export class MetricsService {
 
   setActiveSocketConnections(count: number) {
     this.socketActiveConnections.set({ scope: 'user' }, count)
+  }
+
+  incSocketConnectionEvent(type: 'connect' | 'disconnect' | 'connect_error') {
+    this.socketConnectionEvents.inc({ type })
+  }
+
+  startServiceTimer(action: string) {
+    const start = process.hrtime()
+    return (status: SocketStatus) => {
+      const durationSeconds = this.getDurationSeconds(start)
+      this.serviceActionDuration.observe({ action, status }, durationSeconds)
+    }
   }
 
   private getDurationSeconds(start: [number, number]) {
