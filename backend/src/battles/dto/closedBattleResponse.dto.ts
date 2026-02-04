@@ -1,5 +1,5 @@
-import { Battle, BattleStatus, FinishedBattleState } from '../types/battles.types'
-import { BattleResult } from '../types/battleResult.types'
+import { Battle, BattleStatus, FinishedBattleState } from '../domains/models/types/battle.types'
+import { BattleResult } from '../domains/models/types/battleResult.types'
 
 export class ClosedBattleResponseDto {
   id: string

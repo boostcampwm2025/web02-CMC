@@ -1,4 +1,4 @@
-import { BattlePhaseName } from '../types/battles.types'
+import { BattlePhaseName } from '../domains/models/types/battle.types'
 
 export class BattlePhaseResponseDto {
   battleId: string
