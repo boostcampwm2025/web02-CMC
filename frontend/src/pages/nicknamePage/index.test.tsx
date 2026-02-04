@@ -50,7 +50,8 @@ describe('NicknamePage', () => {
       loginGuest: vi.fn(),
       getOAuthUser: vi.fn(),
       logout: vi.fn(),
-      clearAuth: vi.fn()
+      clearAuth: vi.fn(),
+      updateGuestTeam: vi.fn()
     });
     vi.mocked(useAuthStore.setState).mockImplementation(() => {});
   });

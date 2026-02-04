@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import type { BattleJoinData } from '@/commons/types/battle';
 import { useBattleStore } from '../stores/battleStore';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 
 export function useBattleSocket() {
+  const { id: battleIdFromUrl } = useParams<{ id: string }>();
   const {
-    userId,
-    battleId,
+    battleId: battleIdFromStore,
     selectedTeam,
     setSocket,
     setIsConnected,
@@ -23,7 +24,12 @@ export function useBattleSocket() {
   const user = useAuthStore(selectUser);
 
   useEffect(() => {
-    if (!userId || !battleId || !user) return;
+    if (!user) return;
+
+    const userId = user.id;
+    const battleId = battleIdFromUrl || battleIdFromStore;
+
+    if (!userId || !battleId) return;
 
     const newSocket = io(import.meta.env.VITE_API_URL, {
       transports: ['websocket'],
@@ -150,19 +156,5 @@ export function useBattleSocket() {
       setIsConnected(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    userId,
-    battleId,
-    user,
-    setSocket,
-    setIsConnected,
-    setCurrentStage,
-    setBattleProgress,
-    setDiscussions,
-    setTeamCounts,
-    setTimelines,
-    setTeamChats,
-    setAllChats,
-    setChatInitialized
-  ]);
+  }, []);
 }

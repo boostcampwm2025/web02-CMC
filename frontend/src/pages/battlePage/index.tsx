@@ -58,13 +58,6 @@ export default function BattlePage() {
   }, [leaveBattle]);
 
   useEffect(() => {
-    if (!user) {
-      alert('잘못된 진입입니다.');
-      navigate(`/battle/${battleId}/team-select`, { replace: true });
-    }
-  }, [user, navigate, battleId]);
-
-  useEffect(() => {
     const handlePageHide = () => {
       soundManager.stopAllBGM();
       safeLeaveBattle();

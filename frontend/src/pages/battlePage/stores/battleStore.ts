@@ -93,7 +93,9 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   isTeamVoteResultShowing: false,
   pendingBattleClosed: false,
 
-  initializeBattle: (config) => set({ userId: config.userId, battleId: config.battleId, chatInitialized: false }),
+  initializeBattle: (config) => {
+    set({ userId: config.userId, battleId: config.battleId, chatInitialized: false });
+  },
   setSocket: (socket) => set({ socket }),
   setIsConnected: (connected) => set({ isConnected: connected }),
   setConnectionError: (error) => set({ connectionError: error }),
@@ -130,7 +132,6 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   addAttackTimeline: (attack) =>
     set((state) => {
       const existingAttacks = state.timelines?.attacks || [];
-      // 중복 체크: 같은 discussionId가 이미 있으면 추가하지 않음
       const isDuplicate = existingAttacks.some((a) => a.discussionId === attack.discussionId);
 
       return {
