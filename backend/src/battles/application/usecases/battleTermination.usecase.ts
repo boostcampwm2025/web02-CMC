@@ -88,31 +88,33 @@ export class BattleTerminationUseCase {
 
     const topMvps = mvps.slice(0, 3)
     const topMvpUserIds = topMvps.map(mvp => mvp.userId)
-    const dbUpdates = [
-      this.repo.updateManyBattleParticipants({
-        where: { battleId: state.battleId },
-        data: { isMvp: false },
-      }),
-      ...(topMvpUserIds.length > 0
-        ? [
-            this.repo.updateManyBattleParticipants({
-              where: { battleId: state.battleId, userId: { in: topMvpUserIds } },
-              data: { isMvp: true },
-            }),
-          ]
-        : []),
-      ...updates.map(update =>
-        this.repo.updateUser(update.userId, {
-          rating: update.nextRating,
-          tier: update.nextTier,
+    await this.repo.transaction(async txRepo => {
+      const tasks: Promise<unknown>[] = [
+        txRepo.updateManyBattleParticipants({
+          where: { battleId: state.battleId },
+          data: { isMvp: false },
         }),
-      ),
-    ]
+      ]
 
-    if (dbUpdates.length > 0) {
-      await this.repo.transaction(async () => {
-        await Promise.all(dbUpdates.map(update => update))
-      })
-    }
+      if (topMvpUserIds.length > 0) {
+        tasks.push(
+          txRepo.updateManyBattleParticipants({
+            where: { battleId: state.battleId, userId: { in: topMvpUserIds } },
+            data: { isMvp: true },
+          }),
+        )
+      }
+
+      tasks.push(
+        ...updates.map(update =>
+          txRepo.updateUser(update.userId, {
+            rating: update.nextRating,
+            tier: update.nextTier,
+          }),
+        ),
+      )
+
+      await Promise.all(tasks)
+    })
   }
 }

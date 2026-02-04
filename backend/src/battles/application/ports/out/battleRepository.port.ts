@@ -1,6 +1,8 @@
 import { Prisma, type Battle as PrismaBattle } from 'generated/prisma/client'
 
 export interface BattleRepoPort {
+  transaction<T>(fn: (txRepo: BattleRepoPort) => Promise<T>): Promise<T>
+
   //배틀 조회
   findUnique(battleId: string): Promise<PrismaBattle>
 
@@ -105,6 +107,4 @@ export interface BattleRepoPort {
 
   //배틀 참가자 업데이트
   updateManyBattleParticipants(args: { where: { battleId: string; userId?: { in?: string[] } }; data: { isMvp: boolean } }): Promise<void>
-
-  transaction<T>(fn: (prisma: any) => Promise<T>): Promise<T>
 }

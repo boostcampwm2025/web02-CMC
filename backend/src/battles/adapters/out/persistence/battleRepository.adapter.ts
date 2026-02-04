@@ -7,6 +7,13 @@ import { BattleRepoPort } from '../../../application/ports/out/battleRepository.
 export class BattleRepositoryAdapter implements BattleRepoPort {
   constructor(private readonly prisma: PrismaService) {}
 
+  async transaction<T>(fn: (txRepo: BattleRepoPort) => Promise<T>): Promise<T> {
+    return this.prisma.$transaction(async tx => {
+      const txRepo = new BattleRepositoryAdapter(tx as PrismaService)
+      return fn(txRepo)
+    })
+  }
+
   async findUnique(battleId: string): Promise<PrismaBattle> {
     const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
     if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
@@ -190,9 +197,5 @@ export class BattleRepositoryAdapter implements BattleRepoPort {
       where,
       data: args.data,
     })
-  }
-
-  async transaction<T>(fn: (prisma: any) => Promise<T>): Promise<T> {
-    return this.prisma.$transaction(fn)
   }
 }
