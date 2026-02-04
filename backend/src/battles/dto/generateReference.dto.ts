@@ -1,6 +1,6 @@
 import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import type { BattleLanguage, BattleCategory } from '../types/battles.types'
-import type { BattleReferenceData } from '../types/ai.types'
+import type { BattleLanguage, BattleCategory } from '../domains/models/types/battle.types'
+import type { BattleReferenceData } from '../domains/models/types/ai.types'
 
 export class GenerateReferenceRequestDto {
   @IsString()

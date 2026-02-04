@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsEnum } from 'class-validator'
-import { BATTLE_TEAM } from '../const/battles.const'
-import type { BattleTeam } from '../types/battles.types'
+import { BATTLE_TEAM } from '../domains/models/const/battles.const'
+import type { BattleTeam } from '../domains/models/types/battle.types'
 
 export class AttackRequestDto {
   @IsString()

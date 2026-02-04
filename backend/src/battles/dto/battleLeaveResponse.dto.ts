@@ -1,4 +1,4 @@
-import { ActiveBattleState } from '../types/battles.types'
+import { ActiveBattleState } from '../domains/models/types/battle.types'
 
 export class BattleLeaveResponseDto {
   battleId: string

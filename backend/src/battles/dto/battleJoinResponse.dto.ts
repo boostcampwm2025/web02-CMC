@@ -1,6 +1,6 @@
-import { BATTLE_TEAM } from '../const/battles.const'
-import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../types/battles.types'
-import type { BattleReferenceData } from '../types/ai.types'
+import { BATTLE_TEAM } from '../domains/models/const/battles.const'
+import { ActiveBattleState, Battle, BattleChat, BattleDefense, BattleDiscussion, BattlePhaseName } from '../domains/models/types/battle.types'
+import type { BattleReferenceData } from '../domains/models/types/ai.types'
 
 export class BattleJoinResponseDto {
   battleId: string

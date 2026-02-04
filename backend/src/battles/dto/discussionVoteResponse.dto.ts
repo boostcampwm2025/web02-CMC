@@ -1,4 +1,4 @@
-import { BattleDiscussion } from '../types/battles.types'
+import { BattleDiscussion } from '../domains/models/types/battle.types'
 
 export class DiscussionVoteResponseDto {
   discussionId: string
