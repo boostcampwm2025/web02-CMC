@@ -14,6 +14,16 @@ import { REDIS_CLIENT } from './redis.const'
         return new Redis({
           host: configService.get<string>('REDIS_HOST') || 'localhost',
           port: configService.get<number>('REDIS_PORT') || 6379,
+          retryStrategy: times => {
+            const MAX_RETRIES = 10
+            const DELAY = 3000
+
+            if (times > MAX_RETRIES) {
+              return null
+            }
+
+            return DELAY
+          },
         })
       },
     },
