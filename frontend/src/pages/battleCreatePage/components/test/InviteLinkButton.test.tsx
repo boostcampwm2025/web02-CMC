@@ -9,12 +9,6 @@ Object.assign(navigator, {
   }
 });
 
-// window.isSecureContext를 true로 설정
-Object.defineProperty(window, 'isSecureContext', {
-  value: true,
-  writable: true
-});
-
 describe('InviteLinkButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
