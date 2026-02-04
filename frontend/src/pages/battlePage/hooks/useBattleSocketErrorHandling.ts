@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/react';
 import { useBattleStore } from '../stores/battleStore';
 import { useToastStore } from '@/commons/stores/toastStore';
 
@@ -7,7 +8,7 @@ interface ErrorPayload {
 }
 
 export function useBattleSocketErrorHandling() {
-  const { socket, setIsConnected, setConnectionError } = useBattleStore();
+  const { socket, setIsConnected, setConnectionError, battleId } = useBattleStore();
   const addToast = useToastStore((state) => state.addToast);
 
   useEffect(() => {
@@ -17,18 +18,49 @@ export function useBattleSocketErrorHandling() {
     socket.on('connect', () => {
       setIsConnected(true);
       setConnectionError({ type: null, attemptCount: 0, message: '' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket connected',
+        level: 'info',
+        data: {
+          battleId,
+          socketId: socket.id
+        }
+      });
     });
 
     // 재연결 성공 핸들러
     socket.io.on('reconnect', () => {
       setIsConnected(true);
       setConnectionError({ type: null, attemptCount: 0, message: '' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket reconnected',
+        level: 'info',
+        data: {
+          battleId
+        }
+      });
     });
 
     // 연결 해제 핸들러
     socket.on('disconnect', (reason) => {
       setIsConnected(false);
       setConnectionError({ type: 'disconnected', attemptCount: 0, message: '소켓 연결이 끊어졌습니다' });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: 'WebSocket disconnected',
+        level: 'warning',
+        data: {
+          battleId,
+          reason,
+          isOnline: navigator.onLine,
+          isVisible: document.visibilityState === 'visible'
+        }
+      });
 
       if (reason === 'io server disconnect') {
         socket.connect();
@@ -37,21 +69,48 @@ export function useBattleSocketErrorHandling() {
 
     // 연결 에러 핸들러
     socket.on('connect_error', (error) => {
-      console.error('[Socket] Connection error:', error.message);
       setConnectionError({
         type: 'disconnected',
         attemptCount: 0,
         message: '서버 연결에 실패했습니다'
       });
+
+      // Sentry로 연결 에러 전송
+      Sentry.captureException(error, {
+        level: 'error',
+        tags: {
+          errorType: '웹 소켓 연결 에러',
+          battleId: battleId
+        },
+        contexts: {
+          websocket: {
+            socketId: socket.id,
+            connected: socket.connected,
+            battleId: battleId
+          }
+        },
+        extra: {
+          errorMessage: error.message
+        }
+      });
     });
 
     // 재연결 시도 핸들러
     socket.io.on('reconnect_attempt', (attemptNumber) => {
-      console.log(`[Socket] Reconnecting... (${attemptNumber}/3)`);
       setConnectionError({
         type: 'reconnecting',
         attemptCount: attemptNumber,
         message: `재연결 시도중 (${attemptNumber}/3)`
+      });
+
+      Sentry.addBreadcrumb({
+        category: 'websocket',
+        message: `Reconnecting attempt ${attemptNumber}`,
+        level: 'info',
+        data: {
+          battleId,
+          attemptNumber
+        }
       });
     });
 
@@ -63,39 +122,143 @@ export function useBattleSocketErrorHandling() {
         attemptCount: 3,
         message: '재연결에 실패했습니다. 다시 시도해주세요.'
       });
+      // 센트리 재연결 실패 로그 전송
+      Sentry.captureException(new Error('웹소켓 재연결 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '웹 소켓 재연결 실패',
+          battleId: battleId
+        },
+        contexts: {
+          websocket: {
+            socketId: socket.id,
+            connected: socket.connected,
+            battleId: battleId,
+            maxAttempts: 3
+          }
+        }
+      });
     });
 
     // 서버 비즈니스 에러 핸들러
     socket.on('battle:join:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '배틀 입장에 실패했습니다.' });
+
+      Sentry.captureException(new Error('배틀 입장 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '배틀 입장 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:attack:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '공격 제출에 실패했습니다.' });
+
+      Sentry.captureException(new Error('공격 제출 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '공격 제출 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:defense:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '방어 제출에 실패했습니다.' });
+
+      Sentry.captureException(new Error('방어 제출 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '방어 제출 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:attack:vote:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '투표에 실패했습니다.' });
+
+      Sentry.captureException(new Error('공격 투표 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '공격 투표 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:defense:vote:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '투표에 실패했습니다.' });
+
+      Sentry.captureException(new Error('방어 투표 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '방어 투표 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:chat:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '메시지 전송에 실패했습니다.' });
+
+      Sentry.captureException(new Error('채팅 전송 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '채팅 전송 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:team:vote:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '팀 투표에 실패했습니다.' });
+
+      Sentry.captureException(new Error('팀 투표 실패'), {
+        level: 'error',
+        tags: {
+          errorType: '팀 투표 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     socket.on('battle:user:skip:error', (data: ErrorPayload) => {
       addToast({ message: data.message || '스킵 요청에 실패했습니다.' });
+
+      Sentry.captureException(new Error('스킵 요청 실패'), {
+        level: 'warning',
+        tags: {
+          errorType: '스킵 요청 에러',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
     });
 
     return () => {

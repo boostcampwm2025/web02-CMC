@@ -69,6 +69,13 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           isLoggingIn: false
         });
 
+        const { default: Sentry } = await import('@sentry/react');
+        Sentry.setUser({
+          id: user.id,
+          username: user.nickname,
+          type: 'guest'
+        });
+
         return user;
       } catch (e) {
         set({ isLoggingIn: false });
@@ -98,8 +105,25 @@ export const useAuthStore = create<AuthStore>((set, get) => {
 
       try {
         const oauthUser = await getOAuthUser();
+
         set({ user: oauthUser });
-        localStorage.setItem(OAUTH_KEY, JSON.stringify(oauthUser));
+
+        const { default: Sentry } = await import('@sentry/react');
+        Sentry.setUser({
+          id: oauthUser.id,
+          username: oauthUser.nickname,
+          provider: oauthUser.provider,
+          type: 'oauth'
+        });
+
+        localStorage.setItem(
+          OAUTH_KEY,
+          JSON.stringify({
+            id: oauthUser.id,
+            nickname: oauthUser.nickname
+          })
+        );
+
         return oauthUser;
       } catch {
         localStorage.removeItem(OAUTH_KEY);
@@ -114,6 +138,10 @@ export const useAuthStore = create<AuthStore>((set, get) => {
           await logoutApi();
         }
         get().clearAuth();
+
+        // Sentry 사용자 정보 제거
+        const { default: Sentry } = await import('@sentry/react');
+        Sentry.setUser(null);
       } catch {
         throw new Error('로그아웃 실패');
       }
