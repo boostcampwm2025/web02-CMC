@@ -4,7 +4,7 @@
 
 <div align="center">
 
-#### 📺 [코문철 - CMC](http://xn--z92bu5co4ljlf2xdq6g.xn--oi2b61z32a.xn--3e0b707e/)
+#### 📺 [코문철 - CMC](https://5yii1ap713732.edge.naverncp.com)
 
 <div align="center">
 
@@ -36,7 +36,7 @@
 # 🥊 코드 리뷰 배틀 아레나 — **코문철(CMC)**
 
 ![status](https://img.shields.io/badge/status-active-success)
-![updated](https://img.shields.io/badge/updated-2026.02.01-blue)
+![updated](https://img.shields.io/badge/updated-2026.02.05-blue)
 
 > 안녕하세요, 코문철 TV입니다.
 >
@@ -166,11 +166,15 @@ J162_유승준
 | **4️⃣ 다양한 애니메이션과 효과음** | 몰입감을 높이고 재미있는 사용자 경험을 제공하기 위해 시각적·청각적 요소를 추가합니다.  |
 | **5️⃣ MVP 선정 및 티어 시스템**    | 토론 기여도를 기반으로 MVP를 선정하고 티어를 부여하여 참여 동기를 강화합니다.          |
 
+## 🌊 CI/CD 흐름 차트
+
+<img width="1500" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/da12bd74-4350-49ad-b6f0-f4cb61364879/image.png" />
+
 ## 👷 시스템 아키텍처
 
 🔗 [코문철의 아키텍처가 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D#%EF%B8%8F-%EA%B8%B0%EC%88%A0%EC%8A%A4%ED%83%9D)
 
-<img width="800" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/29edde74-e6dc-4cd9-b0c4-40688af05d1e/image.png" />
+<img width="800" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/e215f9e0-6ea3-48a5-b232-c680991b9b70/image.png" />
 
 ## 🛠️ 기술 스택
 
