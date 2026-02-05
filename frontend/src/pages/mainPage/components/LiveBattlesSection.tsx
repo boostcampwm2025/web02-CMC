@@ -15,12 +15,12 @@ export default function LiveBattlesSection() {
       </div>
       <SectionErrorBoundary
         fallback={(error, reset) => (
-          <SectionErrorFallback error={error} reset={reset} title="실시간 배틀을 불러올 수 없습니다" height="15rem" />
+          <SectionErrorFallback error={error} reset={reset} title="실시간 배틀을 불러올 수 없습니다" height="18rem" />
         )}
       >
         <Suspense
           fallback={
-            <div className="grid grid-cols-3 gap-4 h-[15rem]">
+            <div className="grid grid-cols-3 gap-4 h-[18rem]">
               {[...Array(3)].map((_, i) => (
                 <Skeleton key={i} width="100%" height="100%" className="rounded-2xl" />
               ))}

@@ -7,6 +7,7 @@ import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
+import LoadingModal from '@/commons/components/LoadingModal';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -128,9 +129,6 @@ export default function BattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
-  if (isLoading || !battleInfoData) {
-    return <div className="min-h-screen w-full flex items-center justify-center text-white">로딩 중...</div>;
-  }
   const battleInfo = battleInfoData;
 
   const handleLeaveBattle = () => {
@@ -141,6 +139,8 @@ export default function BattlePage() {
 
   return (
     <div className="text-white relative">
+      <LoadingModal isOpen={isLoading || !battleInfoData} message="배틀 정보를 불러오는 중..." />
+
       {/* 책갈피 버튼 */}
       <BookmarkButton
         onOpen={(tab) => {
@@ -148,19 +148,19 @@ export default function BattlePage() {
           handleOpenSidebar();
         }}
         isOpen={isSidebarOpen}
-        hasReferenceData={!!battleInfo.referenceData}
+        hasReferenceData={!!battleInfo?.referenceData}
       />
 
       {/* 사이드바 */}
       <BattleSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        title={battleInfo.title}
-        description={battleInfo.description}
-        language={battleInfo.language}
-        category={battleInfo.category}
-        topics={battleInfo.topics}
-        referenceData={battleInfo.referenceData}
+        title={battleInfo?.title || ''}
+        description={battleInfo?.description || ''}
+        language={battleInfo?.language || 'javascript'}
+        category={battleInfo?.category || 'ALGORITHM'}
+        topics={battleInfo?.topics || []}
+        referenceData={battleInfo?.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
       />
@@ -184,7 +184,7 @@ export default function BattlePage() {
               ← 돌아가기
             </button>
             <div className="shrink-0 flex items-center gap-2">
-              {battleInfo.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
+              {battleInfo?.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
             </div>
           </div>
           <div className="flex items-center justify-between">
@@ -198,9 +198,9 @@ export default function BattlePage() {
               <CodeSection
                 onViewChange={setViewMode}
                 currentView={viewMode}
-                language={battleInfo.language}
-                codeA={battleInfo.aCode}
-                codeB={battleInfo.bCode}
+                language={battleInfo?.language || 'javascript'}
+                codeA={battleInfo?.aCode || ''}
+                codeB={battleInfo?.bCode || ''}
               />
             </div>
             <aside
@@ -221,7 +221,7 @@ export default function BattlePage() {
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
-        {isTeamChangeModalOpen && (
+        {isTeamChangeModalOpen && battleInfo && (
           <TeamChangeModal
             topics={battleInfo.topics}
             handleTeamChange={handleTeamChange}
