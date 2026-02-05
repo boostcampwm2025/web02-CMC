@@ -15,7 +15,7 @@ import ErrorPage from './pages/errorPage';
 import TutorialBattlePage from './pages/tutorialBattlePage';
 import { TUTORIAL_BATTLE_INFO } from './pages/tutorial/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
-import LoadingModal from './commons/components/LoadingModal';
+import LoadingOverlay from './commons/components/LoadingOverlay';
 import { useAuthStore } from './commons/stores/authStore';
 import './App.css';
 
@@ -39,7 +39,7 @@ const router = sentryCreateBrowserRouter([
       {
         path: 'battle/:id',
         element: (
-          <Suspense fallback={<LoadingModal isOpen={true} message="배틀 정보를 불러오는 중..." />}>
+          <Suspense fallback={<LoadingOverlay isOpen={true} message="배틀 정보를 불러오는 중..." />}>
             <BattlePage />
           </Suspense>
         )
@@ -55,7 +55,7 @@ const router = sentryCreateBrowserRouter([
       {
         path: 'battles/:id/result',
         element: (
-          <Suspense fallback={<LoadingModal isOpen={true} message="배틀 결과를 불러오는 중..." />}>
+          <Suspense fallback={<LoadingOverlay isOpen={true} message="배틀 결과를 불러오는 중..." />}>
             <BattleResultPage />
           </Suspense>
         )

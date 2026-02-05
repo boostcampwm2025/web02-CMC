@@ -5,7 +5,7 @@ import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { useCreateBattle } from './hooks/useCreateBattle';
-import LoadingModal from '@/commons/components/LoadingModal';
+import LoadingOverlay from '@/commons/components/LoadingOverlay';
 import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
@@ -88,7 +88,7 @@ export default function BattleCreatePage() {
 
   return (
     <main>
-      <LoadingModal isOpen={isPending} message="배틀 생성 중입니다..." />
+      <LoadingOverlay isOpen={isPending} message="배틀 생성 중입니다..." />
       <div className="min-h-screen w-full px-6 py-8">
         <div className="mx-auto create-max-width">
           <div className="flex items-center justify-start gap-4 mt-10 mb-8">
