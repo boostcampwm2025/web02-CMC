@@ -46,6 +46,17 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.del(key)
   }
 
+  async incr(key: string, ttl?: number): Promise<number> {
+    if (ttl) {
+      const pipeline = this.redisClient.pipeline()
+      pipeline.incr(key)
+      pipeline.expire(key, ttl, 'NX')
+      const results = await pipeline.exec()
+      return Number(results?.[0][1] ?? 0)
+    }
+    return this.redisClient.incr(key)
+  }
+
   async exists(key: string): Promise<boolean> {
     const result = await this.redisClient.exists(key)
     return result === 1
@@ -69,6 +80,27 @@ export class RedisRepository implements OnModuleDestroy {
 
   async lrange(key: string, start: number, stop: number): Promise<string[]> {
     return this.redisClient.lrange(key, start, stop)
+  }
+
+  async keys(pattern: string): Promise<string[]> {
+    return this.redisClient.keys(pattern)
+  }
+
+  // Redis Sorted Set 메서드
+  async zadd(key: string, score: number, member: string): Promise<number> {
+    return this.redisClient.zadd(key, score, member)
+  }
+
+  async zrem(key: string, ...members: string[]): Promise<number> {
+    return this.redisClient.zrem(key, ...members)
+  }
+
+  async zrangebyscore(key: string, min: number | string, max: number | string): Promise<string[]> {
+    return this.redisClient.zrangebyscore(key, min, max)
+  }
+
+  async zscore(key: string, member: string): Promise<string | null> {
+    return this.redisClient.zscore(key, member)
   }
 
   getRedisClient(): Redis {

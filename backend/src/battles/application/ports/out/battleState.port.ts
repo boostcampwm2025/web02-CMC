@@ -7,6 +7,8 @@ export interface BattleStatePort {
   loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }>
   //배틀 상태 저장
   saveBattleState(battleId: string, state: ActiveBattleState): Promise<void>
+  //캐시 삭제
+  clearCache(battleId: string): Promise<void>
   //페이즈 스킵 상태 업데이트
   updateSkipState(battleId: string, skipList: Set<string>): Promise<void>
   //MVP 상태 파싱

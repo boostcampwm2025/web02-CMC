@@ -30,6 +30,7 @@ import { BattleTerminationUseCase } from './application/usecases/battleTerminati
 import { BattleInteractionUseCase } from './application/usecases/battleInteraction.usecase'
 import { CreateGuestUseCase } from './application/usecases/createGuest.usecase'
 import { BattleQueryUseCase } from './application/usecases/battleQuery.usecase'
+import { BattleTimerWorkerUseCase } from './application/usecases/battleTimerWorker.usecase'
 
 // Adapters (Out)
 import { BattleRepositoryAdapter } from './adapters/out/persistence/battleRepository.adapter'
@@ -83,6 +84,7 @@ import {
     BattleInteractionUseCase,
     CreateGuestUseCase,
     BattleQueryUseCase,
+    BattleTimerWorkerUseCase,
 
     // Adapters (Out)
     BattleRepositoryAdapter,

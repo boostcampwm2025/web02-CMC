@@ -67,6 +67,8 @@ export class BattleTerminationUseCase {
       chatsTeamBState: Prisma.DbNull as unknown as Prisma.InputJsonValue,
     })
 
+    await this.stateRepo.clearCache(battleId)
+
     await this.applyRatingChanges(state, winningTeam, calculatedMvps)
     this.broadcaster.emitBattleClosed(BattleClosedResponseDto.of({ battleId }))
   }

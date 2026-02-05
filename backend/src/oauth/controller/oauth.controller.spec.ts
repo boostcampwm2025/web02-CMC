@@ -76,7 +76,7 @@ describe('OauthController', () => {
 
       const mockTokens = {
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
+        sessionId: 'mock-session-id',
         user: mockUser,
       }
 
@@ -95,7 +95,7 @@ describe('OauthController', () => {
       await controller.githubCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithGithub).toHaveBeenCalledWith(mockProfile)
-      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
+      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.sessionId)
       expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/main')
     })
   })
@@ -118,7 +118,7 @@ describe('OauthController', () => {
 
       const mockTokens = {
         accessToken: 'mock-access-token',
-        refreshToken: 'mock-refresh-token',
+        sessionId: 'mock-session-id',
         user: mockUser,
       }
 
@@ -137,21 +137,21 @@ describe('OauthController', () => {
       await controller.kakaoCallback(mockReq, mockRes)
 
       expect(mockOauthService.loginWithKakao).toHaveBeenCalledWith(mockProfile)
-      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.refreshToken)
+      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockTokens.accessToken, mockTokens.sessionId)
       expect(mockRedirect).toHaveBeenCalledWith('http://localhost:5173/main')
     })
   })
 
   describe('refresh', () => {
-    it('Refresh Token으로 새로운 토큰을 발급하고 쿠키에 설정한다', () => {
+    it('Refresh Token으로 새로운 토큰을 발급하고 쿠키에 설정한다', async () => {
       const mockUser = {
         userId: 'user-123',
-        refreshToken: 'old-refresh-token',
+        sessionId: 'old-session-id',
       }
 
       const mockNewTokens = {
         accessToken: 'new-access-token',
-        refreshToken: 'new-refresh-token',
+        sessionId: 'new-session-id',
       }
 
       const mockReq = {
@@ -164,22 +164,21 @@ describe('OauthController', () => {
         json: mockJson,
       } as unknown as expressRes
 
-      mockOauthService.refreshToken.mockReturnValue(mockNewTokens)
+      mockOauthService.refreshToken.mockResolvedValue(mockNewTokens)
 
-      const result = controller.refresh(mockReq, mockRes)
+      await controller.refresh(mockReq, mockRes)
 
-      expect(mockOauthService.refreshToken).toHaveBeenCalledWith(mockUser.refreshToken)
-      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockNewTokens.accessToken, mockNewTokens.refreshToken)
+      expect(mockOauthService.refreshToken).toHaveBeenCalledWith(mockUser.sessionId)
+      expect(mockTokenService.setTokensInCookie).toHaveBeenCalledWith(mockRes, mockNewTokens.accessToken, mockNewTokens.sessionId)
       expect(mockJson).toHaveBeenCalledWith({ success: true })
-      expect(result).toEqual({ success: true })
     })
   })
 
   describe('logout', () => {
-    it('Refresh Token이 있으면 무효화하고 쿠키를 삭제한다', () => {
+    it('Session ID가 있으면 무효화하고 쿠키를 삭제한다', async () => {
       const mockReq = {
         cookies: {
-          refresh_token: 'refresh-token-to-revoke',
+          session_id: 'session-id-to-revoke',
         },
       } as unknown as expressReq
 
@@ -188,14 +187,14 @@ describe('OauthController', () => {
         json: jest.fn(),
       } as unknown as expressRes
 
-      controller.logout(mockReq, mockRes)
+      await controller.logout(mockReq, mockRes)
 
-      expect(mockTokenService.revokeRefreshToken).toHaveBeenCalledWith('refresh-token-to-revoke')
+      expect(mockTokenService.revokeRefreshToken).toHaveBeenCalledWith('session-id-to-revoke')
       expect(mockTokenService.clearAuthCookies).toHaveBeenCalledWith(mockRes)
       expect(mockRes.json).toHaveBeenCalledWith({ success: true })
     })
 
-    it('Refresh Token이 없어도 쿠키를 삭제한다', () => {
+    it('Session ID가 없어도 쿠키를 삭제한다', async () => {
       const mockReq = {
         cookies: {},
       } as unknown as expressReq
@@ -205,7 +204,7 @@ describe('OauthController', () => {
         json: jest.fn(),
       } as unknown as expressRes
 
-      controller.logout(mockReq, mockRes)
+      await controller.logout(mockReq, mockRes)
 
       expect(mockTokenService.revokeRefreshToken).not.toHaveBeenCalled()
       expect(mockTokenService.clearAuthCookies).toHaveBeenCalledWith(mockRes)

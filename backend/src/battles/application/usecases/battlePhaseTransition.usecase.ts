@@ -122,8 +122,10 @@ export class BattlePhaseTransitionUseCase {
     try {
       const { state } = await this.stateRepo.loadBattleState(battleId)
       if (!state.expiredAt) return
+      // PENDING 상태에서는 타이머 등록하지 않음
+      if (state.phase === 'PENDING') return
 
-      this.timer.schedule(battleId, state, async battleId => await this.advancePhase(battleId))
+      this.timer.schedule(battleId, state)
     } catch {
       // ignore if battle not found or closed
     }

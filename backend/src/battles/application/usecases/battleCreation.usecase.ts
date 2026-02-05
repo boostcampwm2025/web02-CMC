@@ -5,18 +5,10 @@ import { Battle, ActiveBattleState } from '../../domains/models/types/battle.typ
 import type { BattleReferenceData } from '../../domains/models/types/ai.types'
 import type { BattleCreateQueryDto } from '../../dto/battleCreateQuery.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battleTurnResponse.dto'
-import {
-  BATTLE_REPO_PORT,
-  BATTLE_STATE_PORT,
-  BATTLE_BROADCASTER_PORT,
-  BATTLE_TIMER_PORT,
-  BATTLE_REFERENCE_PORT,
-  BATTLE_IDENTIFIER_PORT,
-} from '../ports/tokens'
+import { BATTLE_REPO_PORT, BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_REFERENCE_PORT, BATTLE_IDENTIFIER_PORT } from '../ports/tokens'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
-import type { BattleTimerPort } from '../ports/out/battleTimer.port'
 import type { BattleReferencePort } from '../ports/out/battleReference.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 
@@ -30,7 +22,6 @@ export class BattleCreationUseCase {
     @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
-    @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
     @Inject(BATTLE_REFERENCE_PORT) private readonly referencePort: BattleReferencePort,
     @Inject(BATTLE_IDENTIFIER_PORT) private readonly identifierPort: BattleIdentifierPort,
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
@@ -137,16 +128,8 @@ export class BattleCreationUseCase {
 
     this.broadcaster.emitPhaseUpdated(phaseRes)
     this.broadcaster.emitRoundUpdated(roundRes)
-    void this.scheduleNextTick(battleId, state)
-  }
 
-  // 다음 타이머 스케줄링
-  private scheduleNextTick(battleId: string, state: ActiveBattleState): void {
-    try {
-      if (!state.expiredAt) return
-      this.timer.schedule(battleId, state, async (battleId: string) => await this.phaseTransitionUseCase.advancePhase(battleId))
-    } catch {
-      // ignore if battle not found or closed
-    }
+    // 배틀 시작 시 첫 페이즈로 전환 (PENDING → OPINION_SHARE)
+    await this.phaseTransitionUseCase.advancePhase(battleId)
   }
 }

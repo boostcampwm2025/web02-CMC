@@ -57,14 +57,16 @@ export class OauthService {
   async loginWithGithub(profile: OAuthProfile): Promise<{
     accessToken: string
     refreshToken: string
+    sessionId: string
     user: User
   }> {
     const loginUser = await this.findOrCreateUser(profile)
-    const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
+    const { accessToken, refreshToken, sessionId } = await this.tokenService.generateTokens(loginUser.id)
 
     return {
       accessToken,
       refreshToken,
+      sessionId,
       user: loginUser,
     }
   }
@@ -72,22 +74,25 @@ export class OauthService {
   async loginWithKakao(profile: OAuthProfile): Promise<{
     accessToken: string
     refreshToken: string
+    sessionId: string
   }> {
     const loginUser = await this.findOrCreateUser(profile)
-    const { accessToken, refreshToken } = this.tokenService.generateTokens(loginUser.id)
+    const { accessToken, refreshToken, sessionId } = await this.tokenService.generateTokens(loginUser.id)
 
     return {
       accessToken,
       refreshToken,
+      sessionId,
     }
   }
 
-  refreshToken(refreshToken: string): {
+  async refreshToken(sessionId: string): Promise<{
     accessToken: string
     refreshToken: string
-  } {
-    const { accessToken, refreshToken: newRefreshToken } = this.tokenService.refresh(refreshToken)
-    return { accessToken, refreshToken: newRefreshToken }
+    sessionId: string
+  }> {
+    const { accessToken, refreshToken: newRefreshToken, sessionId: newSessionId } = await this.tokenService.refresh(sessionId)
+    return { accessToken, refreshToken: newRefreshToken, sessionId: newSessionId }
   }
 
   async updateUserNickname(userId: string, nickname: string): Promise<OAuthUserResponseDto> {

@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt'
 import { UnauthorizedException } from '@nestjs/common'
 import type { Response } from 'express'
 import { TokenService } from './token.service'
+import { RedisRepository } from '../../redis/redis.repository'
 
 describe('TokenService', () => {
   let service: TokenService
@@ -17,8 +18,14 @@ describe('TokenService', () => {
     get: jest.fn(),
   }
 
+  const mockRedisRepository = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    keys: jest.fn(),
+  }
+
   beforeEach(async () => {
-    // 기본 설정값 모킹 (모듈 생성 전에 설정)
     mockConfigService.get.mockImplementation((key: string) => {
       const config: Record<string, string> = {
         JWT_ACCESS_EXPIRES_IN: '15m',
@@ -40,6 +47,10 @@ describe('TokenService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: RedisRepository,
+          useValue: mockRedisRepository,
         },
       ],
     }).compile()
@@ -90,9 +101,10 @@ describe('TokenService', () => {
   describe('generateTokens', () => {
     beforeEach(() => {
       jest.clearAllMocks()
+      mockRedisRepository.set.mockResolvedValue('OK')
     })
 
-    it('userId로 Access Token과 Refresh Token을 발급하고 저장한다', () => {
+    it('userId로 Access Token과 Refresh Token을 발급하고 저장한다', async () => {
       const userId = 'user-123'
       const mockAccessToken = 'mock-access-token'
       const mockRefreshToken = 'mock-refresh-token'
@@ -104,19 +116,21 @@ describe('TokenService', () => {
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
       })
 
-      const result = service.generateTokens(userId)
+      const result = await service.generateTokens(userId)
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         accessToken: mockAccessToken,
         refreshToken: mockRefreshToken,
+        sessionId: expect.any(String),
       })
       expect(mockJwtService.sign).toHaveBeenCalledTimes(2)
       expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
         secret: 'test_refresh_secret',
       })
+      expect(mockRedisRepository.set).toHaveBeenCalled()
     })
 
-    it('Refresh Token의 userId가 일치하지 않으면 UnauthorizedException을 던진다', () => {
+    it('Refresh Token의 userId가 일치하지 않으면 UnauthorizedException을 던진다', async () => {
       const userId = 'user-123'
       const mockRefreshToken = 'mock-refresh-token'
 
@@ -126,14 +140,19 @@ describe('TokenService', () => {
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
       })
 
-      expect(() => service.generateTokens(userId)).toThrow(UnauthorizedException)
-      expect(() => service.generateTokens(userId)).toThrow('Refresh Token의 userId가 일치하지 않습니다')
+      await expect(service.generateTokens(userId)).rejects.toThrow(UnauthorizedException)
+      await expect(service.generateTokens(userId)).rejects.toThrow('Refresh Token의 userId가 일치하지 않습니다')
     })
   })
 
   describe('storeRefreshToken', () => {
-    it('Refresh Token을 저장한다', () => {
+    beforeEach(() => {
+      mockRedisRepository.set.mockResolvedValue('OK')
+    })
+
+    it('Refresh Token을 저장한다', async () => {
       const userId = 'user-123'
+      const sessionId = 'session-123'
       const mockRefreshToken = 'mock-refresh-token'
 
       mockJwtService.verify.mockReturnValue({
@@ -141,15 +160,17 @@ describe('TokenService', () => {
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
       })
 
-      service.storeRefreshToken(mockRefreshToken, userId)
+      await service.storeRefreshToken(sessionId, mockRefreshToken, userId)
 
       expect(mockJwtService.verify).toHaveBeenCalledWith(mockRefreshToken, {
         secret: 'test_refresh_secret',
       })
+      expect(mockRedisRepository.set).toHaveBeenCalled()
     })
 
-    it('userId가 일치하지 않으면 UnauthorizedException을 던진다', () => {
+    it('userId가 일치하지 않으면 UnauthorizedException을 던진다', async () => {
       const userId = 'user-123'
+      const sessionId = 'session-123'
       const mockRefreshToken = 'mock-refresh-token'
 
       mockJwtService.verify.mockReturnValue({
@@ -157,162 +178,135 @@ describe('TokenService', () => {
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
       })
 
-      expect(() => service.storeRefreshToken(mockRefreshToken, userId)).toThrow(UnauthorizedException)
-      expect(() => service.storeRefreshToken(mockRefreshToken, userId)).toThrow('Refresh Token의 userId가 일치하지 않습니다')
+      await expect(service.storeRefreshToken(sessionId, mockRefreshToken, userId)).rejects.toThrow(UnauthorizedException)
+      await expect(service.storeRefreshToken(sessionId, mockRefreshToken, userId)).rejects.toThrow('Refresh Token의 userId가 일치하지 않습니다')
     })
   })
 
   describe('refresh', () => {
     const userId = 'user-123'
-    const mockRefreshToken = 'valid-refresh-token'
+    const sessionId = 'session-123'
     const mockNewAccessToken = 'new-access-token'
     const mockNewRefreshToken = 'new-refresh-token'
 
     beforeEach(() => {
       jest.clearAllMocks()
-      // verify는 여러 번 호출될 수 있으므로 mockImplementation 사용
       mockJwtService.verify.mockImplementation(() => ({
         sub: userId,
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
       }))
+      mockRedisRepository.set.mockResolvedValue('OK')
     })
 
-    it('유효한 Refresh Token으로 새로운 토큰 쌍을 발급한다', () => {
-      // 초기 토큰 생성
-      mockJwtService.sign.mockReturnValueOnce(mockRefreshToken).mockReturnValueOnce('initial-access-token')
+    it('유효한 세션 ID로 새로운 토큰 쌍을 발급한다', async () => {
+      const storedTokenData = JSON.stringify({
+        userId,
+        exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        isRevoked: false,
+      })
 
-      const tokens = service.generateTokens(userId)
-      const actualRefreshToken = tokens.refreshToken
-
-      // refresh 시 새로운 토큰 생성
+      mockRedisRepository.get.mockResolvedValue(storedTokenData)
       mockJwtService.sign.mockReturnValueOnce(mockNewRefreshToken).mockReturnValueOnce(mockNewAccessToken)
 
-      const result = service.refresh(actualRefreshToken)
+      const result = await service.refresh(sessionId)
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         accessToken: mockNewAccessToken,
         refreshToken: mockNewRefreshToken,
+        sessionId: expect.any(String),
       })
+      expect(mockRedisRepository.get).toHaveBeenCalledWith(`session:${sessionId}`)
+      expect(mockRedisRepository.set).toHaveBeenCalled()
     })
 
-    it('존재하지 않는 Refresh Token이면 UnauthorizedException을 던진다', () => {
-      expect(() => service.refresh('invalid-token')).toThrow(UnauthorizedException)
-      expect(() => service.refresh('invalid-token')).toThrow('유효하지 않은 Refresh Token입니다')
+    it('존재하지 않는 세션이면 UnauthorizedException을 던진다', async () => {
+      mockRedisRepository.get.mockResolvedValue(null)
+
+      await expect(service.refresh('invalid-session')).rejects.toThrow(UnauthorizedException)
+      await expect(service.refresh('invalid-session')).rejects.toThrow('유효하지 않은 Refresh Token입니다')
     })
 
-    it('이미 무효화된 Refresh Token이면 UnauthorizedException을 던진다', () => {
-      // 초기 토큰 생성
-      const initialRefreshToken = 'initial-refresh-token'
-      mockJwtService.sign.mockReturnValueOnce(initialRefreshToken).mockReturnValueOnce('initial-access-token')
-
-      mockJwtService.verify.mockImplementation(() => ({
-        sub: userId,
+    it('이미 무효화된 세션이면 UnauthorizedException을 던진다', async () => {
+      const storedTokenData = JSON.stringify({
+        userId,
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
-      }))
-
-      const tokens = service.generateTokens(userId)
-      const actualRefreshToken = tokens.refreshToken
-      expect(actualRefreshToken).toBe(initialRefreshToken)
-
-      const newRefreshToken = 'new-refresh-token'
-      mockJwtService.sign.mockReturnValueOnce(newRefreshToken).mockReturnValueOnce('new-access-token')
-
-      const refreshResult = service.refresh(actualRefreshToken)
-
-      expect(refreshResult.refreshToken).toBe(newRefreshToken)
-      expect(() => service.refresh(actualRefreshToken)).toThrow(UnauthorizedException)
-      expect(() => service.refresh(actualRefreshToken)).toThrow('Refresh Token 재사용이 감지되었습니다')
-    })
-
-    it('만료된 Refresh Token이면 UnauthorizedException을 던진다', () => {
-      const expiredToken = 'expired-refresh-token'
-
-      // 토큰을 먼저 생성
-      mockJwtService.sign.mockReturnValueOnce(expiredToken).mockReturnValueOnce('access')
-      mockJwtService.verify.mockReturnValue({
-        sub: userId,
-        exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        isRevoked: true,
       })
 
-      const tokens = service.generateTokens(userId)
-      const actualRefreshToken = tokens.refreshToken
+      mockRedisRepository.get.mockResolvedValue(storedTokenData)
+      mockRedisRepository.keys.mockResolvedValue([])
 
-      const futureDate = new Date()
-      const expiresInMs = service.parseExpiresIn(service.REFRESH_TOKEN_EXPIRES_IN)
-      futureDate.setTime(futureDate.getTime() + expiresInMs + 1000)
+      await expect(service.refresh(sessionId)).rejects.toThrow(UnauthorizedException)
+      await expect(service.refresh(sessionId)).rejects.toThrow('Refresh Token 재사용이 감지되었습니다')
+    })
 
-      jest.useFakeTimers()
-      jest.setSystemTime(futureDate)
+    it('만료된 세션이면 UnauthorizedException을 던진다', async () => {
+      const pastDate = new Date(Date.now() - 1000)
+      const storedTokenData = JSON.stringify({
+        userId,
+        exp: Math.floor(Date.now() / 1000) - 1,
+        expiresAt: pastDate,
+        isRevoked: false,
+      })
 
-      expect(() => service.refresh(actualRefreshToken)).toThrow(UnauthorizedException)
-      expect(() => service.refresh(actualRefreshToken)).toThrow('만료된 Refresh Token입니다')
+      mockRedisRepository.get.mockResolvedValue(storedTokenData)
 
-      jest.useRealTimers()
+      await expect(service.refresh(sessionId)).rejects.toThrow(UnauthorizedException)
+      await expect(service.refresh(sessionId)).rejects.toThrow('만료된 Refresh Token입니다')
     })
   })
 
   describe('revokeRefreshToken', () => {
-    it('Refresh Token을 무효화한다', () => {
-      const userId = 'user-123'
-      const mockRefreshToken = 'mock-refresh-token'
+    it('세션을 삭제한다', async () => {
+      const sessionId = 'session-123'
+      mockRedisRepository.del.mockResolvedValue(1)
 
-      mockJwtService.sign.mockReturnValue(mockRefreshToken)
-      mockJwtService.verify.mockReturnValue({
-        sub: userId,
-        exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
-      })
+      await service.revokeRefreshToken(sessionId)
 
-      service.generateTokens(userId)
-      service.revokeRefreshToken(mockRefreshToken)
-
-      expect(() => service.refresh(mockRefreshToken)).toThrow(UnauthorizedException)
+      expect(mockRedisRepository.del).toHaveBeenCalledWith(`session:${sessionId}`)
     })
   })
 
   describe('revokeAllRefreshTokensForUser', () => {
-    it('특정 사용자의 모든 Refresh Token을 무효화한다', () => {
+    it('특정 사용자의 모든 세션을 삭제한다', async () => {
       const userId1 = 'user-1'
       const userId2 = 'user-2'
-      const mockToken1 = 'token-1'
-      const mockToken2 = 'token-2'
-      const mockToken3 = 'token-3'
+      const session1 = 'session-1'
+      const session2 = 'session-2'
+      const session3 = 'session-3'
 
-      mockJwtService.sign
-        .mockReturnValueOnce(mockToken1)
-        .mockReturnValueOnce('access-1')
-        .mockReturnValueOnce(mockToken2)
-        .mockReturnValueOnce('access-2')
-        .mockReturnValueOnce(mockToken3)
-        .mockReturnValueOnce('access-3')
-
-      mockJwtService.verify.mockReturnValue({
-        sub: userId1,
+      const tokenData1 = JSON.stringify({
+        userId: userId1,
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        isRevoked: false,
       })
 
-      service.generateTokens(userId1)
-
-      mockJwtService.verify.mockReturnValue({
-        sub: userId2,
+      const tokenData2 = JSON.stringify({
+        userId: userId2,
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        isRevoked: false,
       })
 
-      service.generateTokens(userId2)
-
-      mockJwtService.verify.mockReturnValue({
-        sub: userId1,
+      const tokenData3 = JSON.stringify({
+        userId: userId1,
         exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
+        expiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        isRevoked: false,
       })
 
-      service.generateTokens(userId1)
+      mockRedisRepository.keys.mockResolvedValue([`session:${session1}`, `session:${session2}`, `session:${session3}`])
+      mockRedisRepository.get.mockResolvedValueOnce(tokenData1).mockResolvedValueOnce(tokenData2).mockResolvedValueOnce(tokenData3)
+      mockRedisRepository.del.mockResolvedValue(1)
 
-      service.revokeAllRefreshTokensForUser(userId1)
+      await service.revokeAllRefreshTokensForUser(userId1)
 
-      // revokeAllRefreshTokensForUser는 isRevoked = true로 설정하므로, refresh 시도 시 재사용 감지 에러가 발생해야 함
-      expect(() => service.refresh(mockToken1)).toThrow(UnauthorizedException)
-      expect(() => service.refresh(mockToken1)).toThrow('Refresh Token 재사용이 감지되었습니다')
-      expect(() => service.refresh(mockToken3)).toThrow(UnauthorizedException)
-      expect(() => service.refresh(mockToken3)).toThrow('Refresh Token 재사용이 감지되었습니다')
+      expect(mockRedisRepository.del).toHaveBeenCalledWith(`session:${session1}`)
+      expect(mockRedisRepository.del).toHaveBeenCalledWith(`session:${session3}`)
+      expect(mockRedisRepository.del).not.toHaveBeenCalledWith(`session:${session2}`)
     })
   })
 
@@ -343,16 +337,16 @@ describe('TokenService', () => {
   })
 
   describe('setTokensInCookie', () => {
-    it('쿠키에 Access Token과 Refresh Token을 설정한다', () => {
+    it('쿠키에 Access Token과 Session ID를 설정한다', () => {
       const mockCookie = jest.fn()
       const mockRes = {
         cookie: mockCookie,
       } as unknown as Response<Record<string, unknown>>
 
       const accessToken = 'access-token'
-      const refreshToken = 'refresh-token'
+      const sessionId = 'session-id'
 
-      service.setTokensInCookie(mockRes, accessToken, refreshToken)
+      service.setTokensInCookie(mockRes, accessToken, sessionId)
 
       expect(mockCookie).toHaveBeenCalledTimes(2)
       expect(mockCookie).toHaveBeenCalledWith(
@@ -366,8 +360,8 @@ describe('TokenService', () => {
         }),
       )
       expect(mockCookie).toHaveBeenCalledWith(
-        'refresh_token',
-        refreshToken,
+        'session_id',
+        sessionId,
         expect.objectContaining({
           httpOnly: true,
           secure: false,
@@ -433,7 +427,7 @@ describe('TokenService', () => {
         sameSite: 'lax',
         path: '/',
       })
-      expect(mockClearCookie).toHaveBeenCalledWith('refresh_token', {
+      expect(mockClearCookie).toHaveBeenCalledWith('session_id', {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
