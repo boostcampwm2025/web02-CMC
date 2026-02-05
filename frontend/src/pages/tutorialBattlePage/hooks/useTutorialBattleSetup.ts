@@ -30,7 +30,7 @@ export function useTutorialBattleSetup({ battleInfo, selectedTeamFromState }: Tu
 
     const store = useBattleStore.getState();
     store.initializeBattle({ userId: activeUser.id, battleId: TUTORIAL_BATTLE_ID });
-    store.setSelectedTeam(selectedTeamFromState ?? 'NONE');
+    store.setSelectedTeam(selectedTeamFromState ?? 'A');
     store.setBattleProgress(TUTORIAL_BATTLE_PROGRESS);
     store.setCurrentStage(TUTORIAL_BATTLE_PROGRESS.phase);
     store.setTeamCounts(TUTORIAL_TEAM_COUNTS);

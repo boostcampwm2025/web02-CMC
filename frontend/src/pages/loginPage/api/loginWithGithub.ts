@@ -1,15 +1,14 @@
 export async function loginWithGitHub(): Promise<void> {
   try {
     const controller = new AbortController();
-
-    const response = await fetch('/api/auth/github', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/github`, {
       method: 'GET',
       redirect: 'manual',
       signal: controller.signal
     });
 
     if (response.type === 'opaqueredirect' || response.ok || (response.status >= 300 && response.status < 400)) {
-      window.location.href = '/api/auth/github';
+      window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/github`;
     } else {
       throw new Error('서버 응답이 올바르지 않습니다.');
     }

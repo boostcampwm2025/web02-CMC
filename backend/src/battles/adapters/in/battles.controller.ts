@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Query, Param, HttpCode, InternalServerErrorException, HttpException, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, Get, Query, Param, HttpCode, Res, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Response } from 'express'
 import { BattleResultResponseDto } from '../../dto/battleResult.dto'
@@ -67,14 +67,7 @@ export class BattlesController {
   @Get(':id/result')
   @HttpCode(200)
   async getBattleResult(@Param('id') battleId: string): Promise<BattleResultResponseDto> {
-    try {
-      return await this.queryUseCase.getBattleResult(battleId)
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error
-      }
-      throw new InternalServerErrorException('배틀 결과 조회 중 오류가 발생했습니다.')
-    }
+    return this.queryUseCase.getBattleResult(battleId)
   }
 
   private setInviteAccessCookie(battleId: string, res: Response) {

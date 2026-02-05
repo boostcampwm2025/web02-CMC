@@ -89,11 +89,14 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
+            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ steps.set_version.outputs.version_tag }}
 
-  cd:
+  cd-backend:
     needs: ci
     runs-on: ubuntu-latest
     steps:
@@ -141,3 +144,65 @@ jobs:
             docker compose -f docker-compose.yml up -d
 
             echo "[SUCCESS] Deployment completed successfully ✅"
+
+  cd-frontend:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        env:
+          HUSKY: 0
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
+        run: pnpm -C frontend build
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: Install AWS CLI (NCP compatible)
+        run: pip install awscli==1.15.85
+
+      - name: Upload to NCP Object Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
+        run: |
+          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/${{ secrets.NCP_BUCKET_ROOT }} \
+            --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
+            --exclude "index.html" \
+            --delete \
+            --acl public-read \
+            --cache-control "public, max-age=31536000, immutable"
+
+          aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/${{ secrets.NCP_BUCKET_ROOT }} \
+            --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
+            --exclude "*" \
+            --include "index.html" \
+            --acl public-read \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Frontend deployed to Object Storage successfully!"

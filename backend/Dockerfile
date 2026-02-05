@@ -27,6 +27,10 @@ RUN pnpm -C backend build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Seoul
+
 RUN corepack enable
 
 # Copy workspace files
