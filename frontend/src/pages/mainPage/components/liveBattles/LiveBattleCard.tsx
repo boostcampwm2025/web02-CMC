@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../types/battle';
+import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../../types/battle';
 import PeopleIcon from '@/assets/icon/people.svg?react';
 import ClockIcon from '@/assets/icon/clock.svg?react';
-import IconBox from './IconBox';
+import IconBox from '../IconBox';
 import Badge from '@/commons/components/Badge';
 
 interface LiveBattleCardProps {

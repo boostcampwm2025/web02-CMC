@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import type { ClosedBattleItem } from '../types/battle';
-import { TEAM_STYLE } from '../types/team';
-import IconBox from './IconBox';
+import type { ClosedBattleItem } from '../../types/battle';
+import { TEAM_STYLE } from '../../types/team';
+import IconBox from '../IconBox';
 import ClockIcon from '@/assets/icon/clock.svg?react';
 import TrophyIcon from '@/assets/icon/trophy.svg?react';
 import Badge from '@/commons/components/Badge';

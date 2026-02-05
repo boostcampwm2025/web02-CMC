@@ -1,6 +1,6 @@
-import { useGetOpenBattles } from '../hooks/useGetOpenBattles';
+import { useGetOpenBattles } from '../../hooks/useGetOpenBattles';
 import LiveBattleCard from './LiveBattleCard';
-import EmptyBattlesState from './EmptyBattlesState';
+import EmptyBattlesState from '../EmptyBattlesState';
 
 export default function LiveBattlesList() {
   const { battles: openBattles } = useGetOpenBattles({ offset: 0, limit: 3 });

@@ -1,6 +1,6 @@
-import { useGetClosedBattles } from '../hooks/useGetClosedBattles';
+import { useGetClosedBattles } from '../../hooks/useGetClosedBattles';
 import PastBattleCard from './PastBattleCard';
-import EmptyBattlesState from './EmptyBattlesState';
+import EmptyBattlesState from '../EmptyBattlesState';
 
 export default function PastBattlesList() {
   const { battles: closedBattles } = useGetClosedBattles({ offset: 0, limit: 6 });
