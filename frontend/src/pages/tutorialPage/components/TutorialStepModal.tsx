@@ -1,9 +1,9 @@
-import type { TutorialStep } from '../../hooks/useTutorial';
-import { useSpotlight } from '../../hooks/useSpotlight';
-import type { SpotlightPosition } from '../../hooks/useSpotlight';
+import type { TutorialStep } from '@/pages/battlePage/hooks/useTutorial';
+import { useSpotlight } from '@/pages/battlePage/hooks/useSpotlight';
+import type { SpotlightPosition } from '@/pages/battlePage/hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
-import DiscussionInput from '../discussion/DiscussionInput';
-import BattleProgressBoard from '../progressBoard/ProgressBoard';
+import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
+import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 

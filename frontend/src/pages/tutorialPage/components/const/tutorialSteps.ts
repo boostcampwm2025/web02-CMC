@@ -1,4 +1,4 @@
-import type { TutorialStep } from '../../../hooks/useTutorial';
+import type { TutorialStep } from '@/pages/battlePage/hooks/useTutorial';
 
 export interface StepContent {
   title: string;

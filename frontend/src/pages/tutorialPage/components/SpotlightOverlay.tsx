@@ -1,4 +1,4 @@
-import type { SpotlightPosition } from '../../hooks/useSpotlight';
+import type { SpotlightPosition } from '@/pages/battlePage/hooks/useSpotlight';
 
 interface SpotlightOverlayProps {
   spotlight: SpotlightPosition | null;
