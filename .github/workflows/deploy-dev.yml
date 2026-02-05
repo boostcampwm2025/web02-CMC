@@ -1,7 +1,7 @@
 name: deploy
 
 on:
-  push:
+  pull_request:
     branches:
       - dev
 
@@ -51,10 +51,7 @@ jobs:
           file: frontend/Dockerfile
           push: true
           build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
-            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
-            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
+            VITE_API_URL=${{ secrets.VITE_API_URL_DEV }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
