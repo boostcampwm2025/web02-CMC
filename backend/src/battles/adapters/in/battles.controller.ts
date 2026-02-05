@@ -74,7 +74,7 @@ export class BattlesController {
     res.cookie(`inviteAccess_${battleId}`, 'true', {
       httpOnly: true,
       secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: 60 * 60 * 1000, // 1시간
     })
