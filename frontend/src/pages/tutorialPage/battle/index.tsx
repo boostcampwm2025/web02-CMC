@@ -12,8 +12,8 @@ import DiscussionInput from '@/pages/battlePage/components/discussion/Discussion
 import DiscussionVote from '@/pages/battlePage/components/discussion/DiscussionVote';
 import BattleSidebar from '@/pages/battlePage/components/sidebar';
 import BookmarkButton from '@/pages/battlePage/components/sidebar/BookmarkButton';
-import TutorialModal from '@/pages/battlePage/components/tutorial/TutorialModal';
-import TutorialStepModal from '@/pages/battlePage/components/tutorial/TutorialStepModal';
+import TutorialModal from '@/pages/tutorialPage/components/TutorialModal';
+import TutorialStepModal from '@/pages/tutorialPage/components/TutorialStepModal';
 import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
 import TeamChangeModal from '@/pages/battlePage/components/modals/TeamChangeModal';
 import TeamVoteResultModal from '@/pages/battlePage/components/effects/TeamVoteResultModal';
@@ -190,6 +190,7 @@ export default function TutorialBattlePage() {
               }`}
             >
               <div
+                data-tutorial="vote"
                 className={
                   shouldHighlightVote
                     ? 'rounded-lg ring-2 ring-orange-400/70 shadow-[0_0_25px_rgba(255,105,0,0.35)] animate-pulse'

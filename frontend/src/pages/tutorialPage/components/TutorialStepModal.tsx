@@ -1,10 +1,9 @@
-import type { TutorialStep } from '../../hooks/useTutorial';
-import { useSpotlight } from '../../hooks/useSpotlight';
-import type { SpotlightPosition } from '../../hooks/useSpotlight';
+import type { TutorialStep } from '@/pages/battlePage/hooks/useTutorial';
+import { useSpotlight } from '@/pages/battlePage/hooks/useSpotlight';
+import type { SpotlightPosition } from '@/pages/battlePage/hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
-import TutorialVoteExample from './TutorialVoteExample';
-import TutorialDiscussionInput from './TutorialDiscussionInput';
-import TutorialProgressBoard from './TutorialProgressBoard';
+import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
+import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 
@@ -99,20 +98,14 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
     <>
       {currentStep === 'progressBoard' && (
         <div className="fixed top-0 left-0 right-0 z-[99] flex justify-center pointer-events-none">
-          <TutorialProgressBoard />
-        </div>
-      )}
-
-      {currentStep === 'vote' && (
-        <div data-tutorial="vote" className="absolute right-[9.688rem] top-[12.813rem] z-[99]">
-          <TutorialVoteExample />
+          <BattleProgressBoard />
         </div>
       )}
 
       {currentStep === 'discussionInput' && (
         <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[6] px-4 pb-4">
           <div data-tutorial="discussion-input" className="discussion-input-width">
-            <TutorialDiscussionInput />
+            <DiscussionInput />
           </div>
         </div>
       )}

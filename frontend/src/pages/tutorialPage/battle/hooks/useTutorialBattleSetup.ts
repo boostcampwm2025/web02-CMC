@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { BattleInfo } from '@/commons/types/battle';
 import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
 import { useAuthStore } from '@/commons/stores/authStore';
-import { createMockSocket } from '@/pages/tutorial/utils/mockSocket';
+import { createMockSocket } from '@/pages/tutorialPage/utils/mockSocket';
 import {
   TUTORIAL_BATTLE_ID,
   TUTORIAL_BATTLE_PROGRESS,
@@ -10,8 +10,8 @@ import {
   TUTORIAL_TEAM_CHATS,
   TUTORIAL_ALL_CHATS,
   TUTORIAL_USER
-} from '@/pages/tutorial/const/tutorialBattle';
-import { MOCK_DISCUSSIONS } from '@/pages/battlePage/components/tutorial/const/tutorialSteps';
+} from '@/pages/tutorialPage/const/tutorialBattle';
+import { MOCK_DISCUSSIONS } from '@/pages/tutorialPage/components/const/tutorialSteps';
 
 interface TutorialBattleSetupOptions {
   battleInfo: BattleInfo;
