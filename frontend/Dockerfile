@@ -8,6 +8,8 @@ RUN corepack enable
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY frontend/package.json ./frontend/package.json
+COPY backend/package.json ./backend/package.json
+COPY packages ./packages
 
 # Install
 ENV HUSKY=0

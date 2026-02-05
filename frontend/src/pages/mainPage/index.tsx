@@ -1,13 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import StatCard from '@/pages/mainPage/components/StatCard';
 import BattleCategoryCard from '@/pages/mainPage/components/BattleCategoryCard';
-import LiveBattlesSection from '@/pages/mainPage/components/LiveBattlesSection';
-import PastBattlesSection from '@/pages/mainPage/components/PastBattlesSection';
+import LiveBattlesSection from './components/liveBattles/LiveBattlesSection';
+import PastBattlesSection from './components/pastBattles/PastBattlesSection';
 import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';
-import { useGetOpenBattles } from '@/pages/mainPage/hooks/useGetOpenBattles';
-import { useGetClosedBattles } from '@/pages/mainPage/hooks/useGetClosedBattles';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 
@@ -17,8 +14,6 @@ export default function MainPage() {
   const navigate = useNavigate();
   const user = useAuthStore(selectUser);
   const addToast = useToastStore(selectAddToast);
-  const { total: openTotal } = useGetOpenBattles({ offset: 0, limit: 3 });
-  const { total: closedTotal } = useGetClosedBattles({ offset: 0, limit: 6 });
 
   const handleCreateBattle = (e: React.MouseEvent) => {
     if (!user) {
@@ -66,12 +61,6 @@ export default function MainPage() {
 
           {/* Stats */}
           <section>
-            <div className="grid grid-cols-3 gap-6">
-              <StatCard type="TOTAL_BATTLES" value={openTotal + closedTotal} />
-              <StatCard type="LIVE_BATTLES" value={openTotal} />
-              <StatCard type="TOTAL_USERS" value={8567} />
-            </div>
-
             <div className="mt-6 grid grid-cols-3 gap-6">
               {BATTLE_CATEGORIES.slice(0, 3).map((c) => (
                 <BattleCategoryCard key={c.key} title={c.title} description={c.description} />

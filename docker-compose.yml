@@ -1,6 +1,26 @@
 version: "3.9"
 
 services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: web02_users
+      POSTGRES_PASSWORD: 123999
+      POSTGRES_DB: web02
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
   backend:
     build:
       context: .
@@ -9,8 +29,19 @@ services:
       - ./backend/.env
     environment:
       PORT: 3000
+      FRONTEND_URL: http://localhost
+      DATABASE_URL: postgresql://web02_users:123999@postgres:5432/web02?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    command: >
+      sh -lc "cd backend &&
+      pnpm prisma migrate deploy &&
+      pnpm start:prod"
     ports:
       - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
     restart: unless-stopped
 
   prometheus:
@@ -61,3 +92,7 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

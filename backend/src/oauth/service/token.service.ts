@@ -2,6 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import type { Response } from 'express'
+import { v7 as uuidv7 } from 'uuid'
+import { RedisRepository } from '../../redis/redis.repository'
 
 type StoredRefreshToken = {
   userId: string
@@ -18,14 +20,11 @@ export class TokenService {
   private readonly ACCESS_TOKEN_SECRET: string
   private readonly REFRESH_TOKEN_SECRET: string
 
-  //TODO: Redis 사용
-  private readonly refreshTokenStore = new Map<string, StoredRefreshToken>()
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
+    private readonly redisRepository: RedisRepository,
   ) {
-    // 생성자에서 상수 초기화
     this.ACCESS_TOKEN_EXPIRES_IN = this.config.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m'
     this.REFRESH_TOKEN_EXPIRES_IN = this.config.get<string>('JWT_REFRESH_EXPIRES_IN') || '14d'
     this.ACCESS_TOKEN_SECRET = this.config.get<string>('JWT_ACCESS_SECRET') || 'access_secret'
@@ -54,38 +53,38 @@ export class TokenService {
   /**
    * Access Token과 Refresh Token 발급 및 저장
    */
-  generateTokens(userId: string): { accessToken: string; refreshToken: string } {
+  async generateTokens(userId: string): Promise<{ accessToken: string; refreshToken: string; sessionId: string }> {
     const refreshToken = this.signRefresh(userId)
     const accessToken = this.signAccess(userId)
-    // Refresh Token만 저장 (RTR을 위해)
-    this.storeRefreshToken(refreshToken, userId)
+    const sessionId = uuidv7()
+
+    await this.storeRefreshToken(sessionId, refreshToken, userId)
 
     return {
       accessToken,
       refreshToken,
+      sessionId,
     }
   }
 
   /**
    * 쿠키에 토큰 설정
    */
-  setTokensInCookie(res: Response, accessToken: string, refreshToken: string): void {
+  setTokensInCookie(res: Response, accessToken: string, sessionId: string): void {
     const isSecure = this.config.get<string>('NODE_ENV') === 'production'
 
-    // Access Token 쿠키 설정
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: isSecure ? 'none' : 'lax',
       path: '/',
       maxAge: this.parseExpiresIn(this.ACCESS_TOKEN_EXPIRES_IN),
     })
 
-    // Refresh Token 쿠키 설정
-    res.cookie('refresh_token', refreshToken, {
+    res.cookie('session_id', sessionId, {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: isSecure ? 'none' : 'lax',
       path: '/api/auth',
       maxAge: this.parseExpiresIn(this.REFRESH_TOKEN_EXPIRES_IN),
     })
@@ -104,61 +103,66 @@ export class TokenService {
   /**
    * Refresh Token 저장
    */
-  storeRefreshToken(refreshToken: string, userId: string): void {
+  async storeRefreshToken(sessionId: string, refreshToken: string, userId: string): Promise<void> {
     const decoded = this.jwtService.verify<{ sub: string; exp: number }>(refreshToken, {
       secret: this.REFRESH_TOKEN_SECRET,
     })
 
-    // userId 검증 (토큰의 userId와 일치하는지 확인)
     if (decoded.sub !== userId) {
       throw new UnauthorizedException('Refresh Token의 userId가 일치하지 않습니다')
     }
 
-    this.refreshTokenStore.set(refreshToken, {
+    const tokenData: StoredRefreshToken = {
       userId: decoded.sub,
       exp: decoded.exp,
       expiresAt: this.calculateRefreshTokenExpiry(),
       isRevoked: false,
-    })
+    }
+
+    const ttlSeconds = Math.floor(this.parseExpiresIn(this.REFRESH_TOKEN_EXPIRES_IN) / 1000)
+    await this.redisRepository.set(`session:${sessionId}`, JSON.stringify(tokenData), ttlSeconds)
   }
 
   /**
    * 토큰 갱신 (RTR - Refresh Token Rotation 적용)
    * 기존 refresh token을 무효화하고 새로운 토큰 쌍을 발급
    */
-  refresh(refreshToken: string): { accessToken: string; refreshToken: string } {
-    // 토큰 조회
-    const storedToken = this.refreshTokenStore.get(refreshToken)
+  async refresh(sessionId: string): Promise<{ accessToken: string; refreshToken: string; sessionId: string }> {
+    const storedData = await this.redisRepository.get(`session:${sessionId}`)
 
-    if (!storedToken) {
+    if (!storedData) {
       throw new UnauthorizedException('유효하지 않은 Refresh Token입니다')
     }
 
-    // 이미 폐기된(Revoked) 토큰인지 확인
+    const storedToken = JSON.parse(storedData) as StoredRefreshToken
+
     if (storedToken.isRevoked) {
-      this.revokeAllRefreshTokensForUser(storedToken.userId)
+      await this.revokeAllRefreshTokensForUser(storedToken.userId)
       throw new UnauthorizedException('Refresh Token 재사용이 감지되었습니다. 다시 로그인해주세요.')
     }
 
-    // 만료 기간 확인
-    if (new Date() > storedToken.expiresAt) {
+    if (new Date() > new Date(storedToken.expiresAt)) {
       throw new UnauthorizedException('만료된 Refresh Token입니다')
     }
 
-    // 기존 토큰 무효화 처리
     storedToken.isRevoked = true
+    const shortTtl = 300
+    await this.redisRepository.set(`session:${sessionId}`, JSON.stringify(storedToken), shortTtl)
 
-    // 새로운 토큰 쌍 생성
-    const newTokens = this.generateTokens(storedToken.userId)
-
-    // 새로운 Refresh Token 저장
+    const newTokens = await this.generateTokens(storedToken.userId)
     return newTokens
   }
 
-  revokeAllRefreshTokensForUser(userId: string): void {
-    for (const meta of this.refreshTokenStore.values()) {
-      if (meta.userId === userId) {
-        meta.isRevoked = true
+  async revokeAllRefreshTokensForUser(userId: string): Promise<void> {
+    const keys = await this.redisRepository.keys('session:*')
+
+    for (const key of keys) {
+      const data = await this.redisRepository.get(key)
+      if (data) {
+        const token = JSON.parse(data) as StoredRefreshToken
+        if (token.userId === userId) {
+          await this.redisRepository.del(key)
+        }
       }
     }
   }
@@ -166,8 +170,8 @@ export class TokenService {
   /**
    * Refresh Token 무효화
    */
-  revokeRefreshToken(refreshToken: string): void {
-    this.refreshTokenStore.delete(refreshToken)
+  async revokeRefreshToken(sessionId: string): Promise<void> {
+    await this.redisRepository.del(`session:${sessionId}`)
   }
 
   clearAuthCookies(res: Response): void {
@@ -176,14 +180,14 @@ export class TokenService {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: isSecure ? 'none' : 'lax',
       path: '/',
     })
 
-    res.clearCookie('refresh_token', {
+    res.clearCookie('session_id', {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: isSecure ? 'none' : 'lax',
       path: '/api/auth',
     })
   }

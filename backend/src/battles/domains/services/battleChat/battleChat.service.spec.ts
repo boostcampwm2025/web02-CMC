@@ -96,4 +96,69 @@ describe('BattleChatService', () => {
       )
     })
   })
+
+  describe('applyChatMessage 예외 처리', () => {
+    it('TEAM scope에서 team이 없으면 예외를 발생시킨다', () => {
+      const state = createActiveState()
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', undefined, BATTLE_TEAM.A, 'hello')
+
+      expect(() => {
+        service.applyChatMessage(state, chat, BATTLE_CHAT_SCOPE.TEAM)
+      }).toThrow('진영 채팅은 team 값이 필요합니다.')
+    })
+
+    it('TEAM scope에서 NONE 팀이면 예외를 발생시킨다', () => {
+      const state = createActiveState()
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', undefined, BATTLE_TEAM.NONE, 'hello')
+
+      expect(() => {
+        service.applyChatMessage(state, chat, BATTLE_CHAT_SCOPE.TEAM, BATTLE_TEAM.NONE)
+      }).toThrow('진영 채팅은 A/B 진영만 사용할 수 있습니다.')
+    })
+
+    it('B팀 채팅을 올바르게 추가한다', () => {
+      const state = createActiveState()
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', undefined, BATTLE_TEAM.B, 'hello B team')
+
+      service.applyChatMessage(state, chat, BATTLE_CHAT_SCOPE.TEAM, BATTLE_TEAM.B)
+
+      expect(state.teamB.chats).toHaveLength(1)
+      expect(state.teamA.chats).toHaveLength(0)
+      expect(state.teamB.chats[0].text).toBe('hello B team')
+    })
+  })
+
+  describe('buildChatMessage', () => {
+    it('텍스트의 공백을 트림한다', () => {
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', undefined, BATTLE_TEAM.A, '  hello world  ')
+
+      expect(chat.text).toBe('hello world')
+    })
+
+    it('tier 정보를 포함한 채팅 메시지를 생성한다', () => {
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', 'gold', BATTLE_TEAM.A, 'hello')
+
+      expect(chat.sender.tier).toBe('gold')
+    })
+
+    it('createdAt이 현재 시간으로 설정된다', () => {
+      const before = new Date()
+      const chat = service.buildChatMessage('msg-1', 'user-1', 'test-user', undefined, BATTLE_TEAM.A, 'hello')
+      const after = new Date()
+
+      expect(chat.createdAt.getTime()).toBeGreaterThanOrEqual(before.getTime())
+      expect(chat.createdAt.getTime()).toBeLessThanOrEqual(after.getTime())
+    })
+
+    it('모든 필드가 올바르게 설정된다', () => {
+      const chat = service.buildChatMessage('msg-123', 'user-456', 'nickname', 'silver', BATTLE_TEAM.B, 'test message')
+
+      expect(chat.messageId).toBe('msg-123')
+      expect(chat.team).toBe(BATTLE_TEAM.B)
+      expect(chat.sender.userId).toBe('user-456')
+      expect(chat.sender.nickname).toBe('nickname')
+      expect(chat.sender.tier).toBe('silver')
+      expect(chat.text).toBe('test message')
+    })
+  })
 })

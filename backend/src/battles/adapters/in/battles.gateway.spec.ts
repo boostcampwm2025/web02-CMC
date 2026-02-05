@@ -346,4 +346,349 @@ describe('BattlesGateway - Discussion Events', () => {
       expect(mockServer.emit).toHaveBeenCalledWith('battle:all:updated', payload)
     })
   })
+
+  describe('handleConnection', () => {
+    it('소켓 연결 시 userId를 저장한다', () => {
+      const mockClientNew = {
+        id: 'client-new',
+        emit: jest.fn(),
+        data: {},
+        handshake: {
+          auth: {
+            userId: 'new-user',
+          },
+        },
+        disconnect: jest.fn(),
+      }
+
+      gateway.handleConnection(mockClientNew as any)
+
+      expect(mockClientNew.data.userId).toBe('new-user')
+    })
+
+    it('userId가 없으면 연결을 끊는다', () => {
+      const mockClientNoAuth = {
+        id: 'client-no-auth',
+        emit: jest.fn(),
+        data: {},
+        handshake: {
+          auth: {},
+        },
+        disconnect: jest.fn(),
+      }
+
+      gateway.handleConnection(mockClientNoAuth as any)
+
+      expect(mockClientNoAuth.disconnect).toHaveBeenCalled()
+    })
+  })
+
+  describe('handleDisconnect', () => {
+    let participationUseCase: jest.Mocked<BattleParticipationUseCase>
+
+    beforeEach(() => {
+      participationUseCase = gateway['participationUseCase'] as jest.Mocked<BattleParticipationUseCase>
+    })
+
+    it('배틀에 참여 중이면 leave를 호출한다', async () => {
+      const mockClientWithBattle = {
+        id: 'client-with-battle',
+        emit: jest.fn(),
+        data: {
+          userId: 'user-in-battle',
+          battleId: 'battle-1',
+        },
+        disconnect: jest.fn(),
+      }
+
+      participationUseCase.leave.mockResolvedValue({} as any)
+      gateway['userIdToSocketMap'].set('user-in-battle', mockClientWithBattle as any)
+
+      await gateway.handleDisconnect(mockClientWithBattle as any)
+
+      expect(participationUseCase.leave).toHaveBeenCalledWith('user-in-battle', 'battle-1')
+      expect(mockClientWithBattle.disconnect).toHaveBeenCalled()
+    })
+
+    it('userId만 있고 battleId가 없으면 leave를 호출하지 않는다', async () => {
+      const mockClientNoBattle = {
+        id: 'client-no-battle',
+        emit: jest.fn(),
+        data: {
+          userId: 'user-no-battle',
+        },
+        disconnect: jest.fn(),
+      }
+
+      gateway['userIdToSocketMap'].set('user-no-battle', mockClientNoBattle as any)
+
+      await gateway.handleDisconnect(mockClientNoBattle as any)
+
+      expect(participationUseCase.leave).not.toHaveBeenCalled()
+      expect(mockClientNoBattle.disconnect).toHaveBeenCalled()
+    })
+  })
+
+  describe('joinBattle', () => {
+    let participationUseCase: jest.Mocked<BattleParticipationUseCase>
+    let queryUseCase: jest.Mocked<BattleQueryUseCase>
+
+    beforeEach(() => {
+      participationUseCase = gateway['participationUseCase'] as jest.Mocked<BattleParticipationUseCase>
+      queryUseCase = gateway['queryUseCase'] as jest.Mocked<BattleQueryUseCase>
+    })
+
+    it('공개 배틀에 참가한다', async () => {
+      const dto = {
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.A,
+        nickname: '테스터',
+      }
+
+      queryUseCase.isPrivateBattle.mockResolvedValue(false)
+      participationUseCase.join.mockResolvedValue({
+        battleState: {
+          battleId: 'battle-1',
+          round: 1,
+          phase: 'PENDING',
+          phaseCount: 1,
+          startedAt: null,
+          expiredAt: null,
+          topics: ['topic1'],
+          totalRounds: 1,
+          participants: new Map([['user-1', BATTLE_TEAM.A]]),
+          userInfoMap: new Map([['user-1', '테스터']]),
+          teamVotes: new Map(),
+          skipState: new Set(),
+          teamA: { roomId: 'battle:battle-1:A', users: ['user-1'], chats: [], attacks: [], defenses: [] },
+          teamB: { roomId: 'battle:battle-1:B', users: [], chats: [], attacks: [], defenses: [] },
+          all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
+          opinionHistory: [],
+        } as any,
+        team: BATTLE_TEAM.A,
+      })
+
+      const joinMockClient = {
+        ...mockClient,
+        join: jest.fn().mockResolvedValue(undefined),
+      }
+
+      await gateway.joinBattle(dto as any, joinMockClient)
+
+      expect(queryUseCase.isPrivateBattle).toHaveBeenCalledWith('battle-1')
+      expect(participationUseCase.join).toHaveBeenCalled()
+      expect(joinMockClient.emit).toHaveBeenCalledWith('battle:joined', expect.any(Object))
+    })
+
+    it('비공개 배틀에 초대 코드 없이 접근하면 에러를 emit한다', async () => {
+      const dto = {
+        battleId: 'battle-private',
+        team: BATTLE_TEAM.A,
+        nickname: '테스터',
+      }
+
+      queryUseCase.isPrivateBattle.mockResolvedValue(true)
+
+      const joinMockClient = {
+        ...mockClient,
+        handshake: {
+          auth: { userId: 'user-1' },
+          headers: { cookie: '' },
+        },
+        join: jest.fn().mockResolvedValue(undefined),
+      }
+
+      await gateway.joinBattle(dto as any, joinMockClient)
+
+      expect(joinMockClient.emit).toHaveBeenCalledWith('battle:join:error', {
+        message: '비공개 배틀에 접근하려면 초대 코드가 필요합니다.',
+      })
+    })
+  })
+
+  describe('handleLeave', () => {
+    let participationUseCase: jest.Mocked<BattleParticipationUseCase>
+
+    beforeEach(() => {
+      participationUseCase = gateway['participationUseCase'] as jest.Mocked<BattleParticipationUseCase>
+    })
+
+    it('배틀에서 나간다', async () => {
+      const dto = { battleId: 'battle-1' }
+      participationUseCase.leave.mockResolvedValue({} as any)
+
+      await gateway.handleLeave(dto, mockClient)
+
+      expect(participationUseCase.leave).toHaveBeenCalledWith('user-1', 'battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:leaved', expect.any(Object))
+    })
+  })
+
+  describe('handleStart', () => {
+    let creationUseCase: jest.Mocked<BattleCreationUseCase>
+
+    beforeEach(() => {
+      creationUseCase = gateway['creationUseCase'] as jest.Mocked<BattleCreationUseCase>
+    })
+
+    it('배틀을 시작한다', async () => {
+      const dto = { battleId: 'battle-1' }
+      creationUseCase.start.mockResolvedValue(undefined)
+
+      await gateway.handleStart(dto as any)
+
+      expect(creationUseCase.start).toHaveBeenCalledWith('battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:started')
+    })
+  })
+
+  describe('handlePhaseSkip', () => {
+    let phaseTransitionUseCase: jest.Mocked<BattlePhaseTransitionUseCase>
+
+    beforeEach(() => {
+      phaseTransitionUseCase = gateway['phaseTransitionUseCase'] as jest.Mocked<BattlePhaseTransitionUseCase>
+    })
+
+    it('스킵 요청을 처리한다', async () => {
+      const dto = { skip: true, battleId: 'battle-1' }
+      phaseTransitionUseCase.handlePhaseSkip.mockResolvedValue(3)
+
+      await gateway.handlePhaseSkip(dto, mockClient)
+
+      expect(phaseTransitionUseCase.handlePhaseSkip).toHaveBeenCalledWith('battle-1', 'user-1', true)
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:user:skipped', { totalSkips: 3 })
+    })
+  })
+
+  describe('handleChat', () => {
+    it('채팅을 전송한다', async () => {
+      const dto = {
+        battleId: 'battle-1',
+        scope: 'all',
+        team: BATTLE_TEAM.A,
+        text: '안녕하세요',
+      }
+
+      interactionUseCase.sendChat.mockResolvedValue({
+        battleId: 'battle-1',
+        scope: 'all',
+        messageId: 'msg-1',
+        team: BATTLE_TEAM.A,
+        sender: { userId: 'user-1', nickname: '테스터' },
+        text: '안녕하세요',
+        createdAt: new Date(),
+      })
+
+      const chatMockServer = {
+        to: jest.fn().mockReturnValue({
+          except: jest.fn().mockReturnValue({
+            emit: jest.fn(),
+          }),
+        }),
+        emit: jest.fn(),
+      }
+      gateway.server = chatMockServer as any
+
+      await gateway.handleChat(dto as any, mockClient)
+
+      expect(interactionUseCase.sendChat).toHaveBeenCalled()
+    })
+  })
+
+  describe('handleTeamVote', () => {
+    it('팀 투표를 처리한다', async () => {
+      const dto = {
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.B,
+      }
+
+      interactionUseCase.switchTeam.mockResolvedValue(undefined)
+
+      await gateway.handleTeamVote(dto as any, mockClient)
+
+      expect(interactionUseCase.switchTeam).toHaveBeenCalledWith('battle-1', 'user-1', BATTLE_TEAM.B)
+    })
+  })
+
+  describe('phaseUpdate', () => {
+    it('페이즈 업데이트를 브로드캐스트한다', () => {
+      const payload = { battleId: 'battle-1', phase: 'ATTACK', phaseCount: 1, startedAt: Date.now(), expiredAt: Date.now() + 60000 }
+
+      gateway.phaseUpdate(payload as any)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:phase:updated', payload)
+    })
+  })
+
+  describe('roundUpdate', () => {
+    it('라운드 업데이트를 브로드캐스트한다', () => {
+      const payload = { battleId: 'battle-1', round: 2, topic: 'topic2' }
+
+      gateway.roundUpdate(payload as any)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:round:updated', payload)
+    })
+  })
+
+  describe('onAttacked', () => {
+    it('공격 결과를 브로드캐스트한다', () => {
+      const payload = { battleId: 'battle-1', aTeam: null, bTeam: null }
+
+      gateway.onAttacked(payload as any)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:attacked', payload)
+    })
+  })
+
+  describe('onDefensed', () => {
+    it('반론 결과를 브로드캐스트한다', () => {
+      const payload = { battleId: 'battle-1', aTeam: null, bTeam: null }
+
+      gateway.onDefensed(payload as any)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:defensed', payload)
+    })
+  })
+
+  describe('closeBattle', () => {
+    it('배틀 종료를 브로드캐스트하고 소켓을 끊는다', () => {
+      const payload = { battleId: 'battle-1' }
+      const mockIn = jest.fn().mockReturnValue({ disconnectSockets: jest.fn() })
+      gateway.server = { ...mockServer, in: mockIn }
+
+      gateway.closeBattle(payload as any)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:closed', payload)
+      expect(mockIn).toHaveBeenCalledTimes(3)
+    })
+  })
+
+  describe('skipPhase', () => {
+    it('스킵 이벤트를 브로드캐스트한다', () => {
+      const payload = { battleId: 'battle-1' }
+
+      gateway.skipPhase(payload)
+
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.emit).toHaveBeenCalledWith('battle:phase:skipped')
+    })
+  })
+
+  describe('afterInit', () => {
+    it('broadcaster에 서버를 설정한다', () => {
+      const broadcasterAdapter = gateway['broadcaster'] as jest.Mocked<BattleBroadcasterAdapter>
+
+      gateway.afterInit(mockServer)
+
+      expect(broadcasterAdapter.setServer).toHaveBeenCalledWith(mockServer)
+    })
+  })
 })
