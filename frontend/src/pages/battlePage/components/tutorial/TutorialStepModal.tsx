@@ -2,7 +2,7 @@ import type { TutorialStep } from '../../hooks/useTutorial';
 import { useSpotlight } from '../../hooks/useSpotlight';
 import type { SpotlightPosition } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
-import TutorialDiscussionInput from './TutorialDiscussionInput';
+import DiscussionInput from '../discussion/DiscussionInput';
 import TutorialProgressBoard from './TutorialProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
@@ -105,7 +105,7 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
       {currentStep === 'discussionInput' && (
         <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-[6] px-4 pb-4">
           <div data-tutorial="discussion-input" className="discussion-input-width">
-            <TutorialDiscussionInput />
+            <DiscussionInput />
           </div>
         </div>
       )}
