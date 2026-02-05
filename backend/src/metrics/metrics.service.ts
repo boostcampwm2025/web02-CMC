@@ -23,7 +23,7 @@ export class MetricsService {
       name: 'http_request_duration_seconds',
       help: 'HTTP request duration in seconds',
       labelNames: ['method', 'route', 'status_code'],
-      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
+      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10],
       registers: [this.registry],
     })
 
@@ -38,7 +38,7 @@ export class MetricsService {
       name: 'socket_event_duration_seconds',
       help: 'Socket event handling duration in seconds',
       labelNames: ['event', 'status'],
-      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2],
+      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10],
       registers: [this.registry],
     })
 
@@ -74,7 +74,7 @@ export class MetricsService {
       name: 'service_action_duration_seconds',
       help: 'Service action handling duration in seconds',
       labelNames: ['action', 'status'],
-      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5],
+      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10],
       registers: [this.registry],
     })
   }
