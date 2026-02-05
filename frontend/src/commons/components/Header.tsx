@@ -75,7 +75,7 @@ export default function Header() {
               </div>
             ) : (
               <>
-                <Link to="/login" className="px-3 py-1.5 text-gray-400">
+                <Link to="/login" className="mr-8 px-3 py-1.5 text-gray-400">
                   로그인
                 </Link>
               </>
