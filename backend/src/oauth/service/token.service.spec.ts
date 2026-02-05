@@ -355,7 +355,7 @@ describe('TokenService', () => {
         expect.objectContaining({
           httpOnly: true,
           secure: false,
-          sameSite: 'lax',
+          sameSite: 'none',
           path: '/',
         }),
       )
@@ -365,7 +365,7 @@ describe('TokenService', () => {
         expect.objectContaining({
           httpOnly: true,
           secure: false,
-          sameSite: 'lax',
+          sameSite: 'none',
           path: '/api/auth',
         }),
       )
@@ -424,13 +424,13 @@ describe('TokenService', () => {
       expect(mockClearCookie).toHaveBeenCalledWith('access_token', {
         httpOnly: true,
         secure: false,
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/',
       })
       expect(mockClearCookie).toHaveBeenCalledWith('session_id', {
         httpOnly: true,
         secure: false,
-        sameSite: 'lax',
+        sameSite: 'none',
         path: '/api/auth',
       })
     })

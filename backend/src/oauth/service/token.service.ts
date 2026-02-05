@@ -76,7 +76,7 @@ export class TokenService {
     res.cookie('access_token', accessToken, {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
       maxAge: this.parseExpiresIn(this.ACCESS_TOKEN_EXPIRES_IN),
     })
@@ -84,7 +84,7 @@ export class TokenService {
     res.cookie('session_id', sessionId, {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/api/auth',
       maxAge: this.parseExpiresIn(this.REFRESH_TOKEN_EXPIRES_IN),
     })
@@ -180,14 +180,14 @@ export class TokenService {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/',
     })
 
     res.clearCookie('session_id', {
       httpOnly: true,
       secure: isSecure,
-      sameSite: 'lax',
+      sameSite: 'none',
       path: '/api/auth',
     })
   }
