@@ -44,9 +44,9 @@ describe('CreateGuestUseCase', () => {
     guestService = {
       buildGuestNickname: jest.fn().mockResolvedValue('Guest1234'),
       buildGuest: jest.fn().mockReturnValue({
-        odpiUserId: 'guest-id-123',
+        id: 'guest-id-123',
         nickname: 'Guest1234',
-        isGuest: true,
+        createdAt: Date.now(),
       }),
       applyGuestToState: jest.fn(),
     } as unknown as jest.Mocked<BattleGuestService>
@@ -65,9 +65,9 @@ describe('CreateGuestUseCase', () => {
       const result = await useCase.execute('battle-1')
 
       expect(result).toEqual({
-        odpiUserId: 'guest-id-123',
+        id: 'guest-id-123',
         nickname: 'Guest1234',
-        isGuest: true,
+        createdAt: expect.any(Number),
       })
       expect(guestService.buildGuestNickname).toHaveBeenCalledWith('battle-1', expect.any(Function), expect.any(Function))
       expect(guestService.buildGuest).toHaveBeenCalledWith('Guest1234', expect.any(Function))
