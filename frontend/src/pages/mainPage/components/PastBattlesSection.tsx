@@ -19,7 +19,7 @@ export default function PastBattlesSection() {
             error={error}
             reset={reset}
             title="지난 배틀 결과를 불러올 수 없습니다"
-            height="36rem"
+            height="50rem"
           />
         )}
       >

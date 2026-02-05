@@ -11,12 +11,10 @@ export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
   const teamStyle = winner === 'DRAW' ? TEAM_STYLE.DRAW : TEAM_STYLE[winner];
 
   return (
-    <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
-      {/* 상단 바 */}
+    <div className="w-full h-[24.5rem] rounded-2xl bg-[#1A1A2E] overflow-hidden">
       <div className={`h-1 w-full ${teamStyle.bg}`} />
 
       <div className="p-6 flex flex-col gap-6">
-        {/* 상태 */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <IconBox className={teamStyle.bgSoft}>
@@ -34,20 +32,19 @@ export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
           </Badge>
         </div>
 
-        {/* 제목 */}
-        <div className="flex flex-col gap-2 text-left">
-          <h3 className="text-white text-base font-normal">{item.title}</h3>
-          <p className="text-sm text-gray-400">{item.description}</p>
+        <div className="flex flex-col gap-2 text-left min-w-0 h-[6rem]">
+          <h3 className="text-white text-base font-normal break-all line-clamp-1 overflow-hidden text-ellipsis">
+            {item.title}
+          </h3>
+          <p className="text-sm text-gray-400 line-clamp-3 break-all">{item.description}</p>
         </div>
 
-        {/* 투표 결과 */}
         <div className="flex flex-col gap-4">
           <VoteBar label="코드 A" pct={teamA.percentage} barClass="bg-blue-400" textClass="text-blue-400" />
           <VoteBar label="코드 B" pct={teamB.percentage} barClass="bg-red-400" textClass="text-red-400" />
         </div>
 
-        {/* 하단 */}
-        <div className="mt-2 flex items-center justify-between text-gray-400 text-sm">
+        <div className="mt-1 flex items-center justify-between text-gray-400 text-sm">
           <div className="flex items-center gap-1">
             <ClockIcon className="w-4 h-4" />
             <span>종료됨</span>
@@ -83,10 +80,7 @@ function VoteBar({
         <span className={textClass}>{pct}%</span>
       </div>
       <div className="h-2 rounded-full bg-[#2D2D3F] overflow-hidden">
-        <div
-          className={`h-full ${barClass}`}
-          style={{ width: `${pct}%` }} // ✅ width는 예외적으로 OK
-        />
+        <div className={`h-full ${barClass}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
