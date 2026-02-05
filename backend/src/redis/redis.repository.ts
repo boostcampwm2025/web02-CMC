@@ -86,6 +86,23 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.keys(pattern)
   }
 
+  // Redis Sorted Set 메서드
+  async zadd(key: string, score: number, member: string): Promise<number> {
+    return this.redisClient.zadd(key, score, member)
+  }
+
+  async zrem(key: string, ...members: string[]): Promise<number> {
+    return this.redisClient.zrem(key, ...members)
+  }
+
+  async zrangebyscore(key: string, min: number | string, max: number | string): Promise<string[]> {
+    return this.redisClient.zrangebyscore(key, min, max)
+  }
+
+  async zscore(key: string, member: string): Promise<string | null> {
+    return this.redisClient.zscore(key, member)
+  }
+
   getRedisClient(): Redis {
     return this.redisClient
   }
