@@ -297,15 +297,15 @@ export function usePracticeFlow({ currentStep, onOpenTeamChangeModal }: Practice
       const trimmed = content.trim();
       const currentUser = useAuthStore.getState().user;
       const team = useBattleStore.getState().selectedTeam;
-
-      if (!trimmed || !currentUser || team === 'NONE') return;
+      console.log('Submitting discussion:', { trimmed, currentUser, team });
+      if (!trimmed || team === 'NONE') return;
 
       const state = useBattleStore.getState();
       const totalVotes = state.discussions.reduce((sum, discussion) => sum + discussion.votes, 0);
 
       state.addDiscussion({
         id: Date.now(),
-        user: currentUser.nickname,
+        user: currentUser?.nickname ? currentUser.nickname : 'You',
         team: team as 'A' | 'B',
         content: trimmed,
         votes: 0,
