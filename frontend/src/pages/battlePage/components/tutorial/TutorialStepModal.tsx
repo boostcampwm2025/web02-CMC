@@ -3,7 +3,7 @@ import { useSpotlight } from '../../hooks/useSpotlight';
 import type { SpotlightPosition } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
 import DiscussionInput from '../discussion/DiscussionInput';
-import TutorialProgressBoard from './TutorialProgressBoard';
+import BattleProgressBoard from '../progressBoard/ProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
 import QuestionIcon from '@/assets/icon/question.svg?react';
 
@@ -98,7 +98,7 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
     <>
       {currentStep === 'progressBoard' && (
         <div className="fixed top-0 left-0 right-0 z-[99] flex justify-center pointer-events-none">
-          <TutorialProgressBoard />
+          <BattleProgressBoard />
         </div>
       )}
 
