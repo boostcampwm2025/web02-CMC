@@ -191,7 +191,7 @@ jobs:
             --exclude "index.html" \
             --delete \
             --acl public-read \
-            --cache-control "public max-age=31536000, immutable"
+            --cache-control "public, max-age=31536000, immutable"
 
           aws s3 sync frontend/dist/ s3://${{ secrets.NCP_BUCKET }}/${{ secrets.NCP_BUCKET_ROOT }} \
             --endpoint-url ${{ secrets.NCP_ENDPOINT }} \
