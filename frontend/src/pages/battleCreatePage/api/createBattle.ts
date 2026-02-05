@@ -7,6 +7,7 @@ const createBattle = async (battleData: CreateBattleRequest): Promise<CreateBatt
     headers: {
       'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify(battleData)
   });
 
