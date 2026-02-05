@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import BattleCategoryCard from '@/pages/mainPage/components/BattleCategoryCard';
-import LiveBattlesSection from '@/pages/mainPage/components/LiveBattlesSection';
-import PastBattlesSection from '@/pages/mainPage/components/PastBattlesSection';
+import LiveBattlesSection from './components/liveBattles/LiveBattlesSection';
+import PastBattlesSection from './components/pastBattles/PastBattlesSection';
 import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import Header from '@/commons/components/Header';

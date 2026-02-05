@@ -55,7 +55,6 @@ describe('Header', () => {
     renderHeader();
 
     expect(screen.getByText('로그인')).toBeInTheDocument();
-    expect(screen.getByText('가입하기')).toBeInTheDocument();
     expect(screen.queryByTestId('user-profile-dropdown')).not.toBeInTheDocument();
   });
 
@@ -71,7 +70,6 @@ describe('Header', () => {
     renderHeader();
 
     expect(screen.getByText('로그인')).toBeInTheDocument();
-    expect(screen.getByText('가입하기')).toBeInTheDocument();
     expect(screen.queryByTestId('user-profile-dropdown')).not.toBeInTheDocument();
   });
 
@@ -97,7 +95,6 @@ describe('Header', () => {
     expect(screen.getByText('OAuth유저')).toBeInTheDocument();
     expect(screen.getByAltText('GOLD tier')).toBeInTheDocument();
     expect(screen.queryByText('로그인')).not.toBeInTheDocument();
-    expect(screen.queryByText('가입하기')).not.toBeInTheDocument();
   });
 
   it('OAuth 사용자일 때 avatarUrl이 없어도 프로필 드롭다운이 표시된다', () => {
