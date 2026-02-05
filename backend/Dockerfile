@@ -8,6 +8,8 @@ RUN corepack enable
 # Copy workspace 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json ./backend/package.json
+COPY frontend/package.json ./frontend/package.json
+COPY packages ./packages
 
 # 의존성 설치
 ENV HUSKY=0
@@ -36,6 +38,7 @@ RUN corepack enable
 # Copy workspace files
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY backend/package.json ./backend/package.json
+COPY packages ./packages
 
 # 의존성 설치 (프로덕션용, husky 스크립트 무시)
 ENV HUSKY=0
