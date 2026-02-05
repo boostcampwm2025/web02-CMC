@@ -101,17 +101,6 @@ export default function TutorialBattlePage() {
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(selectedTeam, phase);
 
-  // 🔍 디버깅용 콘솔 로그
-  console.log('=== TutorialBattlePage State ===');
-  console.log('selectedTeam:', selectedTeam);
-  console.log('selectedTeamFromState:', selectedTeamFromState);
-  console.log('phase:', phase);
-  console.log('battleProgress:', battleProgress);
-  console.log('isInputDisabled result:', isInputDisabled(selectedTeam, phase));
-  console.log('shouldShowInput:', shouldShowInput);
-  console.log('practicePhase:', practicePhase);
-  console.log('================================');
-
   const handleAutoExit = useCallback(() => {
     navigate('/');
   }, [navigate]);
