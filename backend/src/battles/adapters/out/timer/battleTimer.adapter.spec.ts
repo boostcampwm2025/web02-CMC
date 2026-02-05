@@ -1,90 +1,70 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { BattleTimerAdapter } from './battleTimer.adapter'
+import type { RedisRepository } from '../../../../redis/redis.repository'
 import type { ActiveBattleState } from '../../../domains/models/types/battle.types'
 
 describe('BattleTimerAdapter', () => {
   let adapter: BattleTimerAdapter
+  let redis: jest.Mocked<RedisRepository>
 
   beforeEach(() => {
-    jest.useFakeTimers()
-    adapter = new BattleTimerAdapter()
-  })
-
-  afterEach(() => {
-    adapter.clear()
-    jest.useRealTimers()
+    redis = {
+      zadd: jest.fn().mockResolvedValue(undefined),
+      zrem: jest.fn().mockResolvedValue(undefined),
+      zrangebyscore: jest.fn().mockResolvedValue([]),
+      del: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<RedisRepository>
+    adapter = new BattleTimerAdapter(redis)
   })
 
   const createState = (expiredAt: number | null): ActiveBattleState => ({ expiredAt }) as unknown as ActiveBattleState
 
   describe('schedule', () => {
-    it('expiredAt이 null이면 타이머를 설정하지 않는다', () => {
-      const updatePhase = jest.fn()
-      adapter.schedule('battle-1', createState(null), updatePhase)
-      jest.advanceTimersByTime(10000)
-      expect(updatePhase).not.toHaveBeenCalled()
+    it('expiredAt이 null이면 Redis에 저장하지 않는다', () => {
+      adapter.schedule('battle-1', createState(null))
+      expect(redis.zadd).not.toHaveBeenCalled()
     })
 
-    it('만료 시간 후 updatePhase를 호출한다', () => {
-      const updatePhase = jest.fn().mockResolvedValue(undefined)
-      const now = Date.now()
-      adapter.schedule('battle-1', createState(now + 5000), updatePhase)
+    it('expiredAt이 있으면 Redis Sorted Set에 저장한다', () => {
+      const expiredAt = Date.now() + 5000
+      adapter.schedule('battle-1', createState(expiredAt))
 
-      jest.advanceTimersByTime(4999)
-      expect(updatePhase).not.toHaveBeenCalled()
-
-      jest.advanceTimersByTime(1)
-      expect(updatePhase).toHaveBeenCalledWith('battle-1')
-    })
-
-    it('이전 타이머를 취소하고 새 타이머를 설정한다', () => {
-      const updatePhase1 = jest.fn().mockResolvedValue(undefined)
-      const updatePhase2 = jest.fn().mockResolvedValue(undefined)
-      const now = Date.now()
-
-      adapter.schedule('battle-1', createState(now + 5000), updatePhase1)
-      adapter.schedule('battle-1', createState(now + 3000), updatePhase2)
-
-      jest.advanceTimersByTime(3000)
-      expect(updatePhase1).not.toHaveBeenCalled()
-      expect(updatePhase2).toHaveBeenCalledWith('battle-1')
-    })
-
-    it('이미 만료된 시간이면 즉시 실행한다', () => {
-      const updatePhase = jest.fn().mockResolvedValue(undefined)
-      const pastTime = Date.now() - 1000
-      adapter.schedule('battle-1', createState(pastTime), updatePhase)
-
-      jest.advanceTimersByTime(0)
-      expect(updatePhase).toHaveBeenCalledWith('battle-1')
+      expect(redis.zadd).toHaveBeenCalledWith('battle:timers', expiredAt, 'battle-1')
     })
   })
 
   describe('cancel', () => {
-    it('해당 배틀의 타이머를 취소한다', () => {
-      const updatePhase = jest.fn().mockResolvedValue(undefined)
-      const now = Date.now()
-      adapter.schedule('battle-1', createState(now + 5000), updatePhase)
-
+    it('Redis Sorted Set에서 배틀을 제거한다', () => {
       adapter.cancel('battle-1')
-      jest.advanceTimersByTime(10000)
-      expect(updatePhase).not.toHaveBeenCalled()
+
+      expect(redis.zrem).toHaveBeenCalledWith('battle:timers', 'battle-1')
+    })
+  })
+
+  describe('getExpiredBattles', () => {
+    it('만료된 배틀 ID 목록을 반환한다', async () => {
+      redis.zrangebyscore.mockResolvedValue(['battle-1', 'battle-2'])
+
+      const result = await adapter.getExpiredBattles()
+
+      expect(redis.zrangebyscore).toHaveBeenCalledWith('battle:timers', '-inf', expect.any(Number))
+      expect(result).toEqual(['battle-1', 'battle-2'])
     })
 
-    it('존재하지 않는 배틀을 취소해도 에러가 발생하지 않는다', () => {
-      expect(() => adapter.cancel('nonexistent')).not.toThrow()
+    it('만료된 배틀이 없으면 빈 배열을 반환한다', async () => {
+      redis.zrangebyscore.mockResolvedValue([])
+
+      const result = await adapter.getExpiredBattles()
+
+      expect(result).toEqual([])
     })
   })
 
   describe('clear', () => {
-    it('모든 타이머를 취소한다', () => {
-      const updatePhase = jest.fn().mockResolvedValue(undefined)
-      const now = Date.now()
-      adapter.schedule('battle-1', createState(now + 5000), updatePhase)
-      adapter.schedule('battle-2', createState(now + 5000), updatePhase)
-
+    it('Redis에서 타이머 키를 삭제한다', () => {
       adapter.clear()
-      jest.advanceTimersByTime(10000)
-      expect(updatePhase).not.toHaveBeenCalled()
+
+      expect(redis.del).toHaveBeenCalledWith('battle:timers')
     })
   })
 })

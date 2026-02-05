@@ -1,51 +1,51 @@
-import type { Request } from 'express'
 import { UnauthorizedException } from '@nestjs/common'
-import { RefreshStrategy } from './jwt-refresh.strategy'
-import type { ConfigService } from '@nestjs/config'
+import type { ExecutionContext } from '@nestjs/common'
+import { RefreshGuard } from './jwt-refresh.strategy'
 
-interface JwtRefreshPayload {
-  sub: string
-  iat?: number
-  exp?: number
-}
-
-describe('RefreshStrategy', () => {
-  let strategy: RefreshStrategy
+describe('RefreshGuard', () => {
+  let guard: RefreshGuard
 
   beforeEach(() => {
-    const configService = {
-      getOrThrow: jest.fn().mockReturnValue('test-refresh-secret'),
-      get: jest.fn(),
-    } as unknown as ConfigService
-    strategy = new RefreshStrategy(configService)
+    guard = new RefreshGuard()
   })
 
-  describe('validate', () => {
-    it('유효한 요청에서 userId와 refreshToken을 반환한다', () => {
-      const req = { cookies: { refresh_token: 'token-abc' } } as unknown as Request
-      const payload: JwtRefreshPayload = { sub: 'user-1' }
-      const result = strategy.validate(req, payload)
-      expect(result).toEqual({ userId: 'user-1', refreshToken: 'token-abc' })
+  const createMockContext = (cookies?: Record<string, string>): ExecutionContext => {
+    return {
+      switchToHttp: jest.fn().mockReturnValue({
+        getRequest: jest.fn().mockReturnValue({
+          cookies,
+          user: undefined,
+        }),
+      }),
+    } as unknown as ExecutionContext
+  }
+
+  describe('canActivate', () => {
+    it('session_id 쿠키가 있으면 true를 반환하고 user에 sessionId를 설정한다', () => {
+      const mockRequest = { cookies: { session_id: 'session-abc' }, user: undefined as unknown }
+      const context = {
+        switchToHttp: jest.fn().mockReturnValue({
+          getRequest: jest.fn().mockReturnValue(mockRequest),
+        }),
+      } as unknown as ExecutionContext
+
+      const result = guard.canActivate(context)
+
+      expect(result).toBe(true)
+      expect(mockRequest.user).toEqual({ userId: '', sessionId: 'session-abc' })
     })
 
-    it('sub가 없으면 UnauthorizedException을 던진다', () => {
-      const req = { cookies: { refresh_token: 'token-abc' } } as unknown as Request
-      expect(() => strategy.validate(req, { sub: '' })).toThrow(UnauthorizedException)
+    it('session_id 쿠키가 없으면 UnauthorizedException을 던진다', () => {
+      const context = createMockContext({})
+
+      expect(() => guard.canActivate(context)).toThrow(UnauthorizedException)
+      expect(() => guard.canActivate(context)).toThrow('세션이 없습니다.')
     })
 
-    it('payload가 null이면 UnauthorizedException을 던진다', () => {
-      const req = { cookies: { refresh_token: 'token-abc' } } as unknown as Request
-      expect(() => strategy.validate(req, null as unknown as JwtRefreshPayload)).toThrow(UnauthorizedException)
-    })
+    it('cookies가 undefined이면 UnauthorizedException을 던진다', () => {
+      const context = createMockContext(undefined)
 
-    it('refresh_token 쿠키가 없으면 UnauthorizedException을 던진다', () => {
-      const req = { cookies: {} } as unknown as Request
-      expect(() => strategy.validate(req, { sub: 'user-1' })).toThrow(UnauthorizedException)
-    })
-
-    it('cookies 자체가 undefined이면 UnauthorizedException을 던진다', () => {
-      const req = { cookies: undefined } as unknown as Request
-      expect(() => strategy.validate(req, { sub: 'user-1' })).toThrow(UnauthorizedException)
+      expect(() => guard.canActivate(context)).toThrow(UnauthorizedException)
     })
   })
 })

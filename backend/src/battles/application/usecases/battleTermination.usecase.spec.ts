@@ -48,7 +48,9 @@ describe('BattleTerminationUseCase', () => {
       }),
     } as unknown as jest.Mocked<BattleRepoPort>
 
-    stateRepo = {} as unknown as jest.Mocked<BattleStatePort>
+    stateRepo = {
+      clearCache: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<BattleStatePort>
 
     broadcaster = {
       emitBattleClosed: jest.fn(),
@@ -151,8 +153,8 @@ describe('BattleTerminationUseCase', () => {
         { id: 'user-2', rating: 1000, tier: 'SILVER' },
       ])
       tierService.buildRatingUpdates.mockReturnValue([
-        { userId: 'user-1', nextRating: 1050, nextTier: 'SILVER' },
-        { userId: 'user-2', nextRating: 950, nextTier: 'SILVER' },
+        { userId: 'user-1', currentRating: 1000, currentTier: 'SILVER', nextRating: 1050, nextTier: 'SILVER', delta: 50, mvpBonus: 0 },
+        { userId: 'user-2', currentRating: 1000, currentTier: 'SILVER', nextRating: 950, nextTier: 'SILVER', delta: -50, mvpBonus: 0 },
       ])
 
       await useCase.finish(mockState)

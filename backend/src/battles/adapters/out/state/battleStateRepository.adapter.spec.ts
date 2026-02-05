@@ -2,11 +2,13 @@
 import { NotFoundException } from '@nestjs/common'
 import { BattleStateRepositoryAdapter } from './battleStateRepository.adapter'
 import type { PrismaService } from '../../../../prisma/prisma.service'
+import type { RedisRepository } from '../../../../redis/redis.repository'
 import { BATTLE_TEAM } from '../../../domains/models/const/battles.const'
 
 describe('BattleStateRepositoryAdapter', () => {
   let adapter: BattleStateRepositoryAdapter
   let prisma: jest.Mocked<PrismaService>
+  let redis: jest.Mocked<RedisRepository>
 
   const createMockBattle = (overrides = {}) => ({
     id: 'battle-1',
@@ -37,7 +39,12 @@ describe('BattleStateRepositoryAdapter', () => {
         update: jest.fn(),
       },
     } as unknown as jest.Mocked<PrismaService>
-    adapter = new BattleStateRepositoryAdapter(prisma)
+    redis = {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(undefined),
+      del: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<RedisRepository>
+    adapter = new BattleStateRepositoryAdapter(prisma, redis)
   })
 
   describe('loadBattleState', () => {
@@ -96,14 +103,16 @@ describe('BattleStateRepositoryAdapter', () => {
 
     it('채팅 상태를 파싱한다', async () => {
       const mockBattle = createMockBattle({
-        chatsAllState: [{ message: 'hello', createdAt: '2024-01-01T00:00:00.000Z' }],
+        chatsAllState: [
+          { messageId: 'msg-1', team: 'A', sender: { userId: 'user-1', nickname: 'test' }, text: 'hello', createdAt: '2024-01-01T00:00:00.000Z' },
+        ],
       })
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
 
       const result = await adapter.loadBattleState('battle-1')
 
       expect(result.state.all.chats).toHaveLength(1)
-      expect(result.state.all.chats[0].message).toBe('hello')
+      expect(result.state.all.chats[0].text).toBe('hello')
     })
 
     it('skipState를 파싱한다', async () => {

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { BattleCreationUseCase } from './battleCreation.usecase'
-import { BATTLE_STATUS, BATTLE_PHASE, BATTLE_TYPE } from '../../domains/models/const/battles.const'
+import { BATTLE_STATUS, BATTLE_TYPE } from '../../domains/models/const/battles.const'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
-import type { BattleTimerPort } from '../ports/out/battleTimer.port'
 import type { BattleReferencePort } from '../ports/out/battleReference.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
 import type { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
@@ -16,7 +15,6 @@ describe('BattleCreationUseCase', () => {
   let repo: jest.Mocked<BattleRepoPort>
   let stateRepo: jest.Mocked<BattleStatePort>
   let broadcaster: jest.Mocked<BattleBroadcasterPort>
-  let timer: jest.Mocked<BattleTimerPort>
   let referencePort: jest.Mocked<BattleReferencePort>
   let identifierPort: jest.Mocked<BattleIdentifierPort>
   let phaseTransitionUseCase: jest.Mocked<BattlePhaseTransitionUseCase>
@@ -86,10 +84,6 @@ describe('BattleCreationUseCase', () => {
       emitRoundUpdated: jest.fn(),
     } as unknown as jest.Mocked<BattleBroadcasterPort>
 
-    timer = {
-      schedule: jest.fn(),
-    } as unknown as jest.Mocked<BattleTimerPort>
-
     referencePort = {
       generate: jest.fn().mockResolvedValue({
         summary: 'AI 요약',
@@ -106,7 +100,7 @@ describe('BattleCreationUseCase', () => {
       advancePhase: jest.fn(),
     } as unknown as jest.Mocked<BattlePhaseTransitionUseCase>
 
-    useCase = new BattleCreationUseCase(repo, stateRepo, broadcaster, timer, referencePort, identifierPort, phaseTransitionUseCase)
+    useCase = new BattleCreationUseCase(repo, stateRepo, broadcaster, referencePort, identifierPort, phaseTransitionUseCase)
   })
 
   describe('create', () => {
@@ -196,9 +190,8 @@ describe('BattleCreationUseCase', () => {
       )
     })
 
-    it('타이머를 스케줄한다', async () => {
+    it('배틀 시작 시 첫 페이즈로 전환한다', async () => {
       const mockState = createMockState()
-      mockState.expiredAt = Date.now() + BATTLE_PHASE.PENDING.time
       stateRepo.loadBattleState.mockResolvedValue({
         battle: {},
         state: mockState,
@@ -206,7 +199,7 @@ describe('BattleCreationUseCase', () => {
 
       await useCase.start('battle-id-123')
 
-      expect(timer.schedule).toHaveBeenCalledWith('battle-id-123', expect.any(Object), expect.any(Function))
+      expect(phaseTransitionUseCase.advancePhase).toHaveBeenCalledWith('battle-id-123')
     })
   })
 })

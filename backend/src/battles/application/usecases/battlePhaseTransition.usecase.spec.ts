@@ -358,7 +358,7 @@ describe('BattlePhaseTransitionUseCase', () => {
   })
 
   describe('타이머 스케줄링', () => {
-    it('올바른 지연 시간으로 타이머를 스케줄링한다', async () => {
+    it('올바른 상태로 타이머를 스케줄링한다', async () => {
       const mockState = createMockState()
       stateRepo.loadBattleState.mockResolvedValue({
         battle: {},
@@ -367,7 +367,7 @@ describe('BattlePhaseTransitionUseCase', () => {
 
       await useCase.advancePhase('battle-1')
 
-      expect(timer.schedule).toHaveBeenCalledWith('battle-1', expect.any(Object), expect.any(Function))
+      expect(timer.schedule).toHaveBeenCalledWith('battle-1', expect.any(Object))
     })
   })
 })
