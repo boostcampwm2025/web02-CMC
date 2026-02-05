@@ -2,7 +2,6 @@ import type { TutorialStep } from '../../hooks/useTutorial';
 import { useSpotlight } from '../../hooks/useSpotlight';
 import type { SpotlightPosition } from '../../hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
-import TutorialVoteExample from './TutorialVoteExample';
 import TutorialDiscussionInput from './TutorialDiscussionInput';
 import TutorialProgressBoard from './TutorialProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
@@ -100,12 +99,6 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
       {currentStep === 'progressBoard' && (
         <div className="fixed top-0 left-0 right-0 z-[99] flex justify-center pointer-events-none">
           <TutorialProgressBoard />
-        </div>
-      )}
-
-      {currentStep === 'vote' && (
-        <div data-tutorial="vote" className="absolute right-[9.688rem] top-[12.813rem] z-[99]">
-          <TutorialVoteExample />
         </div>
       )}
 

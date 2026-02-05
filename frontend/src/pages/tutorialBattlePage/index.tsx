@@ -190,6 +190,7 @@ export default function TutorialBattlePage() {
               }`}
             >
               <div
+                data-tutorial="vote"
                 className={
                   shouldHighlightVote
                     ? 'rounded-lg ring-2 ring-orange-400/70 shadow-[0_0_25px_rgba(255,105,0,0.35)] animate-pulse'
