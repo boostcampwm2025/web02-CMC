@@ -7,7 +7,6 @@ import { soundManager } from '@/commons/utils/soundManager';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
-import LoadingModal from '@/commons/components/LoadingModal';
 
 import BattleHeader from './components/header';
 import CodeSection from './components/codeview/CodeSection';
@@ -33,7 +32,7 @@ type Tab = 'info' | 'timeline' | 'reference';
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { battleInfo: battleInfoData, isLoading } = useGetBattleInfo(battleId!);
+  const { battleInfo: battleInfoData } = useGetBattleInfo(battleId!);
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
@@ -139,8 +138,6 @@ export default function BattlePage() {
 
   return (
     <div className="text-white relative">
-      <LoadingModal isOpen={isLoading || !battleInfoData} message="배틀 정보를 불러오는 중..." />
-
       {/* 책갈피 버튼 */}
       <BookmarkButton
         onOpen={(tab) => {

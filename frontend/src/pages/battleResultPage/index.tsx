@@ -13,7 +13,7 @@ import { useGetBattleResult } from './hooks/useGetBattleResult';
 export default function BattleResultPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { battleResult: battleData, isLoading } = useGetBattleResult(id!);
+  const { battleResult: battleData } = useGetBattleResult(id!);
 
   const bestOpinion = useMemo(() => {
     if (!battleData?.mvps?.length || !battleData.timeline.length) return null;
@@ -22,10 +22,6 @@ export default function BattleResultPage() {
     if (!mvpOpinions.length) return null;
     return mvpOpinions.reduce((max, current) => (current.upvotes > max.upvotes ? current : max), mvpOpinions[0]);
   }, [battleData]);
-
-  if (isLoading || !battleData) {
-    return <div>로딩 중...</div>;
-  }
 
   const { result } = battleData;
 
