@@ -1,9 +1,9 @@
 name: deploy
 
 on:
-  pull_request:
+  push:
     branches:
-      - dev
+      - devops/dev-server
 
 permissions:
   contents: read
