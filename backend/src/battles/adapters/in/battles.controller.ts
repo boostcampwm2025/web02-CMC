@@ -71,10 +71,11 @@ export class BattlesController {
   }
 
   private setInviteAccessCookie(battleId: string, res: Response) {
+    const isSecure = this.configService.get<string>('NODE_ENV') === 'production'
     res.cookie(`inviteAccess_${battleId}`, 'true', {
       httpOnly: true,
-      secure: this.configService.get<string>('NODE_ENV') === 'production',
-      sameSite: 'none',
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
       path: '/',
       maxAge: 60 * 60 * 1000, // 1시간
     })
