@@ -8,7 +8,7 @@ export default function InvitePage() {
     if (!inviteCode) {
       return;
     }
-    window.location.href = `/api/battles/${inviteCode}`;
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/battles/${inviteCode}`;
   }, [inviteCode]);
 
   return (
