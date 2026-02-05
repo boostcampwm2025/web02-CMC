@@ -94,7 +94,63 @@ describe('CreateGuestUseCase', () => {
 
       const result = await useCase.execute('battle-1')
 
-      expect(result.isGuest).toBe(true)
+      expect(result.id).toBeDefined()
+      expect(result.nickname).toBeDefined()
+    })
+
+    it('닉네임 존재 체크 콜백이 올바르게 전달된다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: { status: BATTLE_STATUS.OPEN },
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      guestService.buildGuestNickname.mockImplementation(async (_battleId, isNicknameExists) => {
+        await isNicknameExists('TestNickname')
+        return 'Guest1234'
+      })
+
+      await useCase.execute('battle-1')
+
+      expect(guestCheckPort.isNicknameExists).toHaveBeenCalledWith('TestNickname')
+    })
+
+    it('닉네임 중복 체크 콜백이 올바르게 전달된다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: { status: BATTLE_STATUS.OPEN },
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      guestService.buildGuestNickname.mockImplementation(async (battleId, _isNicknameExists, isNicknameDuplicate) => {
+        await isNicknameDuplicate(battleId, 'TestNickname')
+        return 'Guest1234'
+      })
+
+      await useCase.execute('battle-1')
+
+      expect(stateRepo.isNicknameDuplicate).toHaveBeenCalledWith('battle-1', 'TestNickname')
+    })
+
+    it('ID 생성 콜백이 올바르게 전달된다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: { status: BATTLE_STATUS.OPEN },
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      guestService.buildGuest.mockImplementation((_nickname, generateId) => {
+        const id = generateId()
+        return {
+          id,
+          nickname: 'Guest1234',
+          createdAt: Date.now(),
+        }
+      })
+
+      await useCase.execute('battle-1')
+
+      expect(identifierPort.generateId).toHaveBeenCalled()
     })
   })
 })

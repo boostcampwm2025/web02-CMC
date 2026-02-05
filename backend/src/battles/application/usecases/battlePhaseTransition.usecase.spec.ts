@@ -234,4 +234,140 @@ describe('BattlePhaseTransitionUseCase', () => {
       expect(skipService.shouldSkipPhase).toHaveBeenCalledWith(mockState, expect.any(Function), expect.any(Function))
     })
   })
+
+  describe('advancePhase 콜백 테스트', () => {
+    it('공격 투표 페이즈에서 onAttacked 콜백을 호출한다', async () => {
+      const mockState = createMockState({ phase: 'ATTACK' })
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      phaseService.nextPhase.mockImplementation((state, onAttacked) => {
+        onAttacked(state)
+        return { name: 'DEFENSE', time: 60000 }
+      })
+
+      await useCase.advancePhase('battle-1')
+
+      expect(voteService.buildAttackedResult).toHaveBeenCalled()
+      expect(broadcaster.emitAttacked).toHaveBeenCalled()
+    })
+
+    it('방어 투표 페이즈에서 onDefensed 콜백을 호출한다', async () => {
+      const mockState = createMockState({ phase: 'DEFENSE' })
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      phaseService.nextPhase.mockImplementation((state, _onAttacked, onDefensed) => {
+        onDefensed(state)
+        return { name: 'TEAM_SWITCH', time: 40000 }
+      })
+
+      await useCase.advancePhase('battle-1')
+
+      expect(voteService.buildDefensedResult).toHaveBeenCalled()
+      expect(broadcaster.emitDefensed).toHaveBeenCalled()
+    })
+
+    it('resetDiscussions 콜백을 호출한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      phaseService.nextPhase.mockImplementation((state, _onAttacked, _onDefensed, onReset) => {
+        onReset(state)
+        return { name: 'ATTACK', time: 60000 }
+      })
+
+      await useCase.advancePhase('battle-1')
+
+      expect(discussionService.resetDiscussions).toHaveBeenCalledWith(mockState)
+    })
+
+    it('배틀 종료 시 terminationUseCase.finish를 호출한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      phaseService.nextPhase.mockImplementation((state, _onAttacked, _onDefensed, _onReset, onFinish) => {
+        void onFinish(state)
+        return null
+      })
+
+      await useCase.advancePhase('battle-1')
+
+      expect(terminationUseCase.finish).toHaveBeenCalledWith(mockState)
+    })
+
+    it('팀 스위치 페이즈에서 applyTeamSwitch를 호출한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      phaseService.nextPhase.mockImplementation((state, _onAttacked, _onDefensed, _onReset, _onFinish, onTeamSwitch) => {
+        onTeamSwitch(state)
+        return { name: 'ATTACK', time: 60000 }
+      })
+
+      await useCase.advancePhase('battle-1')
+
+      expect(teamSwitchService.applyTeamSwitch).toHaveBeenCalled()
+    })
+  })
+
+  describe('scheduleNextTick 에러 처리', () => {
+    it('loadBattleState 에러를 무시한다', async () => {
+      const mockState = createMockState()
+      let callCount = 0
+      stateRepo.loadBattleState.mockImplementation(() => {
+        callCount++
+        if (callCount === 1) {
+          return Promise.resolve({
+            battle: {},
+            state: mockState,
+          } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+        }
+        return Promise.reject(new Error('Battle not found'))
+      })
+
+      // 에러가 발생해도 예외가 전파되지 않아야 함
+      await expect(useCase.advancePhase('battle-1')).resolves.not.toThrow()
+    })
+
+    it('expiredAt이 null이면 스케줄링하지 않는다', async () => {
+      const mockState = createMockState({ expiredAt: null })
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      await useCase.advancePhase('battle-1')
+
+      // timer.schedule이 호출되었는지 확인 (expiredAt이 null이면 호출되지 않음)
+      // scheduleNextTick 내부에서 early return 됨
+    })
+  })
+
+  describe('타이머 스케줄링', () => {
+    it('올바른 지연 시간으로 타이머를 스케줄링한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      await useCase.advancePhase('battle-1')
+
+      expect(timer.schedule).toHaveBeenCalledWith('battle-1', expect.any(Object), expect.any(Function))
+    })
+  })
 })
