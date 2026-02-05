@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { getOpenBattles } from '../api/getOpenBattles';
 import type { GetBattleListParams } from '../api/types';
 
 export function useGetOpenBattles({ offset, limit }: GetBattleListParams) {
-  const { data, ...rest } = useQuery({
+  const { data } = useSuspenseQuery({
     queryKey: ['battles', 'open', { offset, limit }],
     queryFn: () => getOpenBattles({ offset, limit }),
     select: (data) => ({
@@ -16,8 +16,7 @@ export function useGetOpenBattles({ offset, limit }: GetBattleListParams) {
   });
 
   return {
-    battles: data?.battles ?? [],
-    total: data?.total ?? 0,
-    ...rest
+    battles: data.battles,
+    total: data.total
   };
 }

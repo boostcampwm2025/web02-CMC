@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import PlusIcon from '@/assets/icon/plus.svg?react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { useCreateBattle } from './hooks/useCreateBattle';
+import LoadingOverlay from '@/commons/components/LoadingOverlay';
 import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
@@ -72,7 +72,7 @@ export default function BattleCreatePage() {
       return;
     }
 
-    createBattle({
+    await createBattle({
       authorId,
       title: title.trim(),
       description: description.trim(),
@@ -87,168 +87,171 @@ export default function BattleCreatePage() {
   };
 
   return (
-    <div className="min-h-screen w-full px-6 py-8">
-      <div className="mx-auto create-max-width">
-        <div className="flex items-center justify-start gap-4 mt-10 mb-8">
-          <button
-            onClick={() => window.history.back()}
-            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
-          >
-            ← 돌아가기
-          </button>
-        </div>
+    <main>
+      <LoadingOverlay isOpen={isPending} message="배틀 생성 중입니다..." />
+      <div className="min-h-screen w-full px-6 py-8">
+        <div className="mx-auto create-max-width">
+          <div className="flex items-center justify-start gap-4 mt-10 mb-8">
+            <button
+              onClick={() => window.history.back()}
+              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+            >
+              ← 돌아가기
+            </button>
+          </div>
 
-        <div className="mt-4 rounded-2xl border border-[#2b2b3e] bg-[#121226] shadow-[0_18px_35px_rgba(0,0,0,0.35)]">
-          <div className="h-1 w-full rounded-t-2xl bg-orange-500" />
+          <div className="mt-4 rounded-2xl border border-[#2b2b3e] bg-[#121226] shadow-[0_18px_35px_rgba(0,0,0,0.35)]">
+            <div className="h-1 w-full rounded-t-2xl bg-orange-500" />
 
-          <div className="create-padding">
-            <div className="mb-6">
-              <p className="text-xs tracking-[0.24em] text-orange-500">CREATE NEW BATTLE</p>
-              <h1 className="mt-2 create-title-size font-bold text-white">새 배틀 생성</h1>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm text-gray-300">문제 제목</label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="예: 배열에서 중복 제거하기"
-                  className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                />
+            <div className="create-padding">
+              <div className="mb-6">
+                <p className="text-xs tracking-[0.24em] text-orange-500">CREATE NEW BATTLE</p>
+                <h1 className="mt-2 create-title-size font-bold text-white">새 배틀 생성</h1>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm text-gray-300">문제 설명</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="어떤 코드를 비교하고 싶으신가요?"
-                  className="min-h-28 w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs font-bold text-blue-300">
-                      A
-                    </span>
-                    <label className="text-sm text-gray-300">구현 A</label>
-                  </div>
-                  <textarea
-                    value={aCode}
-                    onChange={(e) => setACode(e.target.value)}
-                    placeholder="첫 번째 코드를 입력하세요"
-                    className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                  <label className="text-sm text-gray-300">문제 제목</label>
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="예: 배열에서 중복 제거하기"
+                    className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500/20 text-xs font-bold text-rose-300">
-                      B
-                    </span>
-                    <label className="text-sm text-gray-300">구현 B</label>
-                  </div>
+                  <label className="text-sm text-gray-300">문제 설명</label>
                   <textarea
-                    value={bCode}
-                    onChange={(e) => setBCode(e.target.value)}
-                    placeholder="두 번째 코드를 입력하세요"
-                    className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="어떤 코드를 비교하고 싶으신가요?"
+                    className="min-h-28 w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">언어</label>
-                  <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value as BattleLanguage)}
-                    className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                  >
-                    {LANGUAGE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-xs font-bold text-blue-300">
+                        A
+                      </span>
+                      <label className="text-sm text-gray-300">구현 A</label>
+                    </div>
+                    <textarea
+                      value={aCode}
+                      onChange={(e) => setACode(e.target.value)}
+                      placeholder="첫 번째 코드를 입력하세요"
+                      className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500/20 text-xs font-bold text-rose-300">
+                        B
+                      </span>
+                      <label className="text-sm text-gray-300">구현 B</label>
+                    </div>
+                    <textarea
+                      value={bCode}
+                      onChange={(e) => setBCode(e.target.value)}
+                      placeholder="두 번째 코드를 입력하세요"
+                      className="create-textarea-height w-full resize-y rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 font-mono text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">카테고리</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as typeof category)}
-                    className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                  >
-                    {categoryOptions.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">언어</label>
+                    <select
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value as BattleLanguage)}
+                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    >
+                      {LANGUAGE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">카테고리</label>
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as typeof category)}
+                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    >
+                      {categoryOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">배틀 시간</label>
+                    <select
+                      value={playTime}
+                      onChange={(e) => setPlayTime(e.target.value as BattlePlayTime)}
+                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    >
+                      {PLAYTIME_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">배틀 시간</label>
-                  <select
-                    value={playTime}
-                    onChange={(e) => setPlayTime(e.target.value as BattlePlayTime)}
-                    className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
-                  >
-                    {PLAYTIME_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-300">배틀 공개 여부</label>
+                    <select
+                      value={type}
+                      onChange={(e) => setType(e.target.value as BattleType)}
+                      className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                    >
+                      {VISIBILITY_OPTIONS.map((o: { label: string; value: BattleType }) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-sm text-gray-300">배틀 공개 여부</label>
-                  <select
-                    value={type}
-                    onChange={(e) => setType(e.target.value as BattleType)}
-                    className="w-full rounded-xl border border-[#2b2b3e] bg-[#0f0f1f] px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500/60"
+                <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => (window.location.href = '/')}
+                    className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
                   >
-                    {VISIBILITY_OPTIONS.map((o: { label: string; value: BattleType }) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    취소
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={!canSubmit || isPending}
+                    onClick={handleSubmit}
+                    data-testid="create-battle-button"
+                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
+                  >
+                    배틀 생성하기
+                  </button>
                 </div>
-              </div>
-
-              <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
-
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => (window.location.href = '/')}
-                  className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
-                >
-                  취소
-                </button>
-
-                <button
-                  type="button"
-                  disabled={!canSubmit || isPending}
-                  onClick={handleSubmit}
-                  data-testid="create-battle-button"
-                  className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import * as Sentry from '@sentry/react';
 import BattleCreatePage from './pages/battleCreatePage';
 import MainPage from './pages/mainPage';
@@ -15,6 +15,7 @@ import ErrorPage from './pages/errorPage';
 import TutorialBattlePage from './pages/tutorialPage/battle';
 import { TUTORIAL_BATTLE_INFO } from './pages/tutorialPage/const/tutorialBattle';
 import { ToastContainer } from './commons/components/toast/ToastContainer';
+import LoadingOverlay from './commons/components/LoadingOverlay';
 import { useAuthStore } from './commons/stores/authStore';
 import './App.css';
 
@@ -35,7 +36,14 @@ const router = sentryCreateBrowserRouter([
         path: 'battle/create',
         element: <BattleCreatePage />
       },
-      { path: 'battle/:id', element: <BattlePage /> },
+      {
+        path: 'battle/:id',
+        element: (
+          <Suspense fallback={<LoadingOverlay isOpen={true} message="배틀 정보를 불러오는 중..." />}>
+            <BattlePage />
+          </Suspense>
+        )
+      },
       { path: 'battle/:id/team-select', element: <TeamSelectPage /> },
       {
         path: 'tutorial/team-select',
@@ -44,7 +52,14 @@ const router = sentryCreateBrowserRouter([
       },
       { path: 'tutorial/battle', element: <TutorialBattlePage />, loader: () => TUTORIAL_BATTLE_INFO },
       { path: 'battles/:inviteCode', element: <InvitePage /> },
-      { path: 'battles/:id/result', element: <BattleResultPage /> }
+      {
+        path: 'battles/:id/result',
+        element: (
+          <Suspense fallback={<LoadingOverlay isOpen={true} message="배틀 결과를 불러오는 중..." />}>
+            <BattleResultPage />
+          </Suspense>
+        )
+      }
     ]
   }
 ]);
