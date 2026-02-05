@@ -74,13 +74,9 @@ export default function Header() {
                 />
               </div>
             ) : (
-              // 비로그인 또는 비회원 사용자: 로그인/가입 버튼 표시
               <>
                 <Link to="/login" className="px-3 py-1.5 text-gray-400">
                   로그인
-                </Link>
-                <Link to="/signup" className="px-3 py-1.5 rounded-full bg-orange-500">
-                  가입하기
                 </Link>
               </>
             )}
