@@ -176,7 +176,7 @@ J162_유승준
 
 🔗 [코문철의 아키텍처가 더 궁금하다면?](https://github.com/boostcampwm2025/web02-CMC/wiki/%EC%BD%94%EB%AC%B8%EC%B2%A0%EC%9D%98-%EB%93%A0%EB%93%A0%ED%95%9C-%EC%84%A4%EA%B3%84#%EF%B8%8F-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
 
-<img width="800" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/e215f9e0-6ea3-48a5-b232-c680991b9b70/image.png" />
+<img width="800" alt="web02_Architecture V2" src="https://velog.velcdn.com/images/d159123/post/f647bfcd-ca92-4caf-8649-10493ff96faa/image.png" />
 
 ## 🛠️ 기술 스택
 
