@@ -98,5 +98,105 @@ describe('BattleSkipService', () => {
 
       expect(count).toBe(2)
     })
+
+    it('참가자가 아닌 유저는 스킵할 수 없다', () => {
+      const state = createActiveState()
+
+      expect(() => {
+        service.applyPhaseSkip(state, 'non-existent-user', true)
+      }).toThrow(UnauthorizedException)
+    })
+  })
+
+  describe('buildSkipCount', () => {
+    it('skipped가 true이면 0을 반환한다', () => {
+      const count = service.buildSkipCount(true, 5)
+
+      expect(count).toBe(0)
+    })
+
+    it('skipped가 false이면 skipStateSize를 반환한다', () => {
+      const count = service.buildSkipCount(false, 3)
+
+      expect(count).toBe(3)
+    })
+  })
+
+  describe('buildActiveParticipantsCount', () => {
+    it('모든 참가자가 NONE이면 0을 반환한다', () => {
+      const state = createActiveState()
+      state.participants.set('user-a', BATTLE_TEAM.NONE)
+      state.participants.set('user-b', BATTLE_TEAM.NONE)
+
+      const count = service.buildActiveParticipantsCount(state)
+
+      expect(count).toBe(0)
+    })
+
+    it('빈 participants Map이면 0을 반환한다', () => {
+      const state = createActiveState()
+      state.participants.clear()
+
+      const count = service.buildActiveParticipantsCount(state)
+
+      expect(count).toBe(0)
+    })
+  })
+
+  describe('shouldSkipPhase', () => {
+    it('모든 활성 참가자가 스킵하면 skipPhase 콜백을 호출하고 true를 반환한다', async () => {
+      const state = createActiveState()
+      state.skipState.add('user-a')
+      state.skipState.add('user-b')
+
+      const mockGetActiveCount = jest.fn().mockReturnValue(2)
+      const mockSkipPhase = jest.fn().mockResolvedValue(undefined)
+
+      const result = await service.shouldSkipPhase(state, mockGetActiveCount, mockSkipPhase)
+
+      expect(mockSkipPhase).toHaveBeenCalledWith('battle-id')
+      expect(result).toBe(true)
+    })
+
+    it('일부 참가자만 스킵하면 false를 반환한다', async () => {
+      const state = createActiveState()
+      state.skipState.add('user-a')
+      // user-b는 스킵하지 않음
+
+      const mockGetActiveCount = jest.fn().mockReturnValue(2)
+      const mockSkipPhase = jest.fn().mockResolvedValue(undefined)
+
+      const result = await service.shouldSkipPhase(state, mockGetActiveCount, mockSkipPhase)
+
+      expect(mockSkipPhase).not.toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('활성 참가자가 0명이면 스킵하지 않는다', async () => {
+      const state = createActiveState()
+      state.participants.set('user-a', BATTLE_TEAM.NONE)
+      state.participants.set('user-b', BATTLE_TEAM.NONE)
+
+      const mockGetActiveCount = jest.fn().mockReturnValue(0)
+      const mockSkipPhase = jest.fn().mockResolvedValue(undefined)
+
+      const result = await service.shouldSkipPhase(state, mockGetActiveCount, mockSkipPhase)
+
+      expect(mockSkipPhase).not.toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
+
+    it('아무도 스킵하지 않으면 false를 반환한다', async () => {
+      const state = createActiveState()
+      // skipState가 비어있음
+
+      const mockGetActiveCount = jest.fn().mockReturnValue(2)
+      const mockSkipPhase = jest.fn().mockResolvedValue(undefined)
+
+      const result = await service.shouldSkipPhase(state, mockGetActiveCount, mockSkipPhase)
+
+      expect(mockSkipPhase).not.toHaveBeenCalled()
+      expect(result).toBe(false)
+    })
   })
 })

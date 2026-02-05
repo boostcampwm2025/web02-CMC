@@ -211,4 +211,95 @@ describe('authStore', () => {
       expect(state2.user?.type === 'oauth').toBe(false);
     });
   });
+
+  describe('updateGuestTeam', () => {
+    it('게스트 사용자의 팀을 업데이트한다', async () => {
+      const mockGuestData = {
+        id: 'guest-123',
+        nickname: '심심한 레오'
+      };
+
+      vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
+      await useAuthStore.getState().loginGuest('battle-1');
+
+      useAuthStore.getState().updateGuestTeam('A');
+
+      expect(useAuthStore.getState().user?.selectedTeam).toBe('A');
+      const stored = JSON.parse(localStorage.getItem('CMC_GUEST_USER') || '{}');
+      expect(stored.selectedTeam).toBe('A');
+    });
+
+    it('B팀으로 업데이트할 수 있다', async () => {
+      const mockGuestData = {
+        id: 'guest-123',
+        nickname: '심심한 레오'
+      };
+
+      vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
+      await useAuthStore.getState().loginGuest('battle-1');
+
+      useAuthStore.getState().updateGuestTeam('B');
+
+      expect(useAuthStore.getState().user?.selectedTeam).toBe('B');
+    });
+
+    it('OAuth 사용자는 팀 업데이트가 무시된다', async () => {
+      const mockOAuthUser = {
+        id: 'oauth-123',
+        nickname: 'OAuth유저',
+        type: 'oauth' as const,
+        avatarUrl: 'https://example.com/avatar.jpg'
+      };
+
+      vi.mocked(getOAuthUser).mockResolvedValue(mockOAuthUser);
+      await useAuthStore.getState().getOAuthUser();
+
+      useAuthStore.getState().updateGuestTeam('A');
+
+      // OAuth 유저는 selectedTeam이 설정되지 않음
+      expect(useAuthStore.getState().user?.selectedTeam).toBeUndefined();
+    });
+
+    it('사용자가 없으면 팀 업데이트가 무시된다', () => {
+      useAuthStore.setState({ user: null });
+
+      useAuthStore.getState().updateGuestTeam('A');
+
+      expect(useAuthStore.getState().user).toBeNull();
+    });
+  });
+
+  describe('getOAuthUser with guest user', () => {
+    it('게스트 사용자일 때 OAuth 체크를 하지 않고 null을 반환한다', async () => {
+      const mockGuestData = {
+        id: 'guest-123',
+        nickname: '심심한 레오'
+      };
+
+      vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
+      await useAuthStore.getState().loginGuest('battle-1');
+
+      vi.mocked(getOAuthUser).mockClear();
+
+      const result = await useAuthStore.getState().getOAuthUser();
+
+      expect(result).toBeNull();
+      expect(vi.mocked(getOAuthUser)).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('loginGuest with selectedTeam', () => {
+    it('선택한 팀과 함께 비회원 로그인이 가능하다', async () => {
+      const mockGuestData = {
+        id: 'guest-123',
+        nickname: '심심한 레오'
+      };
+
+      vi.mocked(fetchPostGuestLogin).mockResolvedValue(mockGuestData);
+
+      await useAuthStore.getState().loginGuest('battle-1', 'A');
+
+      expect(useAuthStore.getState().user?.selectedTeam).toBe('A');
+    });
+  });
 });

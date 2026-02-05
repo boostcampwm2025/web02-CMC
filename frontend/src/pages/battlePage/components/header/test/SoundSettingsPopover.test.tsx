@@ -75,4 +75,92 @@ describe('SoundSettingsPopover', () => {
 
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('isOpen이 false일 때 null을 반환한다', () => {
+    const { container } = render(<SoundSettingsPopover {...defaultProps} isOpen={false} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('anchorEl이 null일 때 null을 반환한다', () => {
+    const { container } = render(<SoundSettingsPopover {...defaultProps} anchorEl={null} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('BGM 선택 시 playBGM이 호출된다', async () => {
+    const user = userEvent.setup();
+    render(<SoundSettingsPopover {...defaultProps} />);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'lofi');
+
+    expect(soundManager.playBGM).toHaveBeenCalledWith('lofi');
+  });
+
+  it('빈 BGM 선택 시 stopAllBGM이 호출된다', async () => {
+    const user = userEvent.setup();
+    render(<SoundSettingsPopover {...defaultProps} />);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, '');
+
+    expect(soundManager.stopAllBGM).toHaveBeenCalled();
+  });
+
+  it('재생/일시정지 버튼 클릭 시 상태 전환', async () => {
+    const user = userEvent.setup();
+    vi.mocked(soundManager.isBGMPlaying).mockReturnValue(true);
+    vi.mocked(soundManager.getCurrentBGM).mockReturnValue('lofi');
+
+    render(<SoundSettingsPopover {...defaultProps} />);
+
+    const playPauseButton = screen.getByLabelText('일시정지');
+    await user.click(playPauseButton);
+
+    expect(soundManager.pauseBGM).toHaveBeenCalled();
+  });
+
+  it('일시정지 상태에서 재생 버튼 클릭 시 resumeBGM 호출', async () => {
+    const user = userEvent.setup();
+    vi.mocked(soundManager.isBGMPlaying).mockReturnValue(false);
+    vi.mocked(soundManager.getCurrentBGM).mockReturnValue('lofi');
+
+    render(<SoundSettingsPopover {...defaultProps} />);
+
+    // Select a BGM first
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'lofi');
+
+    // Then click pause (which should now be play since we selected BGM and it auto-plays)
+    const playPauseButton = screen.getByLabelText('일시정지');
+    await user.click(playPauseButton);
+
+    expect(soundManager.pauseBGM).toHaveBeenCalled();
+  });
+
+  it('일시정지 상태에서 selectedBGM이 있으면 resumeBGM 호출', async () => {
+    const user = userEvent.setup();
+    vi.mocked(soundManager.isBGMPlaying).mockReturnValue(false);
+    vi.mocked(soundManager.getCurrentBGM).mockReturnValue('lofi');
+
+    render(<SoundSettingsPopover {...defaultProps} />);
+
+    const playPauseButton = screen.getByLabelText('재생');
+    await user.click(playPauseButton);
+
+    expect(soundManager.resumeBGM).toHaveBeenCalled();
+  });
+
+  it('bgmOptions가 비어있을 때 재생 버튼 클릭 시 아무 동작 안함', async () => {
+    const user = userEvent.setup();
+    vi.mocked(soundManager.isBGMPlaying).mockReturnValue(false);
+    vi.mocked(soundManager.getCurrentBGM).mockReturnValue(null);
+
+    render(<SoundSettingsPopover {...defaultProps} bgmOptions={[]} />);
+
+    const playPauseButton = screen.getByLabelText('재생');
+    await user.click(playPauseButton);
+
+    expect(soundManager.playBGM).not.toHaveBeenCalled();
+    expect(soundManager.resumeBGM).not.toHaveBeenCalled();
+  });
 });
