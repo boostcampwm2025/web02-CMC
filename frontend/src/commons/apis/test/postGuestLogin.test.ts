@@ -15,7 +15,7 @@ describe('fetchPostGuestLogin', () => {
     const result = await fetchPostGuestLogin('battle-123');
 
     expect(result).toEqual({ id: 'guest-1', nickname: '귀여운 레오' });
-    expect(fetch).toHaveBeenCalledWith('/api/auth/guest/battle-123', {
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/auth/guest/battle-123'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });

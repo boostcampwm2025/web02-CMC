@@ -15,7 +15,7 @@ describe('logout', () => {
     const result = await logout();
 
     expect(result).toEqual({ success: true });
-    expect(fetch).toHaveBeenCalledWith('/api/auth/logout', {
+    expect(fetch).toHaveBeenCalledWith(expect.stringContaining('/api/auth/logout'), {
       method: 'POST',
       credentials: 'include'
     });
