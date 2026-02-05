@@ -31,7 +31,7 @@ export function useBattleSocket() {
 
     if (!userId || !battleId) return;
 
-    const newSocket = io(import.meta.env.VITE_API_URL, {
+    const newSocket = io(import.meta.env.VITE_SOCKET_URL, {
       transports: ['websocket'],
       auth: { userId },
       reconnection: true,

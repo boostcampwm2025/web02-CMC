@@ -2,7 +2,7 @@ import type { CreateBattleRequest, CreateBattleResponse } from './types';
 import { isCreateBattleResponse } from './types';
 
 const createBattle = async (battleData: CreateBattleRequest): Promise<CreateBattleResponse> => {
-  const response = await fetch('/api/battles', {
+  const response = await fetch(`${import.meta.env.VITE_API_URL}/api/battles`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

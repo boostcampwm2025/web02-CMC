@@ -1,7 +1,7 @@
 import { type GetBattleListParams, type BattleResultListResponse, isBattleResultListResponse } from './types';
 
 export async function getClosedBattles({ offset, limit }: GetBattleListParams): Promise<BattleResultListResponse> {
-  const res = await fetch(`/api/battles/closed?offset=${offset}&limit=${limit}`);
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/battles/closed?offset=${offset}&limit=${limit}`);
 
   if (!res.ok) {
     throw new Error('배틀 목록을 불러오지 못했습니다.');

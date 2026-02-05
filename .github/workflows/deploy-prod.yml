@@ -89,6 +89,9 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
+            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ steps.set_version.outputs.version_tag }}
