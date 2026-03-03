@@ -97,7 +97,7 @@ export default function DiscussionModal({ isOpen, team, content, type, onClose }
           <div
             className={`max-w-2xl px-8 py-6 bg-gray-800/80 backdrop-blur-sm rounded-2xl border-2 border-gray-700 shadow-2xl transition-all duration-500 delay-400 ${cardClass}`}
           >
-            <p className="text-gray-100 text-lg leading-relaxed">{content}</p>
+            <p className="text-gray-100 text-lg leading-relaxed break-all">{content}</p>
           </div>
         </div>
       </div>
