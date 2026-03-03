@@ -15,6 +15,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [isLimitExceeded, setIsLimitExceeded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const round = battleProgress?.round;
   const phase = battleProgress?.phase;
@@ -23,14 +24,18 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
-    const over = newValue.length > MAX_LENGTH;
 
-    if (over) {
-      if (inputValue.length < MAX_LENGTH) {
-        setIsShaking(true);
-        setTimeout(() => setIsShaking(false), 500);
-      }
+    // 120자를 초과하려고 하면 자르기
+    if (newValue.length > MAX_LENGTH) {
       newValue = newValue.slice(0, MAX_LENGTH);
+    }
+
+    // 119글자에서 120글자로 도달했을 때 애니메이션 발동
+    if (inputValue.length < MAX_LENGTH && newValue.length === MAX_LENGTH) {
+      setIsLimitExceeded(true);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      setTimeout(() => setIsLimitExceeded(false), 2000);
     }
 
     setInputValue(newValue);
@@ -86,9 +91,13 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
               onBlur={() => setIsFocused(false)}
               placeholder={config.placeholderText}
               autoFocus
-              className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-colors focus:outline-none focus:ring-2 ${
-                isFocused ? config.colors.focusBorder : config.colors.border
-              } ${config.colors.focusRing} ${isShaking ? 'animate-input-exceed-shake' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-all duration-500 focus:outline-none focus:ring-2 ${
+                isLimitExceeded
+                  ? 'border-red-500 focus:ring-red-500/30'
+                  : isFocused
+                    ? config.colors.focusBorder
+                    : config.colors.border
+              } ${isLimitExceeded ? '' : config.colors.focusRing} ${isShaking ? 'animate-input-exceed-shake' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
             />
 
             <button
