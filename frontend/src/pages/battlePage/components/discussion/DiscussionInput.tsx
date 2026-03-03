@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import BattleIcon from '@/assets/icon/battle.svg?react';
@@ -17,6 +18,8 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const [isShaking, setIsShaking] = useState(false);
   const [isLimitExceeded, setIsLimitExceeded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const addToast = useToastStore(selectAddToast);
+
   const round = battleProgress?.round;
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
@@ -25,12 +28,11 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
 
-    // 120자를 초과하려고 하면 자르기
     if (newValue.length > MAX_LENGTH) {
+      addToast({ message: `${phase === 'ATTACK' ? '이의제기' : '반론'}은 최대 120글자까지 입력할 수 있습니다.` });
       newValue = newValue.slice(0, MAX_LENGTH);
     }
 
-    // 119글자에서 120글자로 도달했을 때 애니메이션 발동
     if (inputValue.length < MAX_LENGTH && newValue.length === MAX_LENGTH) {
       setIsLimitExceeded(true);
       setIsShaking(true);
