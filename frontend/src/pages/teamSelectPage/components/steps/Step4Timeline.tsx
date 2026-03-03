@@ -142,8 +142,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
     const isTeamA = team === 'A';
 
     return (
-      <div className="p-6">
-        {/* Header */}
+      <div className="p-6 w-full flex flex-col h-48 overflow-hidden justify-between">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span
@@ -158,10 +157,8 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
           <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
         </div>
 
-        {/* Content */}
-        <p className="text-gray-300 mb-4 leading-relaxed text-sm">{message.content}</p>
+        <p className="text-gray-300 mb-4 leading-relaxed text-xs break-all text-left">{message.content}</p>
 
-        {/* Vote Display */}
         <div
           className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 w-fit ${
             isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'
