@@ -4,6 +4,8 @@ import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import ShieldIcon from '@/assets/icon/shield.svg?react';
 
+const MAX_LENGTH = 120;
+
 interface DiscussionInputProps {
   onSubmit?: (content: string) => void;
 }
@@ -12,11 +14,27 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const round = battleProgress?.round;
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
   const PhaseIcon = phase === 'ATTACK' ? BattleIcon : ShieldIcon;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+    const over = newValue.length > MAX_LENGTH;
+
+    if (over) {
+      if (inputValue.length < MAX_LENGTH) {
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
+      }
+      newValue = newValue.slice(0, MAX_LENGTH);
+    }
+
+    setInputValue(newValue);
+  };
 
   const handleSubmit = () => {
     if (inputValue.trim()) {
@@ -62,7 +80,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
               ref={inputRef}
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={handleChange}
               onKeyDown={handleKeyPress}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
@@ -70,7 +88,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
               autoFocus
               className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-colors focus:outline-none focus:ring-2 ${
                 isFocused ? config.colors.focusBorder : config.colors.border
-              } ${config.colors.focusRing} disabled:opacity-50 disabled:cursor-not-allowed`}
+              } ${config.colors.focusRing} ${isShaking ? 'animate-input-exceed-shake' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
             />
 
             <button
