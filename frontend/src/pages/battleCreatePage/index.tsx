@@ -231,7 +231,7 @@ export default function BattleCreatePage() {
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
-                    onClick={() => (window.location.href = '/')}
+                    onClick={() => (window.location.href = '/main')}
                     className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
                   >
                     취소
