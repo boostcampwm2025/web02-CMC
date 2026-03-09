@@ -110,6 +110,32 @@ test.describe('메인 페이지 - 렌더링', () => {
   });
 });
 
+test.describe('메인 페이지 - 배틀 카드 클릭', () => {
+  test('LIVE NOW → 클릭 시 팀 선택 페이지로 이동한다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route('**/api/battles/open*', (route) =>
+      route.fulfill({ status: 200, json: { battles: [MOCK_OPEN_BATTLE], meta: { offset: 0, limit: 3, total: 1 } } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('link', { name: 'LIVE NOW →' }).click();
+
+    await expect(page).toHaveURL(`/battle/${MOCK_OPEN_BATTLE.id}/team-select`);
+  });
+
+  test('결과 보기 → 클릭 시 결과 페이지로 이동한다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route('**/api/battles/closed*', (route) =>
+      route.fulfill({ status: 200, json: { battles: [MOCK_CLOSED_BATTLE], meta: { offset: 0, limit: 6, total: 1 } } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('link', { name: '결과 보기 →' }).click();
+
+    await expect(page).toHaveURL(`/battles/${MOCK_CLOSED_BATTLE.id}/result`);
+  });
+});
+
 test.describe('메인 페이지 - 새 배틀 생성 버튼', () => {
   test('비로그인 상태에서 새 배틀 생성 버튼 클릭 시 경고 toast가 표시된다', async ({ page }) => {
     await mockUnauthenticated(page);
