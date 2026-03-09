@@ -1,8 +1,11 @@
 import { useState, useRef } from 'react';
+import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import BattleIcon from '@/assets/icon/battle.svg?react';
 import ShieldIcon from '@/assets/icon/shield.svg?react';
+
+const MAX_LENGTH = 120;
 
 interface DiscussionInputProps {
   onSubmit?: (content: string) => void;
@@ -12,11 +15,33 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
+  const [isLimitExceeded, setIsLimitExceeded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const addToast = useToastStore(selectAddToast);
+
   const round = battleProgress?.round;
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
   const PhaseIcon = phase === 'ATTACK' ? BattleIcon : ShieldIcon;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+
+    if (newValue.length > MAX_LENGTH) {
+      addToast({ message: `${phase === 'ATTACK' ? '이의제기' : '반론'}은 최대 120글자까지 입력할 수 있습니다.` });
+      newValue = newValue.slice(0, MAX_LENGTH);
+    }
+
+    if (inputValue.length < MAX_LENGTH && newValue.length === MAX_LENGTH) {
+      setIsLimitExceeded(true);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+      setTimeout(() => setIsLimitExceeded(false), 2000);
+    }
+
+    setInputValue(newValue);
+  };
 
   const handleSubmit = () => {
     if (inputValue.trim()) {
@@ -62,15 +87,19 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
               ref={inputRef}
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={handleChange}
               onKeyDown={handleKeyPress}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
               placeholder={config.placeholderText}
               autoFocus
-              className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-colors focus:outline-none focus:ring-2 ${
-                isFocused ? config.colors.focusBorder : config.colors.border
-              } ${config.colors.focusRing} disabled:opacity-50 disabled:cursor-not-allowed`}
+              className={`w-full bg-black/30 backdrop-blur-sm rounded-lg px-4 py-3.5 text-sm text-white placeholder-gray-500/60 border-2 transition-all duration-500 focus:outline-none focus:ring-2 ${
+                isLimitExceeded
+                  ? 'border-red-500 focus:ring-red-500/30'
+                  : isFocused
+                    ? config.colors.focusBorder
+                    : config.colors.border
+              } ${isLimitExceeded ? '' : config.colors.focusRing} ${isShaking ? 'animate-input-exceed-shake' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
             />
 
             <button
