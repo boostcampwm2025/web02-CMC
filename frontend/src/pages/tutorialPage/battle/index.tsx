@@ -102,7 +102,7 @@ export default function TutorialBattlePage() {
   const shouldShowInput = !isInputDisabled(selectedTeam, phase);
 
   const handleAutoExit = useCallback(() => {
-    navigate('/');
+    navigate('/main');
   }, [navigate]);
 
   useAutoExitOnDone(practicePhase === 'done', handleAutoExit);
