@@ -64,11 +64,11 @@ test.describe('배틀 생성 페이지 - 버튼 활성화', () => {
 
     await page.selectOption('select:nth-of-type(2)', 'THIRTY_MIN');
 
-    // 쟁점 1개만 선택 → 버튼 비활성화
+    // 쟁점 1개만 선택 -> 버튼 비활성화
     await page.getByLabel('효율성').check();
     await expect(page.getByTestId('create-battle-button')).toBeDisabled();
 
-    // 쟁점 2개 선택 → 버튼 활성화
+    // 쟁점 2개 선택 -> 버튼 활성화
     await page.getByLabel('가독성').check();
     await expect(page.getByTestId('create-battle-button')).toBeEnabled();
   });
