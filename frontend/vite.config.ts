@@ -32,6 +32,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/mocks/sentry.ts', './src/test/setup.ts'],
-    css: true
+    css: true,
+    include: ['src/**/*.{test,spec}.{ts,tsx}']
   }
 });
