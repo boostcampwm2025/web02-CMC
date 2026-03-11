@@ -1,5 +1,13 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
+
+async function fillRequiredFields(page: Page) {
+  await page.getByPlaceholder('예: 배열에서 중복 제거하기').fill('테스트 배틀');
+  await page.getByPlaceholder('어떤 코드를 비교하고 싶으신가요?').fill('코드 비교 설명');
+  await page.getByPlaceholder('첫 번째 코드를 입력하세요').fill('const a = 1;');
+  await page.getByPlaceholder('두 번째 코드를 입력하세요').fill('let b = 2;');
+  await page.getByLabel('효율성').check();
+}
 
 test.describe('배틀 생성 페이지 - 폼 렌더링', () => {
   test('페이지 진입 시 필수 입력 필드와 버튼이 렌더링된다', async ({ page }) => {
@@ -44,11 +52,7 @@ test.describe('배틀 생성 페이지 - 버튼 활성화', () => {
     await injectOAuthUser(page);
     await page.goto('/battle/create');
 
-    await page.getByPlaceholder('예: 배열에서 중복 제거하기').fill('테스트 배틀');
-    await page.getByPlaceholder('어떤 코드를 비교하고 싶으신가요?').fill('코드 비교 설명');
-    await page.getByPlaceholder('첫 번째 코드를 입력하세요').fill('const a = 1;');
-    await page.getByPlaceholder('두 번째 코드를 입력하세요').fill('let b = 2;');
-    await page.getByLabel('효율성').check();
+    await fillRequiredFields(page);
 
     await expect(page.getByTestId('create-battle-button')).toBeEnabled();
   });
@@ -61,15 +65,53 @@ test.describe('배틀 생성 페이지 - 버튼 활성화', () => {
     await page.getByPlaceholder('어떤 코드를 비교하고 싶으신가요?').fill('코드 비교 설명');
     await page.getByPlaceholder('첫 번째 코드를 입력하세요').fill('const a = 1;');
     await page.getByPlaceholder('두 번째 코드를 입력하세요').fill('let b = 2;');
+    await page.locator('select').nth(2).selectOption({ label: '30분' });
 
-    await page.selectOption('select:nth-of-type(2)', 'THIRTY_MIN');
-
-    // 쟁점 1개만 선택 -> 버튼 비활성화
     await page.getByLabel('효율성').check();
     await expect(page.getByTestId('create-battle-button')).toBeDisabled();
 
-    // 쟁점 2개 선택 -> 버튼 활성화
     await page.getByLabel('가독성').check();
     await expect(page.getByTestId('create-battle-button')).toBeEnabled();
+  });
+});
+
+test.describe('배틀 생성 페이지 - 생성 플로우', () => {
+  test('생성 중 로딩 오버레이가 노출된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles', (route) => {
+      setTimeout(() => route.fulfill({ status: 200, json: { battleId: 'new-battle-id' } }), 1000);
+    });
+    await page.goto('/battle/create');
+
+    await fillRequiredFields(page);
+    await page.getByTestId('create-battle-button').click();
+
+    await expect(page.getByText('배틀 생성 중입니다...')).toBeVisible();
+  });
+
+  test('배틀 생성 성공 시 팀 선택 페이지로 이동한다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles', (route) =>
+      route.fulfill({ status: 200, json: { battleId: 'new-battle-id' } })
+    );
+    await page.goto('/battle/create');
+
+    await fillRequiredFields(page);
+    await page.getByTestId('create-battle-button').click();
+
+    await expect(page).toHaveURL('/battle/new-battle-id/team-select/');
+  });
+
+  test('배틀 생성 API 실패 시 toast가 노출된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles', (route) =>
+      route.fulfill({ status: 500 })
+    );
+    await page.goto('/battle/create');
+
+    await fillRequiredFields(page);
+    await page.getByTestId('create-battle-button').click();
+
+    await expect(page.getByText('배틀 생성에 실패했습니다.')).toBeVisible();
   });
 });
