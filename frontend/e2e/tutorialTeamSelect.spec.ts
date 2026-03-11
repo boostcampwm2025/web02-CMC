@@ -6,9 +6,9 @@ async function closeIntroModal(page: Page) {
   await modal.getByRole('button', { name: '시작하기' }).click();
 }
 
-async function goToTeamSelectStep(page: Page) {
+async function goToStep(page: Page, stepCount: number) {
   await closeIntroModal(page);
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < stepCount; i++) {
     await page.getByRole('button', { name: '다음 단계' }).click();
   }
 }
@@ -60,10 +60,28 @@ test.describe('튜토리얼 팀 선택 페이지 - 배틀 설명 카드 캐러�
   });
 });
 
+test.describe('튜토리얼 팀 선택 페이지 - 타임라인', () => {
+  test('타임라인 Round 1은 기본으로 펼쳐져 있고, 클릭 시 접혔다 다시 펼쳐진다', async ({ page }) => {
+    await page.goto('/tutorial/team-select');
+    await goToStep(page, 3);
+
+    // Round 1은 기본으로 펼쳐짐
+    await expect(page.getByText('A 이의제기 (1차)')).toBeVisible();
+
+    // 클릭 시 접힘
+    await page.getByRole('button', { name: /Round 1/ }).click();
+    await expect(page.getByText('A 이의제기 (1차)')).not.toBeVisible();
+
+    // 다시 클릭 시 펼쳐짐
+    await page.getByRole('button', { name: /Round 1/ }).click();
+    await expect(page.getByText('A 이의제기 (1차)')).toBeVisible();
+  });
+});
+
 test.describe('튜토리얼 팀 선택 페이지 - 진영 선택', () => {
   test('진영 미선택 시 완료 버튼이 비활성화되고, 선택 후 활성화된다', async ({ page }) => {
     await page.goto('/tutorial/team-select');
-    await goToTeamSelectStep(page);
+    await goToStep(page, 4);
 
     await expect(page.getByRole('button', { name: '진영 선택 완료' })).toBeDisabled();
 
@@ -74,7 +92,7 @@ test.describe('튜토리얼 팀 선택 페이지 - 진영 선택', () => {
 
   test('진영 선택 후 완료 버튼 클릭 시 튜토리얼 배틀 페이지로 이동한다', async ({ page }) => {
     await page.goto('/tutorial/team-select');
-    await goToTeamSelectStep(page);
+    await goToStep(page, 4);
 
     await page.getByRole('button', { name: 'A팀' }).click();
     await page.getByRole('button', { name: '진영 선택 완료' }).click();
