@@ -30,6 +30,29 @@ async function setupPage(page: Page) {
   await page.goto(BATTLE_URL);
 }
 
+test.describe('팀 선택 페이지 - 렌더링', () => {
+  test('페이지 타이틀과 1단계 상황 요약이 렌더링된다', async ({ page }) => {
+    await setupPage(page);
+
+    await expect(page.getByRole('heading', { name: '배틀 참가하기' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '상황 요약' })).toBeVisible();
+    await expect(page.getByText('블록 if vs 한 줄 if')).toBeVisible();
+    await expect(page.getByText('1단계: 상황 요약')).toBeVisible();
+  });
+
+  test('배틀 카테고리와 언어가 표시된다', async ({ page }) => {
+    await setupPage(page);
+
+    await expect(page.getByText('REFACTORING')).toBeVisible();
+    await expect(page.getByText('JavaScript')).toBeVisible();
+  });
+
+  test('참여자 수가 표시된다', async ({ page }) => {
+    await setupPage(page);
+
+    await expect(page.getByText('42명')).toBeVisible();
+  });
+});
 
 test.describe('팀 선택 페이지 - 돌아가기', () => {
   test('돌아가기 버튼 클릭 시 메인 페이지로 이동한다', async ({ page }) => {
