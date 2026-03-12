@@ -30,6 +30,13 @@ async function setupPage(page: Page) {
   await page.goto(BATTLE_URL);
 }
 
+async function navigateToTeamSelect(page: Page) {
+  await setupPage(page);
+  for (let i = 0; i < 3; i++) {
+    await page.getByLabel('다음 단계').click();
+  }
+}
+
 test.describe('팀 선택 페이지 - 렌더링', () => {
   test('페이지 타이틀과 1단계 상황 요약이 렌더링된다', async ({ page }) => {
     await setupPage(page);
@@ -51,6 +58,39 @@ test.describe('팀 선택 페이지 - 렌더링', () => {
     await setupPage(page);
 
     await expect(page.getByText('42명')).toBeVisible();
+  });
+});
+
+test.describe('팀 선택 페이지 - 게임 상세 설명 카드 캐러셀 기능', () => {
+  test('다음 단계 버튼으로 2단계 쟁점으로 이동한다', async ({ page }) => {
+    await setupPage(page);
+
+    await page.getByLabel('다음 단계').click();
+
+    await expect(page.getByText('2단계: 쟁점')).toBeVisible();
+  });
+
+  test('이전 단계 버튼으로 1단계로 돌아온다', async ({ page }) => {
+    await setupPage(page);
+
+    await page.getByLabel('다음 단계').click();
+    await expect(page.getByText('2단계: 쟁점')).toBeVisible();
+
+    await page.getByLabel('이전 단계').click();
+    await expect(page.getByText('1단계: 상황 요약')).toBeVisible();
+  });
+
+  test('4단계까지 이동하면 진영 선택 화면이 표시된다', async ({ page }) => {
+    await navigateToTeamSelect(page);
+
+    await expect(page.getByText('4단계: 진영 선택')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '진영 선택' })).toBeVisible();
+  });
+
+  test('마지막 단계에서 다음 단계 버튼이 사라진다', async ({ page }) => {
+    await navigateToTeamSelect(page);
+
+    await expect(page.getByLabel('다음 단계')).not.toBeVisible();
   });
 });
 
