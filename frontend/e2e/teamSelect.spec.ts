@@ -19,6 +19,7 @@ async function navigateToTeamSelect(page: Page) {
   }
 }
 
+
 test.describe('팀 선택 페이지 - 렌더링', () => {
   test('페이지 타이틀과 1단계 상황 요약이 렌더링된다', async ({ page }) => {
     await setupPage(page);
