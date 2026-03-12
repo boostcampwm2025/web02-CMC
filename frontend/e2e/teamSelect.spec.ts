@@ -141,6 +141,50 @@ test.describe('팀 선택 페이지 - 진영 선택', () => {
   });
 });
 
+test.describe('팀 선택 페이지 - 초대 링크 접근', () => {
+  test('유효하지 않은 초대 코드 접근 시 에러 메시지가 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles/INVALID-CODE', (route) =>
+      route.fulfill({ status: 404, json: { message: 'Not found' } })
+    );
+
+    await page.goto('/battles/INVALID-CODE');
+
+    await expect(page.getByText('유효하지 않은 초대 링크입니다.')).toBeVisible();
+    await expect(page.getByRole('button', { name: '메인으로 돌아가기' })).toBeVisible();
+  });
+
+  test('유효하지 않은 초대 코드 에러 화면에서 메인으로 돌아가기 클릭 시 메인 페이지로 이동한다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles/INVALID-CODE', (route) =>
+      route.fulfill({ status: 404, json: { message: 'Not found' } })
+    );
+
+    await page.goto('/battles/INVALID-CODE');
+    await page.getByRole('button', { name: '메인으로 돌아가기' }).click();
+
+    await expect(page).toHaveURL('/main');
+  });
+
+  test('초대 링크로 접근 시 팀 선택 페이지로 리다이렉트된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/battles/TEST-INVITE', (route) =>
+      route.fulfill({
+        status: 302,
+        headers: { location: `http://localhost:5173${BATTLE_URL}` },
+      })
+    );
+    await page.route(`**/api/battles/${BATTLE_ID}/join`, (route) =>
+      route.fulfill({ status: 200, json: MOCK_BATTLE_INFO })
+    );
+
+    await page.goto('/battles/TEST-INVITE');
+
+    await expect(page).toHaveURL(BATTLE_URL);
+    await expect(page.getByRole('heading', { name: '배틀 참가하기' })).toBeVisible();
+  });
+});
+
 test.describe('팀 선택 페이지 - 돌아가기', () => {
   test('돌아가기 버튼 클릭 시 메인 페이지로 이동한다', async ({ page }) => {
     await setupPage(page);
