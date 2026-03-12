@@ -2,7 +2,6 @@ import { test, expect, type Page } from '@playwright/test';
 
 const PHASE_TIMEOUT = 5000;
 
-
 async function completeTutorialSteps(page: Page) {
   for (let step = 1; step <= 9; step++) {
     await expect(page.getByText(`${step} / 9`)).toBeVisible();
