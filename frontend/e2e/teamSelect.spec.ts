@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { injectOAuthUser } from './helpers/auth';
+import { injectOAuthUser, mockUnauthenticated } from './helpers/auth';
 
 const BATTLE_ID = 'test-battle-001';
 const BATTLE_URL = `/battle/${BATTLE_ID}/team-select`;
@@ -79,18 +79,65 @@ test.describe('팀 선택 페이지 - 게임 상세 설명 카드 캐러셀 기�
     await page.getByLabel('이전 단계').click();
     await expect(page.getByText('1단계: 상황 요약')).toBeVisible();
   });
+});
 
-  test('4단계까지 이동하면 진영 선택 화면이 표시된다', async ({ page }) => {
+test.describe('팀 선택 페이지 - 진영 선택', () => {
+  test('진영 선택 전에는 완료 버튼이 비활성화된다', async ({ page }) => {
     await navigateToTeamSelect(page);
 
-    await expect(page.getByText('4단계: 진영 선택')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '진영 선택' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '진영 선택 완료' })).toBeDisabled();
   });
 
-  test('마지막 단계에서 다음 단계 버튼이 사라진다', async ({ page }) => {
+  test('A팀 선택 후 완료 버튼이 활성화된다', async ({ page }) => {
     await navigateToTeamSelect(page);
 
-    await expect(page.getByLabel('다음 단계')).not.toBeVisible();
+    await page.getByRole('button', { name: 'A팀' }).click();
+
+    await expect(page.getByRole('button', { name: '진영 선택 완료' })).toBeEnabled();
+  });
+
+  test('B팀 선택 후 완료 버튼이 활성화된다', async ({ page }) => {
+    await navigateToTeamSelect(page);
+
+    await page.getByRole('button', { name: 'B팀' }).click();
+
+    await expect(page.getByRole('button', { name: '진영 선택 완료' })).toBeEnabled();
+  });
+
+  test('중립 선택 후 완료 버튼이 활성화된다', async ({ page }) => {
+    await navigateToTeamSelect(page);
+
+    await page.getByRole('button', { name: '중립' }).click();
+
+    await expect(page.getByRole('button', { name: '진영 선택 완료' })).toBeEnabled();
+  });
+
+  test('OAuth 로그인 상태에서 진영 선택 완료 시 배틀 페이지로 이동한다', async ({ page }) => {
+    await navigateToTeamSelect(page);
+
+    await page.getByRole('button', { name: 'A팀' }).click();
+    await page.getByRole('button', { name: '진영 선택 완료' }).click();
+
+    await expect(page).toHaveURL(`/battle/${BATTLE_ID}`);
+  });
+
+  test('비로그인 상태에서 진영 선택 완료 시 배틀 페이지로 이동한다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route(`**/api/battles/${BATTLE_ID}/join`, (route) =>
+      route.fulfill({ status: 200, json: MOCK_BATTLE_INFO })
+    );
+    await page.route(`**/api/auth/guest/${BATTLE_ID}`, (route) =>
+      route.fulfill({ status: 200, json: { id: 'guest-001', nickname: '익명토끼' } })
+    );
+    await page.goto(BATTLE_URL);
+    for (let i = 0; i < 3; i++) {
+      await page.getByLabel('다음 단계').click();
+    }
+
+    await page.getByRole('button', { name: 'A팀' }).click();
+    await page.getByRole('button', { name: '진영 선택 완료' }).click();
+
+    await expect(page).toHaveURL(`/battle/${BATTLE_ID}`);
   });
 });
 
