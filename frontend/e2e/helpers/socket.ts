@@ -1,6 +1,5 @@
 import type { Page } from '@playwright/test';
 
-/** Socket.IO (Engine.IO v4) 프로토콜 mock 헬퍼 */
 export async function mockSocketIO(
   page: Page,
   battleJoinData: typeof DEFAULT_BATTLE_JOIN_DATA = DEFAULT_BATTLE_JOIN_DATA
@@ -34,11 +33,15 @@ export async function mockSocketIO(
   };
 }
 
+
 export async function setBattleTeam(page: Page, team: 'A' | 'B' | 'NONE'): Promise<void> {
   await page.evaluate((t) => {
     const store = (window as unknown as { __battleStore__?: { getState: () => { setSelectedTeam: (team: string) => void } } }).__battleStore__;
     store?.getState().setSelectedTeam(t);
   }, team);
+  await page.waitForFunction(
+    () => (window as any).__battleStore__?.getState().isConnected === true
+  );
 }
 
 export const DEFAULT_BATTLE_JOIN_DATA = {
@@ -51,8 +54,19 @@ export const DEFAULT_BATTLE_JOIN_DATA = {
   expiredAt: Date.now() + 180000,
   counts: { teamA: 5, teamB: 3, teamNone: 2 },
   timelines: { attacks: [], defenses: [] },
-  chats: [],
-  allChats: [],
+  chats: [] as Array<{ messageId: string; battleId: string; sender: { userId: string; nickname: string; tier?: string }; team: string; scope: string; text: string; createdAt: string; type?: string }>,
+  allChats: [
+    {
+      messageId: 'prev-msg-001',
+      battleId: 'test-battle-001',
+      sender: { userId: 'user-a', nickname: '이전유저', tier: 'GOLD' },
+      team: 'NONE',
+      scope: 'ALL',
+      text: '이전 채팅 내용입니다',
+      createdAt: new Date(Date.now() - 60000).toISOString(),
+      type: 'chat',
+    },
+  ] as Array<{ messageId: string; battleId: string; sender: { userId: string; nickname: string; tier?: string }; team: string; scope: string; text: string; createdAt: string; type?: string }>,
   attacks: [],
   defenses: [],
 };

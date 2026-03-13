@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
-import { mockSocketIO, DEFAULT_BATTLE_JOIN_DATA } from './helpers/socket';
+import { mockSocketIO, setBattleTeam, DEFAULT_BATTLE_JOIN_DATA } from './helpers/socket';
 import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA } from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
@@ -100,18 +100,19 @@ test.describe('배틀 페이지 - 헤더', () => {
   });
 });
 
+
 test.describe('배틀 페이지 - 채팅', () => {
-  test('소켓 연결 후 채팅 라운지가 표시된다', async ({ page }) => {
+  test('소켓 연결 후 채팅 라운지가 표시되며 이전 채팅 내용이 채팅창에 표시된다', async ({ page }) => {
     await setupBattlePageWithSocket(page);
 
     await expect(page.getByRole('heading', { name: '라운지' })).toBeVisible();
     await expect(page.getByText('전체 라운지')).toBeVisible();
+    await expect(page.getByText('이전 채팅 내용입니다')).toBeVisible();
   });
 
   test('소켓으로 채팅 메시지를 받으면 채팅창에 표시된다', async ({ page }) => {
     const { emitToClient } = await setupBattlePageWithSocket(page);
 
-    // battle:joined가 처리될 때까지 대기 (소켓 리스너 등록 완료 보장)
     await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
 
     emitToClient('battle:chatted', {
@@ -126,6 +127,71 @@ test.describe('배틀 페이지 - 채팅', () => {
     });
 
     await expect(page.getByText('안녕하세요!')).toBeVisible();
+  });
+
+  test('A팀 유저의 팀 채팅 메시지가 팀 라운지 탭에 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+
+    await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
+    await setBattleTeam(page, 'A');
+
+    emitToClient('battle:chatted', {
+      messageId: 'msg-team-a',
+      battleId: BATTLE_ID,
+      sender: { userId: 'teammate', nickname: 'A팀원', tier: 'GOLD' },
+      team: 'A',
+      scope: 'TEAM',
+      text: 'A팀 전용 메시지입니다',
+      createdAt: new Date().toISOString(),
+      type: 'chat',
+    });
+
+    await expect(page.getByText('A팀 전용 메시지입니다')).toBeVisible();
+  });
+
+  test('B팀 유저의 팀 채팅 메시지가 팀 라운지 탭에 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+
+    await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
+    await setBattleTeam(page, 'B');
+
+    emitToClient('battle:chatted', {
+      messageId: 'msg-team-b',
+      battleId: BATTLE_ID,
+      sender: { userId: 'teammate', nickname: 'B팀원', tier: 'SILVER' },
+      team: 'B',
+      scope: 'TEAM',
+      text: 'B팀 전용 메시지입니다',
+      createdAt: new Date().toISOString(),
+      type: 'chat',
+    });
+
+    await expect(page.getByText('B팀 전용 메시지입니다')).toBeVisible();
+  });
+
+  test('전체 채팅 메시지는 전체 라운지 탭에서만 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+
+    await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
+    await setBattleTeam(page, 'A');
+
+    emitToClient('battle:chatted', {
+      messageId: 'msg-all-001',
+      battleId: BATTLE_ID,
+      sender: { userId: 'other-user', nickname: '다른유저', tier: 'BRONZE' },
+      team: 'B',
+      scope: 'ALL',
+      text: '전체 공개 메시지입니다',
+      createdAt: new Date().toISOString(),
+      type: 'chat',
+    });
+
+    // 팀 라운지 탭에는 표시 안 됨
+    await expect(page.getByText('전체 공개 메시지입니다')).not.toBeVisible();
+
+    // 전체 라운지 탭으로 전환하면 표시됨
+    await page.getByRole('button', { name: '전체 라운지' }).click();
+    await expect(page.getByText('전체 공개 메시지입니다')).toBeVisible();
   });
 });
 
