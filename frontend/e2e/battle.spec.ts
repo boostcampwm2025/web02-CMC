@@ -47,7 +47,7 @@ test.describe('배틀 페이지 - 코드 뷰어', () => {
     await expect(page.getByText('구현 A')).not.toBeVisible();
   });
 
-  test('스플릿 뷰로 다시 전환하면 A팀/B팀 탭 버튼이 사라진다', async ({ page }) => {
+  test('스플릿 뷰 버튼 클릭시 스플릿 뷰로 전환되고 A팀/B팀 탭 버튼이 사라진다', async ({ page }) => {
     await setupBattlePage(page);
 
     await page.getByRole('button', { name: '탭 뷰' }).click();
@@ -58,6 +58,16 @@ test.describe('배틀 페이지 - 코드 뷰어', () => {
     await expect(page.getByRole('button', { name: 'A팀' })).not.toBeVisible();
     await expect(page.getByText('구현 A')).toBeVisible();
     await expect(page.getByText('구현 B')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 네비게이션', () => {
+  test('돌아가기 버튼 클릭 시 메인 페이지로 이동한다', async ({ page }) => {
+    await setupBattlePage(page);
+
+    await page.getByRole('button', { name: '← 돌아가기' }).click();
+
+    await expect(page).toHaveURL('/main');
   });
 });
 
