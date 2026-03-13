@@ -28,6 +28,39 @@ test.describe('배틀 페이지 - 렌더링', () => {
   });
 });
 
+test.describe('배틀 페이지 - 코드 뷰어', () => {
+  test('기본값은 스플릿 뷰로 A, B 코드가 동시에 표시된다', async ({ page }) => {
+    await setupBattlePage(page);
+
+    await expect(page.getByText('구현 A')).toBeVisible();
+    await expect(page.getByText('구현 B')).toBeVisible();
+    await expect(page.getByRole('button', { name: '스플릿 뷰' })).toBeVisible();
+  });
+
+  test('탭 뷰로 전환 후 B팀 클릭 시 구현 A가 사라지고 구현 B만 표시된다', async ({ page }) => {
+    await setupBattlePage(page);
+
+    await page.getByRole('button', { name: '탭 뷰' }).click();
+    await page.getByRole('button', { name: 'B팀' }).click();
+
+    await expect(page.getByText('구현 B')).toBeVisible();
+    await expect(page.getByText('구현 A')).not.toBeVisible();
+  });
+
+  test('스플릿 뷰로 다시 전환하면 A팀/B팀 탭 버튼이 사라진다', async ({ page }) => {
+    await setupBattlePage(page);
+
+    await page.getByRole('button', { name: '탭 뷰' }).click();
+    await expect(page.getByRole('button', { name: 'A팀' })).toBeVisible();
+
+    await page.getByRole('button', { name: '스플릿 뷰' }).click();
+
+    await expect(page.getByRole('button', { name: 'A팀' })).not.toBeVisible();
+    await expect(page.getByText('구현 A')).toBeVisible();
+    await expect(page.getByText('구현 B')).toBeVisible();
+  });
+});
+
 test.describe('배틀 페이지 - 사이드바', () => {
   test('문제 설명 탭에 배틀 정보가 표시된다', async ({ page }) => {
     await setupBattlePage(page);
@@ -62,6 +95,14 @@ test.describe('배틀 페이지 - 사이드바', () => {
 
     await expect(page.getByText('AI 참고 자료')).toBeVisible();
     await expect(page.getByText('핵심 개념')).toBeVisible();
+  });
+
+  test('참고 자료 탭이 referenceData 없을 때 표시되지 않는다', async ({ page }) => {
+    await setupBattlePage(page);
+
+    await page.getByRole('button', { name: '문제 설명 보기' }).click();
+
+    await expect(page.getByRole('button', { name: '참고 자료' })).not.toBeVisible();
   });
 
   test('사이드바 닫기 버튼 클릭 시 사이드바가 닫힌다', async ({ page }) => {
