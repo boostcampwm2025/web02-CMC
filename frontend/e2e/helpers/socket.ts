@@ -3,37 +3,44 @@ import type { Page } from '@playwright/test';
 /** Socket.IO (Engine.IO v4) 프로토콜 mock 헬퍼 */
 export async function mockSocketIO(
   page: Page,
-  eventHandlers: Record<string, unknown> = {}
-): Promise<void> {
+  battleJoinData: typeof DEFAULT_BATTLE_JOIN_DATA = DEFAULT_BATTLE_JOIN_DATA
+): Promise<{ emitToClient: (event: string, data: unknown) => void }> {
+  let sendToClient: ((msg: string) => void) | null = null;
+
   await page.routeWebSocket(/localhost:3000/, (ws) => {
-    // 1. Engine.IO OPEN 패킷
+    sendToClient = (msg: string) => ws.send(msg);
+
     ws.send(
       '0{"sid":"mock-sid","upgrades":[],"pingInterval":25000,"pingTimeout":20000,"maxPayload":1000000}'
     );
-    // 2. Socket.IO namespace 연결 패킷
-    ws.send('40');
 
     ws.onMessage((raw) => {
       const msg = typeof raw === 'string' ? raw : raw.toString();
-
-      if (msg === '3') {
-        // Engine.IO pong
-        ws.send('2');
+      if (msg.startsWith('40')) {
+        ws.send('40{"sid":"mock-socket-id"}');
         return;
       }
-
-      if (msg === '40') {
-        // 클라이언트가 namespace 연결 확인 → 등록된 초기 이벤트 전송
-        for (const [event, data] of Object.entries(eventHandlers)) {
-          ws.send(`42[${JSON.stringify(event)},${JSON.stringify(data)}]`);
-        }
+      if (msg.startsWith('42') && msg.includes('"battle:join"')) {
+        ws.send(`42["battle:joined",${JSON.stringify(battleJoinData)}]`);
         return;
       }
     });
   });
+
+  return {
+    emitToClient: (event: string, data: unknown) => {
+      sendToClient?.(`42[${JSON.stringify(event)},${JSON.stringify(data)}]`);
+    }
+  };
 }
 
-/** battle:joined 이벤트 mock 데이터 기본값 */
+export async function setBattleTeam(page: Page, team: 'A' | 'B' | 'NONE'): Promise<void> {
+  await page.evaluate((t) => {
+    const store = (window as unknown as { __battleStore__?: { getState: () => { setSelectedTeam: (team: string) => void } } }).__battleStore__;
+    store?.getState().setSelectedTeam(t);
+  }, team);
+}
+
 export const DEFAULT_BATTLE_JOIN_DATA = {
   battleId: 'test-battle-001',
   round: 1,
