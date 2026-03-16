@@ -70,6 +70,48 @@ export const MOCK_REFERENCE_DATA = {
   },
 };
 
+export const MOCK_BATTLE_RESULT = {
+  battleId: BATTLE_ID,
+  author: 'test-author',
+  title: '블록 if vs 한 줄 if',
+  description: '코드 스타일 비교',
+  codeA: 'if (condition) {\n  doSomething();\n}',
+  codeB: 'if (condition) doSomething();',
+  language: 'JavaScript',
+  type: 'PUBLIC',
+  status: 'CLOSED',
+  category: 'REFACTORING',
+  playTime: '30:00',
+  createdAt: new Date(Date.now() - 3600000).toISOString(),
+  finishedAt: new Date().toISOString(),
+  result: {
+    winner: 'A' as const,
+    teamA: { votes: 8, percentage: 62 },
+    teamB: { votes: 5, percentage: 38 },
+    neutral: { votes: 0, percentage: 0 },
+  },
+  metrics: {
+    totalParticipants: 13,
+    totalViews: 100,
+    strategiesCount: 5,
+  },
+  voteTimeline: [],
+  timeline: [],
+  topics: ['가독성', '유지보수성', '코드 스타일'],
+  mvps: [
+    {
+      userId: 'mvp-user-001',
+      nickname: '최고전략가',
+      team: 'A' as const,
+      score: 100,
+      totalVotes: 15,
+      opinionCount: 3,
+      selectedOpinionCount: 2,
+      joinedAt: Date.now() - 3600000,
+    },
+  ],
+};
+
 export const MOCK_BATTLE_INFO = {
   id: BATTLE_ID,
   title: '블록 if vs 한 줄 if',

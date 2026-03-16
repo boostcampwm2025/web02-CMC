@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
 import { mockSocketIO, setBattleTeam, setSocketPhase } from './helpers/socket';
-import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA } from './helpers/mockData';
+import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_BATTLE_RESULT, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA } from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
 
@@ -270,7 +270,7 @@ test.describe('배틀 페이지 - 사이드바', () => {
   });
 });
 
-  test.describe('배틀 페이지 - 이의제기 입력 기능', () => {
+test.describe('배틀 페이지 - 이의제기 입력 기능', () => {
   test('이의제기 페이즈에서 팀 미선택 시 입력 폼이 표시되지 않는다', async ({ page }) => {
     await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
 
@@ -372,7 +372,6 @@ test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
     await expect(page.getByText('이의제기!!')).toBeVisible();
     await expect(page.getByText('Temp-Attack')).toBeVisible();
 
-    // 페이즈 전환 시 채팅 상단에 이의제기 공지 표시
     setSocketPhase(emitToClient, 'DEFENSE');
     await expect(page.getByText('B팀의 공격')).toBeVisible();
   });
@@ -394,7 +393,6 @@ test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
     await expect(page.getByText('반론!!')).toBeVisible();
     await expect(page.getByText('Temp-Defense')).toBeVisible();
 
-    // 페이즈 전환 시 채팅 상단에 반론 공지 표시
     setSocketPhase(emitToClient, 'OPINION_SHARE');
     await expect(page.getByText('A팀의 반론')).toBeVisible();
   });
@@ -439,5 +437,63 @@ test.describe('배틀 페이지 - 팀 변경 투표', () => {
     await expect(page.getByText('TEAM A')).toBeVisible();
     await expect(page.getByText('TEAM B')).toBeVisible();
     await expect(page.getByText('A팀이 우세하고 있습니다!')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 페이즈 스킵', () => {
+  test('모든 참여자가 스킵에 동의하면 스킵 모달이 표시되고 다음 페이즈로 전환된다', async ({ page }) => {
+    // 기본 참여 인원: teamA(5) + teamB(3) + teamNone(2) = 10명
+    const totalParticipants = 10;
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+    await setBattleTeam(page, 'A');
+
+    await expect(page.getByText('의견 공유')).toBeVisible();
+    await expect(page.getByText(`현재 0명이 스킵을 희망합니다.`)).toBeVisible();
+
+    const skipToggle = page.getByText('이번 페이즈 스킵').locator('..').getByRole('button');
+    await skipToggle.click();
+
+    emitToClient('battle:user:skipped', { totalSkips: totalParticipants });
+    await expect(page.getByText(`현재 ${totalParticipants}명이 스킵을 희망합니다.`)).toBeVisible();
+
+    emitToClient('battle:phase:skipped', {});
+
+    await expect(page.getByText('다음 페이즈로 이동합니다...')).toBeVisible({ timeout: 5000 });
+
+    setSocketPhase(emitToClient, 'ATTACK');
+
+    await expect(page.getByText('다음 페이즈로 이동합니다...')).not.toBeVisible({ timeout: 5000 });
+
+    await page.waitForFunction(
+      () => (window as any).__battleStore__?.getState().battleProgress?.phase === 'ATTACK'
+    );
+
+    // 스테이지 상태표시바에 이의제기 페이즈 메시지가 표시됨 
+    await expect(page.getByText('양 진영이 서로의 코드에 대해 공격합니다.')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 배틀 종료', () => {
+  test('battle:closed 수신 시 결과 페이지로 이동하고 결과가 표시된다', async ({ page }) => {
+    await page.route(`**/api/battles/${BATTLE_ID}/result`, (route) =>
+      route.fulfill({ status: 200, json: MOCK_BATTLE_RESULT })
+    );
+
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+    await setBattleTeam(page, 'A');
+
+    // 배틀 종료 이벤트 수신
+    emitToClient('battle:closed', { battleId: BATTLE_ID });
+
+    await expect(page).toHaveURL(`/battles/${BATTLE_ID}/result`);
+
+    // 승자 섹션: A팀 승리 표시 (데이터 로드 완료 기준점)
+    await expect(page.getByText('🎉 승리 팀: 코드 A')).toBeVisible();
+    await expect(page.getByText('코드 A (8표)')).toBeVisible();
+    await expect(page.getByText('코드 B (5표)')).toBeVisible();
+
+    await expect(page.getByRole('heading', { name: 'MVP' })).toBeVisible();
+    await expect(page.getByText('최고의 전략가')).toBeVisible();
+    await expect(page.getByText('최고전략가')).toBeVisible();
   });
 });
