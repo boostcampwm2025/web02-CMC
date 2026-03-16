@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
-import { mockSocketIO, setBattleTeam, DEFAULT_BATTLE_JOIN_DATA } from './helpers/socket';
-import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA } from './helpers/mockData';
+import { mockSocketIO, setBattleTeam } from './helpers/socket';
+import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA} from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
 
@@ -23,6 +23,10 @@ async function setupBattlePageWithSocket(
   );
   const socket = await mockSocketIO(page, battleJoinData);
   await page.goto(BATTLE_URL);
+  // 초기 소켓 연결 및 battle:joined 처리 완료까지 대기
+  await page.waitForFunction(
+    () => (window as any).__battleStore__?.getState().chatInitialized === true
+  );
   return socket;
 }
 
@@ -248,5 +252,89 @@ test.describe('배틀 페이지 - 사이드바', () => {
     await page.getByRole('button', { name: /닫기/ }).click();
 
     await expect(page.locator('[data-tutorial="sidebar-panel"]')).toHaveClass(/-translate-x-full/);
+  });
+});
+
+  test.describe('배틀 페이지 - 이의제기 입력 기능', () => {
+  test('이의제기 페이즈에서 팀 미선택 시 입력 폼이 표시되지 않는다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+
+    await expect(page.getByPlaceholder('상대 코드의 허점을 찾아 이의 제기하세요')).not.toBeVisible();
+  });
+
+  test('이의제기 페이즈에서 팀 선택 후 이의제기 입력 폼이 표시되고 초기 버튼이 비활성화된다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam(page, 'A');
+
+    await expect(page.getByPlaceholder('상대 코드의 허점을 찾아 이의 제기하세요')).toBeVisible();
+    await expect(page.getByRole('button', { name: '이의제기' })).toBeDisabled();
+  });
+
+  test('120자 초과 입력 시 120자로 잘리고 경고 토스트가 표시된다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam(page, 'A');
+
+    const input = page.getByPlaceholder('상대 코드의 허점을 찾아 이의 제기하세요');
+    await input.fill('가'.repeat(130));
+
+    await expect(input).toHaveValue('가'.repeat(120));
+    await expect(page.getByText('이의제기은 최대 120글자까지 입력할 수 있습니다.')).toBeVisible();
+  });
+
+  test('이의제기 제출 후 소켓 이벤트로 vote list에 항목이 추가된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam(page, 'A');
+
+    emitToClient('battle:attack:created', {
+      discussionId: 'attack-001',
+      author: { id: 'mock-user-id', nickname: 'You' },
+      content: 'test-test',
+      upvotes: 0,
+      votes: [],
+    });
+
+    await expect(page.getByText('test-test')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 반론 입력 기능', () => {
+  test('반론 페이즈에서 팀 미선택 시 입력 폼이 표시되지 않는다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+
+    await expect(page.getByPlaceholder('상대 주장에 논리적으로 반박해 보세요')).not.toBeVisible();
+  });
+
+  test('반론 페이즈에서 팀 선택 후 반론 입력 폼이 표시되고 초기 버튼이 비활성화된다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam(page, 'B');
+
+    await expect(page.getByPlaceholder('상대 주장에 논리적으로 반박해 보세요')).toBeVisible();
+    await expect(page.getByRole('button', { name: '반론' })).toBeDisabled();
+  });
+
+  test('120자 초과 입력 시 120자로 잘리고 경고 토스트가 표시된다', async ({ page }) => {
+    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam(page, 'B');
+
+    const input = page.getByPlaceholder('상대 주장에 논리적으로 반박해 보세요');
+    await input.fill('가'.repeat(130));
+
+    await expect(input).toHaveValue('가'.repeat(120));
+    await expect(page.getByText('반론은 최대 120글자까지 입력할 수 있습니다.')).toBeVisible();
+  });
+
+  test('반론 제출 후 소켓 이벤트로 vote list에 항목이 추가된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam(page, 'B');
+
+    emitToClient('battle:defense:created', {
+      discussionId: 'defense-001',
+      author: { id: 'mock-user-id', nickname: 'You' },
+      content: 'test-test',
+      upvotes: 0,
+      votes: [],
+    });
+
+    await expect(page.getByText('test-test')).toBeVisible();
   });
 });
