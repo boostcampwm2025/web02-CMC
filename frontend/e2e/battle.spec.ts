@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
-import { mockSocketIO, setBattleTeam } from './helpers/socket';
+import { mockSocketIO, setBattleTeam, setSocketPhase } from './helpers/socket';
 import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA} from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
@@ -336,5 +336,51 @@ test.describe('배틀 페이지 - 반론 입력 기능', () => {
     });
 
     await expect(page.getByText('test-test')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
+  test('적팀 이의제기가 선정되면 모달이 표시되고 페이즈 전환 시 채팅 공지가 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam(page, 'A');
+
+    emitToClient('battle:attacked', {
+      battleId: BATTLE_ID,
+      attack: {
+        aTeam: { id: null, text: null, ownerId: null, nickname: null, count: null, team: null },
+        bTeam: { id: 'attack-selected-001', text: 'Temp-Attack', ownerId: 'user-b', nickname: 'B팀원', count: 5, team: 'B' },
+      },
+    });
+
+    // 이의제기 선정 즉시 모달 표시
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('이의제기!!')).toBeVisible();
+    await expect(page.getByText('Temp-Attack')).toBeVisible();
+
+    // 페이즈 전환 시 채팅 상단에 이의제기 공지 표시
+    setSocketPhase(emitToClient, 'DEFENSE');
+    await expect(page.getByText('B팀의 공격')).toBeVisible();
+  });
+
+  test('적팀 반론이 선정되면 모달이 표시되고 페이즈 전환 시 채팅 공지가 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam(page, 'B');
+
+    emitToClient('battle:defensed', {
+      battleId: BATTLE_ID,
+      defense: {
+        aTeam: { id: 'defense-selected-001', text: 'Temp-Defense', ownerId: 'user-a', nickname: 'A팀원', count: 3, team: 'A' },
+        bTeam: { id: null, text: null, ownerId: null, nickname: null, count: null, team: null },
+      },
+    });
+
+    // 반론 선정 즉시 모달 표시
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('반론!!')).toBeVisible();
+    await expect(page.getByText('Temp-Defense')).toBeVisible();
+
+    // 페이즈 전환 시 채팅 상단에 반론 공지 표시
+    setSocketPhase(emitToClient, 'OPINION_SHARE');
+    await expect(page.getByText('A팀의 반론')).toBeVisible();
   });
 });
