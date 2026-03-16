@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { DEFAULT_BATTLE_JOIN_DATA } from './mockData';
+import { DEFAULT_BATTLE_JOIN_DATA, TEAM_A_CHATS, TEAM_B_CHATS } from './mockData';
 
 export async function mockSocketIO(
   page: Page,
@@ -21,7 +21,15 @@ export async function mockSocketIO(
         return;
       }
       if (msg.startsWith('42') && msg.includes('"battle:join"')) {
-        ws.send(`42["battle:joined",${JSON.stringify(battleJoinData)}]`);
+        try {
+          const payload = JSON.parse(msg.slice(2));
+          const joinTeam: string = payload[1]?.team ?? 'NONE';
+          const teamChats = joinTeam === 'A' ? TEAM_A_CHATS : joinTeam === 'B' ? TEAM_B_CHATS : [];
+          const joinData = { ...battleJoinData, chats: teamChats };
+          ws.send(`42["battle:joined",${JSON.stringify(joinData)}]`);
+        } catch {
+          ws.send(`42["battle:joined",${JSON.stringify(battleJoinData)}]`);
+        }
         return;
       }
     });

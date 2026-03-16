@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
 import { mockSocketIO, setBattleTeam, setSocketPhase } from './helpers/socket';
-import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA} from './helpers/mockData';
+import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA } from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
 
@@ -397,5 +397,47 @@ test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
     // 페이즈 전환 시 채팅 상단에 반론 공지 표시
     setSocketPhase(emitToClient, 'OPINION_SHARE');
     await expect(page.getByText('A팀의 반론')).toBeVisible();
+  });
+});
+
+test.describe('배틀 페이지 - 팀 변경 투표', () => {
+  test('TEAM_SWITCH 페이즈 진입 후 B팀 선택 시 팀이 B로 변경되고 B팀 채팅이 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+    await setBattleTeam(page, 'A');
+
+    await expect(page.getByText('A팀 채팅입니다')).toBeVisible();
+
+    setSocketPhase(emitToClient, 'TEAM_SWITCH');
+
+    const modal = page.locator('#modal-root');
+    await expect(modal.getByText('💡투표 후에도 다음 투표 시간에 팀을 변경할 수 있어요')).toBeVisible({ timeout: 6000 });
+
+    await modal.getByRole('button', { name: /B팀/ }).click();
+
+    await expect(modal.getByText('💡투표 후에도 다음 투표 시간에 팀을 변경할 수 있어요')).not.toBeVisible();
+
+    await expect(page.getByText('B팀 채팅입니다')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('A팀 채팅입니다')).not.toBeVisible();
+  });
+
+  test('battle:all:updated 수신 시 팀 변경 이동 추이 모달이 표시된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+    await setBattleTeam(page, 'A');
+
+    emitToClient('battle:all:updated', {
+      battleId: BATTLE_ID,
+      round: 1,
+      before: { teamA: 5, teamB: 3, teamNone: 2 },
+      after: { teamA: 8, teamB: 2, teamNone: 0 },
+      changes: [],
+      difference: { teamA: 3, teamB: -1, teamNone: -2 },
+      dominantTeam: 'A',
+    });
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByText('ROUND 1 결과')).toBeVisible();
+    await expect(page.getByText('TEAM A')).toBeVisible();
+    await expect(page.getByText('TEAM B')).toBeVisible();
+    await expect(page.getByText('A팀이 우세하고 있습니다!')).toBeVisible();
   });
 });

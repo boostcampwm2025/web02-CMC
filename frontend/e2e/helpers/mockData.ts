@@ -1,5 +1,33 @@
 export const BATTLE_ID = 'test-battle-001';
 
+type ChatMessage = { messageId: string; battleId: string; sender: { userId: string; nickname: string; tier?: string }; team: string; scope: string; text: string; createdAt: string; type?: string };
+
+export const TEAM_A_CHATS: ChatMessage[] = [
+  {
+    messageId: 'team-a-msg-001',
+    battleId: BATTLE_ID,
+    sender: { userId: 'user-team-a', nickname: 'A팀원', tier: 'SILVER' },
+    team: 'A',
+    scope: 'TEAM',
+    text: 'A팀 채팅입니다',
+    createdAt: new Date(Date.now() - 30000).toISOString(),
+    type: 'chat',
+  },
+];
+
+export const TEAM_B_CHATS: ChatMessage[] = [
+  {
+    messageId: 'team-b-msg-001',
+    battleId: BATTLE_ID,
+    sender: { userId: 'user-team-b', nickname: 'B팀원', tier: 'SILVER' },
+    team: 'B',
+    scope: 'TEAM',
+    text: 'B팀 채팅입니다',
+    createdAt: new Date(Date.now() - 30000).toISOString(),
+    type: 'chat',
+  },
+];
+
 export const DEFAULT_BATTLE_JOIN_DATA = {
   battleId: BATTLE_ID,
   round: 1,
@@ -10,7 +38,7 @@ export const DEFAULT_BATTLE_JOIN_DATA = {
   expiredAt: Date.now() + 180000,
   counts: { teamA: 5, teamB: 3, teamNone: 2 },
   timelines: { attacks: [], defenses: [] },
-  chats: [] as Array<{ messageId: string; battleId: string; sender: { userId: string; nickname: string; tier?: string }; team: string; scope: string; text: string; createdAt: string; type?: string }>,
+  chats: [] as ChatMessage[],
   allChats: [
     {
       messageId: 'prev-msg-001',
@@ -22,7 +50,7 @@ export const DEFAULT_BATTLE_JOIN_DATA = {
       createdAt: new Date(Date.now() - 60000).toISOString(),
       type: 'chat',
     },
-  ] as Array<{ messageId: string; battleId: string; sender: { userId: string; nickname: string; tier?: string }; team: string; scope: string; text: string; createdAt: string; type?: string }>,
+  ] as ChatMessage[],
   attacks: [],
   defenses: [],
 };
