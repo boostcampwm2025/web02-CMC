@@ -73,6 +73,9 @@ const getModalStyle = (currentStep: TutorialStep, spotlight: SpotlightPosition |
   if (currentStep === 'discussionInput') {
     return { bottom: DISCUSSION_INPUT_MODAL_BOTTOM, left: '50%', transform: 'translateX(-50%)' };
   }
+  if (currentStep === 'sidebarPanel') {
+    return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+  }
   return getModalPosition(spotlight);
 };
 
