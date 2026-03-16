@@ -102,6 +102,21 @@ test.describe('배틀 페이지 - 헤더', () => {
     await expect(page.getByText('1 Round')).toBeVisible();
     await expect(page.getByText('의견 공유')).toBeVisible();
   });
+
+  test('battle:leaved 이벤트 수신 시 팀 카운터 인원 수가 갱신된다', async ({ page }) => {
+    const { emitToClient } = await setupBattlePageWithSocket(page);
+
+    const teamStatus = page.locator('[data-tutorial="team-status"]');
+    await expect(teamStatus.getByText('5')).toBeVisible();
+    await expect(teamStatus.getByText('3')).toBeVisible();
+
+    emitToClient('battle:leaved', {
+      counts: { teamA: 4, teamB: 3, teamNone: 2 },
+    });
+
+    await expect(teamStatus.getByText('4')).toBeVisible();
+    await expect(teamStatus.getByText('5')).not.toBeVisible();
+  });
 });
 
 
