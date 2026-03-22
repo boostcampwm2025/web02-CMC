@@ -66,6 +66,10 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.hset(key, field, value)
   }
 
+  async hmset(key: string, data: Record<string, string>): Promise<'OK'> {
+    return this.redisClient.hmset(key, data)
+  }
+
   async hget(key: string, field: string): Promise<string | null> {
     return this.redisClient.hget(key, field)
   }
@@ -99,8 +103,54 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.zrangebyscore(key, min, max)
   }
 
-  async zscore(key: string, member: string): Promise<string | null> {
-    return this.redisClient.zscore(key, member)
+  //set연산
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    return this.redisClient.sadd(key, ...members)
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    return this.redisClient.srem(key, ...members)
+  }
+
+  async sismember(key: string, member: string): Promise<boolean> {
+    const result = await this.redisClient.sismember(key, member)
+    return result === 1
+  }
+
+  async scard(key: string): Promise<number> {
+    return this.redisClient.scard(key)
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    return this.redisClient.smembers(key)
+  }
+
+  //배치 연산
+  async mset(entries: [string, string][]): Promise<'OK'> {
+    if (entries.length === 0) {
+      return 'OK'
+    }
+    const pipeline = this.redisClient.pipeline()
+    for (const [key, value] of entries) {
+      pipeline.set(key, value)
+    }
+    await pipeline.exec()
+    return 'OK'
+  }
+
+  async mdel(keys: string[]): Promise<number> {
+    if (keys.length === 0) return 0
+    return this.redisClient.del(...keys)
+  }
+
+  //lua script 연산
+  async eval(script: string, keys: string[], args: string[]): Promise<unknown> {
+    return this.redisClient.eval(script, keys.length, ...keys, ...args)
+  }
+
+  //ioredis pipeline 연산
+  pipeline() {
+    return this.redisClient.pipeline()
   }
 
   getRedisClient(): Redis {
