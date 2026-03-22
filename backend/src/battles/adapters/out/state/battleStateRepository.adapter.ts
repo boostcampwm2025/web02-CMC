@@ -105,7 +105,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     return `battle:chats:b:${battleId}`
   }
 
-  /** discussion 메타데이터 HASH 키 */
+  /** discussion HASH */
   private getDiscussionHashKey(battleId: string, discussionId: string): string {
     return `battle:${battleId}:disc:${discussionId}`
   }
@@ -115,17 +115,17 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     return `battle:${battleId}:discs:${type}:${team}`
   }
 
-  /** 배틀 전체 discussion ID 추적 SET (clearCache용) */
+  /** 배틀 전체 discussion ID SET */
   private getAllDiscussionIdsKey(battleId: string): string {
     return `battle:${battleId}:disc_ids`
   }
 
-  /** 투표자 SET 키 (SCARD = upvotes) */
+  /** 투표자 SET 키  */
   private getVoteVotersKey(battleId: string, discussionId: string): string {
     return `battle:${battleId}:vote:${discussionId}:voters`
   }
 
-  /** 유저별 현재 투표 discussion 추적 키 */
+  /** 유저별 현재 투표 discussion 키 */
   private getUserVoteKey(battleId: string, userId: string): string {
     return `battle:${battleId}:voter:${userId}`
   }
@@ -179,8 +179,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     const allDiscIds = await this.redis.smembers(this.getAllDiscussionIdsKey(battleId))
     const discKeysToDelete = allDiscIds.flatMap(id => [this.getDiscussionHashKey(battleId, id), this.getVoteVotersKey(battleId, id)])
 
-    const live = this.liveStates.get(battleId)
-    const userVoteKeys = live ? [...live.participants.keys()].map(uid => this.getUserVoteKey(battleId, uid)) : []
+    const userVoteKeys = await this.getUserVoteKeys(battleId)
 
     this.liveStates.delete(battleId)
 
@@ -195,6 +194,21 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     ]
 
     await this.redis.mdel([...stateKeys, ...discKeysToDelete, ...userVoteKeys])
+  }
+
+  private async getUserVoteKeys(battleId: string): Promise<string[]> {
+    const live = this.liveStates.get(battleId)
+    if (live && live.participants.size > 0) {
+      return [...live.participants.keys()].map(uid => this.getUserVoteKey(battleId, uid))
+    }
+
+    const coreRaw = await this.redis.get(this.getCoreKey(battleId))
+    if (!coreRaw) return []
+
+    const core = JSON.parse(coreRaw) as SerializedCore
+    const pairs = Array.isArray(core.participants) ? core.participants : []
+    const userIds = pairs.map(([userId]) => userId).filter((id): id is string => typeof id === 'string')
+    return [...new Set(userIds)].map(uid => this.getUserVoteKey(battleId, uid))
   }
 
   async saveDiscussionToRedis(battleId: string, discussion: BattleDiscussion, discussionType: 'attack' | 'defense', team: BattleTeam): Promise<void> {
@@ -389,7 +403,6 @@ return {1, prev}
       .map(({ hash, voters }) => this.parseDiscussionHash(hash!, voters))
   }
 
-  //Redis HASH 데이터를 BattleDiscussion 객체로 변환
   private parseDiscussionHash(hash: Record<string, string>, voters: string[]): BattleDiscussion {
     return {
       discussionId: hash.discussionId,
