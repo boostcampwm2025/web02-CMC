@@ -352,7 +352,7 @@ describe('BattlesGateway - Discussion Events', () => {
       const mockClientNew = {
         id: 'client-new',
         emit: jest.fn(),
-        data: {},
+        data: {} as { userId?: string },
         handshake: {
           auth: {
             userId: 'new-user',

@@ -200,6 +200,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:attack error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit('battle:attack:error', {
           message: error.message,
         })
@@ -223,6 +224,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:defense error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit('battle:defense:error', {
           message: error.message,
         })
@@ -249,6 +251,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:attack:vote error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit('battle:attack:vote:error', {
           message: error.message,
         })
@@ -275,6 +278,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:defense:vote error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit('battle:defense:vote:error', {
           message: error.message,
         })
