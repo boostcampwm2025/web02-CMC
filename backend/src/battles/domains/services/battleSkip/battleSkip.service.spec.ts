@@ -9,6 +9,7 @@ describe('BattleSkipService', () => {
 
   const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
     battleId: 'battle-id',
+    status: 'OPEN',
     all: { roomId: 'battle:battle-id', chats: [], attacks: [], defenses: [] },
     teamA: { roomId: 'battle:battle-id:A', chats: [], users: ['user-a'], attacks: [], defenses: [] },
     teamB: { roomId: 'battle:battle-id:B', chats: [], users: ['user-b'], attacks: [], defenses: [] },

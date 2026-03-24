@@ -9,6 +9,7 @@ describe('BattleMvpService', () => {
 
   const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
     battleId: 'battle-1',
+    status: 'OPEN',
     all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
     teamA: { roomId: 'battle:battle-1:A', chats: [], users: [], attacks: [], defenses: [] },
     teamB: { roomId: 'battle:battle-1:B', chats: [], users: [], attacks: [], defenses: [] },

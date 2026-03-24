@@ -14,7 +14,10 @@ describe('BattleTimelineService', () => {
     team: 'A',
     content: '이의제기 내용',
     upvotes: 5,
-    selectedAt: '2025-01-01T00:00:00.000Z',
+    votes: [],
+    status: 'PENDING',
+    type: 'ATTACK',
+    selectedAt: new Date('2025-01-01T00:00:00.000Z').getTime(),
     ...overrides,
   })
 
@@ -69,8 +72,8 @@ describe('BattleTimelineService', () => {
     })
 
     it('생성시간 기준으로 정렬한다', () => {
-      const attack = createDiscussion({ discussionId: 'atk-1', selectedAt: '2025-01-01T00:01:00.000Z' })
-      const defense = createDiscussion({ discussionId: 'def-1', selectedAt: '2025-01-01T00:00:30.000Z' })
+      const attack = createDiscussion({ discussionId: 'atk-1', selectedAt: new Date('2025-01-01T00:01:00.000Z').getTime() })
+      const defense = createDiscussion({ discussionId: 'def-1', selectedAt: new Date('2025-01-01T00:00:30.000Z').getTime() })
       const state = createState([attack], [defense])
       const result = service.buildTimeline(state)
 
@@ -79,9 +82,9 @@ describe('BattleTimelineService', () => {
     })
 
     it('turn 번호를 인덱스 기반으로 계산한다', () => {
-      const atk1 = createDiscussion({ discussionId: 'atk-1', selectedAt: '2025-01-01T00:00:00.000Z' })
-      const atk2 = createDiscussion({ discussionId: 'atk-2', selectedAt: '2025-01-01T00:01:00.000Z' })
-      const atk3 = createDiscussion({ discussionId: 'atk-3', selectedAt: '2025-01-01T00:02:00.000Z' })
+      const atk1 = createDiscussion({ discussionId: 'atk-1', selectedAt: new Date('2025-01-01T00:00:00.000Z').getTime() })
+      const atk2 = createDiscussion({ discussionId: 'atk-2', selectedAt: new Date('2025-01-01T00:01:00.000Z').getTime() })
+      const atk3 = createDiscussion({ discussionId: 'atk-3', selectedAt: new Date('2025-01-01T00:02:00.000Z').getTime() })
       const state = createState([atk1, atk2, atk3], [])
       const result = service.buildTimeline(state)
 
