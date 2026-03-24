@@ -13,7 +13,7 @@ import {
   BattleDiscussionStatus,
   BattleDiscussionType,
 } from '../../../domains/models/types/battle.types'
-import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_TEAM } from '../../../domains/models/const/battles.const'
+import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM } from '../../../domains/models/const/battles.const'
 import type { Mvp } from '../../../domains/models/types/battleResult.types'
 import { BattleStatePort } from '../../../application/ports/out/battleState.port'
 
@@ -136,12 +136,29 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       return { battle: { id: battleId, status: live.status } as PrismaBattle, state: live }
     }
 
+    const statusRow = await this.prisma.battle.findUnique({ where: { id: battleId }, select: { status: true } })
+    if (!statusRow) throw new NotFoundException('배틀이 존재하지 않습니다.')
+
+    //배틀이 종료된 경우 캐시 삭제 후 데이터베이스에서 상태 로드
+    if (statusRow.status === BATTLE_STATUS.CLOSED) {
+      const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
+      if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
+
+      const state = this.buildStateFromBattle(battle)
+      this.liveStates.set(battleId, state)
+
+      void this.clearCache(battleId).catch(err => this.logger.error(`[loadBattleState] 캐시 삭제 실패 ${battleId}: ${(err as Error).message}`))
+      return { battle, state }
+    }
+
+    //캐시에서 상태 로드
     const cached = await this.loadStateFromCache(battleId)
     if (cached) {
       this.liveStates.set(battleId, cached)
       return { battle: { id: battleId, status: cached.status } as PrismaBattle, state: cached }
     }
 
+    //캐시에서 상태 로드 실패 시 데이터베이스에서 상태 로드
     const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
     if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
 
@@ -164,14 +181,14 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       const coreJson = JSON.stringify(this.serializeCore(live))
       void this.redis
         .set(this.getCoreKey(battleId), coreJson)
-        .catch(err => this.logger.error(`[updateSkipState] Redis write failed for ${battleId}: ${(err as Error).message}`))
+        .catch(err => this.logger.error(`[updateSkipState] Redis 업데이트 실패 ${battleId}: ${(err as Error).message}`))
     } else {
       await this.patchSkipCache(battleId, skipList)
     }
 
     this.prisma.battle
       .update({ where: { id: battleId }, data: { skipState: Array.from(skipList), updatedAt: new Date() } })
-      .catch(err => this.logger.error(`[updateSkipState] DB write failed for ${battleId}: ${(err as Error).message}`))
+      .catch(err => this.logger.error(`[updateSkipState] DB 업데이트 실패 ${battleId}: ${(err as Error).message}`))
   }
 
   /** 배틀 종료 시 메모리, 캐시 삭제 */
