@@ -30,10 +30,8 @@ export class BattleParticipationUseCase {
     const nickname: string = String(battleJoinRequestDto.nickname)
     if (!battleId) throw new BadRequestException('Battle ID가 필요합니다.')
 
-    const battleStateResult = await this.stateRepo.loadBattleState(battleId)
-    const battle = battleStateResult.battle
-    const state: ActiveBattleState = battleStateResult.state
-    if (battle.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    if (state.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
     const existingTeam = state.participants.get(userId)
     if (!state.userInfoMap.has(userId)) {
@@ -51,7 +49,7 @@ export class BattleParticipationUseCase {
       await this.repo.upsertBattleParticipant({ userId, battleId, team: String(team), isMvp: false })
     }
 
-    await this.stateRepo.saveBattleState(battleId, state)
+    this.stateRepo.saveBattleState(battleId, state)
     return { battleState: state, team }
   }
 
@@ -59,15 +57,14 @@ export class BattleParticipationUseCase {
   async leave(userId: string, battleId: string): Promise<BattleLeaveResponseDto> {
     if (!userId || !battleId) throw new BadRequestException('유효하지 않은 요청입니다.')
 
-    const battleStateResult = await this.stateRepo.loadBattleState(battleId)
-    const state: ActiveBattleState = battleStateResult.state
+    const { state } = await this.stateRepo.loadBattleState(battleId)
     state.teamA.users = state.teamA.users.filter((id: string) => id !== userId)
     state.teamB.users = state.teamB.users.filter((id: string) => id !== userId)
     state.teamVotes.delete(userId)
     state.participants.delete(userId)
     state.skipState.delete(userId)
 
-    await this.stateRepo.saveBattleState(battleId, state)
+    this.stateRepo.saveBattleState(battleId, state)
     await this.phaseTransitionUseCase.checkAndSkipPhase(battleId, state)
 
     return BattleLeaveResponseDto.of(state)

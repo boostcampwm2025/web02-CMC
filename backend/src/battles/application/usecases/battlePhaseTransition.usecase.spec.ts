@@ -43,8 +43,9 @@ describe('BattlePhaseTransitionUseCase', () => {
   beforeEach(() => {
     stateRepo = {
       loadBattleState: jest.fn(),
-      saveBattleState: jest.fn().mockResolvedValue(undefined),
+      saveBattleState: jest.fn(),
       updateSkipState: jest.fn().mockResolvedValue(undefined),
+      resetPhaseDiscussionsInRedis: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<BattleStatePort>
 
     broadcaster = {

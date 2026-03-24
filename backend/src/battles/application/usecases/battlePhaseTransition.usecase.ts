@@ -37,6 +37,8 @@ export class BattlePhaseTransitionUseCase {
     const prevRound = state.round
     const now = Date.now()
 
+    let resetType: 'attack' | 'defense' | null = null
+
     const nextPhase = this.phaseService.nextPhase(
       state,
       state => {
@@ -47,7 +49,15 @@ export class BattlePhaseTransitionUseCase {
         const top = this.voteService.buildDefensedResult(state, (team, type) => this.discussionService.buildNullPlaceholder(team, type))
         this.broadcaster.emitDefensed(DiscussionVoteResultDto.defensed(state.battleId, top))
       },
-      state => this.discussionService.resetDiscussions(state),
+      state => {
+        const prevPhase = state.phase
+        if (prevPhase === 'ATTACK' || prevPhase === 'OPINION_SHARE') {
+          resetType = 'attack'
+        } else if (prevPhase === 'DEFENSE') {
+          resetType = 'defense'
+        }
+        this.discussionService.resetDiscussions(state)
+      },
       async state => await this.terminationUseCase.finish(state),
       state => {
         this.teamSwitchService.applyTeamSwitch(
@@ -86,7 +96,12 @@ export class BattlePhaseTransitionUseCase {
       this.broadcaster.emitPhaseUpdated(res)
     }
 
-    await this.stateRepo.saveBattleState(battleId, state)
+    this.stateRepo.saveBattleState(battleId, state)
+
+    // Redis 키도 정리
+    if (resetType !== null) {
+      void this.stateRepo.resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B']).catch(() => {})
+    }
     void this.scheduleNextTick(battleId)
   }
 

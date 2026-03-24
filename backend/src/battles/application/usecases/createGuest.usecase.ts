@@ -20,8 +20,8 @@ export class CreateGuestUseCase {
    * 게스트 생성
    */
   async execute(battleId: string): Promise<GuestAccount> {
-    const { battle, state: battleState } = await this.stateRepo.loadBattleState(battleId)
-    if (battle.status === BATTLE_STATUS.CLOSED) {
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    if (state.status === BATTLE_STATUS.CLOSED) {
       throw new NotFoundException('해당 배틀은 현재 진행 중이지 않습니다.')
     }
 
@@ -33,8 +33,8 @@ export class CreateGuestUseCase {
 
     const guest: GuestAccount = this.guestService.buildGuest(guestNickname, () => this.identifierPort.generateId())
 
-    this.guestService.applyGuestToState(battleState, guest)
-    await this.stateRepo.saveBattleState(battleId, battleState)
+    this.guestService.applyGuestToState(state, guest)
+    this.stateRepo.saveBattleState(battleId, state)
 
     return guest
   }

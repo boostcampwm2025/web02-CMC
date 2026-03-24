@@ -78,7 +78,7 @@ describe('CreateGuestUseCase', () => {
     it('배틀이 CLOSED 상태이면 NotFoundException을 던진다', async () => {
       stateRepo.loadBattleState.mockResolvedValue({
         battle: { status: BATTLE_STATUS.CLOSED },
-        state: createMockState(),
+        state: { ...createMockState(), status: BATTLE_STATUS.CLOSED },
       } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
 
       await expect(useCase.execute('battle-1')).rejects.toThrow(NotFoundException)

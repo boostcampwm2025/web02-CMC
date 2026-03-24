@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { BadRequestException, ForbiddenException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { BattleInteractionUseCase } from './battleInteraction.usecase'
 import { BATTLE_TEAM } from '../../domains/models/const/battles.const'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
-import type { BattleVoteService } from '../../domains/services/battleVote/battleVote.service'
 import type { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
 import type { BattleChatService } from '../../domains/services/battleChat/battleChat.service'
 import type { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
@@ -17,20 +16,9 @@ describe('BattleInteractionUseCase', () => {
   let stateRepo: jest.Mocked<BattleStatePort>
   let repo: jest.Mocked<BattleRepoPort>
   let identifierPort: jest.Mocked<BattleIdentifierPort>
-  let voteService: jest.Mocked<BattleVoteService>
   let discussionService: jest.Mocked<BattleDiscussionService>
   let chatService: jest.Mocked<BattleChatService>
   let teamSwitchService: jest.Mocked<BattleTeamSwitchService>
-
-  const createMockState = (): ActiveBattleState =>
-    ({
-      battleId: 'battle-1',
-      participants: new Map([['user-1', 'A']]),
-      userInfoMap: new Map([['user-1', '테스터']]),
-      teamA: { users: ['user-1'], attacks: [], defenses: [], chats: [] },
-      teamB: { users: [], attacks: [], defenses: [], chats: [] },
-      all: { attacks: [], defenses: [], chats: [] },
-    }) as unknown as ActiveBattleState
 
   const createMockDiscussion = (): BattleDiscussion =>
     ({
@@ -44,11 +32,23 @@ describe('BattleInteractionUseCase', () => {
       team: BATTLE_TEAM.A,
     }) as BattleDiscussion
 
+  const createMockState = (): ActiveBattleState =>
+    ({
+      battleId: 'battle-1',
+      participants: new Map([['user-1', 'A']]),
+      userInfoMap: new Map([['user-1', '테스터']]),
+      teamA: { users: ['user-1'], attacks: [createMockDiscussion()], defenses: [], chats: [] },
+      teamB: { users: [], attacks: [], defenses: [], chats: [] },
+      all: { attacks: [], defenses: [], chats: [] },
+    }) as unknown as ActiveBattleState
+
   beforeEach(() => {
     stateRepo = {
       loadBattleState: jest.fn(),
-      saveBattleState: jest.fn().mockResolvedValue(undefined),
+      saveBattleState: jest.fn(),
       getNicknameByUserId: jest.fn().mockReturnValue('테스터'),
+      saveDiscussionToRedis: jest.fn().mockResolvedValue(undefined),
+      castVoteInRedis: jest.fn().mockResolvedValue({ added: true, prevDiscussionId: null }),
     } as unknown as jest.Mocked<BattleStatePort>
 
     repo = {
@@ -58,11 +58,6 @@ describe('BattleInteractionUseCase', () => {
     identifierPort = {
       generateId: jest.fn().mockReturnValue('new-id-123'),
     } as unknown as jest.Mocked<BattleIdentifierPort>
-
-    voteService = {
-      applyAttackVote: jest.fn().mockReturnValue([]),
-      applyDefenseVote: jest.fn().mockReturnValue([]),
-    } as unknown as jest.Mocked<BattleVoteService>
 
     discussionService = {
       applyAttack: jest.fn().mockReturnValue(createMockDiscussion()),
@@ -88,7 +83,7 @@ describe('BattleInteractionUseCase', () => {
       applyTeamVote: jest.fn(),
     } as unknown as jest.Mocked<BattleTeamSwitchService>
 
-    useCase = new BattleInteractionUseCase(stateRepo, repo, identifierPort, voteService, discussionService, chatService, teamSwitchService)
+    useCase = new BattleInteractionUseCase(stateRepo, repo, identifierPort, discussionService, chatService, teamSwitchService)
   })
 
   describe('submitDiscussion', () => {
@@ -102,7 +97,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '의견 내용', BATTLE_TEAM.A, 'attack')
 
       expect(discussionService.applyAttack).toHaveBeenCalled()
-      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
+      expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('ATTACK')
     })
 
@@ -119,7 +114,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '반론 내용', BATTLE_TEAM.A, 'defense')
 
       expect(discussionService.applyDefense).toHaveBeenCalled()
-      expect(stateRepo.saveBattleState).toHaveBeenCalled()
+      expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('DEFENSE')
     })
   })
@@ -132,23 +127,32 @@ describe('BattleInteractionUseCase', () => {
         state: mockState,
       } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
 
-      await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')
+      const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')
 
-      expect(voteService.applyAttackVote).toHaveBeenCalled()
-      expect(stateRepo.saveBattleState).toHaveBeenCalled()
+      expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(result).toHaveLength(1)
+      expect(result[0].discussionId).toBe('discussion-1')
     })
 
     it('반론에 투표한다', async () => {
-      const mockState = createMockState()
+      const mockState: ActiveBattleState = {
+        ...createMockState(),
+        teamA: {
+          users: ['user-1'],
+          attacks: [],
+          defenses: [createMockDiscussion()],
+          chats: [],
+        },
+      } as unknown as ActiveBattleState
       stateRepo.loadBattleState.mockResolvedValue({
         battle: {},
         state: mockState,
       } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
 
-      await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'defense')
+      const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'defense')
 
-      expect(voteService.applyDefenseVote).toHaveBeenCalled()
-      expect(stateRepo.saveBattleState).toHaveBeenCalled()
+      expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(result).toHaveLength(1)
     })
 
     it('NONE 팀은 ForbiddenException을 던진다', async () => {
@@ -156,6 +160,39 @@ describe('BattleInteractionUseCase', () => {
       await expect(useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.NONE, 'attack')).rejects.toThrow(
         '중립 진영은 투표할 수 없습니다.',
       )
+    })
+
+    it('canVote가 false면 BadRequestException을 던진다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      discussionService.canUserVoteAttack.mockReturnValue(false)
+
+      await expect(useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')).rejects.toThrow(BadRequestException)
+    })
+
+    it('discussion이 없으면 NotFoundException을 던진다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      await expect(useCase.submitVote('battle-1', 'nonexistent-id', 'user-1', BATTLE_TEAM.A, 'attack')).rejects.toThrow(NotFoundException)
+    })
+
+    it('이미 투표한 경우 BadRequestException을 던진다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.castVoteInRedis.mockResolvedValue({ added: false, prevDiscussionId: null })
+
+      await expect(useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')).rejects.toThrow(BadRequestException)
+      await expect(useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')).rejects.toThrow('이미 투표한 항목입니다.')
     })
   })
 
@@ -167,12 +204,12 @@ describe('BattleInteractionUseCase', () => {
         state: mockState,
       } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
 
-      const dto: BattleChatDto = {
+      const dto = {
         battleId: 'battle-1',
         scope: 'all',
         team: BATTLE_TEAM.A,
         text: '안녕하세요',
-      } as BattleChatDto
+      } as unknown as BattleChatDto
 
       const result = await useCase.sendChat(dto, 'user-1')
 
@@ -184,24 +221,24 @@ describe('BattleInteractionUseCase', () => {
     })
 
     it('battleId가 없으면 BadRequestException을 던진다', async () => {
-      const dto: BattleChatDto = {
+      const dto = {
         battleId: '',
         scope: 'all',
         team: BATTLE_TEAM.A,
         text: '안녕하세요',
-      } as BattleChatDto
+      } as unknown as BattleChatDto
 
       await expect(useCase.sendChat(dto, 'user-1')).rejects.toThrow(BadRequestException)
       await expect(useCase.sendChat(dto, 'user-1')).rejects.toThrow('잘못된 요청입니다.')
     })
 
     it('빈 메시지는 BadRequestException을 던진다', async () => {
-      const dto: BattleChatDto = {
+      const dto = {
         battleId: 'battle-1',
         scope: 'all',
         team: BATTLE_TEAM.A,
         text: '   ',
-      } as BattleChatDto
+      } as unknown as BattleChatDto
 
       await expect(useCase.sendChat(dto, 'user-1')).rejects.toThrow(BadRequestException)
       await expect(useCase.sendChat(dto, 'user-1')).rejects.toThrow('메시지가 비어 있습니다.')
