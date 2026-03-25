@@ -1,0 +1,140 @@
+{
+  "title": "CMC App - API",
+  "uid": "cmc-app-api",
+  "tags": ["cmc", "app", "http", "api"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "route",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(http_requests_total, route)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      },
+      {
+        "name": "method",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(http_requests_total, method)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "HTTP RPS (Total)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\"}[5m]))",
+          "legendFormat": "rps"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "HTTP 5xx Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\", status_code=~\"5..\"}[5m])) / (sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\"}[5m])) + 0.0000001)",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "HTTP p95 Latency",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route, method))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Request Rate by route/method",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\"}[1m])) by (route, method)",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "5xx Error Rate by route",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "percent", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\", status_code=~\"5..\"}[5m])) by (route)) / ((sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\"}[5m])) by (route)) + 0.0000001)",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Latency (p95/p99) by route",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route, method))",
+          "legendFormat": "p95 {{method}} {{route}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route, method))",
+          "legendFormat": "p99 {{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Status Breakdown",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{route=~\"$route\", method=~\"$method\"}[5m])) by (route, method, status_code)",
+          "legendFormat": "{{method}} {{route}} {{status_code}}"
+        }
+      ]
+    }
+  ]
+}

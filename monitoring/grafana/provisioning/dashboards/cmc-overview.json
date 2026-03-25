@@ -1,0 +1,196 @@
+{
+  "title": "CMC Overview",
+  "uid": "cmc-overview",
+  "tags": ["cmc", "overview", "sre", "sli", "slo", "golden-signals"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "CMC 4 Golden Signals",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "options": {
+        "content": "## 4 Golden Signal \n- **Traffic**: 지금 얼마나 많은 요청이 들어오는지\n- **Errors**: 요청/이벤트 중 실패한 비율\n- **Latency**: 요청이 얼마나 오래 걸리는지(느려짐이 제일 먼저 체감됨)\n- **Saturation**: 자원이 얼마나 찼는지(CPU/메모리/연결수)\n\n## 대응 규칙\n- 에러율이 SLO를 넘으면 즉시 조치\n- p99 지연이 상승하면 사용자 불만 가능성 높음(성공/실패 분리 확인)\n- 리소스 포화가 높으면 조치(scale/부하 분산/캐시/쿼리 최적화) 고려",
+        "mode": "markdown"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "HTTP RPS",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 4, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m]))",
+          "legendFormat": "http rps"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "HTTP 5xx Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 6, "y": 4, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{status_code=~\"5..\"}[5m])) / clamp_min(sum(rate(http_requests_total[5m])), 0.0000001)",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "HTTP p95 Latency",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Socket Success Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(socket_events_total{status=\"success\"}[5m])) / clamp_min(sum(rate(socket_events_total{status=~\"success|error\"}[5m])), 0.0000001)",
+          "legendFormat": "success"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Socket Error Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 8, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(socket_events_total{status=\"error\"}[5m])) / clamp_min(sum(rate(socket_events_total{status=~\"success|error\"}[5m])), 0.0000001)",
+          "legendFormat": "error"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Active Socket Connections",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 6, "y": 8, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "socket_active_connections{scope=\"user\"}",
+          "legendFormat": "connections"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Node/Container Up",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 8, "w": 6, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "sum(up{job=~\"backend|cadvisor\"})",
+          "legendFormat": "targets"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "HTTP Traffic / Error Trend",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m])) by (status_code)",
+          "legendFormat": "HTTP {{status_code}}"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Latency Trend (p95/p99)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "HTTP p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "HTTP p99"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(socket_event_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "Socket p95"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Socket 처리량 & 오류율",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "expr": "sum(rate(socket_events_total{status=\"success\"}[1m])) by (event)",
+          "legendFormat": "{{event}} success"
+        },
+        {
+          "expr": "sum(rate(socket_events_total{status=\"error\"}[1m])) by (event)",
+          "legendFormat": "{{event}} error"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Infra Saturation (CPU, Memory)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": {} },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"cadvisor\"}[1m])) by (id, name, container_label_com_docker_compose_service)",
+          "legendFormat": "CPU {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+        },
+        {
+          "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\"}) by (id, name, container_label_com_docker_compose_service)",
+          "legendFormat": "Mem {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+        }
+      ]
+    }
+  ]
+}

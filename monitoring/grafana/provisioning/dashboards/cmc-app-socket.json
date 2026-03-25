@@ -1,0 +1,131 @@
+{
+  "title": "CMC App - Socket",
+  "uid": "cmc-app-socket",
+  "tags": ["cmc", "app", "socket"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "event",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(socket_events_total, event)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Socket Event Success Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(socket_events_total{event=~\"$event\", status=\"success\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
+          "legendFormat": "success rate"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Socket Error Rate",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(socket_events_total{event=~\"$event\", status=\"error\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
+          "legendFormat": "error rate"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Active Socket Connections",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "socket_active_connections{scope=\"user\"}",
+          "legendFormat": "connections"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Event Rate by status",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "expr": "sum(rate(socket_events_total{event=~\"$event\"}[1m])) by (event, status)",
+          "legendFormat": "{{event}} {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Socket p95 / p99 Handling Time by event",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event))",
+          "legendFormat": "p95 {{event}}"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event))",
+          "legendFormat": "p99 {{event}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Average Handling Time by event/status",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "sum(rate(socket_event_duration_seconds_sum{event=~\"$event\"}[5m])) by (event, status) / sum(rate(socket_event_duration_seconds_count{event=~\"$event\"}[5m])) by (event, status)",
+          "legendFormat": "{{event}} {{status}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Socket Error Count by event",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "sum(rate(socket_event_errors_total{event=~\"$event\"}[5m])) by (event)",
+          "legendFormat": "{{event}}"
+        }
+      ]
+    }
+  ]
+}
