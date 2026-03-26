@@ -34,7 +34,7 @@
       "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
       "targets": [
         {
-          "expr": "100 * sum(rate(socket_events_total{event=~\"$event\", status=\"success\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
+          "expr": "sum(rate(socket_events_total{event=~\"$event\", status=\"success\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
           "legendFormat": "success rate"
         }
       ]
@@ -48,7 +48,7 @@
       "fieldConfig": { "defaults": { "unit": "percentunit", "decimals": 2 } },
       "targets": [
         {
-          "expr": "100 * sum(rate(socket_events_total{event=~\"$event\", status=\"error\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
+          "expr": "sum(rate(socket_events_total{event=~\"$event\", status=\"error\"}[5m])) / clamp_min(sum(rate(socket_events_total{event=~\"$event\", status=~\"success|error\"}[5m])), 0.0000001)",
           "legendFormat": "error rate"
         }
       ]
