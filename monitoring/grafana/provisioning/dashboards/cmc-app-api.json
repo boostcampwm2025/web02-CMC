@@ -73,7 +73,7 @@
       "targets": [
         {
           "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\", method=~\"$method\"}[5m])) by (le, route, method))",
-          "legendFormat": "p95"
+          "legendFormat": "{{route}}"
         }
       ]
     },
