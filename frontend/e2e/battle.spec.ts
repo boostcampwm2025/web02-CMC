@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { injectOAuthUser } from './helpers/auth';
-import { mockSocketIO, setBattleTeam, setSocketPhase } from './helpers/socket';
+import { mockSocketIO, setSocketPhase } from './helpers/socket';
 import { BATTLE_ID, MOCK_BATTLE_INFO, MOCK_BATTLE_RESULT, MOCK_REFERENCE_DATA, DEFAULT_BATTLE_JOIN_DATA } from './helpers/mockData';
 
 const BATTLE_URL = `/battle/${BATTLE_ID}`;
@@ -149,10 +149,10 @@ test.describe('배틀 페이지 - 채팅', () => {
   });
 
   test('A팀 유저의 팀 채팅 메시지가 팀 라운지 탭에 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page);
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
 
     await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
-    await setBattleTeam(page, 'A');
+    await setBattleTeam('A');
 
     emitToClient('battle:chatted', {
       messageId: 'msg-team-a',
@@ -169,10 +169,10 @@ test.describe('배틀 페이지 - 채팅', () => {
   });
 
   test('B팀 유저의 팀 채팅 메시지가 팀 라운지 탭에 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page);
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
 
     await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
-    await setBattleTeam(page, 'B');
+    await setBattleTeam('B');
 
     emitToClient('battle:chatted', {
       messageId: 'msg-team-b',
@@ -189,10 +189,10 @@ test.describe('배틀 페이지 - 채팅', () => {
   });
 
   test('전체 채팅 메시지는 전체 라운지 탭에서만 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page);
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
 
     await expect(page.locator('[data-tutorial="team-status"]').getByText('5')).toBeVisible();
-    await setBattleTeam(page, 'A');
+    await setBattleTeam('A');
 
     emitToClient('battle:chatted', {
       messageId: 'msg-all-001',
@@ -278,16 +278,16 @@ test.describe('배틀 페이지 - 이의제기 입력 기능', () => {
   });
 
   test('이의제기 페이즈에서 팀 선택 후 이의제기 입력 폼이 표시되고 초기 버튼이 비활성화된다', async ({ page }) => {
-    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
-    await setBattleTeam(page, 'A');
+    const { setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam('A');
 
     await expect(page.getByPlaceholder('상대 코드의 허점을 찾아 이의 제기하세요')).toBeVisible();
     await expect(page.getByRole('button', { name: '이의제기' })).toBeDisabled();
   });
 
   test('120자 초과 입력 시 120자로 잘리고 경고 토스트가 표시된다', async ({ page }) => {
-    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
-    await setBattleTeam(page, 'A');
+    const { setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam('A');
 
     const input = page.getByPlaceholder('상대 코드의 허점을 찾아 이의 제기하세요');
     await input.fill('가'.repeat(130));
@@ -297,8 +297,8 @@ test.describe('배틀 페이지 - 이의제기 입력 기능', () => {
   });
 
   test('이의제기 제출 후 소켓 이벤트로 vote list에 항목이 추가된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam('A');
 
     emitToClient('battle:attack:created', {
       discussionId: 'attack-001',
@@ -320,16 +320,16 @@ test.describe('배틀 페이지 - 반론 입력 기능', () => {
   });
 
   test('반론 페이즈에서 팀 선택 후 반론 입력 폼이 표시되고 초기 버튼이 비활성화된다', async ({ page }) => {
-    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
-    await setBattleTeam(page, 'B');
+    const { setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam('B');
 
     await expect(page.getByPlaceholder('상대 주장에 논리적으로 반박해 보세요')).toBeVisible();
     await expect(page.getByRole('button', { name: '반론' })).toBeDisabled();
   });
 
   test('120자 초과 입력 시 120자로 잘리고 경고 토스트가 표시된다', async ({ page }) => {
-    await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
-    await setBattleTeam(page, 'B');
+    const { setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam('B');
 
     const input = page.getByPlaceholder('상대 주장에 논리적으로 반박해 보세요');
     await input.fill('가'.repeat(130));
@@ -339,8 +339,8 @@ test.describe('배틀 페이지 - 반론 입력 기능', () => {
   });
 
   test('반론 제출 후 소켓 이벤트로 vote list에 항목이 추가된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
-    await setBattleTeam(page, 'B');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam('B');
 
     emitToClient('battle:defense:created', {
       discussionId: 'defense-001',
@@ -356,8 +356,8 @@ test.describe('배틀 페이지 - 반론 입력 기능', () => {
 
 test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
   test('적팀 이의제기가 선정되면 모달이 표시되고 페이즈 전환 시 채팅 공지가 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'ATTACK' });
+    await setBattleTeam('A');
 
     emitToClient('battle:attacked', {
       battleId: BATTLE_ID,
@@ -377,8 +377,8 @@ test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
   });
 
   test('적팀 반론이 선정되면 모달이 표시되고 페이즈 전환 시 채팅 공지가 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
-    await setBattleTeam(page, 'B');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page, { ...DEFAULT_BATTLE_JOIN_DATA, phase: 'DEFENSE' });
+    await setBattleTeam('B');
 
     emitToClient('battle:defensed', {
       battleId: BATTLE_ID,
@@ -400,8 +400,8 @@ test.describe('배틀 페이지 - 적팀 선정 공지 모달', () => {
 
 test.describe('배틀 페이지 - 팀 변경 투표', () => {
   test('TEAM_SWITCH 페이즈 진입 후 B팀 선택 시 팀이 B로 변경되고 B팀 채팅이 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page);
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
+    await setBattleTeam('A');
 
     await expect(page.getByText('A팀 채팅입니다')).toBeVisible();
 
@@ -419,8 +419,8 @@ test.describe('배틀 페이지 - 팀 변경 투표', () => {
   });
 
   test('battle:all:updated 수신 시 팀 변경 이동 추이 모달이 표시된다', async ({ page }) => {
-    const { emitToClient } = await setupBattlePageWithSocket(page);
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
+    await setBattleTeam('A');
 
     emitToClient('battle:all:updated', {
       battleId: BATTLE_ID,
@@ -444,8 +444,8 @@ test.describe('배틀 페이지 - 페이즈 스킵', () => {
   test('모든 참여자가 스킵에 동의하면 스킵 모달이 표시되고 다음 페이즈로 전환된다', async ({ page }) => {
     // 기본 참여 인원: teamA(5) + teamB(3) + teamNone(2) = 10명
     const totalParticipants = 10;
-    const { emitToClient } = await setupBattlePageWithSocket(page);
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
+    await setBattleTeam('A');
 
     await expect(page.getByText('의견 공유')).toBeVisible();
     await expect(page.getByText(`현재 0명이 스킵을 희망합니다.`)).toBeVisible();
@@ -479,8 +479,8 @@ test.describe('배틀 페이지 - 배틀 종료', () => {
       route.fulfill({ status: 200, json: MOCK_BATTLE_RESULT })
     );
 
-    const { emitToClient } = await setupBattlePageWithSocket(page);
-    await setBattleTeam(page, 'A');
+    const { emitToClient, setBattleTeam } = await setupBattlePageWithSocket(page);
+    await setBattleTeam('A');
 
     // 배틀 종료 이벤트 수신
     emitToClient('battle:closed', { battleId: BATTLE_ID });

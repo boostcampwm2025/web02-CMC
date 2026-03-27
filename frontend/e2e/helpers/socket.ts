@@ -1,11 +1,21 @@
 import type { Page } from '@playwright/test';
 import { DEFAULT_BATTLE_JOIN_DATA, TEAM_A_CHATS, TEAM_B_CHATS } from './mockData';
 
+const EIO_CONNECT = `40`; 
+const EIO_EVENT = `42`;  
+
+type BattleSocketHandle = {
+  emitToClient: (event: string, data: unknown) => void;
+  onClientEvent: <T = unknown>(event: string, handler: (data: T) => void) => void;
+  setBattleTeam: (team: 'A' | 'B' | 'NONE') => Promise<void>;
+};
+
 export async function mockSocketIO(
   page: Page,
   battleJoinData: typeof DEFAULT_BATTLE_JOIN_DATA = DEFAULT_BATTLE_JOIN_DATA
-): Promise<{ emitToClient: (event: string, data: unknown) => void }> {
+): Promise<BattleSocketHandle> {
   let sendToClient: ((msg: string) => void) | null = null;
+  const clientEventHandlers = new Map<string, (data: unknown) => void>();
 
   await page.routeWebSocket(/localhost:3000/, (ws) => {
     sendToClient = (msg: string) => ws.send(msg);
@@ -16,34 +26,41 @@ export async function mockSocketIO(
 
     ws.onMessage((raw) => {
       const msg = typeof raw === 'string' ? raw : raw.toString();
-      if (msg.startsWith('40')) {
-        ws.send('40{"sid":"mock-socket-id"}');
+
+      if (msg.startsWith(EIO_CONNECT)) {
+        ws.send(`${EIO_CONNECT}{"sid":"mock-socket-id"}`);
         return;
       }
-      if (msg.startsWith('42') && msg.includes('"battle:join"')) {
-        try {
-          const payload = JSON.parse(msg.slice(2));
-          const joinTeam: string = payload[1]?.team ?? 'NONE';
+
+      if (msg.startsWith(EIO_EVENT)) {
+        const [event, data] = JSON.parse(msg.slice(EIO_EVENT.length)) as [string, unknown];
+
+        if (event === 'battle:join') {
+          const joinTeam = (data as { team?: string })?.team ?? 'NONE';
           const teamChats = joinTeam === 'A' ? TEAM_A_CHATS : joinTeam === 'B' ? TEAM_B_CHATS : [];
-          const joinData = { ...battleJoinData, chats: teamChats };
-          ws.send(`42["battle:joined",${JSON.stringify(joinData)}]`);
-        } catch {
-          ws.send(`42["battle:joined",${JSON.stringify(battleJoinData)}]`);
+          ws.send(`${EIO_EVENT}["battle:joined",${JSON.stringify({ ...battleJoinData, chats: teamChats })}]`);
+          return;
         }
-        return;
+
+        clientEventHandlers.get(event)?.(data);
       }
     });
   });
 
+  const emitToClient = (event: string, data: unknown) => {
+    sendToClient?.(`${EIO_EVENT}[${JSON.stringify(event)},${JSON.stringify(data)}]`);
+  };
+
   return {
-    emitToClient: (event: string, data: unknown) => {
-      sendToClient?.(`42[${JSON.stringify(event)},${JSON.stringify(data)}]`);
-    }
+    emitToClient,
+    onClientEvent: (event, handler) => {
+      clientEventHandlers.set(event, handler as (data: unknown) => void);
+    },
+    setBattleTeam: (team) => setBattleTeam(page, team),
   };
 }
 
-
-export async function setBattleTeam(page: Page, team: 'A' | 'B' | 'NONE'): Promise<void> {
+async function setBattleTeam(page: Page, team: 'A' | 'B' | 'NONE'): Promise<void> {
   await page.evaluate(() => {
     const store = (window as unknown as { __battleStore__?: { getState: () => { setChatInitialized: (v: boolean) => void } } }).__battleStore__;
     store?.getState().setChatInitialized(false);
@@ -68,4 +85,3 @@ export function setSocketPhase(
     expiredAt: Date.now() + 180000,
   });
 }
-
