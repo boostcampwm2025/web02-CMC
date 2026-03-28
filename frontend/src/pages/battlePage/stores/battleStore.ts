@@ -206,6 +206,11 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   }
 }));
 
+// E2E 테스트용 store 노출
+if (import.meta.env.DEV) {
+  (window as unknown as { __battleStore__: typeof useBattleStore }).__battleStore__ = useBattleStore;
+}
+
 export const selectUserId = (state: BattleStore) => state.userId;
 export const selectBattleId = (state: BattleStore) => state.battleId;
 export const selectSocket = (state: BattleStore) => state.socket;
