@@ -184,11 +184,11 @@
       "targets": [
         {
           "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"cadvisor\"}[1m])) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "CPU {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         },
         {
           "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\"}) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "Mem {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     }

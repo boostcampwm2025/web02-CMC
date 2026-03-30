@@ -49,7 +49,7 @@
       "targets": [
         {
           "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "{{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     },
@@ -63,7 +63,7 @@
       "targets": [
         {
           "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\", id=~\"$container_id\"}) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "{{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     },
@@ -77,11 +77,11 @@
       "targets": [
         {
           "expr": "sum(rate(container_network_receive_bytes_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "RX {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         },
         {
           "expr": "sum(rate(container_network_transmit_bytes_total{job=\"cadvisor\", id=~\"$container_id\"}[1m])) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "TX {{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "targets": [
         {
           "expr": "sum(container_fs_usage_bytes{job=\"cadvisor\", id=~\"$container_id\"}) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "{{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     },
@@ -109,7 +109,7 @@
       "targets": [
         {
           "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\", id=~\".*(redis|postgres|backend|frontend).*\"}) by (id, name, container_label_com_docker_compose_service)",
-          "legendFormat": "{{container_label_com_docker_compose_service}} {{name}} {{id}}"
+          "legendFormat": "{{name}}"
         }
       ]
     }
