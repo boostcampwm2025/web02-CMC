@@ -1,5 +1,4 @@
 import Icon from '@/commons/components/Icon';
-import { BookOpen } from 'lucide-react';
 
 interface BookmarkButtonProps {
   onOpen: (tab: 'info' | 'timeline' | 'reference') => void;
@@ -48,7 +47,7 @@ export default function BookmarkButton({
           className="group relative bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
           aria-label="참고 자료 보기"
         >
-          <BookOpen className="w-3.5 h-3.5" />
+          <Icon name="bookOpen" className="w-3.5 h-3.5" />
           <span className="text-sm">참고 자료</span>
         </button>
       )}

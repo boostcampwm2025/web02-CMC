@@ -1,4 +1,4 @@
-import { Flag } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import TeamCard from '../TeamCard';
 import type { Team } from '@/commons/types/battle';
 
@@ -12,7 +12,10 @@ export default function Step4TeamSelect({ onSelect, selectedTeam }: Step4TeamSel
     <div className="flex flex-col items-center gap-4 xl:gap-6 2xl:gap-8 w-full max-w-6xl mx-auto px-4">
       {/* 상단 섹션 */}
       <div className="text-center mb-4 xl:mb-6 2xl:mb-8">
-        <Flag className="w-10 h-10 xl:w-12 xl:h-12 2xl:w-16 2xl:h-16 text-orange-500 mx-auto mb-2 xl:mb-3 2xl:mb-4" />
+        <Icon
+          name="flag"
+          className="w-10 h-10 xl:w-12 xl:h-12 2xl:w-16 2xl:h-16 text-orange-500 mx-auto mb-2 xl:mb-3 2xl:mb-4"
+        />
         <h2 className="text-xl xl:text-2xl 2xl:text-3xl font-bold text-white mb-1 xl:mb-2">진영 선택</h2>
         <p className="text-sm xl:text-base text-gray-400">A팀, B팀 또는 중립 진영을 선택하세요</p>
       </div>

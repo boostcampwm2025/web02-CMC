@@ -1,4 +1,4 @@
-import { ThumbsUp } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { TimelineItem } from '@/pages/battleResultPage/types';
 
 interface MessageCardProps {
@@ -40,7 +40,7 @@ export default function MessageCard({ message, team, formatTime }: MessageCardPr
           isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'
         }`}
       >
-        <ThumbsUp className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
+        <Icon name="like" className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
         <span className={`font-bold ${isTeamA ? 'text-blue-300' : 'text-red-300'}`}>{message.upvotes}</span>
       </div>
     </div>

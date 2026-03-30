@@ -7,7 +7,6 @@ import MetricsCards from './components/MetricsCards';
 import CodeViewerSection from './components/CodeViewerSection';
 import TimelineSection from './components/TimelineSection';
 import MvpCard from './components/MvpCard';
-import { Trophy, Activity } from 'lucide-react';
 import { useGetBattleResult } from './hooks/useGetBattleResult';
 
 export default function BattleResultPage() {
@@ -83,14 +82,14 @@ export default function BattleResultPage() {
           onClick={() => navigate('/main')}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-pink-500/30"
         >
-          <Trophy className="w-5 h-5" />
+          <Icon name="trophy" className="w-5 h-5" />
           다른 배틀 보기
         </button>
         <button
           onClick={() => navigate('/main')}
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-lg font-bold text-white transition-all shadow-lg shadow-green-500/30"
         >
-          <Activity className="w-5 h-5" />
+          <Icon name="activity" className="w-5 h-5" />
           배틀 다시 시작하기
         </button>
       </div>

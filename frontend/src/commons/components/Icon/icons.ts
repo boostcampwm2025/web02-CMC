@@ -31,6 +31,32 @@ import UserIcon from '@/assets/icon/user.svg?react';
 import VoteIcon from '@/assets/icon/vote.svg?react';
 import WorldIcon from '@/assets/icon/world.svg?react';
 
+import {
+  Activity,
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  Award,
+  BookOpen,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  Code2,
+  ExternalLink,
+  Flag,
+  Flame,
+  Home,
+  Medal,
+  RefreshCw,
+  Shuffle,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Zap
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
 import BronzePng from '@/assets/icon/bronze.png';
 import SilverPng from '@/assets/icon/silver.png';
 import GoldPng from '@/assets/icon/gold.png';
@@ -41,6 +67,8 @@ import GrandmasterPng from '@/assets/icon/grandmaster.png';
 import type { FC, SVGProps } from 'react';
 
 export type SvgIconComponent = FC<SVGProps<SVGSVGElement>>;
+
+const lc = (icon: LucideIcon): SvgIconComponent => icon as SvgIconComponent;
 
 export const SVG_ICONS = {
   battle: BattleIcon,
@@ -74,7 +102,30 @@ export const SVG_ICONS = {
   trophy: TrophyIcon,
   user: UserIcon,
   vote: VoteIcon,
-  world: WorldIcon
+  world: WorldIcon,
+  // lucide-react icons
+  activity: lc(Activity),
+  alertTriangle: lc(AlertTriangle),
+  arrowDown: lc(ArrowDown),
+  arrowRight: lc(ArrowRight),
+  award: lc(Award),
+  bookOpen: lc(BookOpen),
+  chevronDown: lc(ChevronDown),
+  chevronLeft: lc(ChevronLeft),
+  chevronRight: lc(ChevronRight),
+  chevronUp: lc(ChevronUp),
+  code2: lc(Code2),
+  externalLink: lc(ExternalLink),
+  flag: lc(Flag),
+  flame: lc(Flame),
+  home: lc(Home),
+  medal: lc(Medal),
+  refreshCw: lc(RefreshCw),
+  shuffle: lc(Shuffle),
+  sparkles: lc(Sparkles),
+  target: lc(Target),
+  trendingUp: lc(TrendingUp),
+  zap: lc(Zap)
 } as const satisfies Record<string, SvgIconComponent>;
 
 export const TIER_ICONS = {
