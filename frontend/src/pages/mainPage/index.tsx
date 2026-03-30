@@ -3,7 +3,7 @@ import BattleCategoryCard from '@/pages/mainPage/components/BattleCategoryCard';
 import LiveBattlesSection from './components/liveBattles/LiveBattlesSection';
 import PastBattlesSection from './components/pastBattles/PastBattlesSection';
 import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
-import BattleIcon from '@/assets/icon/battle.svg?react';
+import Icon from '@/commons/components/Icon';
 import Header from '@/commons/components/Header';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
@@ -45,7 +45,7 @@ export default function MainPage() {
                 className="flex items-center rounded-xl px-5 py-3  bg-orange-500 shadow-[0_4px_6px_-4px_rgba(255,105,0,0.3),0_10px_15px_-3px_rgba(255,105,0,0.3)] hover:shadow-[0_0_25px_rgba(255,105,0,0.7)] transition-all duration-200"
               >
                 <div className="flex items-center gap-1 ">
-                  <BattleIcon className="w-5 h-5 text-white" />
+                  <Icon name="battle" className="w-5 h-5 text-white" />
                   <p> 새 배틀 생성</p>
                 </div>
               </button>

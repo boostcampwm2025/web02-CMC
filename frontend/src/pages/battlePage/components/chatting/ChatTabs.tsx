@@ -1,5 +1,4 @@
-import PeopleIcon from '@/assets/icon/peoples.svg?react';
-import WordIcon from '@/assets/icon/world.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface ChatTabsProps {
   activeTab: 'team' | 'all';
@@ -18,7 +17,7 @@ export default function ChatTabs({ activeTab, onTabChange, team, unreadTeamCount
     return (
       <div className="flex-1 py-3 w-full text-xs font-medium rounded-t-lg bg-[#FF6900] text-white">
         <span className="flex items-center justify-center gap-1">
-          <WordIcon className="w-5 h-5" />
+          <Icon name="world" className="w-5 h-5" />
           <span className="">전체 라운지</span>
           {showAllCount && (
             <span className="min-w-[1.125rem] px-1.5 py-px text-[0.688rem] rounded-full bg-white/20 text-white">
@@ -39,7 +38,7 @@ export default function ChatTabs({ activeTab, onTabChange, team, unreadTeamCount
         }`}
       >
         <span className="flex items-center justify-center gap-1">
-          <PeopleIcon className="w-5 h-5" />
+          <Icon name="peoples" className="w-5 h-5" />
           <span className="">팀 라운지</span>
           {showTeamCount && (
             <span className="min-w-[1.125rem] px-1.5 py-px text-[0.688rem] rounded-full bg-black/30 text-white">
@@ -55,7 +54,7 @@ export default function ChatTabs({ activeTab, onTabChange, team, unreadTeamCount
         }`}
       >
         <span className="flex items-center justify-center gap-1">
-          <WordIcon className="w-5 h-5" />
+          <Icon name="world" className="w-5 h-5" />
           <span className="">전체 라운지</span>
           {showAllCount && (
             <span className="min-w-[1.125rem] px-1.5 py-px text-[0.688rem] rounded-full bg-black/30 text-white">

@@ -1,5 +1,4 @@
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ClockIcon from '@/assets/icon/clock.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface EmptyBattlesStateProps {
   type: 'live' | 'past';
@@ -19,9 +18,9 @@ export default function EmptyBattlesState({ type, height = '18rem' }: EmptyBattl
           className={`h-20 w-20 rounded-full bg-gradient-to-br ${isLive ? 'from-orange-500/20 to-orange-600/20' : 'from-gray-500/20 to-gray-600/20'} flex items-center justify-center`}
         >
           {isLive ? (
-            <BattleIcon className="w-10 h-10 text-orange-500" />
+            <Icon name="battle" className="w-10 h-10 text-orange-500" />
           ) : (
-            <ClockIcon className="w-10 h-10 text-gray-500" />
+            <Icon name="clock" className="w-10 h-10 text-gray-500" />
           )}
         </div>
         {isLive && <div className="absolute inset-0 h-20 w-20 rounded-full bg-orange-500/30 animate-ping"></div>}

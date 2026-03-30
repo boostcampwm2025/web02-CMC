@@ -9,10 +9,14 @@ interface IconProps extends SVGProps<SVGSVGElement> {
 
 export default function Icon({ name, alt, ...svgProps }: IconProps) {
   if (name in TIER_ICONS) {
-    return <img src={TIER_ICONS[name as TierName]} className={svgProps.className} alt={alt ?? name} />;
+    return (
+      <img src={TIER_ICONS[name as TierName]} className={svgProps.className} style={svgProps.style} alt={alt ?? name} />
+    );
   }
 
   const SvgIcon = SVG_ICONS[name as IconName];
 
   return <SvgIcon {...svgProps} />;
 }
+
+export type { IconName, TierName };

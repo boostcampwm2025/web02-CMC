@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { type BattleCardItem, BATTLE_CATEGORY_CONFIG } from '../../types/battle';
-import PeopleIcon from '@/assets/icon/people.svg?react';
-import ClockIcon from '@/assets/icon/clock.svg?react';
+import Icon from '@/commons/components/Icon';
 import IconBox from '../IconBox';
 import Badge from '@/commons/components/Badge';
 
@@ -13,7 +12,7 @@ interface LiveBattleCardProps {
 export default function LiveBattleCard({ battleInform, isHot = false }: LiveBattleCardProps) {
   const { category, title, description, timeLabel, clientCount, id, status } = battleInform;
   const config = BATTLE_CATEGORY_CONFIG[category] || BATTLE_CATEGORY_CONFIG.ETC;
-  const { text, bg, bgSoft, icon: Icon } = config;
+  const { text, bg, bgSoft, icon: iconName } = config;
   return (
     <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden min-w-0">
       <div className={`h-1 w-full ${bg}`} />
@@ -22,7 +21,7 @@ export default function LiveBattleCard({ battleInform, isHot = false }: LiveBatt
         <div className="flex items-start justify-between min-w-0">
           <div className="flex items-center gap-3 min-w-0">
             <IconBox className={bgSoft}>
-              <Icon className={`w-6 h-6 ${text}`} />
+              <Icon name={iconName} className={`w-6 h-6 ${text}`} />
             </IconBox>
 
             <div className="flex flex-col text-left min-w-0">
@@ -48,11 +47,11 @@ export default function LiveBattleCard({ battleInform, isHot = false }: LiveBatt
         <div className="mt-auto flex items-center justify-between min-w-0">
           <div className="flex items-center gap-3 text-gray-400 text-sm">
             <div className="flex items-center gap-1">
-              <PeopleIcon className="w-4 h-4" />
+              <Icon name="people" className="w-4 h-4" />
               <span>{clientCount}</span>
             </div>
             <div className="flex items-center gap-1">
-              <ClockIcon className="w-4 h-4" />
+              <Icon name="clock" className="w-4 h-4" />
               <span>{timeLabel}</span>
             </div>
           </div>

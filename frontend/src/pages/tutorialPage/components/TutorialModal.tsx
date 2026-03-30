@@ -1,4 +1,4 @@
-import QuestionIcon from '@/assets/icon/question.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface TutorialModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontSh
       <div className="relative max-w-md rounded-2xl bg-[#1E2432] border border-[#2D3648] shadow-2xl p-8">
         <div className="flex justify-center mb-6">
           <div className="w-15 h-15 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
-            <QuestionIcon className="w-10 h-10 text-white" />
+            <Icon name="question" className="w-10 h-10 text-white" />
           </div>
         </div>
 

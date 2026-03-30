@@ -2,8 +2,7 @@ import ChatInput from './ChatInput';
 import ChatMessage from './ChatMessage';
 import DiscussionMessage from './DiscussionMessage';
 import ChatTabs from './ChatTabs';
-import PeoplesIcons from '@/assets/icon/peoples.svg?react';
-import MessageIcon from '@/assets/icon/message.svg?react';
+import Icon from '@/commons/components/Icon';
 
 import { useState, useMemo } from 'react';
 import { useBattleStore, selectSelectedTeam, selectTeamCounts, selectChatInitialized } from '../../stores/battleStore';
@@ -50,11 +49,11 @@ export default function ChatSection() {
       <div className="px-4 pt-3 pb-2 border-b border-[#2D2D3F]">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <MessageIcon />
+            <Icon name="message" />
             <h3 className="text-sm font-medium text-white">라운지</h3>
           </div>
           <span className="text-xs text-[#99A1AF] flex items-center gap-1">
-            <PeoplesIcons />
+            <Icon name="peoples" />
             {currentMemberCount}
           </span>
         </div>

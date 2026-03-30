@@ -1,6 +1,4 @@
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
-import VoteIcon from '@/assets/icon/vote.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface DiscussionMessageProps {
   user: string;
@@ -38,9 +36,9 @@ export default function DiscussionMessage({ user, team, content, type, votes }: 
       <div className="flex items-center gap-2.5">
         <div className={`flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center ${TEAM_BADGE_BG[team]}`}>
           {type === 'attack' ? (
-            <BattleIcon className="w-4 h-4 text-white" />
+            <Icon name="battle" className="w-4 h-4 text-white" />
           ) : (
-            <ShieldIcon className="w-4 h-4 text-white" />
+            <Icon name="shield" className="w-4 h-4 text-white" />
           )}
         </div>
 
@@ -54,7 +52,7 @@ export default function DiscussionMessage({ user, team, content, type, votes }: 
 
         {typeof votes === 'number' && (
           <div className="flex-shrink-0 flex items-center gap-1.5 bg-orange-500/20 px-2.5 py-1 rounded-md border border-orange-500/30">
-            <VoteIcon className="w-3 h-3 text-orange-400" />
+            <Icon name="vote" className="w-3 h-3 text-orange-400" />
             <span className="text-orange-400 text-sm font-bold">{votes}</span>
           </div>
         )}

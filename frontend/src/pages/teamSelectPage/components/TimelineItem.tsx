@@ -1,7 +1,5 @@
 import type { TimelineItem as TimelineItemType } from '../types/teamSelect';
-import Like from '@/assets/icon/like.svg?react';
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface TimelineItemProps extends TimelineItemType {
   allTimelines: TimelineItemType[];
@@ -71,9 +69,9 @@ export default function TimelineItem({
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {type === 'ATTACK' ? (
-            <BattleIcon className={`w-5 h-5 ${typeStyle.icon}`} />
+            <Icon name="battle" className={`w-5 h-5 ${typeStyle.icon}`} />
           ) : (
-            <ShieldIcon className={`w-5 h-5 ${typeStyle.icon}`} />
+            <Icon name="shield" className={`w-5 h-5 ${typeStyle.icon}`} />
           )}
           <span className={`font-semibold ${typeStyle.icon}`}>{typeStyle.label}</span>
           <span className="text-white font-medium">{author}</span>
@@ -86,7 +84,7 @@ export default function TimelineItem({
       {relatedAttack && (
         <div className="mb-3 pl-4 border-l-2 border-[#4CAF50] bg-[#1E3A1E]/30 py-2 px-3 rounded">
           <div className="flex items-center gap-2 mb-1">
-            <BattleIcon className="w-4 h-4 text-[#4CAF50]" />
+            <Icon name="battle" className="w-4 h-4 text-[#4CAF50]" />
             <span className="text-[#4CAF50] text-xs font-semibold">이의제기</span>
             <span className="text-[#99A1AF] text-xs">by {relatedAttack.author}</span>
           </div>
@@ -99,7 +97,7 @@ export default function TimelineItem({
 
       {/* 좋아요 */}
       <div className="flex items-center gap-1">
-        <Like className="w-4 h-4 text-[#99A1AF]" />
+        <Icon name="like" className="w-4 h-4 text-[#99A1AF]" />
         <span className="text-[#99A1AF] text-xs">{upvotes}</span>
       </div>
     </div>

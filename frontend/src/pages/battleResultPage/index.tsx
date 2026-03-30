@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import Icon from '@/commons/components/Icon';
 import WinnerSection from './components/WinnerSection';
 import VoteChart from './components/VoteChartSector';
 import MetricsCards from './components/MetricsCards';
@@ -35,7 +35,7 @@ export default function BattleResultPage() {
     <div className="min-h-screen text-white p-6 md:p-10">
       <header className="text-center mb-10">
         <div className="flex justify-center items-center gap-2">
-          <TrophyIcon />
+          <Icon name="trophy" />
           <h1 className="text-3xl md:text-4xl font-bold">배틀 결과</h1>
         </div>
         <p className="text-slate-400">배틀 종료! 최종 결과를 확인하세요</p>

@@ -2,8 +2,7 @@ import { useState, useRef } from 'react';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { getDiscussionConfig } from '../../utils/battlePhase';
 import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
-import BattleIcon from '@/assets/icon/battle.svg?react';
-import ShieldIcon from '@/assets/icon/shield.svg?react';
+import Icon, { type IconName } from '@/commons/components/Icon';
 
 const MAX_LENGTH = 120;
 
@@ -23,7 +22,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
   const round = battleProgress?.round;
   const phase = battleProgress?.phase;
   const config = getDiscussionConfig(phase);
-  const PhaseIcon = phase === 'ATTACK' ? BattleIcon : ShieldIcon;
+  const iconName = (phase === 'ATTACK' ? 'battle' : 'shield') as IconName;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
@@ -79,7 +78,7 @@ export default function DiscussionInput({ onSubmit }: DiscussionInputProps) {
             className={`rounded-xl flex items-center justify-center shrink-0 w-16 h-16 border-2 ${config.colors.iconBox}
     animate-pulse`}
           >
-            <PhaseIcon className={`w-8 h-8 ${config.colors.icon}`} />
+            <Icon name={iconName} className={`w-8 h-8 ${config.colors.icon}`} />
           </div>
 
           <div className="flex-1 flex gap-3">

@@ -1,4 +1,4 @@
-import SkipIcon from '@/assets/icon/skip.svg?react';
+import Icon from '@/commons/components/Icon';
 import type { BattlePhase } from '@/commons/types/battle';
 
 interface PhaseSkipProps {
@@ -16,7 +16,7 @@ export default function PhaseSkip({ phase, isSkipEnabled, toggleSkip, totalSkips
       <div className="mb-1 bg-[#0a0a1a]/40 border border-gray-700 rounded-xl px-4 py-3">
         <div className="flex items-center gap-2 relative group">
           <span className="text-white text-sm font-semibold whitespace-nowrap">이번 페이즈 스킵</span>
-          <SkipIcon className="w-4 h-4 text-cyan-400" />
+          <Icon name="skip" className="w-4 h-4 text-cyan-400" />
 
           <button
             type="button"

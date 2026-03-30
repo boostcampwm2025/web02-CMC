@@ -1,4 +1,4 @@
-import SendIcon from '@/assets/icon/send.svg?react';
+import Icon from '@/commons/components/Icon';
 import { useState } from 'react';
 
 interface ChatInputProps {
@@ -33,7 +33,7 @@ export default function ChatInput({ onSend }: ChatInputProps) {
           className="flex-1 bg-[#2D2D3F] border border-[#3D3D4F] rounded-md px-3 py-2.5 text-xs text-white placeholder-[#666] focus:outline-none focus:border-[#FF6900]"
         />
         <button onClick={handleSend} className="p-2.5 rounded-md bg-[#3D3D4F] hover:bg-[#4D4D5F] transition-colors">
-          <SendIcon />
+          <Icon name="send" />
         </button>
       </div>
     </div>

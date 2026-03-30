@@ -1,5 +1,4 @@
-import ClockIcon from '@/assets/icon/clock.svg?react';
-import MessageIcon from '@/assets/icon/message.svg?react';
+import Icon from '@/commons/components/Icon';
 import { BookOpen } from 'lucide-react';
 
 interface BookmarkButtonProps {
@@ -28,7 +27,7 @@ export default function BookmarkButton({
         className="group relative bg-linear-to-r from-[#FF6900] to-[#FF8533] px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
         aria-label="문제 설명 보기"
       >
-        <MessageIcon className="w-3.5 h-3.5" />
+        <Icon name="message" className="w-3.5 h-3.5" />
         <span className="text-sm">문제 설명</span>
       </button>
 
@@ -38,7 +37,7 @@ export default function BookmarkButton({
         className="group relative bg-linear-to-r from-[#AD46FF] to-[#6BA3FF] px-3 py-2 rounded-r-md shadow-md hover:shadow-lg transition-all duration-200 hover:translate-x-1 flex items-center gap-1"
         aria-label="타임라인 보기"
       >
-        <ClockIcon className="w-3.5 h-3.5" />
+        <Icon name="clock" className="w-3.5 h-3.5" />
         <span className="text-sm">타임라인</span>
       </button>
 
