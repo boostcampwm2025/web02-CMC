@@ -17,25 +17,6 @@ import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_STATUS, BATTLE_TEAM } from '../..
 import type { Mvp } from '../../../domains/models/types/battleResult.types'
 import { BattleStatePort } from '../../../application/ports/out/battleState.port'
 
-interface ParticipantEntry {
-  userId: string
-  team: BattleTeam
-}
-
-interface TeamVoteEntry {
-  userId: string
-  team: BattleTeam
-}
-
-interface UserInfoEntry {
-  userId: string
-  nickname: string
-}
-
-interface BattleChatSnapshot extends Omit<BattleChat, 'createdAt'> {
-  createdAt: string
-}
-
 interface SerializedCore {
   battleId: string
   status?: string
@@ -66,7 +47,9 @@ interface SerializedDefenses {
   all: (BattleDefense | null)[]
 }
 
-type SerializedChats = BattleChatSnapshot[]
+interface BattleChatSnapshot extends Omit<BattleChat, 'createdAt'> {
+  createdAt: string
+}
 
 @Injectable()
 export class BattleStateRepositoryAdapter implements BattleStatePort {
@@ -105,31 +88,37 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     return `battle:chats:b:${battleId}`
   }
 
-  /** discussion HASH */
+  // discussion HASH
   private getDiscussionHashKey(battleId: string, discussionId: string): string {
     return `battle:${battleId}:disc:${discussionId}`
   }
 
-  /** phase별 discussion ID SET 키 */
+  // phase별 discussion ID SET
   private getDiscussionSetKey(battleId: string, type: 'attack' | 'defense', team: BattleTeam): string {
     return `battle:${battleId}:discs:${type}:${team}`
   }
 
-  /** 배틀 전체 discussion ID SET */
+  // 배틀 전체 discussion ID SET
   private getAllDiscussionIdsKey(battleId: string): string {
     return `battle:${battleId}:disc_ids`
   }
 
-  /** 투표자 SET 키  */
+  // 투표자 SET 키
   private getVoteVotersKey(battleId: string, discussionId: string): string {
     return `battle:${battleId}:vote:${discussionId}:voters`
   }
 
-  /** 유저별 현재 투표 discussion 키 */
+  // 유저별 현재 투표 discussion 키
   private getUserVoteKey(battleId: string, userId: string): string {
     return `battle:${battleId}:voter:${userId}`
   }
 
+  // 배틀 방 아이디 Redis 키
+  private getBattleRoomId(battleId: string, team?: BattleTeam): string {
+    return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  }
+
+  //배틀 상태 로드
   async loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }> {
     const live = this.liveStates.get(battleId)
     if (live) {
@@ -139,7 +128,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     const statusRow = await this.prisma.battle.findUnique({ where: { id: battleId }, select: { status: true } })
     if (!statusRow) throw new NotFoundException('배틀이 존재하지 않습니다.')
 
-    //배틀이 종료된 경우 캐시 삭제 후 데이터베이스에서 상태 로드
+    //배틀이 종료된 경우 Redis 삭제 후 DB에서 상태 로드
     if (statusRow.status === BATTLE_STATUS.CLOSED) {
       const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
       if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
@@ -147,12 +136,14 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       const state = this.buildStateFromBattle(battle)
       this.liveStates.set(battleId, state)
 
-      void this.clearCache(battleId).catch(err => this.logger.error(`[loadBattleState] 캐시 삭제 실패 ${battleId}: ${(err as Error).message}`))
+      void this.clearBattleStateFromRedis(battleId).catch(err =>
+        this.logger.error(`[loadBattleState] Redis 삭제 실패 ${battleId}: ${(err as Error).message}`),
+      )
       return { battle, state }
     }
 
     //캐시에서 상태 로드
-    const cached = await this.loadStateFromCache(battleId)
+    const cached = await this.loadBattleStateFromRedis(battleId)
     if (cached) {
       this.liveStates.set(battleId, cached)
       return { battle: { id: battleId, status: cached.status } as PrismaBattle, state: cached }
@@ -162,15 +153,21 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     const battle = await this.prisma.battle.findUnique({ where: { id: battleId } })
     if (!battle) throw new NotFoundException('배틀이 존재하지 않습니다.')
 
+    //배틀 상태 생성
     const state = this.buildStateFromBattle(battle)
+
+    //배틀 상태 저장
     this.liveStates.set(battleId, state)
     this.flushAllToRedis(state)
     return { battle, state }
   }
 
+  //배틀 상태 저장
   saveBattleState(battleId: string, state: ActiveBattleState): void {
     this.liveStates.set(battleId, state)
-    this.flushAllToRedis(state)
+    if (state.status !== BATTLE_STATUS.CLOSED) {
+      this.flushAllToRedis(state)
+    }
     this.flushToDB(battleId, state)
   }
 
@@ -191,43 +188,18 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       .catch(err => this.logger.error(`[updateSkipState] DB 업데이트 실패 ${battleId}: ${(err as Error).message}`))
   }
 
-  /** 배틀 종료 시 메모리, 캐시 삭제 */
-  async clearCache(battleId: string): Promise<void> {
-    const allDiscIds = await this.redis.smembers(this.getAllDiscussionIdsKey(battleId))
-    const discKeysToDelete = allDiscIds.flatMap(id => [this.getDiscussionHashKey(battleId, id), this.getVoteVotersKey(battleId, id)])
-
-    const userVoteKeys = await this.getUserVoteKeys(battleId)
+  // 배틀 종료 시 인메모리, Redis 삭제
+  async clearBattleStateFromRedis(battleId: string): Promise<void> {
+    const keys = await this.getBattleStateKeys(battleId)
 
     this.liveStates.delete(battleId)
 
-    const stateKeys = [
-      this.getCoreKey(battleId),
-      this.getAttacksKey(battleId),
-      this.getDefensesKey(battleId),
-      this.getChatsAllKey(battleId),
-      this.getChatsAKey(battleId),
-      this.getChatsBKey(battleId),
-      this.getAllDiscussionIdsKey(battleId),
-    ]
-
-    await this.redis.mdel([...stateKeys, ...discKeysToDelete, ...userVoteKeys])
-  }
-
-  private async getUserVoteKeys(battleId: string): Promise<string[]> {
-    const live = this.liveStates.get(battleId)
-    if (live && live.participants.size > 0) {
-      return [...live.participants.keys()].map(uid => this.getUserVoteKey(battleId, uid))
+    if (keys.length > 0) {
+      await this.redis.mdel(keys)
     }
-
-    const coreRaw = await this.redis.get(this.getCoreKey(battleId))
-    if (!coreRaw) return []
-
-    const core = JSON.parse(coreRaw) as SerializedCore
-    const pairs = Array.isArray(core.participants) ? core.participants : []
-    const userIds = pairs.map(([userId]) => userId).filter((id): id is string => typeof id === 'string')
-    return [...new Set(userIds)].map(uid => this.getUserVoteKey(battleId, uid))
   }
 
+  //discussion 메타데이터를 Redis HASH에 저장
   async saveDiscussionToRedis(battleId: string, discussion: BattleDiscussion, discussionType: 'attack' | 'defense', team: BattleTeam): Promise<void> {
     const hashData: Record<string, string> = {
       discussionId: discussion.discussionId,
@@ -249,6 +221,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     ])
   }
 
+  //phase 전환 시 discussion Redis 키를 정리
   async resetPhaseDiscussionsInRedis(battleId: string, discussionType: 'attack' | 'defense', teams: BattleTeam[]): Promise<void> {
     const setKeys = teams.map(team => this.getDiscussionSetKey(battleId, discussionType, team))
     const allIds = await Promise.all(setKeys.map(key => this.redis.smembers(key)))
@@ -260,7 +233,7 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     }
   }
 
-  //redis atomic vote 처리
+  // atomic vote 처리 Lua 스크립트
   private readonly CAST_VOTE_LUA = `
 local added = redis.call('SADD', KEYS[1], ARGV[1])
 if added == 0 then
@@ -272,13 +245,17 @@ if prev and prev ~= '' and prev ~= ARGV[2] then
 end
 return {1, prev}
 `
+  // Redis에서 atomic vote 처리
   async castVoteInRedis(battleId: string, discussionId: string, userId: string): Promise<{ added: boolean; prevDiscussionId: string | null }> {
-    const votersKey = this.getVoteVotersKey(battleId, discussionId)
-    const userVoteKey = this.getUserVoteKey(battleId, userId)
     const voteKeyPrefix = `battle:${battleId}:vote:`
 
-    const result = (await this.redis.eval(this.CAST_VOTE_LUA, [votersKey, userVoteKey], [userId, discussionId, voteKeyPrefix])) as [number, string?]
+    // 투표 유저 키 조회
+    const votersKey = this.getVoteVotersKey(battleId, discussionId)
+    //유저의 투표 키 조회
+    const userVoteKey = this.getUserVoteKey(battleId, userId)
 
+    // Lua 스크립트 실행
+    const result = (await this.redis.eval(this.CAST_VOTE_LUA, [votersKey, userVoteKey], [userId, discussionId, voteKeyPrefix])) as [number, string?]
     const [added, prev] = result
     if (added === 0) {
       return { added: false, prevDiscussionId: null }
@@ -319,6 +296,7 @@ return {1, prev}
   }
 
   // ─── 비동기 flush 헬퍼 ──────────────────────────────────────────────────────
+  // 배틀 상태 Redis 저장
   private flushAllToRedis(state: ActiveBattleState): void {
     const battleId = state.battleId
     const entries: [string, string][] = [
@@ -332,12 +310,14 @@ return {1, prev}
     void this.redis.mset(entries).catch(err => this.logger.error(`[flushAllToRedis] failed for ${battleId}: ${(err as Error).message}`))
   }
 
+  // 배틀 상태 DB 업데이트
   private flushToDB(battleId: string, state: ActiveBattleState): void {
     this.prisma.battle
       .update({ where: { id: battleId }, data: this.buildUpdateData(state) })
       .catch(err => this.logger.error(`[flushToDB] failed for ${battleId}: ${(err as Error).message}`))
   }
 
+  // 배틀 상태 DB용 데이터 생성
   private buildUpdateData(state: ActiveBattleState): Prisma.BattleUpdateInput {
     return {
       currentRound: state.round,
@@ -367,8 +347,8 @@ return {1, prev}
     }
   }
 
-  // ─── Redis 캐시 로드 ────────────────────────────────────────────────────────
-  private async loadStateFromCache(battleId: string): Promise<ActiveBattleState | null> {
+  // Redis에서 배틀 상태 로드
+  private async loadBattleStateFromRedis(battleId: string): Promise<ActiveBattleState | null> {
     try {
       const [coreRaw, attacksRaw, defensesRaw, chatsAllRaw, chatsARaw, chatsBRaw] = await Promise.all([
         this.redis.get(this.getCoreKey(battleId)),
@@ -384,9 +364,9 @@ return {1, prev}
       const core = JSON.parse(coreRaw) as SerializedCore
       const attacks = attacksRaw ? (JSON.parse(attacksRaw) as SerializedAttacks) : { all: [], opinionHistory: [] }
       const defenses = defensesRaw ? (JSON.parse(defensesRaw) as SerializedDefenses) : { all: [] }
-      const chatsAll = chatsAllRaw ? (JSON.parse(chatsAllRaw) as SerializedChats) : []
-      const chatsA = chatsARaw ? (JSON.parse(chatsARaw) as SerializedChats) : []
-      const chatsB = chatsBRaw ? (JSON.parse(chatsBRaw) as SerializedChats) : []
+      const chatsAll = chatsAllRaw ? (JSON.parse(chatsAllRaw) as BattleChatSnapshot[]) : []
+      const chatsA = chatsARaw ? (JSON.parse(chatsARaw) as BattleChatSnapshot[]) : []
+      const chatsB = chatsBRaw ? (JSON.parse(chatsBRaw) as BattleChatSnapshot[]) : []
 
       const [teamAAttacks, teamBAttacks, teamADefenses, teamBDefenses] = await Promise.all([
         this.loadDiscussionsFromRedis(battleId, 'attack', BATTLE_TEAM.A),
@@ -395,12 +375,13 @@ return {1, prev}
         this.loadDiscussionsFromRedis(battleId, 'defense', BATTLE_TEAM.B),
       ])
 
-      return this.assembleState(core, attacks, defenses, chatsAll, chatsA, chatsB, teamAAttacks, teamBAttacks, teamADefenses, teamBDefenses)
+      return this.deserializeState(core, attacks, defenses, chatsAll, chatsA, chatsB, teamAAttacks, teamBAttacks, teamADefenses, teamBDefenses)
     } catch {
       return null
     }
   }
 
+  // Redis에서 discussion 메타데터 로드
   private async loadDiscussionsFromRedis(battleId: string, type: 'attack' | 'defense', team: BattleTeam): Promise<BattleDiscussion[]> {
     const ids = await this.redis.smembers(this.getDiscussionSetKey(battleId, type, team))
     if (ids.length === 0) return []
@@ -420,6 +401,44 @@ return {1, prev}
       .map(({ hash, voters }) => this.parseDiscussionHash(hash!, voters))
   }
 
+  //배틀 상태 Redis 키 조회
+  private async getBattleStateKeys(battleId: string): Promise<string[]> {
+    const discussionIds = await this.redis.smembers(this.getAllDiscussionIdsKey(battleId))
+
+    const discussionKeys = discussionIds.flatMap(id => [this.getDiscussionHashKey(battleId, id), this.getVoteVotersKey(battleId, id)])
+
+    const stateKeys = [
+      this.getCoreKey(battleId),
+      this.getAttacksKey(battleId),
+      this.getDefensesKey(battleId),
+      this.getChatsAllKey(battleId),
+      this.getChatsAKey(battleId),
+      this.getChatsBKey(battleId),
+      this.getAllDiscussionIdsKey(battleId),
+    ]
+
+    const userVoteKeys = await this.getUserVoteKeys(battleId)
+
+    return [...stateKeys, ...discussionKeys, ...userVoteKeys]
+  }
+
+  //유저별 현재 투표 discussion 키 조회
+  private async getUserVoteKeys(battleId: string): Promise<string[]> {
+    const live = this.liveStates.get(battleId)
+    if (live && live.participants.size > 0) {
+      return [...live.participants.keys()].map(uid => this.getUserVoteKey(battleId, uid))
+    }
+
+    const coreRaw = await this.redis.get(this.getCoreKey(battleId))
+    if (!coreRaw) return []
+
+    const core = JSON.parse(coreRaw) as SerializedCore
+    const pairs = Array.isArray(core.participants) ? core.participants : []
+    const userIds = pairs.map(([userId]) => userId).filter((id): id is string => typeof id === 'string')
+    return [...new Set(userIds)].map(uid => this.getUserVoteKey(battleId, uid))
+  }
+
+  // Redis에서 discussion 메타데이터 파싱
   private parseDiscussionHash(hash: Record<string, string>, voters: string[]): BattleDiscussion {
     return {
       discussionId: hash.discussionId,
@@ -437,6 +456,7 @@ return {1, prev}
     }
   }
 
+  // Redis에서 skip 상태 업데이트
   private async patchSkipCache(battleId: string, skipList: Set<string>): Promise<void> {
     const coreRaw = await this.redis.get(this.getCoreKey(battleId))
     if (!coreRaw) return
@@ -488,26 +508,26 @@ return {1, prev}
     return chats.map(chat => ({ ...chat, createdAt: chat.createdAt.toISOString() }))
   }
 
-  private serializeParticipantsState(participants: Map<string, BattleTeam>): ParticipantEntry[] {
-    return [...participants.entries()].map(([userId, team]) => ({ userId, team }))
+  private serializeParticipantsState(participants: Map<string, BattleTeam>): [string, BattleTeam][] {
+    return [...participants.entries()]
   }
 
-  private serializeTeamVotesState(teamVotes: Map<string, BattleTeam>): TeamVoteEntry[] {
-    return [...teamVotes.entries()].map(([userId, team]) => ({ userId, team }))
+  private serializeTeamVotesState(teamVotes: Map<string, BattleTeam>): [string, BattleTeam][] {
+    return [...teamVotes.entries()]
   }
 
-  private serializeUserInfoState(userInfoMap: Map<string, string>): UserInfoEntry[] {
-    return [...userInfoMap.entries()].map(([userId, nickname]) => ({ userId, nickname }))
+  private serializeUserInfoState(userInfoMap: Map<string, string>): [string, string][] {
+    return [...userInfoMap.entries()]
   }
 
   // ─── 역직렬화 ──────────────────────────────────────────────────────────────
-  private assembleState(
+  private deserializeState(
     core: SerializedCore,
     attacks: SerializedAttacks,
     defenses: SerializedDefenses,
-    chatsAll: SerializedChats,
-    chatsA: SerializedChats,
-    chatsB: SerializedChats,
+    chatsAll: BattleChatSnapshot[],
+    chatsA: BattleChatSnapshot[],
+    chatsB: BattleChatSnapshot[],
     teamAAttacks: BattleDiscussion[],
     teamBAttacks: BattleDiscussion[],
     teamADefenses: BattleDiscussion[],
@@ -522,20 +542,20 @@ return {1, prev}
       status: core.status ?? 'OPEN',
       all: {
         roomId: core.allRoomId,
-        chats: this.parseChatState(chatsAll),
+        chats: this.restoreChatState(chatsAll),
         attacks: attacks.all ?? [],
         defenses: defenses.all ?? [],
       },
       teamA: {
         roomId: core.teamARoomId,
-        chats: this.parseChatState(chatsA),
+        chats: this.restoreChatState(chatsA),
         attacks: teamAAttacks,
         defenses: teamADefenses,
         users: core.teamAUsers ?? [],
       },
       teamB: {
         roomId: core.teamBRoomId,
-        chats: this.parseChatState(chatsB),
+        chats: this.restoreChatState(chatsB),
         attacks: teamBAttacks,
         defenses: teamBDefenses,
         users: core.teamBUsers ?? [],
@@ -556,12 +576,29 @@ return {1, prev}
   }
 
   private buildStateFromBattle(battle: PrismaBattle): ActiveBattleState {
-    const participants = this.parseTeamMap(battle.participantsState)
-    const teamVotes = this.parseTeamMap(battle.teamVotesState)
-    const userInfoMap = this.parseUserInfoState(battle.userInfoState)
-    const attackState = this.parseTeamStateArray<BattleDiscussion>(battle.attacksState)
-    const defenseState = this.parseTeamStateArray<BattleDefense>(battle.defensesState)
-    const opinionHistory = this.parseOpinionHistoryState(battle.opinionHistoryState)
+    //참가자, 투표, 유저 정보 복원
+    const participants = this.restoreMap<string, BattleTeam>(battle.participantsState)
+    const teamVotes = this.restoreMap<string, BattleTeam>(battle.teamVotesState)
+    const userInfoMap = this.restoreMap<string, string>(battle.userInfoState)
+
+    const attackStateRaw = this.normalizeTeamState(battle.attacksState)
+    const defenseStateRaw = this.normalizeTeamState(battle.defensesState)
+
+    //공격 상태 복원
+    const attackState = {
+      teamA: attackStateRaw.teamA as (BattleDiscussion | null)[],
+      teamB: attackStateRaw.teamB as (BattleDiscussion | null)[],
+      all: attackStateRaw.all as (BattleDiscussion | null)[],
+    }
+
+    //방어 상태 복원
+    const defenseState = {
+      teamA: defenseStateRaw.teamA as (BattleDefense | null)[],
+      teamB: defenseStateRaw.teamB as (BattleDefense | null)[],
+      all: defenseStateRaw.all as (BattleDefense | null)[],
+    }
+
+    const opinionHistory = (battle.opinionHistoryState as BattleDiscussion[] | null) ?? []
     const skipState = new Set<string>(Array.isArray(battle.skipState) ? battle.skipState : [])
 
     const playTime = BATTLE_PLAYTIME[battle.playTime as keyof typeof BATTLE_PLAYTIME]
@@ -572,21 +609,21 @@ return {1, prev}
       status: battle.status ?? 'OPEN',
       all: {
         roomId: this.getBattleRoomId(battle.id),
-        chats: this.parseChatState(battle.chatsAllState),
+        chats: this.restoreChatState(battle.chatsAllState),
         attacks: attackState.all,
         defenses: defenseState.all,
       },
       teamA: {
         roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.A),
         users: [],
-        chats: this.parseChatState(battle.chatsTeamAState),
+        chats: this.restoreChatState(battle.chatsTeamAState),
         attacks: attackState.teamA,
         defenses: defenseState.teamA,
       },
       teamB: {
         roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.B),
         users: [],
-        chats: this.parseChatState(battle.chatsTeamBState),
+        chats: this.restoreChatState(battle.chatsTeamBState),
         attacks: attackState.teamB,
         defenses: defenseState.teamB,
       },
@@ -608,54 +645,35 @@ return {1, prev}
     return state
   }
 
-  // ─── 파싱 헬퍼 ─────────────────────────────────────────────────────────────
   private rebuildTeamUsers(state: ActiveBattleState): void {
     const entries = [...state.participants.entries()]
     state.teamA.users = entries.filter(([, team]) => team === BATTLE_TEAM.A).map(([userId]) => userId)
     state.teamB.users = entries.filter(([, team]) => team === BATTLE_TEAM.B).map(([userId]) => userId)
   }
 
-  private parseChatState(value: unknown): BattleChat[] {
-    if (!Array.isArray(value)) return []
-    return (value as BattleChatSnapshot[])
-      .filter(item => item && typeof item.createdAt === 'string')
-      .map(item => ({ ...item, createdAt: new Date(item.createdAt) }))
-  }
+  // Redis에 저장된 팀 상태 복원
+  private normalizeTeamState(value: unknown) {
+    const state = (value ?? {}) as {
+      teamA?: unknown[]
+      teamB?: unknown[]
+      all?: unknown[]
+    }
 
-  private parseTeamMap(value: unknown): Map<string, BattleTeam> {
-    if (!Array.isArray(value)) return new Map()
-    return new Map(
-      (value as Array<{ userId: string; team: string }>)
-        .filter(item => item && typeof item.userId === 'string' && typeof item.team === 'string')
-        .map(item => [item.userId, item.team as BattleTeam]),
-    )
-  }
-
-  private parseUserInfoState(value: unknown): Map<string, string> {
-    if (!Array.isArray(value)) return new Map()
-    return new Map(
-      (value as UserInfoEntry[])
-        .filter(item => item && typeof item.userId === 'string' && typeof item.nickname === 'string')
-        .map(item => [item.userId, item.nickname] as [string, string]),
-    )
-  }
-
-  private parseTeamStateArray<T>(value: unknown): { teamA: (T | null)[]; teamB: (T | null)[]; all: (T | null)[] } {
-    if (!value || typeof value !== 'object') return { teamA: [], teamB: [], all: [] }
-    const obj = value as { teamA?: unknown; teamB?: unknown; all?: unknown }
     return {
-      teamA: Array.isArray(obj.teamA) ? (obj.teamA as (T | null)[]) : [],
-      teamB: Array.isArray(obj.teamB) ? (obj.teamB as (T | null)[]) : [],
-      all: Array.isArray(obj.all) ? (obj.all as (T | null)[]) : [],
+      teamA: Array.isArray(state.teamA) ? state.teamA : [],
+      teamB: Array.isArray(state.teamB) ? state.teamB : [],
+      all: Array.isArray(state.all) ? state.all : [],
     }
   }
 
-  private parseOpinionHistoryState(value: unknown): BattleDiscussion[] {
-    if (!Array.isArray(value)) return []
-    return value.filter(item => item && typeof item === 'object') as BattleDiscussion[]
+  // redis에서 채팅 상태 복원
+  private restoreChatState(value: unknown): BattleChat[] {
+    const chats = value as BattleChatSnapshot[] | null
+    return chats ? chats.map(chat => ({ ...chat, createdAt: new Date(chat.createdAt) })) : []
   }
 
-  private getBattleRoomId(battleId: string, team?: BattleTeam): string {
-    return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  // Redis에 배열 형태로 저장된 Map snapshot을 Map으로 복원
+  private restoreMap<K, V>(value: unknown): Map<K, V> {
+    return new Map((value as [K, V][]) ?? [])
   }
 }

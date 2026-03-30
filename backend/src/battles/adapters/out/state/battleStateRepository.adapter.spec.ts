@@ -39,10 +39,26 @@ describe('BattleStateRepositoryAdapter', () => {
         update: jest.fn(),
       },
     } as unknown as jest.Mocked<PrismaService>
+    const mockPipeline = {
+      hgetall: jest.fn().mockReturnThis(),
+      smembers: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    }
     redis = {
       get: jest.fn().mockResolvedValue(null),
-      set: jest.fn().mockResolvedValue(undefined),
-      del: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn().mockResolvedValue('OK'),
+      del: jest.fn().mockResolvedValue(0),
+      mset: jest.fn().mockResolvedValue('OK'),
+      mdel: jest.fn().mockResolvedValue(0),
+      sadd: jest.fn().mockResolvedValue(1),
+      srem: jest.fn().mockResolvedValue(1),
+      sismember: jest.fn().mockResolvedValue(false),
+      scard: jest.fn().mockResolvedValue(0),
+      smembers: jest.fn().mockResolvedValue([]),
+      hgetall: jest.fn().mockResolvedValue({}),
+      hmset: jest.fn().mockResolvedValue('OK'),
+      eval: jest.fn().mockResolvedValue([1, null]),
+      pipeline: jest.fn().mockReturnValue(mockPipeline),
     } as unknown as jest.Mocked<RedisRepository>
     adapter = new BattleStateRepositoryAdapter(prisma, redis)
   })
@@ -76,8 +92,8 @@ describe('BattleStateRepositoryAdapter', () => {
     it('participants를 파싱한다', async () => {
       const mockBattle = createMockBattle({
         participantsState: [
-          { userId: 'user-1', team: 'A' },
-          { userId: 'user-2', team: 'B' },
+          ['user-1', BATTLE_TEAM.A],
+          ['user-2', BATTLE_TEAM.B],
         ],
       })
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
@@ -92,7 +108,7 @@ describe('BattleStateRepositoryAdapter', () => {
 
     it('userInfoMap을 파싱한다', async () => {
       const mockBattle = createMockBattle({
-        userInfoState: [{ userId: 'user-1', nickname: '테스터' }],
+        userInfoState: [['user-1', '테스터']],
       })
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
 
@@ -141,11 +157,12 @@ describe('BattleStateRepositoryAdapter', () => {
   })
 
   describe('saveBattleState', () => {
-    it('배틀 상태를 저장한다', async () => {
+    it('배틀 상태를 저장한다', () => {
       ;(prisma.battle.update as jest.Mock).mockResolvedValue({})
 
       const state = {
         battleId: 'battle-1',
+        status: 'OPEN',
         round: 2,
         phase: 'ATTACK' as const,
         phaseCount: 1,
@@ -163,8 +180,9 @@ describe('BattleStateRepositoryAdapter', () => {
         totalRounds: 1,
       }
 
-      await adapter.saveBattleState('battle-1', state)
+      adapter.saveBattleState('battle-1', state)
 
+      expect(redis.mset).toHaveBeenCalled()
       expect(prisma.battle.update).toHaveBeenCalledWith({
         where: { id: 'battle-1' },
         data: expect.objectContaining({
@@ -265,7 +283,7 @@ describe('BattleStateRepositoryAdapter', () => {
   describe('isNicknameDuplicate', () => {
     it('닉네임이 중복되면 true를 반환한다', async () => {
       const mockBattle = createMockBattle({
-        userInfoState: [{ userId: 'user-1', nickname: '테스터' }],
+        userInfoState: [['user-1', '테스터']],
       })
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
 
@@ -276,7 +294,7 @@ describe('BattleStateRepositoryAdapter', () => {
 
     it('닉네임이 중복되지 않으면 false를 반환한다', async () => {
       const mockBattle = createMockBattle({
-        userInfoState: [{ userId: 'user-1', nickname: '테스터' }],
+        userInfoState: [['user-1', '테스터']],
       })
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
 

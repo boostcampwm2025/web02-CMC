@@ -4,11 +4,11 @@ import type { Mvp } from '../../../domains/models/types/battleResult.types'
 
 export interface BattleStatePort {
   //배틀 상태 조회
-  loadBattleState(battleId: string): Promise<{ battle: Pick<PrismaBattle, 'id' | 'status'>; state: ActiveBattleState }>
+  loadBattleState(battleId: string): Promise<{ battle: PrismaBattle; state: ActiveBattleState }>
   //배틀 상태 저장
   saveBattleState(battleId: string, state: ActiveBattleState): void
   //캐시 삭제
-  clearCache(battleId: string): Promise<void>
+  clearBattleStateFromRedis(battleId: string): Promise<void>
   //페이즈 스킵 상태 업데이트
   updateSkipState(battleId: string, skipList: Set<string>): Promise<void>
   //MVP 상태 파싱
