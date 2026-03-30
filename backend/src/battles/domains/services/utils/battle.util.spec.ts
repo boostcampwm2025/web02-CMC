@@ -4,12 +4,12 @@ import { BadRequestException } from '@nestjs/common'
 describe('Battle Utils', () => {
   describe('getBattleRoomId', () => {
     it('팀이 없으면 전체 룸 ID를 반환한다', () => {
-      expect(getBattleRoomId('battle-123')).toBe('battle:battle-123')
+      expect(getBattleRoomId('battle-123')).toBe('battle:battle-123:room:all')
     })
 
     it('팀이 있으면 팀별 룸 ID를 반환한다', () => {
-      expect(getBattleRoomId('battle-123', 'A')).toBe('battle:battle-123:A')
-      expect(getBattleRoomId('battle-123', 'B')).toBe('battle:battle-123:B')
+      expect(getBattleRoomId('battle-123', 'A')).toBe('battle:battle-123:room:A')
+      expect(getBattleRoomId('battle-123', 'B')).toBe('battle:battle-123:room:B')
     })
   })
 

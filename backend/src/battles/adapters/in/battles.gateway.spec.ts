@@ -328,21 +328,21 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.teamUpdate(payload)
 
-      expect(mockSocket1.leave).toHaveBeenCalledWith('battle:battle-1:A')
-      expect(mockSocket1.join).toHaveBeenCalledWith('battle:battle-1:B')
+      expect(mockSocket1.leave).toHaveBeenCalledWith('battle:battle-1:room:A')
+      expect(mockSocket1.join).toHaveBeenCalledWith('battle:battle-1:room:B')
       expect(mockSocket1.emit).toHaveBeenCalledWith('battle:team:updated', {
         battleId: 'battle-1',
         team: BATTLE_TEAM.B,
       })
 
-      expect(mockSocket2.leave).toHaveBeenCalledWith('battle:battle-1:B')
-      expect(mockSocket2.join).toHaveBeenCalledWith('battle:battle-1:A')
+      expect(mockSocket2.leave).toHaveBeenCalledWith('battle:battle-1:room:B')
+      expect(mockSocket2.join).toHaveBeenCalledWith('battle:battle-1:room:A')
       expect(mockSocket2.emit).toHaveBeenCalledWith('battle:team:updated', {
         battleId: 'battle-1',
         team: BATTLE_TEAM.A,
       })
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:all:updated', payload)
     })
   })
@@ -460,9 +460,9 @@ describe('BattlesGateway - Discussion Events', () => {
           userInfoMap: new Map([['user-1', '테스터']]),
           teamVotes: new Map(),
           skipState: new Set(),
-          teamA: { roomId: 'battle:battle-1:A', users: ['user-1'], chats: [], attacks: [], defenses: [] },
-          teamB: { roomId: 'battle:battle-1:B', users: [], chats: [], attacks: [], defenses: [] },
-          all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
+          teamA: { roomId: 'battle:battle-1:room:A', users: ['user-1'], chats: [], attacks: [], defenses: [] },
+          teamB: { roomId: 'battle:battle-1:room:B', users: [], chats: [], attacks: [], defenses: [] },
+          all: { roomId: 'battle:battle-1:room:all', chats: [], attacks: [], defenses: [] },
           opinionHistory: [],
         } as any,
         team: BATTLE_TEAM.A,
@@ -520,7 +520,7 @@ describe('BattlesGateway - Discussion Events', () => {
       await gateway.handleLeave(dto, mockClient)
 
       expect(participationUseCase.leave).toHaveBeenCalledWith('user-1', 'battle-1')
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:leaved', expect.any(Object))
     })
   })
@@ -539,7 +539,7 @@ describe('BattlesGateway - Discussion Events', () => {
       await gateway.handleStart(dto as any)
 
       expect(creationUseCase.start).toHaveBeenCalledWith('battle-1')
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:started')
     })
   })
@@ -558,7 +558,7 @@ describe('BattlesGateway - Discussion Events', () => {
       await gateway.handlePhaseSkip(dto, mockClient)
 
       expect(phaseTransitionUseCase.handlePhaseSkip).toHaveBeenCalledWith('battle-1', 'user-1', true)
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:user:skipped', { totalSkips: 3 })
     })
   })
@@ -619,7 +619,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.phaseUpdate(payload as any)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:phase:updated', payload)
     })
   })
@@ -630,7 +630,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.roundUpdate(payload as any)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:round:updated', payload)
     })
   })
@@ -641,7 +641,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.onAttacked(payload as any)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:attacked', payload)
     })
   })
@@ -652,7 +652,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.onDefensed(payload as any)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:defensed', payload)
     })
   })
@@ -665,7 +665,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.closeBattle(payload as any)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:closed', payload)
       expect(mockIn).toHaveBeenCalledTimes(3)
     })
@@ -677,7 +677,7 @@ describe('BattlesGateway - Discussion Events', () => {
 
       gateway.skipPhase(payload)
 
-      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1')
+      expect(mockServer.to).toHaveBeenCalledWith('battle:battle-1:room:all')
       expect(mockServer.emit).toHaveBeenCalledWith('battle:phase:skipped')
     })
   })

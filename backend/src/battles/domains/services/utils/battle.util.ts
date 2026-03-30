@@ -9,7 +9,7 @@ import { BadRequestException } from '@nestjs/common'
  * @returns 룸 ID 문자열
  */
 export function getBattleRoomId(battleId: string, team?: string): string {
-  return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  return team ? `battle:${battleId}:room:${team}` : `battle:${battleId}:room:all`
 }
 
 /**

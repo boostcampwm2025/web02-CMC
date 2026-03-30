@@ -88,34 +88,28 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     return `battle:chats:b:${battleId}`
   }
 
-  // discussion HASH
-  private getDiscussionHashKey(battleId: string, discussionId: string): string {
-    return `battle:${battleId}:disc:${discussionId}`
+  private getDiscussionKey(battleId: string, discussionId: string): string {
+    return `battle:${battleId}:discussion:${discussionId}`
   }
 
-  // phase별 discussion ID SET
-  private getDiscussionSetKey(battleId: string, type: 'attack' | 'defense', team: BattleTeam): string {
-    return `battle:${battleId}:discs:${type}:${team}`
+  private getDiscussionIdsKey(battleId: string, type: 'attack' | 'defense', team: BattleTeam): string {
+    return `battle:${battleId}:discussions:${type}:${team}`
   }
 
-  // 배틀 전체 discussion ID SET
-  private getAllDiscussionIdsKey(battleId: string): string {
-    return `battle:${battleId}:disc_ids`
+  private getDiscussionIdsIndexKey(battleId: string): string {
+    return `battle:${battleId}:discussion:ids`
   }
 
-  // 투표자 SET 키
-  private getVoteVotersKey(battleId: string, discussionId: string): string {
-    return `battle:${battleId}:vote:${discussionId}:voters`
+  private getDiscussionVotesKey(battleId: string, discussionId: string): string {
+    return `battle:${battleId}:discussion:${discussionId}:votes`
   }
 
-  // 유저별 현재 투표 discussion 키
-  private getUserVoteKey(battleId: string, userId: string): string {
-    return `battle:${battleId}:voter:${userId}`
+  private getUserCurrentVoteKey(battleId: string, userId: string): string {
+    return `battle:${battleId}:user:${userId}:vote`
   }
 
-  // 배틀 방 아이디 Redis 키
-  private getBattleRoomId(battleId: string, team?: BattleTeam): string {
-    return team ? `battle:${battleId}:${team}` : `battle:${battleId}`
+  private getBattleRoomKey(battleId: string, team?: BattleTeam): string {
+    return team ? `battle:${battleId}:room:${team}` : `battle:${battleId}:room:all`
   }
 
   //배틀 상태 로드
@@ -215,18 +209,18 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     }
 
     await Promise.all([
-      this.redis.hmset(this.getDiscussionHashKey(battleId, discussion.discussionId), hashData),
-      this.redis.sadd(this.getDiscussionSetKey(battleId, discussionType, team), discussion.discussionId),
-      this.redis.sadd(this.getAllDiscussionIdsKey(battleId), discussion.discussionId),
+      this.redis.hmset(this.getDiscussionKey(battleId, discussion.discussionId), hashData),
+      this.redis.sadd(this.getDiscussionIdsKey(battleId, discussionType, team), discussion.discussionId),
+      this.redis.sadd(this.getDiscussionIdsIndexKey(battleId), discussion.discussionId),
     ])
   }
 
   //phase 전환 시 discussion Redis 키를 정리
   async resetPhaseDiscussionsInRedis(battleId: string, discussionType: 'attack' | 'defense', teams: BattleTeam[]): Promise<void> {
-    const setKeys = teams.map(team => this.getDiscussionSetKey(battleId, discussionType, team))
+    const setKeys = teams.map(team => this.getDiscussionIdsKey(battleId, discussionType, team))
     const allIds = await Promise.all(setKeys.map(key => this.redis.smembers(key)))
 
-    const keysToDelete = [...setKeys, ...allIds.flat().flatMap(id => [this.getDiscussionHashKey(battleId, id), this.getVoteVotersKey(battleId, id)])]
+    const keysToDelete = [...setKeys, ...allIds.flat().flatMap(id => [this.getDiscussionKey(battleId, id), this.getDiscussionVotesKey(battleId, id)])]
 
     if (keysToDelete.length > 0) {
       await this.redis.mdel(keysToDelete)
@@ -241,18 +235,16 @@ if added == 0 then
 end
 local prev = redis.call('GETSET', KEYS[2], ARGV[2])
 if prev and prev ~= '' and prev ~= ARGV[2] then
-  redis.call('SREM', ARGV[3] .. prev .. ':voters', ARGV[1])
+  redis.call('SREM', ARGV[3] .. prev .. ':votes', ARGV[1])
 end
 return {1, prev}
 `
   // Redis에서 atomic vote 처리
   async castVoteInRedis(battleId: string, discussionId: string, userId: string): Promise<{ added: boolean; prevDiscussionId: string | null }> {
-    const voteKeyPrefix = `battle:${battleId}:vote:`
+    const voteKeyPrefix = `battle:${battleId}:discussion:`
 
-    // 투표 유저 키 조회
-    const votersKey = this.getVoteVotersKey(battleId, discussionId)
-    //유저의 투표 키 조회
-    const userVoteKey = this.getUserVoteKey(battleId, userId)
+    const votersKey = this.getDiscussionVotesKey(battleId, discussionId)
+    const userVoteKey = this.getUserCurrentVoteKey(battleId, userId)
 
     // Lua 스크립트 실행
     const result = (await this.redis.eval(this.CAST_VOTE_LUA, [votersKey, userVoteKey], [userId, discussionId, voteKeyPrefix])) as [number, string?]
@@ -383,13 +375,13 @@ return {1, prev}
 
   // Redis에서 discussion 메타데터 로드
   private async loadDiscussionsFromRedis(battleId: string, type: 'attack' | 'defense', team: BattleTeam): Promise<BattleDiscussion[]> {
-    const ids = await this.redis.smembers(this.getDiscussionSetKey(battleId, type, team))
+    const ids = await this.redis.smembers(this.getDiscussionIdsKey(battleId, type, team))
     if (ids.length === 0) return []
 
     const pipeline = this.redis.pipeline()
     for (const id of ids) {
-      pipeline.hgetall(this.getDiscussionHashKey(battleId, id))
-      pipeline.smembers(this.getVoteVotersKey(battleId, id))
+      pipeline.hgetall(this.getDiscussionKey(battleId, id))
+      pipeline.smembers(this.getDiscussionVotesKey(battleId, id))
     }
     const results = (await pipeline.exec()) ?? []
     return ids
@@ -403,9 +395,9 @@ return {1, prev}
 
   //배틀 상태 Redis 키 조회
   private async getBattleStateKeys(battleId: string): Promise<string[]> {
-    const discussionIds = await this.redis.smembers(this.getAllDiscussionIdsKey(battleId))
+    const discussionIds = await this.redis.smembers(this.getDiscussionIdsIndexKey(battleId))
 
-    const discussionKeys = discussionIds.flatMap(id => [this.getDiscussionHashKey(battleId, id), this.getVoteVotersKey(battleId, id)])
+    const discussionKeys = discussionIds.flatMap(id => [this.getDiscussionKey(battleId, id), this.getDiscussionVotesKey(battleId, id)])
 
     const stateKeys = [
       this.getCoreKey(battleId),
@@ -414,7 +406,7 @@ return {1, prev}
       this.getChatsAllKey(battleId),
       this.getChatsAKey(battleId),
       this.getChatsBKey(battleId),
-      this.getAllDiscussionIdsKey(battleId),
+      this.getDiscussionIdsIndexKey(battleId),
     ]
 
     const userVoteKeys = await this.getUserVoteKeys(battleId)
@@ -426,7 +418,7 @@ return {1, prev}
   private async getUserVoteKeys(battleId: string): Promise<string[]> {
     const live = this.liveStates.get(battleId)
     if (live && live.participants.size > 0) {
-      return [...live.participants.keys()].map(uid => this.getUserVoteKey(battleId, uid))
+      return [...live.participants.keys()].map(uid => this.getUserCurrentVoteKey(battleId, uid))
     }
 
     const coreRaw = await this.redis.get(this.getCoreKey(battleId))
@@ -435,7 +427,7 @@ return {1, prev}
     const core = JSON.parse(coreRaw) as SerializedCore
     const pairs = Array.isArray(core.participants) ? core.participants : []
     const userIds = pairs.map(([userId]) => userId).filter((id): id is string => typeof id === 'string')
-    return [...new Set(userIds)].map(uid => this.getUserVoteKey(battleId, uid))
+    return [...new Set(userIds)].map(uid => this.getUserCurrentVoteKey(battleId, uid))
   }
 
   // Redis에서 discussion 메타데이터 파싱
@@ -608,20 +600,20 @@ return {1, prev}
       battleId: battle.id,
       status: battle.status ?? 'OPEN',
       all: {
-        roomId: this.getBattleRoomId(battle.id),
+        roomId: this.getBattleRoomKey(battle.id),
         chats: this.restoreChatState(battle.chatsAllState),
         attacks: attackState.all,
         defenses: defenseState.all,
       },
       teamA: {
-        roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.A),
+        roomId: this.getBattleRoomKey(battle.id, BATTLE_TEAM.A),
         users: [],
         chats: this.restoreChatState(battle.chatsTeamAState),
         attacks: attackState.teamA,
         defenses: defenseState.teamA,
       },
       teamB: {
-        roomId: this.getBattleRoomId(battle.id, BATTLE_TEAM.B),
+        roomId: this.getBattleRoomKey(battle.id, BATTLE_TEAM.B),
         users: [],
         chats: this.restoreChatState(battle.chatsTeamBState),
         attacks: attackState.teamB,

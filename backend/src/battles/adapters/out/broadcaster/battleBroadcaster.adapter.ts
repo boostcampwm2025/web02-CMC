@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Server } from 'socket.io'
 import { EventEmitter } from 'node:events'
+import { getBattleRoomId } from '../../../domains/services/utils/battle.util'
 import { BattleBroadcasterPort } from '../../../application/ports/out/battleBroadcaster.port'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../../dto/battleTurnResponse.dto'
 import { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateResponse.dto'
@@ -24,33 +25,33 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
   }
 
   emitPhaseUpdated(phaseRes: BattlePhaseResponseDto): void {
-    const battleRoomId = `battle:${phaseRes.battleId}`
+    const battleRoomId = getBattleRoomId(phaseRes.battleId)
     this.io.to(battleRoomId).emit('battle:phase:updated', phaseRes)
     this.emit('battle:phase:updated', phaseRes)
   }
 
   emitRoundUpdated(roundRes: BattleRoundResponseDto): void {
-    const battleRoomId = `battle:${roundRes.battleId}`
+    const battleRoomId = getBattleRoomId(roundRes.battleId)
     this.io.to(battleRoomId).emit('battle:round:updated', roundRes)
     this.emit('battle:round:updated', roundRes)
   }
 
   emitUserUpdated(userRes: BattleUserUpdateResponseDto): void {
-    const battleRoomId = `battle:${userRes.battleId}`
+    const battleRoomId = getBattleRoomId(userRes.battleId)
     this.io.to(battleRoomId).emit('battle:user:updated', userRes)
     this.emit('battle:user:updated', userRes)
   }
 
   emitTeamUpdated(teamRes: BattleTeamUpdateAllResponseDto): void {
-    const battleRoomId = `battle:${teamRes.battleId}`
+    const battleRoomId = getBattleRoomId(teamRes.battleId)
     this.io.to(battleRoomId).emit('battle:team:updated', teamRes)
     this.emit('battle:team:updated', teamRes)
   }
 
   emitBattleClosed(closedRes: BattleClosedResponseDto): void {
-    const battleRoomId = `battle:${closedRes.battleId}`
-    const battleARoomId = `battle:${closedRes.battleId}:A`
-    const battleBRoomId = `battle:${closedRes.battleId}:B`
+    const battleRoomId = getBattleRoomId(closedRes.battleId)
+    const battleARoomId = getBattleRoomId(closedRes.battleId, 'A')
+    const battleBRoomId = getBattleRoomId(closedRes.battleId, 'B')
 
     this.io.to(battleRoomId).emit('battle:closed', closedRes)
     this.emit('battle:closed', closedRes)
@@ -60,19 +61,19 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
   }
 
   emitPhaseSkipped(battleId: string): void {
-    const battleRoomId = `battle:${battleId}`
+    const battleRoomId = getBattleRoomId(battleId)
     this.io.to(battleRoomId).emit('battle:phase:skipped')
     this.emit('battle:phase:skipped', { battleId })
   }
 
   emitAttacked(attackedRes: DiscussionVoteResultDto): void {
-    const battleRoomId = `battle:${attackedRes.battleId}`
+    const battleRoomId = getBattleRoomId(attackedRes.battleId)
     this.io.to(battleRoomId).emit('battle:attacked', attackedRes)
     this.emit('battle:attacked', attackedRes)
   }
 
   emitDefensed(defensedRes: DiscussionVoteResultDto): void {
-    const battleRoomId = `battle:${defensedRes.battleId}`
+    const battleRoomId = getBattleRoomId(defensedRes.battleId)
     this.io.to(battleRoomId).emit('battle:defensed', defensedRes)
     this.emit('battle:defensed', defensedRes)
   }

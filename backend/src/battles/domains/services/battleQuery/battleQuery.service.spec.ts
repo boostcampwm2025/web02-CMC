@@ -247,9 +247,9 @@ describe('BattleQueryService', () => {
       const activeState: ActiveBattleState = {
         battleId: 'battle-1',
         status: 'OPEN',
-        all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
-        teamA: { roomId: 'battle:battle-1:A', chats: [], users: [], attacks: [], defenses: [] },
-        teamB: { roomId: 'battle:battle-1:B', chats: [], users: [], attacks: [], defenses: [] },
+        all: { roomId: 'battle:battle-1:room:all', chats: [], attacks: [], defenses: [] },
+        teamA: { roomId: 'battle:battle-1:room:A', chats: [], users: [], attacks: [], defenses: [] },
+        teamB: { roomId: 'battle:battle-1:room:B', chats: [], users: [], attacks: [], defenses: [] },
         participants: new Map([['user-1', BATTLE_TEAM.A]]),
         teamVotes: new Map(),
         userInfoMap: new Map(),

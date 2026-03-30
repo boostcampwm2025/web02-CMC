@@ -173,9 +173,9 @@ describe('BattleStateRepositoryAdapter', () => {
         userInfoMap: new Map([['user-1', '테스터']]),
         opinionHistory: [],
         skipState: new Set<string>(),
-        all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
-        teamA: { roomId: 'battle:battle-1:A', users: ['user-1'], chats: [], attacks: [], defenses: [] },
-        teamB: { roomId: 'battle:battle-1:B', users: [], chats: [], attacks: [], defenses: [] },
+        all: { roomId: 'battle:battle-1:room:all', chats: [], attacks: [], defenses: [] },
+        teamA: { roomId: 'battle:battle-1:room:A', users: ['user-1'], chats: [], attacks: [], defenses: [] },
+        teamB: { roomId: 'battle:battle-1:room:B', users: [], chats: [], attacks: [], defenses: [] },
         topics: ['topic1'],
         totalRounds: 1,
       }
