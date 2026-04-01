@@ -1,0 +1,136 @@
+{
+  "title": "CMC Drill-down / Debug",
+  "uid": "cmc-debug",
+  "tags": ["cmc", "debug", "drilldown", "incident"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "route",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(http_requests_total, route)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      },
+      {
+        "name": "event",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(socket_events_total, event)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Debug Playbook",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "options": {
+        "mode": "markdown",
+        "content": " 1) 현재 경보 확인: [Overview](/d/cmc-overview/cmc-overview?orgId=1)에서 SLO 위반 확인\n  2) 이상 구간 : 상단 시간 필터를 알람 구간으로 이동\n 3) API 확인: [CMC App - API](/d/cmc-app-api/cmc-app-api?orgId=1)의 5xx/지연 추이 확인\n 4) Socket 확인: [CMC App - Socket](/d/cmc-app-socket/cmc-app-socket?orgId=1)의 성공률/오류율/지연 확인\n 5) 원인 탐색 : `route`와 `event` 필터로 의심 대상 필터링\n 6) 의존성 확인: [CMC DB/Cache/Deps](/d/cmc-deps/cmc-db-cache-deps?orgId=1), [CMC Infra](/d/cmc-infra/cmc-infra?orgId=1)로 리소스/의존성 병목 점검\n"
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Top Error Routes (4xx/5xx)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_requests_total{route=~\"$route\", status_code=~\"4..|5..\"}[5m])) by (route, method, status_code))",
+          "legendFormat": "{{method}} {{route}} {{status_code}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Top Slow API routes (p95)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=~\"$route\"}[5m])) by (le, route, method)) )",
+          "legendFormat": "{{method}} {{route}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Top Slow Socket events (p95)",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum(rate(socket_event_duration_seconds_bucket{event=~\"$event\"}[5m])) by (le, event)) )",
+          "legendFormat": "{{event}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Error Burst Detection",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{route=~\"$route\", status_code=~\"5..\"}[1m])) by (route)",
+          "legendFormat": "{{route}}"
+        },
+        {
+          "expr": "sum(rate(socket_event_errors_total{event=~\"$event\"}[1m])) by (event)",
+          "legendFormat": "{{event}} errors"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Latency Drift",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "s", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_duration_seconds_sum{route=~\"$route\"}[5m])) by (route) / sum(rate(http_request_duration_seconds_count{route=~\"$route\"}[5m])) by (route)",
+          "legendFormat": "http avg {{route}}"
+        },
+        {
+          "expr": "sum(rate(socket_event_duration_seconds_sum{event=~\"$event\"}[5m])) by (event) / sum(rate(socket_event_duration_seconds_count{event=~\"$event\"}[5m])) by (event)",
+          "legendFormat": "socket avg {{event}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "로그/트레이스",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 28, "w": 24, "h": 5 },
+      "options": {
+        "mode": "markdown",
+        "content": "백엔드 trace 아직 없음"
+      }
+    }
+  ]
+}
