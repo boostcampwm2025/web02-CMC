@@ -1,4 +1,5 @@
 import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 export type SidebarTab = 'info' | 'timeline' | 'reference';
 
@@ -27,39 +28,41 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose, hasRefe
     <div>
       <div className="flex items-center justify-between px-6 pt-5 pb-4">
         <div className="flex gap-4 flex-1">
-          <button
+          <Button
             onClick={() => onTabChange('info')}
-            className={`flex items-center gap-2 px-2 py-2 text-sm font-bold transition-colors ${
-              activeTab === 'info' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            variant="ghost"
+            className={`px-2 py-2 text-sm font-bold border-none ${activeTab === 'info' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
           >
             <Icon name="message" className="w-5 h-5" />
             문제 설명
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => onTabChange('timeline')}
-            className={`flex items-center gap-2 px-2 py-2 text-sm font-bold transition-colors ${
-              activeTab === 'timeline' ? 'text-white' : 'text-gray-400 hover:text-white'
-            }`}
+            variant="ghost"
+            className={`px-2 py-2 text-sm font-bold border-none ${activeTab === 'timeline' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
           >
             <Icon name="clock" className="w-5 h-5" />
             타임라인
-          </button>
+          </Button>
           {hasReferenceData && (
-            <button
+            <Button
               onClick={() => onTabChange('reference')}
-              className={`flex items-center gap-2 px-2 py-2 text-sm font-bold transition-colors ${
-                activeTab === 'reference' ? 'text-white' : 'text-gray-400 hover:text-white'
-              }`}
+              variant="ghost"
+              className={`px-2 py-2 text-sm font-bold border-none ${activeTab === 'reference' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
             >
               <Icon name="bookOpen" className="w-5 h-5" />
               참고 자료
-            </button>
+            </Button>
           )}
         </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label=" 닫기">
-          <Icon name="close" className="w-5 h-5 " />
-        </button>
+        <Button
+          onClick={onClose}
+          variant="ghost"
+          aria-label="닫기"
+          className="p-0 border-none text-gray-400 hover:text-white hover:bg-transparent"
+        >
+          <Icon name="close" className="w-5 h-5" />
+        </Button>
       </div>
       {/* 활성 탭 밑줄 */}
       <div className={`h-0.5 transition-all duration-300 ${getUnderlineColor()}`} />

@@ -1,4 +1,5 @@
 import { useBattleStore } from '../../stores/battleStore';
+import Button from '@/commons/components/Button';
 
 interface ModalContent {
   title: string;
@@ -75,12 +76,12 @@ export default function ConnectionErrorModal() {
 
         {content.showReconnectButton && (
           <div className="flex justify-center">
-            <button
+            <Button
               onClick={handleReconnect}
-              className="rounded-xl bg-gradient-to-r from-[#2B7FFF] to-[#1a5fd9] px-8 py-3.5 font-bold text-white transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-[#2B7FFF]/50"
+              className="rounded-xl bg-gradient-to-r from-[#2B7FFF] to-[#1a5fd9] px-8 py-3.5 font-bold hover:scale-105 hover:shadow-lg hover:shadow-[#2B7FFF]/50"
             >
               다시 연결
-            </button>
+            </Button>
           </div>
         )}
       </div>

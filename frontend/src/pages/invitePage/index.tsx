@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import Button from '@/commons/components/Button';
 
 export default function InvitePage() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
@@ -30,12 +31,9 @@ export default function InvitePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-white text-lg mb-4">유효하지 않은 초대 링크입니다.</p>
-          <button
-            onClick={() => navigate('/main')}
-            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={() => navigate('/main')}>
             메인으로 돌아가기
-          </button>
+          </Button>
         </div>
       </div>
     );

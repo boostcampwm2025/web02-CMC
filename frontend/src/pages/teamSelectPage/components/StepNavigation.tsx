@@ -1,4 +1,5 @@
 import type { Step } from '../types/teamSelect';
+import Button from '@/commons/components/Button';
 
 interface StepNavigationProps {
   currentStep: Step;
@@ -46,20 +47,14 @@ export default function StepNavigation({
 
       {/* 마지막 단계에서만 중앙에 완료 버튼 */}
       {isLastStep && (
-        <button
+        <Button
           onClick={onSubmit}
           disabled={!canGoNext || isSubmitting}
-          className={`
-            px-8 py-3 rounded-lg font-medium transition-colors
-            ${
-              canGoNext && !isSubmitting
-                ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
-                : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
-            }
-          `}
+          variant={canGoNext && !isSubmitting ? 'primary' : 'secondary'}
+          size="lg"
         >
           {isSubmitting ? '로그인 중...' : '진영 선택 완료'}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { soundManager } from '@/commons/utils/soundManager';
 import Icon from '@/commons/components/Icon';
 import VolumeSlider from './VolumeSlider';
+import Button from '@/commons/components/Button';
 
 interface BGMOption {
   key: string;
@@ -102,13 +103,14 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
     >
       <div className="relative flex items-center mb-6">
         <h3 className="flex-1 text-sm font-bold text-white text-center">사운드 설정</h3>
-        <button
+        <Button
           onClick={onClose}
-          className="absolute right-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+          variant="ghost"
           aria-label="닫기"
+          className="absolute right-0 w-7 h-7 p-0 rounded-full border-none hover:bg-white/10 text-gray-400 hover:text-white"
         >
           <Icon name="close" className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-6">
@@ -129,17 +131,18 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
                 </option>
               ))}
             </select>
-            <button
+            <Button
               onClick={togglePlayPause}
-              className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all active:scale-95 group"
+              variant="ghost"
               aria-label={isPlaying ? '일시정지' : '재생'}
+              className="w-10 h-10 p-0 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95"
             >
               {isPlaying ? (
                 <Icon name="pause" className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
               ) : (
                 <Icon name="play" className="w-5 h-5 text-white ml-0.5 group-hover:scale-110 transition-transform" />
               )}
-            </button>
+            </Button>
           </div>
         </div>
 

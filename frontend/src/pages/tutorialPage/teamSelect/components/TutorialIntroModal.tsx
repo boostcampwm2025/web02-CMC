@@ -1,3 +1,5 @@
+import Button from '@/commons/components/Button';
+
 interface TutorialIntroModalProps {
   isOpen: boolean;
   step: 0 | 1;
@@ -36,22 +38,24 @@ export default function TutorialIntroModal({ isOpen, step, onNext, onStart }: Tu
         )}
         <div className="mt-6">
           {step === 0 && (
-            <button
+            <Button
               type="button"
               onClick={onNext}
-              className="w-full h-11 rounded-lg text-sm font-semibold transition-colors bg-gradient-to-r from-[#FF6900] to-[#FB2C36] text-white"
+              fullWidth
+              className="h-11 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#FF6900] to-[#FB2C36]"
             >
               다음
-            </button>
+            </Button>
           )}
           {step === 1 && (
-            <button
+            <Button
               type="button"
               onClick={onStart}
-              className="w-full h-11 rounded-lg text-sm font-semibold transition-colors bg-gradient-to-r from-[#FF6900] to-[#FB2C36] text-white"
+              fullWidth
+              className="h-11 rounded-lg text-sm font-semibold bg-gradient-to-r from-[#FF6900] to-[#FB2C36]"
             >
               시작하기
-            </button>
+            </Button>
           )}
         </div>
       </div>

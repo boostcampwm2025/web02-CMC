@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Button from '@/commons/components/Button';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
@@ -174,12 +175,14 @@ export default function BattlePage() {
           }`}
         >
           <div className="flex items-center justify-between gap-4 mt-10 mb-8">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleLeaveBattle}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+              className="shrink-0 w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기
-            </button>
+            </Button>
             <div className="shrink-0 flex items-center gap-2">
               {battleInfo?.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
             </div>

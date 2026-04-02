@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 import type { Team } from '@/commons/types/battle';
 import { useStepFlow } from '@/pages/teamSelectPage/hooks/useStepFlow';
 import StepIndicator from '@/pages/teamSelectPage/components/StepIndicator';
@@ -97,12 +98,9 @@ export default function TutorialTeamSelectPage() {
       />
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <button
-            onClick={() => navigate('/main')}
-            className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={() => navigate('/main')}>
             ← 돌아가기
-          </button>
+          </Button>
           <h1 className="text-3xl font-bold text-white">튜토리얼 참가하기</h1>
           <div className="w-24" />
         </div>
@@ -117,31 +115,26 @@ export default function TutorialTeamSelectPage() {
               {renderStep()}
 
               {currentStep > 1 && (
-                <button
+                <Button
                   onClick={goToPrev}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors z-10"
+                  variant="secondary"
                   aria-label="이전 단계"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 p-0 rounded-full z-10"
                 >
                   <Icon name="chevronLeft" className="w-6 h-6" />
-                </button>
+                </Button>
               )}
 
               {currentStep < totalSteps && (
-                <button
+                <Button
                   onClick={goToNext}
                   disabled={!canGoNext}
-                  className={`
-                    absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full flex items-center justify-center transition-colors z-10
-                    ${
-                      canGoNext
-                        ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
-                        : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
-                    }
-                  `}
+                  variant={canGoNext ? 'primary' : 'secondary'}
                   aria-label="다음 단계"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 p-0 rounded-full z-10"
                 >
                   <Icon name="chevronRight" className="w-6 h-6" />
-                </button>
+                </Button>
               )}
             </div>
           </div>

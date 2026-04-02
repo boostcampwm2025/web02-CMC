@@ -1,4 +1,5 @@
 import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 import { loginWithGitHub } from './api/loginWithGithub';
 import { loginWithKakao } from './api/loginWithKakao';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
@@ -45,13 +46,14 @@ export default function LoginPage() {
           <h2 className="text-white text-2xl lg:text-3xl font-bold">로그인</h2>
           <p className="text-gray-400 text-sm lg:text-base text-center">소셜 계정으로 간편하게 시작하세요</p>
 
-          <button
+          <Button
             onClick={handleGitHubLogin}
-            className="w-full flex items-center justify-center gap-3 px-5 lg:px-6 py-3 lg:py-4 bg-[#24292e] hover:bg-[#2d3339] rounded-xl transition-all duration-200 border border-[#364153] group"
+            fullWidth
+            className="bg-[#24292e] hover:bg-[#2d3339] rounded-xl border border-[#364153] px-5 lg:px-6 py-3 lg:py-4"
           >
             <Icon name="github" className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
             <span className="font-medium text-sm lg:text-base xl:text-lg">GitHub로 계속하기</span>
-          </button>
+          </Button>
 
           <div className="flex items-center gap-3 w-full">
             <div className="flex-1 h-px bg-[#2D2D3F]"></div>
@@ -59,13 +61,14 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-[#2D2D3F]"></div>
           </div>
 
-          <button
+          <Button
             onClick={handleKakaoLogin}
-            className="w-full flex items-center justify-center gap-3 px-5 lg:px-6 py-3 lg:py-4 bg-[#FEE500] hover:bg-[#FDD835] rounded-xl transition-all duration-200 group"
+            fullWidth
+            className="bg-[#FEE500] hover:bg-[#FDD835] text-black rounded-xl px-5 lg:px-6 py-3 lg:py-4"
           >
             <Icon name="kakao" className="w-5 h-5 lg:w-6 lg:h-6 text-black" />
             <span className="text-black font-medium text-sm lg:text-base xl:text-lg">카카오로 계속하기</span>
-          </button>
+          </Button>
 
           <div className="mt-4 lg:mt-6 flex items-start gap-2 text-gray-400 text-xs lg:text-sm">
             <Icon name="dev" className="w-4 h-4 lg:w-5 lg:h-5 shrink-0 mt-0.5" />
