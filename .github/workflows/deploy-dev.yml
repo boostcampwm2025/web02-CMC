@@ -3,7 +3,7 @@ name: deploy
 on:
   push:
     branches:
-      - dev
+      - test/#000-dev-server-test
 
 permissions:
   contents: read
@@ -54,7 +54,7 @@ jobs:
             VITE_API_URL=${{ secrets.VITE_API_URL }}
             VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
             VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
+            VITE_ENABLE_SENTRY: "false"
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
