@@ -5,7 +5,7 @@ import SpotlightOverlay from './SpotlightOverlay';
 import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
 import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
-import QuestionIcon from '@/assets/icon/question.svg?react';
+import Icon from '@/commons/components/Icon';
 
 const MODAL_WIDTH = 448;
 const MODAL_GAP = 32;
@@ -128,7 +128,7 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
         <div className="relative max-w-md rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
           <div className="flex justify-center mb-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
-              <QuestionIcon className="w-8 h-8 text-white" />
+              <Icon name="question" className="w-8 h-8 text-white" />
             </div>
           </div>
 

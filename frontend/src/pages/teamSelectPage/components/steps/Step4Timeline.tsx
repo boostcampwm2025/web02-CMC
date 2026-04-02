@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, ChevronUp, ThumbsUp, Zap, Shield, Flame, ArrowRight, Clock } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 
 interface Step3TimelineProps {
@@ -164,7 +164,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
             isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'
           }`}
         >
-          <ThumbsUp className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
+          <Icon name="like" className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
           <span className={`font-bold ${isTeamA ? 'text-blue-300' : 'text-red-300'}`}>{message.upvotes}</span>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
     <div className="flex flex-col items-center gap-8 w-full max-w-6xl mx-auto">
       {/* 상단 섹션 */}
       <div className="text-center mb-8">
-        <Clock className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+        <Icon name="clock" className="w-16 h-16 text-orange-500 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-white mb-2">타임라인</h2>
         <p className="text-gray-400">양측의 이의제기와 반박을 확인해보세요</p>
       </div>
@@ -185,7 +185,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
         {timelines.length === 0 ? (
           <div className="bg-[#1e1e2f] rounded-xl border border-[#2d2d3f] p-8">
             <div className="text-center text-gray-400">
-              <Flame className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+              <Icon name="flame" className="w-12 h-12 mx-auto mb-3 text-gray-600" />
               <p className="text-lg font-medium mb-1">아직 이의제기가 없습니다</p>
               <p className="text-sm">배틀이 시작되면 여기에 표시됩니다</p>
             </div>
@@ -249,7 +249,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                       {/* Status Indicator */}
                       {roundData.isActive && (
                         <div className="flex items-center gap-2 text-orange-400">
-                          <Flame className="w-5 h-5 animate-pulse" />
+                          <Icon name="flame" className="w-5 h-5 animate-pulse" />
                           <span className="text-sm font-bold">진행 중</span>
                         </div>
                       )}
@@ -264,7 +264,11 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                     {/* Expand Icon */}
                     {!roundData.isFuture && (
                       <div className="text-gray-400">
-                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        {isExpanded ? (
+                          <Icon name="chevronUp" className="w-5 h-5" />
+                        ) : (
+                          <Icon name="chevronDown" className="w-5 h-5" />
+                        )}
                       </div>
                     )}
                   </button>
@@ -277,14 +281,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                         <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-orange-400" />
+                              <Icon name="zap" className="w-4 h-4 text-orange-400" />
                               <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
                                 A 이의제기 (1차)
                               </span>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4 text-blue-400" />
+                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
                               <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
                             </div>
                           </div>
@@ -297,7 +301,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                             <div className="relative">
                               <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
                               <div className="relative bg-gradient-to-r from-orange-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-orange-400/50 shadow-lg">
-                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
                               </div>
                             </div>
                           </div>
@@ -312,14 +316,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                         <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-red-400" />
+                              <Icon name="zap" className="w-4 h-4 text-red-400" />
                               <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
                                 B 이의제기 (1차)
                               </span>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4 text-blue-400" />
+                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
                               <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
                             </div>
                           </div>
@@ -332,7 +336,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                             <div className="relative">
                               <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
                               <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
-                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
                               </div>
                             </div>
                           </div>
@@ -347,14 +351,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                         <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-orange-400" />
+                              <Icon name="zap" className="w-4 h-4 text-orange-400" />
                               <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
                                 A 이의제기 (2차)
                               </span>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4 text-blue-400" />
+                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
                               <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
                             </div>
                           </div>
@@ -367,7 +371,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                             <div className="relative">
                               <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
                               <div className="relative bg-gradient-to-r from-orange-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-orange-400/50 shadow-lg">
-                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
                               </div>
                             </div>
                           </div>
@@ -382,14 +386,14 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                         <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
                           <div className="flex items-center justify-center gap-3">
                             <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-red-400" />
+                              <Icon name="zap" className="w-4 h-4 text-red-400" />
                               <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
                                 B 이의제기 (2차)
                               </span>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-500" />
+                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
                             <div className="flex items-center gap-2">
-                              <Shield className="w-4 h-4 text-blue-400" />
+                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
                               <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
                             </div>
                           </div>
@@ -402,7 +406,7 @@ export default function Step3Timeline({ topics, timelines, currentRound = 1, tot
                             <div className="relative">
                               <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
                               <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
-                                <ArrowRight className="w-5 h-5 text-white font-bold" />
+                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
                               </div>
                             </div>
                           </div>

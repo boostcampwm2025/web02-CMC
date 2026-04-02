@@ -1,6 +1,4 @@
-import TimeLineIcon from '@/assets/icon/timeline.svg?react';
-import PlusIcon from '@/assets/icon/plus.svg?react';
-import BattleIcon from '@/assets/icon/battle.svg?react';
+import type { IconName } from '@/commons/components/Icon';
 
 export type StatType = 'TOTAL_BATTLES' | 'LIVE_BATTLES' | 'TOTAL_USERS';
 
@@ -11,7 +9,7 @@ export const STAT_CONFIG: Record<
     text: string;
     bg: string;
     bgSoft: string;
-    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    icon: IconName;
   }
 > = {
   TOTAL_BATTLES: {
@@ -19,7 +17,7 @@ export const STAT_CONFIG: Record<
     text: 'text-orange-400',
     bg: 'bg-orange-400',
     bgSoft: 'bg-orange-400/15',
-    icon: TimeLineIcon
+    icon: 'timeline'
   },
 
   LIVE_BATTLES: {
@@ -27,7 +25,7 @@ export const STAT_CONFIG: Record<
     text: 'text-yellow-400',
     bg: 'bg-yellow-400',
     bgSoft: 'bg-yellow-400/15',
-    icon: PlusIcon
+    icon: 'plus'
   },
 
   TOTAL_USERS: {
@@ -35,6 +33,6 @@ export const STAT_CONFIG: Record<
     text: 'text-emerald-400',
     bg: 'bg-emerald-400',
     bgSoft: 'bg-emerald-400/15',
-    icon: BattleIcon
+    icon: 'battle'
   }
 };

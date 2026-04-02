@@ -1,4 +1,4 @@
-import { Play, ChevronDown } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import { useNavigate } from 'react-router-dom';
 import onBoardingBackgroundImage from '/images/onBoarding/gameLogo.png';
 import onBoardingPeoplesImage1 from '/images/onBoarding/onBoardingPeople1.png';
@@ -44,7 +44,7 @@ export default function GameTitleSection() {
             onClick={() => navigate('/main')}
             className="flex items-center justify-center gap-2 text-xl px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 border border-orange-300 rounded-xl cursor-pointer shadow-[0_10px_40px_rgba(251,146,60,0.6)]"
           >
-            <Play fill="currentColor" size={20} />
+            <Icon name="play" className="w-5 h-5" />
             <span>입장하기</span>
           </button>
 
@@ -53,7 +53,7 @@ export default function GameTitleSection() {
             className="flex items-center justify-center text-xl gap-2 px-8 py-4 bg-[#1a1b26] border border-gray-600 rounded-xl cursor-pointer shadow-[0_10px_40px_rgba(0,0,0,0.7)]"
           >
             <span>더 알아보기</span>
-            <ChevronDown size={20} />
+            <Icon name="chevronDown" className="w-5 h-5" />
           </button>
         </div>
       </div>

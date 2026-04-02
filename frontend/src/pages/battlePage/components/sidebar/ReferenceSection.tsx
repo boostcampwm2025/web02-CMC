@@ -1,4 +1,4 @@
-import { BookOpen, Sparkles, ChevronUp } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import { useState } from 'react';
 import type { BattleReferenceData } from '@/commons/types/battle';
 import { TermCard, TeamReferencesAccordion } from '@/commons/components/reference';
@@ -19,7 +19,7 @@ export default function ReferenceSection({ referenceData }: ReferenceSectionProp
       <div className="p-4 space-y-4">
         {/* 헤더 */}
         <div className="flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-orange-500" />
+          <Icon name="bookOpen" className="w-5 h-5 text-orange-500" />
           <h2 className="text-white font-bold">AI 참고 자료</h2>
         </div>
 
@@ -31,7 +31,7 @@ export default function ReferenceSection({ referenceData }: ReferenceSectionProp
           >
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-yellow-600 to-orange-600 flex items-center justify-center shadow">
-                <Sparkles className="w-4 h-4 text-white" />
+                <Icon name="sparkles" className="w-4 h-4 text-white" />
               </div>
               <div className="text-left">
                 <h3 className="text-white font-semibold text-sm">핵심 개념</h3>
@@ -41,7 +41,7 @@ export default function ReferenceSection({ referenceData }: ReferenceSectionProp
             <div
               className={`text-yellow-400 transition-transform duration-200 ${expandedConcepts ? 'rotate-0' : 'rotate-180'}`}
             >
-              <ChevronUp className="w-5 h-5" />
+              <Icon name="chevronUp" className="w-5 h-5" />
             </div>
           </button>
 

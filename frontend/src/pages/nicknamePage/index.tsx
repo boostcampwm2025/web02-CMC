@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import UserIcon from '@/assets/icon/user.svg?react';
+import Icon from '@/commons/components/Icon';
 import { useUpdateNickname } from './queries/useUpdateNickname';
 
 export default function NicknamePage() {
@@ -33,7 +33,7 @@ export default function NicknamePage() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 translate-y-1 w-12 h-12 lg:w-16 lg:h-16 bg-orange-500 rounded-xl blur-xl opacity-70 -z-10"></div>
           {/* 오렌지 배경 아이콘 */}
           <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-orange-500 flex items-center justify-center relative z-10">
-            <UserIcon className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
+            <Icon name="user" className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
           </div>
           <h1 className="text-white text-4xl lg:text-5xl xl:text-6xl font-extrabold">코문철</h1>
         </div>

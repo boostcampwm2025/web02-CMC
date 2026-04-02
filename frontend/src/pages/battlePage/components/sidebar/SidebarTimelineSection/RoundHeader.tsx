@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 
 interface RoundHeaderProps {
   round: string;
@@ -28,7 +28,7 @@ export default function RoundHeader({ round, topic, isActive, isExpanded, onTogg
         </div>
       </div>
       <div className="text-gray-400">
-        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        {isExpanded ? <Icon name="chevronUp" className="w-3 h-3" /> : <Icon name="chevronDown" className="w-3 h-3" />}
       </div>
     </button>
   );

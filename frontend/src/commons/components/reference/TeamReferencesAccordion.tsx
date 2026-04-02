@@ -1,4 +1,4 @@
-import { Sparkles, ChevronUp } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { ReferenceLink } from '@/commons/types/battle';
 import ReferenceCard from './ReferenceCard';
 
@@ -91,7 +91,7 @@ export default function TeamReferencesAccordion({
           </div>
         </div>
         <div className={`${colors.text} transition-transform duration-200 ${isExpanded ? 'rotate-0' : 'rotate-180'}`}>
-          <ChevronUp className={classes.icon} />
+          <Icon name="chevronUp" className={classes.icon} />
         </div>
       </button>
 
@@ -100,7 +100,7 @@ export default function TeamReferencesAccordion({
           {/* 관점 설명 */}
           <div className={`${colors.bg} ${colors.border} border rounded-lg ${classes.perspectiveContainer}`}>
             <div className="flex items-start gap-2">
-              <Sparkles className={`${classes.perspectiveIcon} ${colors.text} flex-shrink-0 mt-0.5`} />
+              <Icon name="sparkles" className={`${classes.perspectiveIcon} ${colors.text} flex-shrink-0 mt-0.5`} />
               <p className={`text-gray-300 ${classes.perspectiveText}`}>{perspective}</p>
             </div>
           </div>

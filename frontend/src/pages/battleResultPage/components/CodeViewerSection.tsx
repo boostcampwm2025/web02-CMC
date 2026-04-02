@@ -1,5 +1,5 @@
 import CodeViewer from '@/commons/components/CodeViewer';
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface CodeComparisonSectionProps {
   codeA: string;
@@ -20,7 +20,7 @@ export default function CodeViewerSection({ codeA, codeB, language, winner }: Co
           <div className="flex justify-between items-center bg-[#1C398E]/50 px-6 h-[60px] text-[#8EC5FF] text-[16px]">
             <span>{language}</span>
             <span className="flex gap-2 items-center">
-              {winner === 'A' && <TrophyIcon className="w-[20px] h-[20px]" />}
+              {winner === 'A' && <Icon name="trophy" className="w-[20px] h-[20px]" />}
               <span>구현 A</span>
             </span>
           </div>
@@ -30,7 +30,7 @@ export default function CodeViewerSection({ codeA, codeB, language, winner }: Co
           <div className="flex justify-between items-center bg-[#82181A]/50 px-6 h-[60px] text-[#FFA2A2] text-[16px]">
             <span>{language}</span>
             <span className="flex gap-2 items-center">
-              {winner === 'B' && <TrophyIcon className="w-[20px] h-[20px]" />}
+              {winner === 'B' && <Icon name="trophy" className="w-[20px] h-[20px]" />}
               <span>구현 B</span>
             </span>
           </div>

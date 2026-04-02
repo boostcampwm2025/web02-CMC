@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Flame } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 
 interface RoundHeaderProps {
   round: string;
@@ -53,7 +53,7 @@ export default function RoundHeader({
 
         {showStatus && isActive && (
           <div className="flex items-center gap-2 text-orange-400">
-            <Flame className="w-5 h-5 animate-pulse" />
+            <Icon name="flame" className="w-5 h-5 animate-pulse" />
             <span className="text-sm font-bold">진행 중</span>
           </div>
         )}
@@ -65,7 +65,7 @@ export default function RoundHeader({
 
       {!isFuture && (
         <div className="text-gray-400">
-          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          {isExpanded ? <Icon name="chevronUp" className="w-5 h-5" /> : <Icon name="chevronDown" className="w-5 h-5" />}
         </div>
       )}
     </button>

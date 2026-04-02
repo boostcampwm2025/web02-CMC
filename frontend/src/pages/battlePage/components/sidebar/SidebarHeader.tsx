@@ -1,7 +1,4 @@
-import MessageIcon from '@/assets/icon/message.svg?react';
-import ClockIcon from '@/assets/icon/clock.svg?react';
-import CloseIcon from '@/assets/icon/close.svg?react';
-import { BookOpen } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 
 export type SidebarTab = 'info' | 'timeline' | 'reference';
 
@@ -36,7 +33,7 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose, hasRefe
               activeTab === 'info' ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <MessageIcon className="w-5 h-5" />
+            <Icon name="message" className="w-5 h-5" />
             문제 설명
           </button>
           <button
@@ -45,7 +42,7 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose, hasRefe
               activeTab === 'timeline' ? 'text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
-            <ClockIcon className="w-5 h-5" />
+            <Icon name="clock" className="w-5 h-5" />
             타임라인
           </button>
           {hasReferenceData && (
@@ -55,13 +52,13 @@ export default function SidebarHeader({ activeTab, onTabChange, onClose, hasRefe
                 activeTab === 'reference' ? 'text-white' : 'text-gray-400 hover:text-white'
               }`}
             >
-              <BookOpen className="w-5 h-5" />
+              <Icon name="bookOpen" className="w-5 h-5" />
               참고 자료
             </button>
           )}
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors" aria-label=" 닫기">
-          <CloseIcon className="w-5 h-5 " />
+          <Icon name="close" className="w-5 h-5 " />
         </button>
       </div>
       {/* 활성 탭 밑줄 */}

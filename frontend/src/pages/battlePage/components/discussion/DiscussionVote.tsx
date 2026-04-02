@@ -1,4 +1,4 @@
-import ScaleIcon from '@/assets/icon/scale.svg?react';
+import Icon from '@/commons/components/Icon';
 import DiscussionVoteItem from './DiscussionVoteItem';
 import { isMyTeamAttacking } from '../../utils/battlePhase';
 import { useBattleStore, selectDiscussions, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
@@ -46,7 +46,7 @@ export default function DiscussionVote({ onVote }: DiscussionVoteProps) {
     <section className="w-full bg-[#1E1E2F] rounded-lg overflow-hidden">
       <div className="bg-gradient-to-r from-[#59168B] to-[#1C398E] p-4">
         <div className="flex items-center gap-2 mb-2">
-          <ScaleIcon className="w-5 h-5" />
+          <Icon name="scale" className="w-5 h-5" />
           <h3 className="text-sm font-medium text-white">{headerText}</h3>
         </div>
 

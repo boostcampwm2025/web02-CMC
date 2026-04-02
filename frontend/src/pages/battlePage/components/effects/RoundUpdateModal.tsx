@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import CrownIcon from '@/assets/icon/crown.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface RoundUpdateModalProps {
   isOpen: boolean;
@@ -66,7 +66,7 @@ export default function RoundUpdateModal({ isOpen, round, topic, onClose }: Roun
         {/* crown */}
         <div className={`relative flex justify-center mb-6 transition-all duration-500 ${badgeClass}`}>
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/50">
-            <CrownIcon className="w-12 h-12 text-orange-200 bg-orange-200 bg-orange-200/0" />
+            <Icon name="crown" className="w-12 h-12 text-orange-200 bg-orange-200 bg-orange-200/0" />
           </div>
         </div>
 

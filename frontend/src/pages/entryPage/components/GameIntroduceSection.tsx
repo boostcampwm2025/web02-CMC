@@ -1,6 +1,6 @@
 import Carousel from '@/commons/components/Carousel';
 import OnBoardingIntroduceCard from './OnBoardingIntroduceCard';
-import { ChevronDown } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 
 export default function GameIntroduceSection() {
   const handleScrollDown = () => {
@@ -54,7 +54,7 @@ export default function GameIntroduceSection() {
         onClick={handleScrollDown}
         className="relative z-10 mx-auto cursor-pointer text-white hover:text-orange-400 transition-colors"
       >
-        <ChevronDown size={28} />
+        <Icon name="chevronDown" className="w-7 h-7" />
       </button>
     </section>
   );

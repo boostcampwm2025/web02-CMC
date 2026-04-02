@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 import PhaseHeader from './PhaseHeader';
 import MessageCard from './MessageCard';
@@ -46,8 +46,8 @@ export default function PhaseCard({ phase, challengeMessage, rebuttalMessage, is
           <MessageCard message={challengeMessage} team={challengeTeam} type="challenge" />
         </div>
         <div className={`flex items-center justify-center ${isWide ? 'px-2' : 'py-1'} bg-[#0a0a1a]`}>
-          <ArrowDown className={`w-4 h-4 ${isWide ? 'hidden' : ''} ${arrow}`} />
-          <ArrowRight className={`w-4 h-4 ${isWide ? '' : 'hidden'} ${arrow}`} />
+          <Icon name="arrowDown" className={`w-4 h-4 ${isWide ? 'hidden' : ''} ${arrow}`} />
+          <Icon name="arrowRight" className={`w-4 h-4 ${isWide ? '' : 'hidden'} ${arrow}`} />
         </div>
         <div className={`flex-1 ${rebuttal} to-transparent`}>
           <MessageCard message={rebuttalMessage} team={rebuttalTeam} type="rebuttal" />

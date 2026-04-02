@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import SkipIcon from '@/assets/icon/skip.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface SkipModalProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export default function SkipModal({ isOpen, onClose }: SkipModalProps) {
             {/* 상단 아이콘 */}
             <div className="relative flex justify-center mb-6">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/50 animate-bounce">
-                <SkipIcon className="w-12 h-12 text-white" />
+                <Icon name="skip" className="w-12 h-12 text-white" />
               </div>
             </div>
 

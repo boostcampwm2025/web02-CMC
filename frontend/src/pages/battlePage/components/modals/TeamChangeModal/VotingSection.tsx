@@ -1,4 +1,4 @@
-import TimerIcon from '@/assets/icon/timer.svg?react';
+import Icon from '@/commons/components/Icon';
 import type { VotingSectionProps } from './types';
 
 /**
@@ -23,7 +23,7 @@ export default function VotingSection({
     <div className="flex flex-col items-center gap-2 border-t border-[#2d2d3f] pt-4">
       {/* 타이머 */}
       <div className="text-[#FF8904] text-2xl font-bold my-2 flex items-center">
-        <TimerIcon className="w-6 h-6 mr-2" />
+        <Icon name="timer" className="w-6 h-6 mr-2" />
         <span>{remainingTime}</span>
       </div>
 

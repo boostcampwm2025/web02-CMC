@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { soundManager } from '@/commons/utils/soundManager';
-import CloseIcon from '@/assets/icon/close.svg?react';
-import PlayIcon from '@/assets/icon/play.svg?react';
-import PauseIcon from '@/assets/icon/pause.svg?react';
+import Icon from '@/commons/components/Icon';
 import VolumeSlider from './VolumeSlider';
 
 interface BGMOption {
@@ -109,7 +107,7 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
           className="absolute right-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-all"
           aria-label="닫기"
         >
-          <CloseIcon className="w-4 h-4" />
+          <Icon name="close" className="w-4 h-4" />
         </button>
       </div>
 
@@ -137,9 +135,9 @@ export default function SoundSettingsPopover({ isOpen, onClose, anchorEl, bgmOpt
               aria-label={isPlaying ? '일시정지' : '재생'}
             >
               {isPlaying ? (
-                <PauseIcon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+                <Icon name="pause" className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
               ) : (
-                <PlayIcon className="w-5 h-5 text-white ml-0.5 group-hover:scale-110 transition-transform" />
+                <Icon name="play" className="w-5 h-5 text-white ml-0.5 group-hover:scale-110 transition-transform" />
               )}
             </button>
           </div>

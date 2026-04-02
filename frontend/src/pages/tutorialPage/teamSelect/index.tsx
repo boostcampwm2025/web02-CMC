@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { Team } from '@/commons/types/battle';
 import { useStepFlow } from '@/pages/teamSelectPage/hooks/useStepFlow';
 import StepIndicator from '@/pages/teamSelectPage/components/StepIndicator';
@@ -122,7 +122,7 @@ export default function TutorialTeamSelectPage() {
                   className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors z-10"
                   aria-label="이전 단계"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <Icon name="chevronLeft" className="w-6 h-6" />
                 </button>
               )}
 
@@ -140,7 +140,7 @@ export default function TutorialTeamSelectPage() {
                   `}
                   aria-label="다음 단계"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <Icon name="chevronRight" className="w-6 h-6" />
                 </button>
               )}
             </div>

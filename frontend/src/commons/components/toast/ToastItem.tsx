@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import ExclamationIcon from '@/assets/icon/exclamation.svg?react';
+import Icon from '@/commons/components/Icon';
 import type { Toast } from '../../stores/toastStore';
 
 interface ToastItemProps {
@@ -28,7 +28,7 @@ export const ToastItem = ({ toast, onRemove }: ToastItemProps) => {
         isExiting ? 'opacity-0 translate-x-full' : 'opacity-100 translate-x-0'
       }`}
     >
-      <ExclamationIcon className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
+      <Icon name="exclamation" className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-white break-words">{toast.message}</p>
       </div>

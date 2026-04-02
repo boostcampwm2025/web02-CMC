@@ -1,5 +1,5 @@
 import { useNavigate, useRouteError, isRouteErrorResponse } from 'react-router-dom';
-import { AlertTriangle, Home } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import * as Sentry from '@sentry/react';
 import { useEffect } from 'react';
 
@@ -65,7 +65,7 @@ export default function ErrorPage() {
           <div className="relative">
             <div className="absolute inset-0 bg-orange-500/20 blur-2xl rounded-full"></div>
             <div className="relative bg-orange-500/10 p-6 rounded-full border border-orange-500/30">
-              <AlertTriangle className="w-12 h-12 text-orange-500" />
+              <Icon name="alertTriangle" className="w-12 h-12 text-orange-500" />
             </div>
           </div>
         </div>
@@ -95,7 +95,7 @@ export default function ErrorPage() {
             onClick={handleGoHome}
             className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-lg transition-all duration-300 shadow-lg hover:shadow-orange-500/50"
           >
-            <Home className="w-5 h-5" />
+            <Icon name="home" className="w-5 h-5" />
             홈으로 돌아가기
           </button>
         </div>

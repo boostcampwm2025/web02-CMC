@@ -1,4 +1,5 @@
 import { STAT_CONFIG, type StatType } from '../types/stat';
+import Icon from '@/commons/components/Icon';
 import IconBox from './IconBox';
 
 interface Props {
@@ -7,7 +8,7 @@ interface Props {
 }
 
 export default function StatCard({ type, value }: Props) {
-  const { label, text, bg, bgSoft, icon: Icon } = STAT_CONFIG[type];
+  const { label, text, bg, bgSoft, icon: iconName } = STAT_CONFIG[type];
 
   return (
     <div className="w-full rounded-2xl bg-[#1A1A2E] overflow-hidden">
@@ -15,7 +16,7 @@ export default function StatCard({ type, value }: Props) {
 
       <div className="flex items-center gap-4 p-6">
         <IconBox className={bgSoft}>
-          <Icon className={`w-6 h-6 ${text}`} />
+          <Icon name={iconName} className={`w-6 h-6 ${text}`} />
         </IconBox>
 
         <div className="flex flex-col text-left">

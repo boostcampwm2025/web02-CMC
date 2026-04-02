@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import UserIcon from '@/assets/icon/user.svg?react';
+import Icon from './Icon';
 import { useLogout } from '@/commons/hooks/useLogout';
 
 interface UserProfileDropdownProps {
@@ -49,7 +49,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt={user.nickname} className="w-full h-full rounded-full object-cover" />
           ) : (
-            <UserIcon className="w-5 h-5 text-white" />
+            <Icon name="user" className="w-5 h-5 text-white" />
           )}
         </div>
         <span className="text-white text-sm font-medium">{user.nickname}</span>

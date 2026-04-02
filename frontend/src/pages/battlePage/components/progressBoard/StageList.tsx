@@ -1,5 +1,5 @@
 import { StageIcon } from './StageIcon';
-import DownArrowIcon from '@/assets/icon/downArrow.svg?react';
+import Icon from '@/commons/components/Icon';
 import type { BattlePhase } from '@/commons/types/battle';
 
 const COLOR_MAP = {
@@ -97,7 +97,7 @@ export function StageList({ round, phase, phaseCount }: StageListProps) {
             small={true}
             tooltip={stage.description}
           />
-          {index < STAGES.length - 1 && <DownArrowIcon className="-rotate-90 opacity-40" />}
+          {index < STAGES.length - 1 && <Icon name="downArrow" className="-rotate-90 opacity-40" />}
         </div>
       ))}
     </div>

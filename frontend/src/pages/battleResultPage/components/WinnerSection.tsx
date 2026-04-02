@@ -1,4 +1,4 @@
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import Icon from '@/commons/components/Icon';
 
 interface WinnerSectionProps {
   winner: 'A' | 'B' | 'DRAW';
@@ -37,7 +37,7 @@ export default function WinnerSection({
     <div className="max-w-7xl mx-auto mb-12">
       <div className={`${style.gradient} rounded-3xl p-8 md:p-12 text-center shadow-2xl ${style.shadow}`}>
         <div className="flex justify-center mb-4">
-          <TrophyIcon className="w-[48px] h-[48px]" />
+          <Icon name="trophy" className="w-[48px] h-[48px]" />
         </div>
         <div className="px-8 py-3 text-lg md:text-xl font-semibold mb-8">🎉 승리 팀: 코드 {winnerTeam}</div>
         <div className="flex items-center justify-center gap-4 md:gap-8 flex-wrap">

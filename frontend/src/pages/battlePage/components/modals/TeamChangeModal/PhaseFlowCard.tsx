@@ -1,4 +1,4 @@
-import { Zap, Shield, ArrowRight } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import TimelineMessage from './TimelineMessage';
 import type { PhaseFlowCardProps } from './types';
 
@@ -30,18 +30,18 @@ export default function PhaseFlowCard({ attackTeam, defenseTeam, attackMessage, 
         <div className="flex items-center justify-center gap-3">
           {/* 공격 팀 */}
           <div className="flex items-center gap-2">
-            <Zap className={`w-4 h-4 ${attackIconColor}`} />
+            <Icon name="zap" className={`w-4 h-4 ${attackIconColor}`} />
             <span className={`${attackTextColor} font-bold text-xs uppercase tracking-wider`}>
               {attackTeam} 이의제기
             </span>
           </div>
 
           {/* 화살표 */}
-          <ArrowRight className="w-4 h-4 text-gray-500" />
+          <Icon name="arrowRight" className="w-4 h-4 text-gray-500" />
 
           {/* 수비 팀 */}
           <div className="flex items-center gap-2">
-            <Shield className={`w-4 h-4 ${defenseIconColor}`} />
+            <Icon name="shield" className={`w-4 h-4 ${defenseIconColor}`} />
             <span className={`${defenseTextColor} font-bold text-xs uppercase tracking-wider`}>{defenseTeam} 반론</span>
           </div>
         </div>
