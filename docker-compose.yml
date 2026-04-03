@@ -22,11 +22,9 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/boostcampwm2025/web02-cmc-backend:latest
     env_file:
-      - ./backend/.env
+      - ./.env
     environment:
       PORT: 3000
       FRONTEND_URL: http://localhost
@@ -81,12 +79,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
-      args:
-        # 배포 시 백엔드 도메인/포트로 교체
-        VITE_API_URL: /
+    image: ghcr.io/boostcampwm2025/web02-cmc-frontend:latest
     ports:
       - "80:80"
     depends_on:

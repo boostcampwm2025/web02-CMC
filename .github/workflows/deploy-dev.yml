@@ -52,9 +52,9 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=${{ secrets.VITE_API_URL }}
-            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
-            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-            VITE_ENABLE_SENTRY: "false"
+            VITE_SOCKET_URL=${{ secrets.VITE_SOCKET_URL }}
+            VITE_SENTRY_DSN=${{ secrets.VITE_SENTRY_DSN }}
+            VITE_ENABLE_SENTRY="false"
           tags: |
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
             ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
@@ -91,8 +91,6 @@ jobs:
             # === 이미지 pull ===
             docker compose -f docker-compose.yml pull
 
-            # === Prisma Migration용 컨테이너 실행 ===
-            docker compose -f docker-compose.yml run --rm migrate
 
             # === 오래된 이미지 정리 ===
             docker image prune -f
