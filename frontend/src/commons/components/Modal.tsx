@@ -40,6 +40,15 @@ export default function Modal({
   }, [isOpen]);
 
   useEffect(() => {
+    if (!shouldRender || !onClose) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [shouldRender, onClose]);
+
+  useEffect(() => {
     if (!shouldRender) return;
     document.body.style.overflow = 'hidden';
     return () => {
