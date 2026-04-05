@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState } from 'react';
 import Button from '@/commons/components/Button';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
-import { soundManager } from '@/commons/utils/soundManager';
 import useBattleSound from './hooks/useBattleSound';
+import { useBattleLeave } from './hooks/useBattleLeave';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
@@ -25,7 +25,6 @@ import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
 import SoundSettingsButton from './components/header/SoundSettingsButton';
 import SkipModal from './components/effects/SkipModal';
-import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { usePhaseSkip } from './hooks/usePhaseSkip';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
@@ -33,45 +32,14 @@ type Tab = 'info' | 'timeline' | 'reference';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { battleInfo: battleInfoData } = useGetBattleInfo(battleId!);
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
-  const user = useAuthStore(selectUser);
-  const leaveBattle = useBattleStore((s) => s.leaveBattle);
   const battleProgress = useBattleStore(selectBattleProgress);
-  const hasLeftRef = useRef(false);
 
   const { bgmOptions } = useBattleSound();
-
-  const safeLeaveBattle = useCallback(() => {
-    if (hasLeftRef.current) return;
-    hasLeftRef.current = true;
-    leaveBattle();
-  }, [leaveBattle]);
-
-  useEffect(() => {
-    const handlePageHide = () => {
-      soundManager.stopAllBGM();
-      safeLeaveBattle();
-    };
-
-    const handleBeforeUnload = () => {
-      soundManager.stopAllBGM();
-      safeLeaveBattle();
-    };
-
-    window.addEventListener('pagehide', handlePageHide);
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('pagehide', handlePageHide);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      soundManager.stopAllBGM();
-      safeLeaveBattle();
-    };
-  }, [safeLeaveBattle]);
+  const { handleLeaveBattle } = useBattleLeave();
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -95,18 +63,11 @@ export default function BattlePage() {
     totalSkips
   } = usePhaseSkip();
 
-  // Phase와 Team 정보 가져오기
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
 
   const battleInfo = battleInfoData;
-
-  const handleLeaveBattle = () => {
-    if (!user) return;
-    navigate('/main');
-    safeLeaveBattle();
-  };
 
   return (
     <div className="text-white relative">
@@ -182,7 +143,6 @@ export default function BattlePage() {
             </aside>
           </div>
         </main>
-        {/* DiscussionInput - 화면 중앙 하단에 fixed */}
         <div
           className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-5 px-4 pb-4 transition-all duration-500 ease-out ${
             shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
