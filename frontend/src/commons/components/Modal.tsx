@@ -50,9 +50,16 @@ export default function Modal({
 
   useEffect(() => {
     if (!shouldRender) return;
+    const count = Number(document.body.dataset.modalCount ?? 0) + 1;
+    document.body.dataset.modalCount = String(count);
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = '';
+      const next = Number(document.body.dataset.modalCount ?? 1) - 1;
+      document.body.dataset.modalCount = String(next);
+      if (next === 0) {
+        document.body.style.overflow = '';
+        delete document.body.dataset.modalCount;
+      }
     };
   }, [shouldRender]);
 
