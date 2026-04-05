@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import Button from '@/commons/components/Button';
 import { useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
@@ -10,7 +9,7 @@ import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stor
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
-import BattleHeader from './components/header';
+import BattleTopBar from './components/header/BattleTopBar';
 import CodeSection from './components/codeview/CodeSection';
 import ChatSection from './components/chatting/ChatSection';
 import DiscussionInput from './components/discussion/DiscussionInput';
@@ -23,10 +22,8 @@ import DiscussionModal from './components/effects/DiscussionModal';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
 import RoundUpdateModal from './components/effects/RoundUpdateModal';
-import SoundSettingsButton from './components/header/SoundSettingsButton';
 import SkipModal from './components/effects/SkipModal';
 import { usePhaseSkip } from './hooks/usePhaseSkip';
-import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 
 type Tab = 'info' | 'timeline' | 'reference';
 
@@ -71,7 +68,6 @@ export default function BattlePage() {
 
   return (
     <div className="text-white relative">
-      {/* 책갈피 버튼 */}
       <BookmarkButton
         onOpen={(tab) => {
           setActiveSidebarTab(tab);
@@ -81,7 +77,6 @@ export default function BattlePage() {
         hasReferenceData={!!battleInfo?.referenceData}
       />
 
-      {/* 사이드바 */}
       <BattleSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
@@ -95,35 +90,16 @@ export default function BattlePage() {
         onActiveTabChange={setActiveSidebarTab}
       />
 
-      {/* 메인 콘텐츠 */}
       <div className="flex flex-col items-center">
         <BattleProgressBoard />
-        <div
-          className={`transition-all duration-300 main-width-closed ${
-            battleProgress &&
-            (battleProgress.phase as string) !== 'PENDING' &&
-            battleProgress.expiredAt != null &&
-            battleProgress.startedAt
-          }`}
-        >
-          <div className="flex items-center justify-between gap-4 mt-10 mb-8">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleLeaveBattle}
-              className="shrink-0 w-[100px] sm:w-auto sm:min-w-[100px]"
-            >
-              ← 돌아가기
-            </Button>
-            <div className="shrink-0 flex items-center gap-2">
-              {battleInfo?.inviteCode && <InviteLinkButton inviteCode={battleInfo.inviteCode} />}
-            </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <SoundSettingsButton bgmOptions={bgmOptions} />
-            <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
-          </div>
-        </div>
+        <BattleTopBar
+          onLeave={handleLeaveBattle}
+          inviteCode={battleInfo?.inviteCode}
+          bgmOptions={bgmOptions}
+          isSkipEnabled={isSkipEnabled}
+          toggleSkip={toggleSkip}
+          totalSkips={totalSkips}
+        />
         <main className="main-width-closed">
           <div className="flex gap-2 py-4">
             <div className="flex-1 min-w-0">
