@@ -5,6 +5,7 @@ import { useBattle } from './hooks/useBattle';
 import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import { soundManager } from '@/commons/utils/soundManager';
+import useBattleSound from './hooks/useBattleSound';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
@@ -42,15 +43,7 @@ export default function BattlePage() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const hasLeftRef = useRef(false);
 
-  const BGM_OPTIONS = [
-    { key: 'lofi', label: 'LoFi', src: '/sounds/lofi.mp3' },
-    { key: 'chill', label: 'Chill', src: '/sounds/chill.mp3' },
-    { key: 'groove', label: 'Groove', src: '/sounds/groove.mp3' },
-    { key: 'hiphop', label: 'Hip Hop', src: '/sounds/hiphop.mp3' },
-    { key: 'jazz', label: 'Jazz', src: '/sounds/jazz.mp3' },
-    { key: 'rock', label: 'Rock', src: '/sounds/rock.mp3' },
-    { key: 'romantic', label: 'Romantic', src: '/sounds/romantic.mp3' }
-  ];
+  const { bgmOptions } = useBattleSound();
 
   const safeLeaveBattle = useCallback(() => {
     if (hasLeftRef.current) return;
@@ -79,28 +72,6 @@ export default function BattlePage() {
       safeLeaveBattle();
     };
   }, [safeLeaveBattle]);
-
-  // 사운드 초기화
-  useEffect(() => {
-    soundManager.preload('timerWarning', '/sounds/timerSound.wav');
-    soundManager.preload('notificationPing', '/sounds/notificationPing.mp3');
-    soundManager.preload('swoosh', '/sounds/swoosh.mp3');
-    soundManager.preload('swordSlash', '/sounds/swordSlash.mp3');
-    soundManager.preload('fanfare', '/sounds/fanfare.mp3');
-    soundManager.preload('click', '/sounds/click.mp3');
-    soundManager.preload('click2', '/sounds/click2.mp3');
-
-    BGM_OPTIONS.forEach((bgm) => {
-      soundManager.preloadBGM(bgm.key, bgm.src);
-    });
-  }, []);
-
-  // 배틀 페이지 진입 시 BGM 자동 재생
-  useEffect(() => {
-    if (!soundManager.getCurrentBGM()) {
-      soundManager.playBGM(BGM_OPTIONS[0].key);
-    }
-  }, []);
 
   const {
     isOpen: isTeamChangeModalOpen,
@@ -188,7 +159,7 @@ export default function BattlePage() {
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <SoundSettingsButton bgmOptions={BGM_OPTIONS} />
+            <SoundSettingsButton bgmOptions={bgmOptions} />
             <BattleHeader isSkipEnabled={isSkipEnabled} toggleSkip={toggleSkip} totalSkips={totalSkips} />
           </div>
         </div>
