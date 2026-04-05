@@ -221,8 +221,9 @@ export default function BattlePage() {
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
-        {isTeamChangeModalOpen && battleInfo && (
+        {battleInfo && (
           <TeamChangeModal
+            isOpen={isTeamChangeModalOpen}
             topics={battleInfo.topics}
             handleTeamChange={handleTeamChange}
             onClose={handleCloseTeamChangeModal}

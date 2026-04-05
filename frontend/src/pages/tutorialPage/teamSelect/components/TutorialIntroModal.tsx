@@ -1,4 +1,5 @@
 import Button from '@/commons/components/Button';
+import Modal from '@/commons/components/Modal';
 
 interface TutorialIntroModalProps {
   isOpen: boolean;
@@ -8,10 +9,8 @@ interface TutorialIntroModalProps {
 }
 
 export default function TutorialIntroModal({ isOpen, step, onNext, onStart }: TutorialIntroModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
+    <Modal isOpen={isOpen} zIndex="z-[80]" className="px-4">
       <div className="w-full max-w-md rounded-2xl border border-orange-500/40 bg-[#121726] shadow-2xl p-6 text-white">
         <div className="flex items-center justify-between mb-4">
           <span className="text-xs font-semibold uppercase tracking-wider text-orange-300">튜토리얼</span>
@@ -59,6 +58,6 @@ export default function TutorialIntroModal({ isOpen, step, onNext, onStart }: Tu
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

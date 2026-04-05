@@ -222,14 +222,13 @@ export default function TutorialBattlePage() {
           </div>
         </div>
 
-        {isTeamChangeModalOpen && (
-          <TeamChangeModal
-            topics={battleInfo.topics}
-            handleTeamChange={handleTeamSelect}
-            onClose={handleCloseTeamChangeModal}
-            className={teamSwitchModalClassName}
-          />
-        )}
+        <TeamChangeModal
+          isOpen={isTeamChangeModalOpen}
+          topics={battleInfo.topics}
+          handleTeamChange={handleTeamSelect}
+          onClose={handleCloseTeamChangeModal}
+          className={teamSwitchModalClassName}
+        />
 
         {isVoteResultModalOpen && voteResult && (
           <TeamVoteResultModal
