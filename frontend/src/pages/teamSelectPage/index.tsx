@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Button from '@/commons/components/Button';
 import { selectIsLoggingIn, selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '@/commons/components/Icon';
@@ -123,12 +124,14 @@ export default function TeamSelectPage() {
         {/* Header */}
         <div className="relative mb-8">
           <div className="flex items-center justify-between gap-4">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => navigate('/main')}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+              className="shrink-0 w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기
-            </button>
+            </Button>
             <h1 className="text-3xl font-bold text-white absolute left-1/2 -translate-x-1/2 pointer-events-none">
               배틀 참가하기
             </h1>
@@ -154,32 +157,27 @@ export default function TeamSelectPage() {
 
               {/* 이전 버튼 - 콘텐츠 왼쪽 */}
               {currentStep > 1 && (
-                <button
+                <Button
                   onClick={goToPrev}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 rounded-full bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white flex items-center justify-center transition-colors z-10"
+                  variant="secondary"
                   aria-label="이전 단계"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 w-12 h-12 p-0 rounded-full z-10"
                 >
                   <Icon name="chevronLeft" className="w-6 h-6" />
-                </button>
+                </Button>
               )}
 
               {/* 다음 버튼 - 콘텐츠 오른쪽 */}
               {currentStep < totalSteps && (
-                <button
+                <Button
                   onClick={goToNext}
                   disabled={!canGoNext}
-                  className={`
-                    absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 rounded-full flex items-center justify-center transition-colors z-10
-                    ${
-                      canGoNext
-                        ? 'bg-[#FF6900] hover:bg-[#FF8533] text-white'
-                        : 'bg-[#2D2D3F] text-[#99A1AF] cursor-not-allowed'
-                    }
-                  `}
+                  variant={canGoNext ? 'primary' : 'secondary'}
                   aria-label="다음 단계"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 w-12 h-12 p-0 rounded-full z-10"
                 >
                   <Icon name="chevronRight" className="w-6 h-6" />
-                </button>
+                </Button>
               )}
             </div>
           </div>

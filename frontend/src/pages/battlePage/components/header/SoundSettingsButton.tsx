@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import Icon from '@/commons/components/Icon';
 import SoundSettingsPopover from './SoundSettingsPopover';
+import Button from '@/commons/components/Button';
 
 export interface BGMOption {
   key: string;
@@ -18,14 +19,15 @@ export default function SoundSettingsButton({ bgmOptions }: SoundSettingsButtonP
 
   return (
     <div className="fixed top-4 right-4 z-10">
-      <button
+      <Button
         ref={soundButtonRef}
+        variant="secondary"
         onClick={() => setIsSoundSettingsOpen(!isSoundSettingsOpen)}
-        className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#2D2D3F]/80 hover:bg-[#3D3D4F] text-white transition-all shadow-lg border border-white/10"
         aria-label="사운드 설정"
+        className="w-11 h-11 p-0 rounded-xl bg-[#2D2D3F]/80 shadow-lg border border-white/10"
       >
         <Icon name="sound" className="w-6 h-6" />
-      </button>
+      </Button>
       <SoundSettingsPopover
         isOpen={isSoundSettingsOpen}
         onClose={() => setIsSoundSettingsOpen(false)}

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import Button from '@/commons/components/Button';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
 import type { BattleInfo, Team } from '@/commons/types/battle';
 import useModal from '@/commons/hooks/useModal';
@@ -164,12 +165,9 @@ export default function TutorialBattlePage() {
           }`}
         >
           <div className="flex items-center justify-between mt-10 mb-8">
-            <button
-              onClick={handleLeaveBattle}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-            >
+            <Button variant="secondary" size="sm" onClick={handleLeaveBattle}>
               ← 돌아가기
-            </button>
+            </Button>
           </div>
           <BattleHeader isSkipEnabled={false} toggleSkip={() => {}} totalSkips={0} />
         </div>

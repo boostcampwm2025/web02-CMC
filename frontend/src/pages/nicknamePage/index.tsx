@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/commons/components/Icon';
 import { useUpdateNickname } from './queries/useUpdateNickname';
+import Button from '@/commons/components/Button';
 
 export default function NicknamePage() {
   const [inputNickname, setInputNickname] = useState('');
@@ -66,13 +67,15 @@ export default function NicknamePage() {
               {error && <p className="mt-2 text-red-400 text-xs lg:text-sm">{error}</p>}
             </div>
 
-            <button
+            <Button
               disabled={isPending}
               type="submit"
-              className="w-full px-5 lg:px-6 py-3 lg:py-4 rounded-xl font-semibold text-sm lg:text-base xl:text-lg bg-linear-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition-all duration-200 hover:from-orange-400 hover:to-orange-500 hover:shadow-orange-500/40 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:from-orange-500 disabled:hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+              fullWidth
+              size="lg"
+              className="shadow-lg shadow-orange-500/30 active:scale-[0.97] focus:ring-2 focus:ring-orange-400/50"
             >
               {isPending ? '설정 중...' : '시작하기'}
-            </button>
+            </Button>
           </form>
         </div>
       </div>

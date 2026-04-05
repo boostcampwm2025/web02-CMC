@@ -5,6 +5,7 @@ import PastBattlesSection from './components/pastBattles/PastBattlesSection';
 import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
 import Icon from '@/commons/components/Icon';
 import Header from '@/commons/components/Header';
+import Button from '@/commons/components/Button';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 
@@ -40,15 +41,12 @@ export default function MainPage() {
             <p className=" text-gray-400">두 가지 코드 구현 중 어떤 게 더 나은지 실시간 투표로 결정하세요</p>
 
             <div className="mt-6 flex gap-3">
-              <button
+              <Button
                 onClick={handleCreateBattle}
-                className="flex items-center rounded-xl px-5 py-3  bg-orange-500 shadow-[0_4px_6px_-4px_rgba(255,105,0,0.3),0_10px_15px_-3px_rgba(255,105,0,0.3)] hover:shadow-[0_0_25px_rgba(255,105,0,0.7)] transition-all duration-200"
+                className="shadow-[0_4px_6px_-4px_rgba(255,105,0,0.3),0_10px_15px_-3px_rgba(255,105,0,0.3)] hover:shadow-[0_0_25px_rgba(255,105,0,0.7)]"
               >
-                <div className="flex items-center gap-1 ">
-                  <Icon name="battle" className="w-5 h-5 text-white" />
-                  <p> 새 배틀 생성</p>
-                </div>
-              </button>
+                <Icon name="battle" className="w-5 h-5 text-white" />새 배틀 생성
+              </Button>
 
               <Link
                 to="/tutorial/team-select"

@@ -1,4 +1,5 @@
 import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 interface SectionErrorFallbackProps {
   error: Error;
@@ -30,13 +31,13 @@ export default function SectionErrorFallback({
           <p className="text-sm text-gray-400">{error.message}</p>
         </div>
 
-        <button
+        <Button
           onClick={reset}
           className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors duration-200"
         >
           <Icon name="refreshCw" className="w-4 h-4" />
           다시 시도
-        </button>
+        </Button>
       </div>
     </div>
   );

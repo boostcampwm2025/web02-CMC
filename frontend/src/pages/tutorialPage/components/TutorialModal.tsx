@@ -1,4 +1,5 @@
 import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 interface TutorialModalProps {
   isOpen: boolean;
@@ -41,12 +42,13 @@ export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontSh
           <span className="text-xs text-[#99A1AF]">다시 보지 않기</span>
         </label>
 
-        <button
+        <Button
           onClick={handleStart}
-          className="w-full h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-base font-bold transition-all shadow-lg shadow-orange-500/30"
+          fullWidth
+          className="h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-base font-bold shadow-lg shadow-orange-500/30"
         >
           시작하기
-        </button>
+        </Button>
 
         <div className="flex items-center justify-center gap-1 mt-4">
           <span className="text-[0.625rem] text-[#6A7282]">💡 우측 상단</span>

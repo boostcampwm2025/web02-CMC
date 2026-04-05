@@ -1,4 +1,5 @@
 import ParticipantRatioBar from './ParticipantRatioBar';
+import Button from '@/commons/components/Button';
 import StageIndicator from './StageIndicator';
 import BattleTimer from './BattleTimer';
 import TeamCounter from './TeamCounter';
@@ -50,13 +51,14 @@ export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: 
         <StageIndicator />
         <div className="flex flex-col items-center justify-center" data-tutorial="timer">
           {phase === 'PENDING' ? (
-            <button
+            <Button
               type="button"
               onClick={handleStart}
-              className="px-5 py-3 rounded-lg border border-[#FF6900] text-[#FF6900] hover:bg-[#FF6900]/10"
+              variant="ghost"
+              className="border-[#FF6900] text-[#FF6900] hover:bg-[#FF6900]/10 hover:text-[#FF6900]"
             >
               배틀 시작
-            </button>
+            </Button>
           ) : (
             <>
               <BattleTimer />
