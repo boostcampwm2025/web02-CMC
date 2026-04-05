@@ -1,5 +1,6 @@
 import Icon from '@/commons/components/Icon';
 import Button from '@/commons/components/Button';
+import Modal from '@/commons/components/Modal';
 
 interface TutorialModalProps {
   isOpen: boolean;
@@ -9,14 +10,12 @@ interface TutorialModalProps {
 }
 
 export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontShowAgainChange }: TutorialModalProps) {
-  if (!isOpen) return null;
-
   const handleStart = () => {
     onStart();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <Modal isOpen={isOpen} bg="bg-black/60">
       <div className="relative max-w-md rounded-2xl bg-[#1E2432] border border-[#2D3648] shadow-2xl p-8">
         <div className="flex justify-center mb-6">
           <div className="w-15 h-15 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
@@ -56,6 +55,6 @@ export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontSh
           <span className="text-[0.625rem] text-[#6A7282]">버튼을 클릭하면 언제든지 튜토리얼을 다시 볼 수 있어요.</span>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

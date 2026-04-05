@@ -54,8 +54,8 @@ export default function Modal({
       className={`fixed inset-0 ${zIndex} ${bg} ${blur} flex items-center justify-center transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'} ${className}`}
       style={style}
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+      role={isOpen ? 'dialog' : undefined}
+      aria-modal={isOpen ? 'true' : undefined}
     >
       {typeof children === 'function' ? children(isAnimating) : children}
     </div>

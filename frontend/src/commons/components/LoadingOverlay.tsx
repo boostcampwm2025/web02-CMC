@@ -1,13 +1,13 @@
+import Modal from '@/commons/components/Modal';
+
 interface LoadingOverlayProps {
   isOpen: boolean;
   message?: string;
 }
 
 export default function LoadingOverlay({ isOpen, message = '처리 중입니다...' }: LoadingOverlayProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+    <Modal isOpen={isOpen} blur="backdrop-blur-md" className="animate-in fade-in duration-200">
       <div className="relative rounded-3xl border border-orange-500/20 bg-gradient-to-br from-[#1a1a2e] to-[#121226] p-10 shadow-[0_20px_60px_rgba(255,105,0,0.3)] animate-in zoom-in-95 duration-300">
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-orange-500/10 to-transparent blur-xl"></div>
 
@@ -29,6 +29,6 @@ export default function LoadingOverlay({ isOpen, message = '처리 중입니다.
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

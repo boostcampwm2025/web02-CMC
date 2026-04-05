@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom';
+import Modal from '@/commons/components/Modal';
 import {
   useBattleStore,
   selectTeamCounts,
@@ -11,21 +12,20 @@ import TimelineSection from './TimelineSection';
 import VotingSection from './VotingSection';
 
 interface TeamChangeModalProps {
+  isOpen: boolean;
   topics: string[];
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   onClose: () => void;
   className?: string;
 }
 
-/**
- * 팀 변경 모달 컴포넌트
- *
- * @description
- * TEAM_SWITCH 페이즈에서 사용자가 현재 라운드의 타임라인을 확인하고
- * 지지할 팀을 선택할 수 있는 모달입니다.
- */
-export default function TeamChangeModal({ topics, handleTeamChange, onClose, className }: TeamChangeModalProps) {
-  // 데이터 페칭
+export default function TeamChangeModal({
+  isOpen,
+  topics,
+  handleTeamChange,
+  onClose,
+  className
+}: TeamChangeModalProps) {
   const { teamACount, teamBCount } = useBattleStore(selectTeamCounts);
   const currentTeam = useBattleStore(selectSelectedTeam);
   const battleProgress = useBattleStore(selectBattleProgress);
@@ -49,7 +49,7 @@ export default function TeamChangeModal({ topics, handleTeamChange, onClose, cla
   };
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <Modal isOpen={isOpen} bg="bg-black/50" blur="" className="p-4 overflow-y-auto">
       <div
         className={`w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8 ${className ?? ''}`}
         onClick={(e) => e.stopPropagation()}
@@ -67,7 +67,7 @@ export default function TeamChangeModal({ topics, handleTeamChange, onClose, cla
           onTeamChange={handleClick}
         />
       </div>
-    </div>,
+    </Modal>,
     modalRoot
   );
 }
