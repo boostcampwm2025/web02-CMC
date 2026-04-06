@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useBattle } from './hooks/useBattle';
-import { useTeamVoteResult } from './hooks/useTeamVoteResult';
 import useModal from '@/commons/hooks/useModal';
 import useBattleSound from './hooks/useBattleSound';
 import { useBattleLeave } from './hooks/useBattleLeave';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
+import { usePhaseSkip } from './hooks/usePhaseSkip';
 
 import BattleTopBar from './components/header/BattleTopBar';
 import CodeSection from './components/codeview/CodeSection';
@@ -16,14 +16,8 @@ import DiscussionInput from './components/discussion/DiscussionInput';
 import DiscussionVote from './components/discussion/DiscussionVote';
 import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
-import TeamChangeModal from './components/modals/TeamChangeModal';
-import ConnectionErrorModal from './components/modals/ConnectionErrorModal';
-import DiscussionModal from './components/effects/DiscussionModal';
+import BattleModals from './components/modals/BattleModals';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
-import TeamVoteResultModal from './components/effects/TeamVoteResultModal';
-import RoundUpdateModal from './components/effects/RoundUpdateModal';
-import SkipModal from './components/effects/SkipModal';
-import { usePhaseSkip } from './hooks/usePhaseSkip';
 
 type Tab = 'info' | 'timeline' | 'reference';
 
@@ -39,26 +33,18 @@ export default function BattlePage() {
   const { handleLeaveBattle } = useBattleLeave();
 
   const {
-    isOpen: isTeamChangeModalOpen,
-    openModal: handleOpenTeamChangeModal,
-    closeModal: handleCloseTeamChangeModal
-  } = useModal(false);
+    handleVote,
+    handleDiscussionSubmit,
+    effectModal,
+    hideEffect,
+    hideRoundEffect,
+    roundModal,
+    handleTeamChange,
+    isTeamChangeModalOpen,
+    closeTeamChangeModal
+  } = useBattle({ battleId });
 
-  const { handleVote, handleDiscussionSubmit, effectModal, hideEffect, hideRoundEffect, roundModal, handleTeamChange } =
-    useBattle({
-      battleId,
-      onOpenTeamChangeModal: handleOpenTeamChangeModal,
-      onCloseTeamChangeModal: handleCloseTeamChangeModal
-    });
-
-  const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
-  const {
-    isModalOpen: isPhaseSkipModalOpen,
-    closeModal: closeSkipModal,
-    isSkipEnabled,
-    toggleSkip,
-    totalSkips
-  } = usePhaseSkip();
+  const { isSkipEnabled, toggleSkip, totalSkips } = usePhaseSkip();
 
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
@@ -128,42 +114,16 @@ export default function BattlePage() {
             {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
           </div>
         </div>
-        {battleInfo && (
-          <TeamChangeModal
-            isOpen={isTeamChangeModalOpen}
-            topics={battleInfo.topics}
-            handleTeamChange={handleTeamChange}
-            onClose={handleCloseTeamChangeModal}
-          />
-        )}
-        {!isPhaseSkipModalOpen && effectModal.isOpen && effectModal.team !== 'NONE' && (
-          <DiscussionModal
-            isOpen={effectModal.isOpen}
-            team={effectModal.team}
-            content={effectModal.content}
-            type={effectModal.type}
-            onClose={hideEffect}
-          />
-        )}
-        {isPhaseSkipModalOpen && <SkipModal isOpen={true} onClose={closeSkipModal} />}
-        {isVoteResultModalOpen && voteResult && (
-          <TeamVoteResultModal
-            isOpen={isVoteResultModalOpen}
-            round={voteResult.round}
-            teamACount={voteResult.after.teamA}
-            teamBCount={voteResult.after.teamB}
-            teamABefore={voteResult.before.teamA}
-            teamBBefore={voteResult.before.teamB}
-            teamAPercentage={(voteResult.after.teamA / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
-            teamBPercentage={(voteResult.after.teamB / (voteResult.after.teamA + voteResult.after.teamB)) * 100}
-            leadingTeam={voteResult.dominantTeam === 'NONE' ? null : voteResult.dominantTeam}
-            onClose={closeVoteResultModal}
-          />
-        )}
-        {roundModal.isPending && !isVoteResultModalOpen && (
-          <RoundUpdateModal isOpen={true} round={roundModal.round} topic={roundModal.topic} onClose={hideRoundEffect} />
-        )}
-        <ConnectionErrorModal />
+        <BattleModals
+          battleTopics={battleInfo?.topics ?? []}
+          effectModal={effectModal}
+          onHideEffect={hideEffect}
+          roundModal={roundModal}
+          onHideRoundEffect={hideRoundEffect}
+          handleTeamChange={handleTeamChange}
+          isTeamChangeModalOpen={isTeamChangeModalOpen}
+          onCloseTeamChangeModal={closeTeamChangeModal}
+        />
       </div>
     </div>
   );
