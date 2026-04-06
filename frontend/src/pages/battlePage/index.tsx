@@ -20,7 +20,7 @@ type Tab = 'info' | 'timeline' | 'reference';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
-  const { battleInfo: battleInfoData } = useGetBattleInfo(battleId!);
+  const { battleInfo } = useGetBattleInfo(battleId!);
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
@@ -46,8 +46,6 @@ export default function BattlePage() {
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
-
-  const battleInfo = battleInfoData;
 
   return (
     <div className="text-white relative">
