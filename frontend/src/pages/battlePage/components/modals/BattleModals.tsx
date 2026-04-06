@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom';
-import type { Team } from '@/commons/types/battle';
 import { useTeamVoteResult } from '../../hooks/useTeamVoteResult';
 import { usePhaseSkip } from '../../hooks/usePhaseSkip';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
+import type { EffectModalState } from '../../hooks/useEffectModal';
+import type { RoundUpdateState } from '../../hooks/useRoundUpdateModal';
 import TeamChangeModal from './TeamChangeModal';
 import ConnectionErrorModal from './ConnectionErrorModal';
 import DiscussionModal from '../effects/DiscussionModal';
@@ -10,23 +11,10 @@ import SkipModal from '../effects/SkipModal';
 import TeamVoteResultModal from '../effects/TeamVoteResultModal';
 import RoundUpdateModal from '../effects/RoundUpdateModal';
 
-interface EffectModal {
-  isOpen: boolean;
-  team: Team;
-  content: string;
-  type: 'attack' | 'defense';
-}
-
-interface RoundModal {
-  isPending: boolean;
-  round: number;
-  topic: string;
-}
-
 interface BattleModalsProps {
-  effectModal: EffectModal;
+  effectModal: EffectModalState;
   onHideEffect: () => void;
-  roundModal: RoundModal;
+  roundModal: RoundUpdateState;
   onHideRoundEffect: () => void;
   handleTeamChange: (team: 'A' | 'B' | 'NONE') => void;
   isTeamChangeModalOpen: boolean;

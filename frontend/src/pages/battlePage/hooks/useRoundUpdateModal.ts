@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { soundManager } from '@/commons/utils/soundManager';
 
 // vote result modal이 먼저 떠야하기에 isPending으로 관리
-interface RoundUpdateState {
+export interface RoundUpdateState {
   isPending: boolean;
   round: number;
   topic: string;
