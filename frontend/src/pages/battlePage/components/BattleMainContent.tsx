@@ -1,5 +1,7 @@
+import { useParams } from 'react-router-dom';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../stores/battleStore';
 import { isInputDisabled } from '../utils/battlePhase';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import CodeSection from './codeview/CodeSection';
 import ChatSection from './chatting/ChatSection';
 import DiscussionVote from './discussion/DiscussionVote';
@@ -9,9 +11,6 @@ interface BattleMainContentProps {
   viewMode: 'split' | 'tab';
   onViewChange: (mode: 'split' | 'tab') => void;
   isSidebarOpen: boolean;
-  language: string;
-  codeA: string;
-  codeB: string;
   onVote: (discussionId: number) => void;
   onDiscussionSubmit: (content: string) => void;
 }
@@ -20,12 +19,11 @@ export default function BattleMainContent({
   viewMode,
   onViewChange,
   isSidebarOpen,
-  language,
-  codeA,
-  codeB,
   onVote,
   onDiscussionSubmit
 }: BattleMainContentProps) {
+  const { id: battleId } = useParams<{ id: string }>();
+  const { battleInfo: { language, aCode: codeA, bCode: codeB } = {} } = useGetBattleInfo(battleId!);
   const team = useBattleStore(selectSelectedTeam);
   const phase = useBattleStore(selectBattleProgress)?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
@@ -38,9 +36,9 @@ export default function BattleMainContent({
             <CodeSection
               onViewChange={onViewChange}
               currentView={viewMode}
-              language={language}
-              codeA={codeA}
-              codeB={codeB}
+              language={language ?? 'javascript'}
+              codeA={codeA ?? ''}
+              codeB={codeB ?? ''}
             />
           </div>
           <aside

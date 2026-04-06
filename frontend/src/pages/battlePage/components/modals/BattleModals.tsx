@@ -1,6 +1,8 @@
+import { useParams } from 'react-router-dom';
 import type { Team } from '@/commons/types/battle';
 import { useTeamVoteResult } from '../../hooks/useTeamVoteResult';
 import { usePhaseSkip } from '../../hooks/usePhaseSkip';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import TeamChangeModal from './TeamChangeModal';
 import ConnectionErrorModal from './ConnectionErrorModal';
 import DiscussionModal from '../effects/DiscussionModal';
@@ -22,7 +24,6 @@ interface RoundModal {
 }
 
 interface BattleModalsProps {
-  battleTopics: string[];
   effectModal: EffectModal;
   onHideEffect: () => void;
   roundModal: RoundModal;
@@ -33,7 +34,6 @@ interface BattleModalsProps {
 }
 
 export default function BattleModals({
-  battleTopics,
   effectModal,
   onHideEffect,
   roundModal,
@@ -42,6 +42,8 @@ export default function BattleModals({
   isTeamChangeModalOpen,
   onCloseTeamChangeModal
 }: BattleModalsProps) {
+  const { id: battleId } = useParams<{ id: string }>();
+  const { battleInfo: { topics: battleTopics } = {} } = useGetBattleInfo(battleId!);
   const { voteResult, isModalOpen: isVoteResultModalOpen, closeModal: closeVoteResultModal } = useTeamVoteResult();
   const { isModalOpen: isPhaseSkipModalOpen, closeModal: closeSkipModal } = usePhaseSkip();
 
@@ -49,7 +51,7 @@ export default function BattleModals({
     <>
       <TeamChangeModal
         isOpen={isTeamChangeModalOpen}
-        topics={battleTopics}
+        topics={battleTopics ?? []}
         handleTeamChange={handleTeamChange}
         onClose={onCloseTeamChangeModal}
       />

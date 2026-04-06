@@ -1,17 +1,20 @@
+import { useParams } from 'react-router-dom';
 import Button from '@/commons/components/Button';
 import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import SoundSettingsButton, { type BGMOption } from './SoundSettingsButton';
 import BattleHeader from './index';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
 import { usePhaseSkip } from '../../hooks/usePhaseSkip';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 interface BattleTopBarProps {
   onLeave: () => void;
-  inviteCode?: string;
   bgmOptions: BGMOption[];
 }
 
-export default function BattleTopBar({ onLeave, inviteCode, bgmOptions }: BattleTopBarProps) {
+export default function BattleTopBar({ onLeave, bgmOptions }: BattleTopBarProps) {
+  const { id: battleId } = useParams<{ id: string }>();
+  const { battleInfo: { inviteCode } = {} } = useGetBattleInfo(battleId!);
   const battleProgress = useBattleStore(selectBattleProgress);
   const { isSkipEnabled, toggleSkip, totalSkips } = usePhaseSkip();
 
