@@ -7,8 +7,6 @@ import { useBattleLeave } from './hooks/useBattleLeave';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
 import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
-import { usePhaseSkip } from './hooks/usePhaseSkip';
-
 import BattleTopBar from './components/header/BattleTopBar';
 import BattleMainContent from './components/BattleMainContent';
 import BattleSidebar from './components/sidebar';
@@ -41,8 +39,6 @@ export default function BattlePage() {
     closeTeamChangeModal
   } = useBattle({ battleId });
 
-  const { isSkipEnabled, toggleSkip, totalSkips } = usePhaseSkip();
-
   const team = useBattleStore(selectSelectedTeam);
   const phase = battleProgress?.phase;
   const shouldShowInput = !isInputDisabled(team, phase);
@@ -73,14 +69,7 @@ export default function BattlePage() {
 
       <div className="flex flex-col items-center">
         <BattleProgressBoard />
-        <BattleTopBar
-          onLeave={handleLeaveBattle}
-          inviteCode={battleInfo?.inviteCode}
-          bgmOptions={bgmOptions}
-          isSkipEnabled={isSkipEnabled}
-          toggleSkip={toggleSkip}
-          totalSkips={totalSkips}
-        />
+        <BattleTopBar onLeave={handleLeaveBattle} inviteCode={battleInfo?.inviteCode} bgmOptions={bgmOptions} />
         <BattleMainContent
           viewMode={viewMode}
           onViewChange={setViewMode}

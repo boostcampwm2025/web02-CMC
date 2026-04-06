@@ -3,25 +3,17 @@ import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import SoundSettingsButton, { type BGMOption } from './SoundSettingsButton';
 import BattleHeader from './index';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
+import { usePhaseSkip } from '../../hooks/usePhaseSkip';
 
 interface BattleTopBarProps {
   onLeave: () => void;
   inviteCode?: string;
   bgmOptions: BGMOption[];
-  isSkipEnabled: boolean;
-  toggleSkip: () => void;
-  totalSkips: number;
 }
 
-export default function BattleTopBar({
-  onLeave,
-  inviteCode,
-  bgmOptions,
-  isSkipEnabled,
-  toggleSkip,
-  totalSkips
-}: BattleTopBarProps) {
+export default function BattleTopBar({ onLeave, inviteCode, bgmOptions }: BattleTopBarProps) {
   const battleProgress = useBattleStore(selectBattleProgress);
+  const { isSkipEnabled, toggleSkip, totalSkips } = usePhaseSkip();
 
   const isActive =
     battleProgress &&
