@@ -10,10 +10,7 @@ import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import { usePhaseSkip } from './hooks/usePhaseSkip';
 
 import BattleTopBar from './components/header/BattleTopBar';
-import CodeSection from './components/codeview/CodeSection';
-import ChatSection from './components/chatting/ChatSection';
-import DiscussionInput from './components/discussion/DiscussionInput';
-import DiscussionVote from './components/discussion/DiscussionVote';
+import BattleMainContent from './components/BattleMainContent';
 import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import BattleModals from './components/modals/BattleModals';
@@ -86,34 +83,18 @@ export default function BattlePage() {
           toggleSkip={toggleSkip}
           totalSkips={totalSkips}
         />
-        <main className="main-width-closed">
-          <div className="flex gap-2 py-4">
-            <div className="flex-1 min-w-0">
-              <CodeSection
-                onViewChange={setViewMode}
-                currentView={viewMode}
-                language={battleInfo?.language || 'javascript'}
-                codeA={battleInfo?.aCode || ''}
-                codeB={battleInfo?.bCode || ''}
-              />
-            </div>
-            <aside
-              className={`flex flex-col gap-4 transition-all duration-300 ${isSidebarOpen ? 'lounge-width-open' : 'lounge-width-closed'}`}
-            >
-              <DiscussionVote onVote={handleVote} />
-              <ChatSection />
-            </aside>
-          </div>
-        </main>
-        <div
-          className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 z-5 px-4 pb-4 transition-all duration-500 ease-out ${
-            shouldShowInput ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
-          }`}
-        >
-          <div className="discussion-input-width">
-            {shouldShowInput && <DiscussionInput key={phase} onSubmit={handleDiscussionSubmit} />}
-          </div>
-        </div>
+        <BattleMainContent
+          viewMode={viewMode}
+          onViewChange={setViewMode}
+          isSidebarOpen={isSidebarOpen}
+          language={battleInfo?.language || 'javascript'}
+          codeA={battleInfo?.aCode || ''}
+          codeB={battleInfo?.bCode || ''}
+          onVote={handleVote}
+          shouldShowInput={shouldShowInput}
+          phase={phase}
+          onDiscussionSubmit={handleDiscussionSubmit}
+        />
         <BattleModals
           battleTopics={battleInfo?.topics ?? []}
           effectModal={effectModal}
