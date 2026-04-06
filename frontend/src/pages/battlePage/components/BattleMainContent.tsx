@@ -1,3 +1,5 @@
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../stores/battleStore';
+import { isInputDisabled } from '../utils/battlePhase';
 import CodeSection from './codeview/CodeSection';
 import ChatSection from './chatting/ChatSection';
 import DiscussionVote from './discussion/DiscussionVote';
@@ -11,8 +13,6 @@ interface BattleMainContentProps {
   codeA: string;
   codeB: string;
   onVote: (discussionId: number) => void;
-  shouldShowInput: boolean;
-  phase: string | undefined;
   onDiscussionSubmit: (content: string) => void;
 }
 
@@ -24,10 +24,12 @@ export default function BattleMainContent({
   codeA,
   codeB,
   onVote,
-  shouldShowInput,
-  phase,
   onDiscussionSubmit
 }: BattleMainContentProps) {
+  const team = useBattleStore(selectSelectedTeam);
+  const phase = useBattleStore(selectBattleProgress)?.phase;
+  const shouldShowInput = !isInputDisabled(team, phase);
+
   return (
     <>
       <main className="main-width-closed">

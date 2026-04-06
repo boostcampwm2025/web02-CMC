@@ -4,8 +4,6 @@ import { useBattle } from './hooks/useBattle';
 import useModal from '@/commons/hooks/useModal';
 import useBattleSound from './hooks/useBattleSound';
 import { useBattleLeave } from './hooks/useBattleLeave';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from './stores/battleStore';
-import { isInputDisabled } from './utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import BattleTopBar from './components/header/BattleTopBar';
 import BattleMainContent from './components/BattleMainContent';
@@ -22,8 +20,6 @@ export default function BattlePage() {
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
-  const battleProgress = useBattleStore(selectBattleProgress);
-
   const { bgmOptions } = useBattleSound();
   const { handleLeaveBattle } = useBattleLeave();
 
@@ -38,10 +34,6 @@ export default function BattlePage() {
     isTeamChangeModalOpen,
     closeTeamChangeModal
   } = useBattle({ battleId });
-
-  const team = useBattleStore(selectSelectedTeam);
-  const phase = battleProgress?.phase;
-  const shouldShowInput = !isInputDisabled(team, phase);
 
   return (
     <div className="text-white relative">
@@ -78,8 +70,6 @@ export default function BattlePage() {
           codeA={battleInfo?.aCode || ''}
           codeB={battleInfo?.bCode || ''}
           onVote={handleVote}
-          shouldShowInput={shouldShowInput}
-          phase={phase}
           onDiscussionSubmit={handleDiscussionSubmit}
         />
         <BattleModals
