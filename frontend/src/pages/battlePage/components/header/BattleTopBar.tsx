@@ -1,6 +1,5 @@
 import { useParams } from 'react-router-dom';
 import Button from '@/commons/components/Button';
-import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
 import SoundSettingsButton, { type BGMOption } from './SoundSettingsButton';
 import BattleHeader from './index';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
@@ -14,18 +13,13 @@ interface BattleTopBarProps {
 
 export default function BattleTopBar({ onLeave, bgmOptions }: BattleTopBarProps) {
   const { id: battleId } = useParams<{ id: string }>();
-  const { battleInfo: { inviteCode } = {} } = useGetBattleInfo(battleId!);
-  const battleProgress = useBattleStore(selectBattleProgress);
+  const {
+    battleInfo: { inviteCode }
+  } = useGetBattleInfo(battleId!);
   const { isSkipEnabled, toggleSkip, totalSkips } = usePhaseSkip();
 
-  const isActive =
-    battleProgress &&
-    (battleProgress.phase as string) !== 'PENDING' &&
-    battleProgress.expiredAt != null &&
-    battleProgress.startedAt;
-
   return (
-    <div className={`transition-all duration-300 main-width-closed ${isActive}`}>
+    <div className="transition-all duration-300 main-width-closed">
       <div className="flex items-center justify-between gap-4 mt-10 mb-8">
         <Button
           variant="secondary"
