@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../stores/battleStore';
 import { isInputDisabled } from '../utils/battlePhase';
@@ -8,20 +9,13 @@ import DiscussionVote from './discussion/DiscussionVote';
 import DiscussionInput from './discussion/DiscussionInput';
 
 interface BattleMainContentProps {
-  viewMode: 'split' | 'tab';
-  onViewChange: (mode: 'split' | 'tab') => void;
   isSidebarOpen: boolean;
   onVote: (discussionId: number) => void;
   onDiscussionSubmit: (content: string) => void;
 }
 
-export default function BattleMainContent({
-  viewMode,
-  onViewChange,
-  isSidebarOpen,
-  onVote,
-  onDiscussionSubmit
-}: BattleMainContentProps) {
+export default function BattleMainContent({ isSidebarOpen, onVote, onDiscussionSubmit }: BattleMainContentProps) {
+  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { id: battleId } = useParams<{ id: string }>();
   const { battleInfo: { language, aCode: codeA, bCode: codeB } = {} } = useGetBattleInfo(battleId!);
   const team = useBattleStore(selectSelectedTeam);
@@ -34,7 +28,7 @@ export default function BattleMainContent({
         <div className="flex gap-2 py-4">
           <div className="flex-1 min-w-0">
             <CodeSection
-              onViewChange={onViewChange}
+              onViewChange={setViewMode}
               currentView={viewMode}
               language={language ?? 'javascript'}
               codeA={codeA ?? ''}

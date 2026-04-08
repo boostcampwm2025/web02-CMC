@@ -15,7 +15,6 @@ import type { SidebarTab } from './components/sidebar/SidebarHeader';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
-  const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('info');
 
@@ -55,8 +54,6 @@ export default function BattlePage() {
         <BattleProgressBoard />
         <BattleTopBar onLeave={handleLeaveBattle} bgmOptions={bgmOptions} />
         <BattleMainContent
-          viewMode={viewMode}
-          onViewChange={setViewMode}
           isSidebarOpen={isSidebarOpen}
           onVote={handleVote}
           onDiscussionSubmit={handleDiscussionSubmit}
