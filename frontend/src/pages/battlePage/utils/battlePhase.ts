@@ -1,4 +1,13 @@
-import type { BattlePhase, Team } from '@/commons/types/battle';
+import type { BattlePhase, BattleProgressState, Team } from '@/commons/types/battle';
+
+export const isBattleActive = (battleProgress: BattleProgressState | null): battleProgress is BattleProgressState => {
+  if (!battleProgress) return false;
+  return (
+    (battleProgress.phase as string) !== 'PENDING' &&
+    battleProgress.expiredAt != null &&
+    battleProgress.startedAt != null
+  );
+};
 
 export const isMyTeamAttacking = (team: Team, phase?: BattlePhase): boolean => {
   if (!phase) return false;
@@ -9,7 +18,6 @@ export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = fals
   if (disabled) return true;
   if (!phase) return true;
 
-  // 공격/방어 페이즈가 아니면 입력 불가
   if (phase !== 'ATTACK' && phase !== 'DEFENSE') return true;
   if (team === 'NONE') return true;
 

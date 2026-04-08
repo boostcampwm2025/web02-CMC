@@ -117,19 +117,12 @@ export default function TutorialBattlePage() {
         }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
-        hasReferenceData={!!battleInfo.referenceData}
       />
 
       <BattleSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        title={battleInfo.title}
-        description={battleInfo.description}
-        language={battleInfo.language}
-        category={battleInfo.category}
-        topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
-        referenceData={battleInfo.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
       />
@@ -156,14 +149,7 @@ export default function TutorialBattlePage() {
         />
 
         <BattleProgressBoard />
-        <div
-          className={`transition-all duration-300 main-width-closed ${
-            battleProgress &&
-            (battleProgress.phase as string) !== 'PENDING' &&
-            battleProgress.expiredAt != null &&
-            battleProgress.startedAt
-          }`}
-        >
+        <div className="transition-all duration-300 main-width-closed">
           <div className="flex items-center justify-between mt-10 mb-8">
             <Button variant="secondary" size="sm" onClick={handleLeaveBattle}>
               ← 돌아가기
