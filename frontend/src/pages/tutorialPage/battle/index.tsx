@@ -12,7 +12,7 @@ import ChatSection from '@/pages/battlePage/components/chatting/ChatSection';
 import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
 import DiscussionVote from '@/pages/battlePage/components/discussion/DiscussionVote';
 import BattleSidebar from '@/pages/battlePage/components/sidebar';
-import BookmarkButton from '@/pages/battlePage/components/sidebar/BookmarkButton';
+import SidebarTrigger from '@/pages/battlePage/components/sidebar/SidebarTrigger';
 import TutorialModal from '@/pages/tutorialPage/components/TutorialModal';
 import TutorialStepModal from '@/pages/tutorialPage/components/TutorialStepModal';
 import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
@@ -110,7 +110,7 @@ export default function TutorialBattlePage() {
 
   return (
     <div className="text-white relative">
-      <BookmarkButton
+      <SidebarTrigger
         onOpen={(tab) => {
           setActiveSidebarTab(tab);
           handleOpenSidebar();

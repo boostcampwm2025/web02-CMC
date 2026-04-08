@@ -8,7 +8,7 @@ import { useBattleLeave } from './hooks/useBattleLeave';
 import BattleTopBar from './components/header/BattleTopBar';
 import BattleMainContent from './components/BattleMainContent';
 import BattleSidebar from './components/sidebar';
-import BookmarkButton from './components/sidebar/BookmarkButton';
+import SidebarTrigger from './components/sidebar/SidebarTrigger';
 import BattleModals from './components/modals/BattleModals';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
 import type { SidebarTab } from './components/sidebar/SidebarHeader';
@@ -36,7 +36,7 @@ export default function BattlePage() {
 
   return (
     <div className="text-white relative">
-      <BookmarkButton
+      <SidebarTrigger
         onOpen={(tab) => {
           setActiveSidebarTab(tab);
           handleOpenSidebar();

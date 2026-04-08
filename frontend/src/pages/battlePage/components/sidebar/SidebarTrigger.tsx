@@ -3,13 +3,13 @@ import Icon from '@/commons/components/Icon';
 import Button from '@/commons/components/Button';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
-interface BookmarkButtonProps {
+interface SidebarTriggerProps {
   onOpen: (tab: 'info' | 'timeline' | 'reference') => void;
   isOpen: boolean;
   highlight?: boolean;
 }
 
-export default function BookmarkButton({ onOpen, isOpen, highlight = false }: BookmarkButtonProps) {
+export default function SidebarTrigger({ onOpen, isOpen, highlight = false }: SidebarTriggerProps) {
   const { id: battleId } = useParams<{ id: string }>();
   const { battleInfo } = useGetBattleInfo(battleId!);
   const hasReferenceData = !!battleInfo?.referenceData;
