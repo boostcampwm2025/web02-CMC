@@ -2,9 +2,10 @@ import { useParams } from 'react-router-dom';
 import Icon from '@/commons/components/Icon';
 import Button from '@/commons/components/Button';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
+import type { SidebarTab } from './SidebarHeader';
 
 interface SidebarTriggerProps {
-  onOpen: (tab: 'info' | 'timeline' | 'reference') => void;
+  onOpen: (tab: SidebarTab) => void;
   isOpen: boolean;
   highlight?: boolean;
 }
