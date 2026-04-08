@@ -79,7 +79,16 @@ services:
     restart: unless-stopped
 
   frontend:
+<<<<<<< Updated upstream
     image: ghcr.io/boostcampwm2025/web02-cmc-frontend:latest
+=======
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        # 배포 시 백엔드 도메인/포트로 교체
+        VITE_API_URL: ""
+>>>>>>> Stashed changes
     ports:
       - "80:80"
     depends_on:
