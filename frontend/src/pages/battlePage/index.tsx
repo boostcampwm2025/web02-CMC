@@ -11,14 +11,13 @@ import BattleSidebar from './components/sidebar';
 import BookmarkButton from './components/sidebar/BookmarkButton';
 import BattleModals from './components/modals/BattleModals';
 import BattleProgressBoard from './components/progressBoard/ProgressBoard';
-
-type Tab = 'info' | 'timeline' | 'reference';
+import type { SidebarTab } from './components/sidebar/SidebarHeader';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();
   const [viewMode, setViewMode] = useState<'split' | 'tab'>('split');
   const { isOpen: isSidebarOpen, openModal: handleOpenSidebar, closeModal: handleCloseSidebar } = useModal(false);
-  const [activeSidebarTab, setActiveSidebarTab] = useState<Tab>('info');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('info');
 
   const { bgmOptions } = useBattleSound();
   const { handleLeaveBattle } = useBattleLeave();
