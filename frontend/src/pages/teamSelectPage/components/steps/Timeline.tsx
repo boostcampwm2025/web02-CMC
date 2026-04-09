@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense, BattleInfo } from '@/commons/types/battle';
 
-interface Step3TimelineProps {
+interface TimelineProps {
   battleInfo: BattleInfo;
 }
 
@@ -29,7 +29,7 @@ interface RoundData {
   };
 }
 
-export default function Step3Timeline({ battleInfo }: Step3TimelineProps) {
+export default function Timeline({ battleInfo }: TimelineProps) {
   const { topics, currentRound, totalRounds } = battleInfo;
   const timelines: Array<BattleDiscussion | BattleDefense> = [
     ...battleInfo.timelines.attacks,
@@ -37,7 +37,6 @@ export default function Step3Timeline({ battleInfo }: Step3TimelineProps) {
   ];
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set([currentRound]));
 
-  // useRef는 초기화 시에만 호출되므로 Date.now()는 마운트 시 한 번만 실행됨
   const nowRef = useRef<number>(0);
 
   useEffect(() => {
@@ -48,20 +47,13 @@ export default function Step3Timeline({ battleInfo }: Step3TimelineProps) {
 
   const now = nowRef.current;
 
-  // 라운드별로 메시지 그룹화
   const organizeByRounds = (): RoundData[] => {
     const rounds: RoundData[] = [];
 
-    // attacks와 defenses 분리
     const attacks = timelines.filter((item) => item.type === 'ATTACK') as BattleDiscussion[];
     const defenses = timelines.filter((item) => item.type === 'DEFENSE') as BattleDefense[];
 
     for (let i = 1; i <= totalRounds; i++) {
-      // 각 라운드는 4개의 토론으로 구성됨
-      // 1. A 공격 -> B 수비
-      // 2. B 공격 -> A 수비
-      // 3. A 공격 -> B 수비 (2차)
-      // 4. B 공격 -> A 수비 (2차)
       const baseIdx = (i - 1) * 4;
 
       const aAttack1 = attacks[baseIdx] || null;

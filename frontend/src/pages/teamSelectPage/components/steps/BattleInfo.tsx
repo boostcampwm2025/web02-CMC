@@ -2,11 +2,10 @@ import Icon from '@/commons/components/Icon';
 import type { IconName } from '@/commons/components/Icon';
 import type { BattleInfo, BattlePhase } from '@/commons/types/battle';
 
-interface Step1BattleInfoProps {
+interface BattleInfoProps {
   battleInfo: BattleInfo;
 }
 
-// Phase별 한글 레이블, 색상, 아이콘 매핑
 const PHASE_CONFIG: Record<
   BattlePhase,
   { label: string; color: string; bgColor: string; borderColor: string; icon: IconName }
@@ -48,7 +47,7 @@ const PHASE_CONFIG: Record<
   }
 };
 
-export default function Step1BattleInfo({ battleInfo }: Step1BattleInfoProps) {
+export default function BattleInfo({ battleInfo }: BattleInfoProps) {
   const {
     title,
     description,
@@ -64,16 +63,13 @@ export default function Step1BattleInfo({ battleInfo }: Step1BattleInfoProps) {
   const phaseConfig = currentPhase ? PHASE_CONFIG[currentPhase] : null;
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-6xl mx-auto px-4">
-      {/* 상단 섹션 */}
       <div className="text-center mb-4">
         <Icon name="trendingUp" className="battle-info-icon-size text-orange-500 mx-auto mb-2" />
         <h2 className="battle-info-title-size font-bold text-white mb-1">상황 요약</h2>
         <p className="battle-info-desc-size text-gray-400">현재 배틀 진행 현황을 확인하세요</p>
       </div>
 
-      {/* 중앙 컨테이너 - 모든 카드를 감싸는 영역 */}
       <div className="w-full bg-[#0d0d1a]/50 rounded-lg border border-[#1a1a2e] battle-info-card-padding">
-        {/* 배틀 정보 카드 */}
         <div className="bg-[#16162a] rounded-lg battle-info-card-padding border border-[#2d2d3f] mb-4 shadow-lg w-full">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="battle" className="battle-info-swords-size text-orange-500 flex-shrink-0" />
@@ -96,9 +92,7 @@ export default function Step1BattleInfo({ battleInfo }: Step1BattleInfoProps) {
           </div>
         </div>
 
-        {/* 2열 그리드 카드 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-          {/* 참여자 카드 */}
           <div className="bg-gradient-to-br from-orange-900/30 to-orange-800/10 rounded-lg battle-info-card-padding border border-orange-500/30 shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
             <div className="flex items-center gap-3 mb-4">
               <div className="battle-info-stat-icon-size bg-orange-500/20 rounded-lg flex items-center justify-center border border-orange-500/40">
@@ -115,7 +109,6 @@ export default function Step1BattleInfo({ battleInfo }: Step1BattleInfoProps) {
             </div>
           </div>
 
-          {/* 라운드 카드 */}
           <div className="bg-gradient-to-br from-blue-900/30 to-blue-800/10 rounded-lg battle-info-card-padding border border-blue-500/30 shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center shadow-lg">

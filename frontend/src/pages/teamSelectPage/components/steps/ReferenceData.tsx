@@ -23,7 +23,6 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
       </div>
 
       <div className="w-full bg-[#0d0d1a]/50 rounded-lg border border-[#1a1a2e] p-4 xl:p-6 space-y-6">
-        {/* 공통 개념 섹션 - 토글 형식 */}
         <div className="space-y-4">
           <button
             onClick={() => setExpandedConcepts(!expandedConcepts)}
@@ -47,12 +46,10 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
 
           {expandedConcepts && (
             <div className="space-y-3 animate-in fade-in duration-200">
-              {/* 요약 */}
               <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                 <p className="text-gray-300 text-sm">{commonConcepts.summary}</p>
               </div>
 
-              {/* 용어 목록 */}
               {commonConcepts.terms.length > 0 && (
                 <div className="space-y-2">
                   {commonConcepts.terms.map((term, index) => (
@@ -64,7 +61,6 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
           )}
         </div>
 
-        {/* A/B 참고 자료 */}
         <div className="grid grid-cols-1 gap-6">
           <TeamReferencesAccordion
             team="A"
@@ -84,7 +80,6 @@ export default function ReferenceData({ referenceData }: ReferenceDataProps) {
           />
         </div>
 
-        {/* 안내 메시지 */}
         <div className="bg-[#0a0a1a]/50 border-2 border-gray-800 rounded-xl p-4">
           <p className="text-gray-400 text-xs text-center">
             참고 자료는 AI가 자동으로 선별한 것으로, 배틀 주제와 코드 내용을 분석하여 제공됩니다.
