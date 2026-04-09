@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense, BattleInfo } from '@/commons/types/battle';
 import { organizeByRounds } from '@/pages/teamSelectPage/utils/organizeByRounds';
-import MessageCard from './MessageCard';
+import ChallengeRow from './ChallengeRow';
 
 interface TimelineProps {
   battleInfo: BattleInfo;
@@ -133,145 +133,31 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                   {/* Round Content */}
                   {isExpanded && !roundData.isFuture && (
                     <div className="border-t border-[#2d2d3f]">
-                      {/* Challenge 1: A 이의제기 → B 반론 (1차) */}
-                      <div className="relative">
-                        <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <Icon name="zap" className="w-4 h-4 text-orange-400" />
-                              <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
-                                A 이의제기 (1차)
-                              </span>
-                            </div>
-                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
-                            <div className="flex items-center gap-2">
-                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-                            <MessageCard message={roundData.challenge1.teamA} team="A" type="challenge" />
-                          </div>
-                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
-                            <div className="relative">
-                              <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
-                              <div className="relative bg-gradient-to-r from-orange-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-orange-400/50 shadow-lg">
-                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            <MessageCard message={roundData.challenge1.teamB} team="B" type="rebuttal" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Challenge 2: B 이의제기 → A 반론 (1차) */}
-                      <div className="relative border-t-2 border-[#2d2d3f]">
-                        <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <Icon name="zap" className="w-4 h-4 text-red-400" />
-                              <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
-                                B 이의제기 (1차)
-                              </span>
-                            </div>
-                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
-                            <div className="flex items-center gap-2">
-                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
-                            <MessageCard message={roundData.challenge2.teamB} team="B" type="challenge" />
-                          </div>
-                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
-                            <div className="relative">
-                              <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
-                              <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
-                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            <MessageCard message={roundData.challenge2.teamA} team="A" type="rebuttal" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Challenge 3: A 이의제기 → B 반론 (2차) */}
-                      <div className="relative border-t-2 border-[#2d2d3f]">
-                        <div className="px-6 py-3 bg-gradient-to-r from-orange-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <Icon name="zap" className="w-4 h-4 text-orange-400" />
-                              <span className="text-orange-400 font-bold text-xs uppercase tracking-wider">
-                                A 이의제기 (2차)
-                              </span>
-                            </div>
-                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
-                            <div className="flex items-center gap-2">
-                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">B 반론</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-                            <MessageCard message={roundData.challenge3.teamA} team="A" type="challenge" />
-                          </div>
-                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
-                            <div className="relative">
-                              <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
-                              <div className="relative bg-gradient-to-r from-orange-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-orange-400/50 shadow-lg">
-                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            <MessageCard message={roundData.challenge3.teamB} team="B" type="rebuttal" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Challenge 4: B 이의제기 → A 반론 (2차) */}
-                      <div className="relative border-t-2 border-[#2d2d3f]">
-                        <div className="px-6 py-3 bg-gradient-to-r from-red-900/20 to-blue-900/20 border-b border-[#2d2d3f]">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="flex items-center gap-2">
-                              <Icon name="zap" className="w-4 h-4 text-red-400" />
-                              <span className="text-red-400 font-bold text-xs uppercase tracking-wider">
-                                B 이의제기 (2차)
-                              </span>
-                            </div>
-                            <Icon name="arrowRight" className="w-5 h-5 text-gray-500" />
-                            <div className="flex items-center gap-2">
-                              <Icon name="shield" className="w-4 h-4 text-blue-400" />
-                              <span className="text-blue-400 font-bold text-xs uppercase tracking-wider">A 반론</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
-                          <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
-                            <MessageCard message={roundData.challenge4.teamB} team="B" type="challenge" />
-                          </div>
-                          <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
-                            <div className="relative">
-                              <div className="absolute inset-0 bg-red-500/20 blur-lg rounded-full" />
-                              <div className="relative bg-gradient-to-r from-red-500 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center border-2 border-red-400/50 shadow-lg">
-                                <Icon name="arrowRight" className="w-5 h-5 text-white" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            <MessageCard message={roundData.challenge4.teamA} team="A" type="rebuttal" />
-                          </div>
-                        </div>
-                      </div>
+                      <ChallengeRow
+                        attackTeam="A"
+                        phase={1}
+                        challengeMessage={roundData.challenge1.teamA}
+                        rebuttalMessage={roundData.challenge1.teamB}
+                        isFirst
+                      />
+                      <ChallengeRow
+                        attackTeam="B"
+                        phase={1}
+                        challengeMessage={roundData.challenge2.teamB}
+                        rebuttalMessage={roundData.challenge2.teamA}
+                      />
+                      <ChallengeRow
+                        attackTeam="A"
+                        phase={2}
+                        challengeMessage={roundData.challenge3.teamA}
+                        rebuttalMessage={roundData.challenge3.teamB}
+                      />
+                      <ChallengeRow
+                        attackTeam="B"
+                        phase={2}
+                        challengeMessage={roundData.challenge4.teamB}
+                        rebuttalMessage={roundData.challenge4.teamA}
+                      />
                     </div>
                   )}
                 </div>
