@@ -11,15 +11,7 @@ interface RoundItemProps {
 export default function RoundItem({ roundData, defaultExpanded = false }: RoundItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
-  const hasContent =
-    roundData.challenge1.teamA ||
-    roundData.challenge1.teamB ||
-    roundData.challenge2.teamA ||
-    roundData.challenge2.teamB ||
-    roundData.challenge3.teamA ||
-    roundData.challenge3.teamB ||
-    roundData.challenge4.teamA ||
-    roundData.challenge4.teamB;
+  const hasContent = roundData.challenges.some((c) => c.challengeMessage || c.rebuttalMessage);
 
   return (
     <div
@@ -85,31 +77,9 @@ export default function RoundItem({ roundData, defaultExpanded = false }: RoundI
 
       {isExpanded && !roundData.isFuture && (
         <div className="border-t border-[#2d2d3f]">
-          <ChallengeRow
-            attackTeam="A"
-            phase={1}
-            challengeMessage={roundData.challenge1.teamA}
-            rebuttalMessage={roundData.challenge1.teamB}
-            isFirst
-          />
-          <ChallengeRow
-            attackTeam="B"
-            phase={1}
-            challengeMessage={roundData.challenge2.teamB}
-            rebuttalMessage={roundData.challenge2.teamA}
-          />
-          <ChallengeRow
-            attackTeam="A"
-            phase={2}
-            challengeMessage={roundData.challenge3.teamA}
-            rebuttalMessage={roundData.challenge3.teamB}
-          />
-          <ChallengeRow
-            attackTeam="B"
-            phase={2}
-            challengeMessage={roundData.challenge4.teamB}
-            rebuttalMessage={roundData.challenge4.teamA}
-          />
+          {roundData.challenges.map((challenge, i) => (
+            <ChallengeRow key={i} {...challenge} isFirst={i === 0} />
+          ))}
         </div>
       )}
     </div>

@@ -1,26 +1,18 @@
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
 
+export interface ChallengeData {
+  attackTeam: 'A' | 'B';
+  phase: 1 | 2;
+  challengeMessage: BattleDiscussion | null;
+  rebuttalMessage: BattleDefense | null;
+}
+
 export interface RoundData {
   round: number;
   topic: string;
   isActive: boolean;
   isFuture: boolean;
-  challenge1: {
-    teamA: BattleDiscussion | null;
-    teamB: BattleDefense | null;
-  };
-  challenge2: {
-    teamB: BattleDiscussion | null;
-    teamA: BattleDefense | null;
-  };
-  challenge3: {
-    teamA: BattleDiscussion | null;
-    teamB: BattleDefense | null;
-  };
-  challenge4: {
-    teamB: BattleDiscussion | null;
-    teamA: BattleDefense | null;
-  };
+  challenges: ChallengeData[];
 }
 
 interface OrganizeByRoundsParams {
@@ -36,37 +28,39 @@ export function organizeByRounds({
   currentRound,
   totalRounds
 }: OrganizeByRoundsParams): RoundData[] {
-  const rounds: RoundData[] = [];
-
   const attacks = timelines.filter((item) => item.type === 'ATTACK') as BattleDiscussion[];
   const defenses = timelines.filter((item) => item.type === 'DEFENSE') as BattleDefense[];
 
-  for (let i = 1; i <= totalRounds; i++) {
-    const baseIdx = (i - 1) * 4;
+  return Array.from({ length: totalRounds }, (_, idx) => {
+    const i = idx + 1;
+    const base = idx * 4;
 
-    rounds.push({
+    return {
       round: i,
-      topic: topics[i - 1],
+      topic: topics[idx],
       isActive: i === currentRound,
       isFuture: i > currentRound,
-      challenge1: {
-        teamA: attacks[baseIdx] ?? null,
-        teamB: (defenses[baseIdx] as BattleDefense) ?? null
-      },
-      challenge2: {
-        teamB: attacks[baseIdx + 1] ?? null,
-        teamA: (defenses[baseIdx + 1] as BattleDefense) ?? null
-      },
-      challenge3: {
-        teamA: attacks[baseIdx + 2] ?? null,
-        teamB: (defenses[baseIdx + 2] as BattleDefense) ?? null
-      },
-      challenge4: {
-        teamB: attacks[baseIdx + 3] ?? null,
-        teamA: (defenses[baseIdx + 3] as BattleDefense) ?? null
-      }
-    });
-  }
-
-  return rounds;
+      challenges: [
+        { attackTeam: 'A', phase: 1, challengeMessage: attacks[base] ?? null, rebuttalMessage: defenses[base] ?? null },
+        {
+          attackTeam: 'B',
+          phase: 1,
+          challengeMessage: attacks[base + 1] ?? null,
+          rebuttalMessage: defenses[base + 1] ?? null
+        },
+        {
+          attackTeam: 'A',
+          phase: 2,
+          challengeMessage: attacks[base + 2] ?? null,
+          rebuttalMessage: defenses[base + 2] ?? null
+        },
+        {
+          attackTeam: 'B',
+          phase: 2,
+          challengeMessage: attacks[base + 3] ?? null,
+          rebuttalMessage: defenses[base + 3] ?? null
+        }
+      ] satisfies ChallengeData[]
+    };
+  });
 }
