@@ -10,7 +10,6 @@ import StepArrows from './StepArrows';
 interface StepContentProps {
   currentStep: Step;
   battleInfo: BattleInfo;
-  hasReferenceData: boolean;
   selectedTeam: Team | null;
   onSelectTeam: (team: Team) => void;
   totalSteps: number;
@@ -22,7 +21,6 @@ interface StepContentProps {
 export default function StepContent({
   currentStep,
   battleInfo,
-  hasReferenceData,
   selectedTeam,
   onSelectTeam,
   totalSteps,
@@ -30,51 +28,20 @@ export default function StepContent({
   onPrev,
   onNext
 }: StepContentProps) {
-  const attacks = battleInfo.timelines.attacks.map((attack) => ({ ...attack, type: 'ATTACK' as const }));
-  const defenses = battleInfo.timelines.defenses.map((defense) => ({ ...defense, type: 'DEFENSE' as const }));
-  const timelines = [...attacks, ...defenses];
-
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <Step1BattleInfo
-            title={battleInfo.title}
-            description={battleInfo.description}
-            category={battleInfo.category}
-            language={battleInfo.language}
-            currentRound={battleInfo.currentRound}
-            totalRounds={battleInfo.totalRounds}
-            topics={battleInfo.topics}
-            totalParticipants={battleInfo.participantCount}
-            currentPhase={battleInfo.currentPhase}
-            phaseCount={battleInfo.phaseCount}
-          />
-        );
+        return <Step1BattleInfo battleInfo={battleInfo} />;
       case 2:
-        return <Step2CodeCompare aCode={battleInfo.aCode} bCode={battleInfo.bCode} language={battleInfo.language} />;
+        return <Step2CodeCompare battleInfo={battleInfo} />;
       case 3:
-        if (hasReferenceData && battleInfo.referenceData) {
+        if (battleInfo.referenceData) {
           return <Step3ReferenceData referenceData={battleInfo.referenceData} />;
         }
-        return (
-          <Step4Timeline
-            timelines={timelines}
-            topics={battleInfo.topics}
-            currentRound={battleInfo.currentRound}
-            totalRounds={battleInfo.totalRounds}
-          />
-        );
+        return <Step4Timeline battleInfo={battleInfo} />;
       case 4:
-        if (hasReferenceData) {
-          return (
-            <Step4Timeline
-              timelines={timelines}
-              topics={battleInfo.topics}
-              currentRound={battleInfo.currentRound}
-              totalRounds={battleInfo.totalRounds}
-            />
-          );
+        if (battleInfo.referenceData) {
+          return <Step4Timeline battleInfo={battleInfo} />;
         }
         return <Step5TeamSelect onSelect={onSelectTeam} selectedTeam={selectedTeam ?? undefined} />;
       case 5:

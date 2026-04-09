@@ -1,12 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import Icon from '@/commons/components/Icon';
-import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
+import type { BattleDiscussion, BattleDefense, BattleInfo } from '@/commons/types/battle';
 
 interface Step3TimelineProps {
-  timelines: Array<BattleDiscussion | BattleDefense>;
-  topics: string[];
-  currentRound?: number;
-  totalRounds?: number;
+  battleInfo: BattleInfo;
 }
 
 interface RoundData {
@@ -32,7 +29,12 @@ interface RoundData {
   };
 }
 
-export default function Step3Timeline({ topics, timelines, currentRound = 1, totalRounds = 2 }: Step3TimelineProps) {
+export default function Step3Timeline({ battleInfo }: Step3TimelineProps) {
+  const { topics, currentRound, totalRounds } = battleInfo;
+  const timelines: Array<BattleDiscussion | BattleDefense> = [
+    ...battleInfo.timelines.attacks,
+    ...battleInfo.timelines.defenses
+  ];
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set([currentRound]));
 
   // useRef는 초기화 시에만 호출되므로 Date.now()는 마운트 시 한 번만 실행됨

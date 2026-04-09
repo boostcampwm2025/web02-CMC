@@ -1,18 +1,9 @@
 import Icon from '@/commons/components/Icon';
 import type { IconName } from '@/commons/components/Icon';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattleInfo, BattlePhase } from '@/commons/types/battle';
 
 interface Step1BattleInfoProps {
-  title: string;
-  description: string;
-  category: string;
-  language: string;
-  currentRound: number;
-  totalRounds: number;
-  topics: string[];
-  totalParticipants: number;
-  currentPhase?: BattlePhase;
-  phaseCount?: number;
+  battleInfo: BattleInfo;
 }
 
 // Phase별 한글 레이블, 색상, 아이콘 매핑
@@ -57,18 +48,19 @@ const PHASE_CONFIG: Record<
   }
 };
 
-export default function Step1BattleInfo({
-  title,
-  description,
-  category,
-  language,
-  currentRound,
-  totalRounds,
-  topics,
-  totalParticipants,
-  currentPhase,
-  phaseCount
-}: Step1BattleInfoProps) {
+export default function Step1BattleInfo({ battleInfo }: Step1BattleInfoProps) {
+  const {
+    title,
+    description,
+    category,
+    language,
+    currentRound,
+    totalRounds,
+    topics,
+    participantCount: totalParticipants,
+    currentPhase,
+    phaseCount
+  } = battleInfo;
   const phaseConfig = currentPhase ? PHASE_CONFIG[currentPhase] : null;
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-6xl mx-auto px-4">

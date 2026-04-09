@@ -36,7 +36,6 @@ export default function TeamSelectPage() {
         <StepContent
           currentStep={currentStep}
           battleInfo={battleInfo}
-          hasReferenceData={hasReferenceData}
           selectedTeam={selectedTeam}
           onSelectTeam={setSelectedTeam}
           totalSteps={totalSteps}
