@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { Step } from '../types/teamSelect';
 
 interface UseStepFlowReturn {
-  currentStep: Step;
+  currentStep: number;
   goToNext: () => void;
   goToPrev: () => void;
   canGoNext: boolean;
@@ -15,17 +14,17 @@ interface UseStepFlowOptions {
 }
 
 export function useStepFlow({ totalSteps = 4 }: UseStepFlowOptions = {}): UseStepFlowReturn {
-  const [currentStep, setCurrentStep] = useState<Step>(1);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const goToNext = () => {
     if (currentStep < totalSteps) {
-      setCurrentStep((prev) => (prev + 1) as Step);
+      setCurrentStep((prev) => prev + 1);
     }
   };
 
   const goToPrev = () => {
     if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as Step);
+      setCurrentStep((prev) => prev - 1);
     }
   };
 
