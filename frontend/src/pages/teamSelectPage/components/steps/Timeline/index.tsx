@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense, BattleInfo } from '@/commons/types/battle';
 import { organizeByRounds } from '@/pages/teamSelectPage/utils/organizeByRounds';
-import { formatTime } from '@/pages/battlePage/components/modals/TeamChangeModal/utils/formatTime';
+import MessageCard from './MessageCard';
 
 interface TimelineProps {
   battleInfo: BattleInfo;
@@ -26,53 +26,6 @@ export default function Timeline({ battleInfo }: TimelineProps) {
       newExpanded.add(round);
     }
     setExpandedRounds(newExpanded);
-  };
-
-  const renderMessage = (
-    message: BattleDiscussion | BattleDefense | null,
-    team: 'A' | 'B',
-    type: 'challenge' | 'rebuttal'
-  ) => {
-    if (!message) {
-      return (
-        <div className="p-4 text-center">
-          <div className="text-gray-600 text-sm">
-            {type === 'challenge' ? '이의제기 대기 중...' : '반론 대기 중...'}
-          </div>
-        </div>
-      );
-    }
-
-    const isTeamA = team === 'A';
-
-    return (
-      <div className="p-6 w-full flex flex-col h-48 overflow-hidden justify-between">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span
-              className={`px-2 py-1 rounded text-xs font-bold ${
-                isTeamA ? 'bg-blue-600 text-white' : 'bg-red-600 text-white'
-              }`}
-            >
-              {isTeamA ? 'A팀' : 'B팀'}
-            </span>
-            <span className="text-white font-medium text-sm">{message.author?.nickname ?? 'SYSTEM'}</span>
-          </div>
-          <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
-        </div>
-
-        <p className="text-gray-300 mb-4 leading-relaxed text-xs break-all text-left">{message.content}</p>
-
-        <div
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 w-fit ${
-            isTeamA ? 'bg-blue-600/20 border-blue-500/30' : 'bg-red-600/20 border-red-500/30'
-          }`}
-        >
-          <Icon name="like" className={`w-4 h-4 ${isTeamA ? 'text-blue-400' : 'text-red-400'}`} />
-          <span className={`font-bold ${isTeamA ? 'text-blue-300' : 'text-red-300'}`}>{message.upvotes}</span>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -199,7 +152,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                           <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-                            {renderMessage(roundData.challenge1.teamA, 'A', 'challenge')}
+                            <MessageCard message={roundData.challenge1.teamA} team="A" type="challenge" />
                           </div>
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
@@ -210,7 +163,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                             </div>
                           </div>
                           <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.challenge1.teamB, 'B', 'rebuttal')}
+                            <MessageCard message={roundData.challenge1.teamB} team="B" type="rebuttal" />
                           </div>
                         </div>
                       </div>
@@ -234,7 +187,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                           <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
-                            {renderMessage(roundData.challenge2.teamB, 'B', 'challenge')}
+                            <MessageCard message={roundData.challenge2.teamB} team="B" type="challenge" />
                           </div>
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
@@ -245,7 +198,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                             </div>
                           </div>
                           <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.challenge2.teamA, 'A', 'rebuttal')}
+                            <MessageCard message={roundData.challenge2.teamA} team="A" type="rebuttal" />
                           </div>
                         </div>
                       </div>
@@ -269,7 +222,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                           <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-                            {renderMessage(roundData.challenge3.teamA, 'A', 'challenge')}
+                            <MessageCard message={roundData.challenge3.teamA} team="A" type="challenge" />
                           </div>
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
@@ -280,7 +233,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                             </div>
                           </div>
                           <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.challenge3.teamB, 'B', 'rebuttal')}
+                            <MessageCard message={roundData.challenge3.teamB} team="B" type="rebuttal" />
                           </div>
                         </div>
                       </div>
@@ -304,7 +257,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
                           <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-red-500/5 to-transparent">
-                            {renderMessage(roundData.challenge4.teamB, 'B', 'challenge')}
+                            <MessageCard message={roundData.challenge4.teamB} team="B" type="challenge" />
                           </div>
                           <div className="hidden md:flex items-center justify-center px-4 bg-[#0a0a1a] border-r border-[#2d2d3f]">
                             <div className="relative">
@@ -315,7 +268,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
                             </div>
                           </div>
                           <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-                            {renderMessage(roundData.challenge4.teamA, 'A', 'rebuttal')}
+                            <MessageCard message={roundData.challenge4.teamA} team="A" type="rebuttal" />
                           </div>
                         </div>
                       </div>
