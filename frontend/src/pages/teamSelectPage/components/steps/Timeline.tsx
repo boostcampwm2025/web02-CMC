@@ -1,32 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense, BattleInfo } from '@/commons/types/battle';
+import { organizeByRounds } from '@/pages/teamSelectPage/utils/organizeByRounds';
+import { formatTime } from '@/pages/battlePage/components/modals/TeamChangeModal/utils/formatTime';
 
 interface TimelineProps {
   battleInfo: BattleInfo;
-}
-
-interface RoundData {
-  round: number;
-  topic: string;
-  isActive: boolean;
-  isFuture: boolean;
-  challenge1: {
-    teamA: BattleDiscussion | null;
-    teamB: BattleDefense | null;
-  };
-  challenge2: {
-    teamB: BattleDiscussion | null;
-    teamA: BattleDefense | null;
-  };
-  challenge3: {
-    teamA: BattleDiscussion | null;
-    teamB: BattleDefense | null;
-  };
-  challenge4: {
-    teamB: BattleDiscussion | null;
-    teamA: BattleDefense | null;
-  };
 }
 
 export default function Timeline({ battleInfo }: TimelineProps) {
@@ -37,65 +16,7 @@ export default function Timeline({ battleInfo }: TimelineProps) {
   ];
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set([currentRound]));
 
-  const nowRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (nowRef.current === 0) {
-      nowRef.current = Date.now();
-    }
-  }, []);
-
-  const now = nowRef.current;
-
-  const organizeByRounds = (): RoundData[] => {
-    const rounds: RoundData[] = [];
-
-    const attacks = timelines.filter((item) => item.type === 'ATTACK') as BattleDiscussion[];
-    const defenses = timelines.filter((item) => item.type === 'DEFENSE') as BattleDefense[];
-
-    for (let i = 1; i <= totalRounds; i++) {
-      const baseIdx = (i - 1) * 4;
-
-      const aAttack1 = attacks[baseIdx] || null;
-      const bDefense1 = (defenses[baseIdx] as BattleDefense) || null;
-
-      const bAttack1 = attacks[baseIdx + 1] || null;
-      const aDefense1 = (defenses[baseIdx + 1] as BattleDefense) || null;
-
-      const aAttack2 = attacks[baseIdx + 2] || null;
-      const bDefense2 = (defenses[baseIdx + 2] as BattleDefense) || null;
-
-      const bAttack2 = attacks[baseIdx + 3] || null;
-      const aDefense2 = (defenses[baseIdx + 3] as BattleDefense) || null;
-
-      rounds.push({
-        round: i,
-        topic: topics[i - 1],
-        isActive: i === currentRound,
-        isFuture: i > currentRound,
-        challenge1: {
-          teamA: aAttack1,
-          teamB: bDefense1
-        },
-        challenge2: {
-          teamB: bAttack1,
-          teamA: aDefense1
-        },
-        challenge3: {
-          teamA: aAttack2,
-          teamB: bDefense2
-        },
-        challenge4: {
-          teamB: bAttack2,
-          teamA: aDefense2
-        }
-      });
-    }
-
-    return rounds;
-  };
-
-  const roundsData = organizeByRounds();
+  const roundsData = organizeByRounds({ timelines, topics, currentRound, totalRounds });
 
   const toggleRound = (round: number) => {
     const newExpanded = new Set(expandedRounds);
@@ -105,17 +26,6 @@ export default function Timeline({ battleInfo }: TimelineProps) {
       newExpanded.add(round);
     }
     setExpandedRounds(newExpanded);
-  };
-
-  const formatTime = (timestamp?: number) => {
-    if (!timestamp) return '알 수 없음';
-
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-
-    if (minutes < 1) return '방금 전';
-    if (minutes < 60) return `${minutes}분 전`;
-    return `${Math.floor(minutes / 60)}시간 전`;
   };
 
   const renderMessage = (
