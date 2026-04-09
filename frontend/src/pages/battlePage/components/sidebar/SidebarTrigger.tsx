@@ -1,19 +1,19 @@
+import { useParams } from 'react-router-dom';
 import Icon from '@/commons/components/Icon';
 import Button from '@/commons/components/Button';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
+import type { SidebarTab } from './SidebarHeader';
 
-interface BookmarkButtonProps {
-  onOpen: (tab: 'info' | 'timeline' | 'reference') => void;
+interface SidebarTriggerProps {
+  onOpen: (tab: SidebarTab) => void;
   isOpen: boolean;
   highlight?: boolean;
-  hasReferenceData?: boolean;
 }
 
-export default function BookmarkButton({
-  onOpen,
-  isOpen,
-  highlight = false,
-  hasReferenceData = false
-}: BookmarkButtonProps) {
+export default function SidebarTrigger({ onOpen, isOpen, highlight = false }: SidebarTriggerProps) {
+  const { id: battleId } = useParams<{ id: string }>();
+  const { battleInfo } = useGetBattleInfo(battleId!);
+  const hasReferenceData = !!battleInfo?.referenceData;
   if (isOpen) return null;
 
   return (
@@ -21,7 +21,6 @@ export default function BookmarkButton({
       className={`fixed left-0 top-1/2 -translate-y-1/2 flex flex-col gap-2 ${highlight ? 'z-[120]' : 'z-30'}`}
       data-tutorial="sidebar-buttons"
     >
-      {/* 문제 설명 */}
       <Button
         onClick={() => onOpen('info')}
         rounded="r-md"
@@ -33,7 +32,6 @@ export default function BookmarkButton({
         <span className="text-sm">문제 설명</span>
       </Button>
 
-      {/* 타임라인 */}
       <Button
         onClick={() => onOpen('timeline')}
         rounded="r-md"
@@ -45,7 +43,6 @@ export default function BookmarkButton({
         <span className="text-sm">타임라인</span>
       </Button>
 
-      {/* 참고 자료 */}
       {hasReferenceData && (
         <Button
           onClick={() => onOpen('reference')}

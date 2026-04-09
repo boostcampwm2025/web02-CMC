@@ -1,21 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import SidebarHeader, { type SidebarTab } from './SidebarHeader';
 import BattleInfoSection from './BattleInfoSection';
 import ReferenceSection from './ReferenceSection';
 import { useResize } from '../../hooks/useResize';
 import SidebarTimelineSection from './SidebarTimelineSection';
-import type { BattleReferenceData } from '@/commons/types/battle';
+import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 interface BattleSidebarProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  description: string;
-  language: string;
-  category: string;
-  topics: string[];
   raiseZIndex?: boolean;
-  referenceData?: BattleReferenceData | null;
   activeTab: SidebarTab;
   onActiveTabChange: (tab: SidebarTab) => void;
 }
@@ -23,16 +18,13 @@ interface BattleSidebarProps {
 export default function BattleSidebar({
   isOpen,
   onClose,
-  title,
-  description,
-  language,
-  category,
-  topics,
   raiseZIndex = false,
-  referenceData,
   activeTab = 'info',
   onActiveTabChange
 }: BattleSidebarProps) {
+  const { id: battleId } = useParams<{ id: string }>();
+  const { battleInfo } = useGetBattleInfo(battleId!);
+  const { title, description, language, category, topics, referenceData } = battleInfo ?? {};
   const { width, isResizing, setIsResizing } = useResize({
     initialWidth: 400
   });
@@ -73,9 +65,16 @@ export default function BattleSidebar({
   const renderContent = () => {
     switch (activeTab) {
       case 'info':
-        return <BattleInfoSection title={title} description={description} language={language} category={category} />;
+        return (
+          <BattleInfoSection
+            title={title ?? ''}
+            description={description ?? ''}
+            language={language ?? 'javascript'}
+            category={category ?? 'ALGORITHM'}
+          />
+        );
       case 'timeline':
-        return <SidebarTimelineSection isWide={isWideLayout} topics={topics} />;
+        return <SidebarTimelineSection isWide={isWideLayout} topics={topics ?? []} />;
       case 'reference':
         return referenceData ? <ReferenceSection referenceData={referenceData} /> : null;
       default:

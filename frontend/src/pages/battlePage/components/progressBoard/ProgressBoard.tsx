@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { selectBattleProgress, useBattleStore } from '../../stores/battleStore';
+import { isBattleActive } from '../../utils/battlePhase';
 import { CollapseButton } from './CollapseButton';
 import { ExpandButton } from './ExpandButton';
 import { ProgressBar } from './ProgressBar';
@@ -9,15 +10,9 @@ export default function BattleProgressBoard() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const [collapsed, setCollapsed] = useState(false);
 
-  const shouldShow =
-    battleProgress &&
-    (battleProgress.phase as string) !== 'PENDING' &&
-    battleProgress.expiredAt != null &&
-    battleProgress.startedAt != null;
-
   return (
     <div className="fixed top-0 left-0 right-0 z-10 flex justify-center pointer-events-none">
-      {shouldShow && (
+      {isBattleActive(battleProgress) && (
         <div
           data-tutorial="progress-board"
           className={`

@@ -12,7 +12,7 @@ import ChatSection from '@/pages/battlePage/components/chatting/ChatSection';
 import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
 import DiscussionVote from '@/pages/battlePage/components/discussion/DiscussionVote';
 import BattleSidebar from '@/pages/battlePage/components/sidebar';
-import BookmarkButton from '@/pages/battlePage/components/sidebar/BookmarkButton';
+import SidebarTrigger from '@/pages/battlePage/components/sidebar/SidebarTrigger';
 import TutorialModal from '@/pages/tutorialPage/components/TutorialModal';
 import TutorialStepModal from '@/pages/tutorialPage/components/TutorialStepModal';
 import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
@@ -110,26 +110,19 @@ export default function TutorialBattlePage() {
 
   return (
     <div className="text-white relative">
-      <BookmarkButton
+      <SidebarTrigger
         onOpen={(tab) => {
           setActiveSidebarTab(tab);
           handleOpenSidebar();
         }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
-        hasReferenceData={!!battleInfo.referenceData}
       />
 
       <BattleSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        title={battleInfo.title}
-        description={battleInfo.description}
-        language={battleInfo.language}
-        category={battleInfo.category}
-        topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
-        referenceData={battleInfo.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
       />
@@ -156,14 +149,7 @@ export default function TutorialBattlePage() {
         />
 
         <BattleProgressBoard />
-        <div
-          className={`transition-all duration-300 main-width-closed ${
-            battleProgress &&
-            (battleProgress.phase as string) !== 'PENDING' &&
-            battleProgress.expiredAt != null &&
-            battleProgress.startedAt
-          }`}
-        >
+        <div className="transition-all duration-300 main-width-closed">
           <div className="flex items-center justify-between mt-10 mb-8">
             <Button variant="secondary" size="sm" onClick={handleLeaveBattle}>
               ← 돌아가기

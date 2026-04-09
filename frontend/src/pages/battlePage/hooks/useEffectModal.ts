@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { Team } from '@/commons/types/battle';
 import { soundManager } from '@/commons/utils/soundManager';
 
-interface EffectModalState {
+export interface EffectModalState {
   isOpen: boolean;
   team: Team;
   content: string;
