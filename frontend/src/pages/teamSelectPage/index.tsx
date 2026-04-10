@@ -37,6 +37,9 @@ export default function TeamSelectPage() {
     { label: '진영 선택', content: <TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} /> }
   ];
 
+  const isLastStep = currentStep === steps.length;
+  const canGoNext = isLastStep ? selectedTeam !== null : currentStep < steps.length;
+
   return (
     <main className="min-h-screen bg-[#0a0a1a] py-12 px-4">
       <div className="max-w-7xl mx-auto">
@@ -52,7 +55,7 @@ export default function TeamSelectPage() {
           steps={steps}
           currentStep={currentStep}
           onSubmit={handleSubmit}
-          canGoNext={currentStep === steps.length ? selectedTeam !== null : currentStep < steps.length}
+          canGoNext={canGoNext}
           isSubmitting={isLoggingIn}
         />
       </div>
