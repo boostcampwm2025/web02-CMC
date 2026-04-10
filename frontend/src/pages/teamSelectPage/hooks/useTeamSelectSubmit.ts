@@ -14,21 +14,23 @@ export function useTeamSelectSubmit({ battleId, selectedTeam }: UseTeamSelectSub
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
+  const enterBattle = (userId: string) => {
+    useBattleStore.getState().initializeBattle({ userId, battleId });
+    useBattleStore.getState().setSelectedTeam(selectedTeam!);
+    navigate(`/battle/${battleId}`, { state: { selectedTeam } });
+  };
+
   const handleSubmit = async () => {
     if (!selectedTeam || !battleId) return;
 
     if (user && isOAuth) {
-      useBattleStore.getState().initializeBattle({ userId: user.id, battleId });
-      useBattleStore.getState().setSelectedTeam(selectedTeam);
-      navigate(`/battle/${battleId}`, { state: { selectedTeam } });
+      enterBattle(user.id);
       return;
     }
 
     try {
       const guestUser = await loginGuest(battleId, selectedTeam !== 'NONE' ? selectedTeam : undefined);
-      useBattleStore.getState().initializeBattle({ userId: guestUser.id, battleId });
-      useBattleStore.getState().setSelectedTeam(selectedTeam);
-      navigate(`/battle/${battleId}`, { state: { selectedTeam } });
+      enterBattle(guestUser.id);
     } catch (e) {
       alert(e instanceof Error ? e.message : '로그인에 실패했습니다.');
     }
