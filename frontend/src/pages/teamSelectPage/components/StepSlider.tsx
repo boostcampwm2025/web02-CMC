@@ -1,10 +1,5 @@
-import type { ReactNode } from 'react';
+import type { StepConfig } from '../types/step';
 import StepArrows from './StepArrows';
-
-export interface StepConfig {
-  label: string;
-  content: ReactNode;
-}
 
 interface StepSliderProps {
   steps: StepConfig[];

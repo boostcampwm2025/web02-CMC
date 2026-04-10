@@ -1,4 +1,4 @@
-import type { StepConfig } from './StepSlider';
+import type { StepConfig } from '../types/step';
 
 interface StepIndicatorProps {
   steps: StepConfig[];

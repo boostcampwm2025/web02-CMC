@@ -1,4 +1,4 @@
-import type { StepConfig } from './StepSlider';
+import type { StepConfig } from '../types/step';
 import Button from '@/commons/components/Button';
 
 interface StepNavigationProps {
