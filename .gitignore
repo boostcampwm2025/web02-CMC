@@ -29,6 +29,10 @@ lerna-debug.log*
 # IDE
 .vscode/
 .idea/
+
+# Claude Code
+.claude/
+CLAUDE.md
 *.swp
 *.swo
 *~
