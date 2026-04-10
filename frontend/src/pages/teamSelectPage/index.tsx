@@ -20,7 +20,7 @@ export default function TeamSelectPage() {
   const { battleInfo } = useGetBattleInfo(id!);
   const hasReferenceData = !!battleInfo?.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
-  const { currentStep, goToNext, goToPrev } = useStepFlow({ totalSteps });
+  const { currentStep, goToNext, goToPrev, isLastStep } = useStepFlow({ totalSteps });
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
   const isLoggingIn = useAuthStore(selectIsLoggingIn);
   const { handleSubmit } = useTeamSelectSubmit({ battleId: id!, selectedTeam });
@@ -37,7 +37,6 @@ export default function TeamSelectPage() {
     { label: '진영 선택', content: <TeamSelect onSelect={setSelectedTeam} selectedTeam={selectedTeam ?? undefined} /> }
   ];
 
-  const isLastStep = currentStep === steps.length;
   const canGoNext = isLastStep ? selectedTeam !== null : currentStep < steps.length;
 
   return (
