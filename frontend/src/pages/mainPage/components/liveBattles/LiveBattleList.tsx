@@ -4,7 +4,7 @@ import Skeleton from '@/commons/components/Skeleton';
 import SectionErrorBoundary from '@/commons/components/ErrorBoundary/SectionErrorBoundary';
 import SectionErrorFallback from '@/commons/components/ErrorBoundary/SectionErrorFallback';
 
-export default function LiveBattlesSection() {
+export default function LiveBattleList() {
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
