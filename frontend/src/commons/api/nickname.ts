@@ -4,12 +4,10 @@ interface OAuthUserResponse {
   avatarUrl: string;
 }
 
-const updateOAuthNickname = async (nickname: string): Promise<void> => {
+const updateNickname = async (nickname: string): Promise<void> => {
   const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/nickname`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ nickname })
   });
@@ -26,4 +24,4 @@ const updateOAuthNickname = async (nickname: string): Promise<void> => {
   }
 };
 
-export default updateOAuthNickname;
+export default updateNickname;

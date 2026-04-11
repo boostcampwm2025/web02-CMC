@@ -7,6 +7,7 @@ import Icon from '@/commons/components/Icon';
 import Header from '@/commons/components/Header';
 import Button from '@/commons/components/Button';
 import LoginModal from './components/modals/LoginModal';
+import NicknameChangeModal from './components/modals/NicknameChangeModal';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import useModal from '@/commons/hooks/useModal';
@@ -18,6 +19,7 @@ export default function MainPage() {
   const user = useAuthStore(selectUser);
   const addToast = useToastStore(selectAddToast);
   const { isOpen: isLoginOpen, openModal: openLogin, closeModal: closeLogin } = useModal();
+  const { isOpen: isNicknameOpen, openModal: openNickname, closeModal: closeNickname } = useModal();
 
   const handleCreateBattle = (e: React.MouseEvent) => {
     if (!user) {
@@ -30,8 +32,9 @@ export default function MainPage() {
 
   return (
     <div className="min-h-screen w-full">
-      <Header onLoginClick={openLogin} />
+      <Header onLoginClick={openLogin} onNicknameClick={openNickname} />
       <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
+      <NicknameChangeModal isOpen={isNicknameOpen} onClose={closeNickname} />
 
       <main>
         <div className="mx-auto max-w-6xl px-6 py-10 space-y-12">
