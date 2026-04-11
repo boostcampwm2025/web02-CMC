@@ -196,6 +196,86 @@ test.describe('메인 페이지 - 로그인 모달', () => {
   });
 });
 
+test.describe('메인 페이지 - 닉네임 변경 모달', () => {
+  test('프로필 드롭다운에 닉네임 변경 버튼이 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+
+    await expect(page.getByRole('button', { name: '닉네임 변경' })).toBeVisible();
+  });
+
+  test('닉네임 변경 클릭 시 닉네임 변경 모달이 열린다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)')).toBeVisible();
+    await expect(page.getByRole('button', { name: '시작하기' })).toBeVisible();
+  });
+
+  test('닉네임 변경 모달 backdrop 클릭 시 모달이 닫힌다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    await page.mouse.click(10, 10);
+
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('빈 닉네임 제출 시 에러 메시지가 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByText('닉네임을 입력해주세요.')).toBeVisible();
+  });
+
+  test('닉네임 변경 성공 시 모달이 닫힌다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/auth/nickname', (route) =>
+      route.fulfill({ status: 200, json: { id: 'test-user-id', nickname: '새닉네임', avatarUrl: '' } })
+    );
+    await page.route('**/api/auth/me', (route) =>
+      route.fulfill({ status: 200, json: { id: 'test-user-id', nickname: '새닉네임', type: 'oauth', provider: 'github' } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)').fill('새닉네임');
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('닉네임 변경 API 실패 시 에러 toast가 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/auth/nickname', (route) =>
+      route.fulfill({ status: 400, json: { message: '이미 사용 중인 닉네임입니다.' } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)').fill('새닉네임');
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByText('이미 사용 중인 닉네임입니다.')).toBeVisible();
+  });
+});
+
 test.describe('메인 페이지 - 새 배틀 생성 버튼', () => {
   test('비로그인 상태에서 새 배틀 생성 버튼 클릭 시 경고 toast가 표시된다', async ({ page }) => {
     await mockUnauthenticated(page);
