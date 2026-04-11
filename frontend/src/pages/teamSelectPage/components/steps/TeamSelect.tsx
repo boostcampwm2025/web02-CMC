@@ -2,15 +2,14 @@ import Icon from '@/commons/components/Icon';
 import TeamCard from '../TeamCard';
 import type { Team } from '@/commons/types/battle';
 
-interface Step4TeamSelectProps {
+interface TeamSelectProps {
   onSelect: (team: Team) => void;
   selectedTeam?: Team;
 }
 
-export default function Step4TeamSelect({ onSelect, selectedTeam }: Step4TeamSelectProps) {
+export default function TeamSelect({ onSelect, selectedTeam }: TeamSelectProps) {
   return (
     <div className="flex flex-col items-center gap-4 xl:gap-6 2xl:gap-8 w-full max-w-6xl mx-auto px-4">
-      {/* 상단 섹션 */}
       <div className="text-center mb-4 xl:mb-6 2xl:mb-8">
         <Icon
           name="flag"
@@ -20,7 +19,6 @@ export default function Step4TeamSelect({ onSelect, selectedTeam }: Step4TeamSel
         <p className="text-sm xl:text-base text-gray-400">A팀, B팀 또는 중립 진영을 선택하세요</p>
       </div>
 
-      {/* 중앙 컨테이너 */}
       <div className="w-full bg-[#0d0d1a]/50 rounded-lg xl:rounded-xl 2xl:rounded-2xl p-4 xl:p-6 2xl:p-8 border border-[#1a1a2e]">
         <div className="flex items-center justify-center gap-3 xl:gap-4 2xl:gap-6 flex-wrap">
           <TeamCard

@@ -1,13 +1,13 @@
 import Icon from '@/commons/components/Icon';
+import type { BattleInfo } from '@/commons/types/battle';
 import CodeCarousel from '../CodeCarousel';
 
-interface Step2CodeCompareProps {
-  aCode: string;
-  bCode: string;
-  language: string;
+interface CodeCompareProps {
+  battleInfo: BattleInfo;
 }
 
-export default function Step2CodeCompare({ aCode, bCode, language }: Step2CodeCompareProps) {
+export default function CodeCompare({ battleInfo }: CodeCompareProps) {
+  const { aCode, bCode, language } = battleInfo;
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-6xl mx-auto px-4">
       <div className="text-center mb-4">

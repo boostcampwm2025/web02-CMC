@@ -18,10 +18,7 @@ export default function PhaseSection({
   formatTime,
   showBorder = false
 }: PhaseSectionProps) {
-  // attackingTeam이 'A'면 왼쪽에 A팀 공격, 오른쪽에 B팀 수비
-  // attackingTeam이 'B'면 왼쪽에 B팀 공격, 오른쪽에 A팀 수비
-  const leftMessage = attackingTeam === 'A' ? attackMessage : attackMessage;
-  const rightMessage = attackingTeam === 'A' ? defenseMessage : defenseMessage;
+  const defenseTeam = attackingTeam === 'A' ? 'B' : 'A';
 
   return (
     <div className={`relative ${showBorder ? 'border-t-2 border-[#2d2d3f]' : ''}`}>
@@ -29,12 +26,12 @@ export default function PhaseSection({
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr]">
         <div className="border-r border-[#2d2d3f] bg-gradient-to-r from-orange-500/5 to-transparent">
-          <MessageCard message={leftMessage} team={leftMessage?.team || 'A'} formatTime={formatTime} />
+          <MessageCard message={attackMessage} team={attackMessage?.team || attackingTeam} formatTime={formatTime} />
         </div>
 
         <ArrowBadge />
         <div className="bg-gradient-to-l from-blue-500/5 to-transparent border-t md:border-t-0 border-[#2d2d3f]">
-          <MessageCard message={rightMessage} team={rightMessage?.team || 'B'} formatTime={formatTime} />
+          <MessageCard message={defenseMessage} team={defenseMessage?.team || defenseTeam} formatTime={formatTime} />
         </div>
       </div>
     </div>

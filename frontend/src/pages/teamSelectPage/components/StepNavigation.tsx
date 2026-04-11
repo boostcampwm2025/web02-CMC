@@ -1,51 +1,44 @@
-import type { Step } from '../types/teamSelect';
+import type { StepConfig } from '../types/step';
 import Button from '@/commons/components/Button';
 
 interface StepNavigationProps {
-  currentStep: Step;
-  onPrev: () => void;
-  onNext: () => void;
+  steps: StepConfig[];
+  currentStep: number;
   onSubmit?: () => void;
   canGoNext: boolean;
   isSubmitting?: boolean;
-  totalSteps?: number;
 }
 
-const STEP_LABELS_WITH_REF = ['상황 요약', '쟁점', '참고 자료', '타임라인', '진영 선택'] as const;
-const STEP_LABELS_WITHOUT_REF = ['상황 요약', '쟁점', '타임라인', '진영 선택'] as const;
-
 export default function StepNavigation({
+  steps,
   currentStep,
   onSubmit,
   canGoNext,
-  isSubmitting = false,
-  totalSteps = 4
+  isSubmitting = false
 }: StepNavigationProps) {
-  const isLastStep = currentStep === totalSteps;
-  const stepLabels = totalSteps === 5 ? STEP_LABELS_WITH_REF : STEP_LABELS_WITHOUT_REF;
-  const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
+  const isLastStep = currentStep === steps.length;
 
   return (
     <div className="flex flex-col items-center gap-6 mt-8">
-      {/* 하단 단계 표시 */}
       <div className="flex items-center gap-2">
-        {steps.map((step) => (
-          <div
-            key={step}
-            className={`
-              w-2 h-2 rounded-full transition-all duration-300
-              ${currentStep === step ? 'bg-[#FF6900] w-8' : 'bg-[#2D2D3F]'}
-            `}
-          />
-        ))}
+        {steps.map((_, i) => {
+          const step = i + 1;
+          return (
+            <div
+              key={step}
+              className={`
+                w-2 h-2 rounded-full transition-all duration-300
+                ${currentStep === step ? 'bg-[#FF6900] w-8' : 'bg-[#2D2D3F]'}
+              `}
+            />
+          );
+        })}
       </div>
 
-      {/* 현재 단계 텍스트 */}
       <p className="text-sm text-[#99A1AF]">
-        {currentStep}단계: {stepLabels[currentStep - 1]}
+        {currentStep}단계: {steps[currentStep - 1].label}
       </p>
 
-      {/* 마지막 단계에서만 중앙에 완료 버튼 */}
       {isLastStep && (
         <Button
           onClick={onSubmit}
