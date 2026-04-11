@@ -3,7 +3,12 @@ import Icon, { type TierName } from './Icon';
 import { useAuthStore, selectUser, selectIsOAuth } from '@/commons/stores/authStore';
 import UserProfileDropdown from './UserProfileDropdown';
 
-export default function Header() {
+interface HeaderProps {
+  onLoginClick?: () => void;
+  onNicknameClick?: () => void;
+}
+
+export default function Header({ onLoginClick, onNicknameClick }: HeaderProps) {
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
@@ -46,13 +51,14 @@ export default function Header() {
                     nickname: user.nickname,
                     avatarUrl: user.avatarUrl
                   }}
+                  onNicknameClick={onNicknameClick}
                 />
               </div>
             ) : (
               <>
-                <Link to="/login" className="mr-8 px-3 py-1.5 text-gray-400">
+                <button onClick={onLoginClick} className="mr-8 px-3 py-1.5 text-gray-400">
                   로그인
-                </Link>
+                </button>
               </>
             )}
           </nav>

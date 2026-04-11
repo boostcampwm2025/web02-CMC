@@ -52,7 +52,6 @@ export default function TeamChangeModal({
     <Modal isOpen={isOpen} bg="bg-black/50" blur="" className="p-4 overflow-y-auto">
       <div
         className={`w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8 ${className ?? ''}`}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* 타임라인 섹션 */}
         <TimelineSection topic={currentTopic} currentRound={currentRound} timelines={timelines} />

@@ -6,8 +6,10 @@ import { BATTLE_CATEGORY_CONFIG } from '@/pages/mainPage/types/battle';
 import Icon from '@/commons/components/Icon';
 import Header from '@/commons/components/Header';
 import Button from '@/commons/components/Button';
+import LoginModal from './components/modals/LoginModal';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
+import useModal from '@/commons/hooks/useModal';
 
 export const BATTLE_CATEGORIES = Object.values(BATTLE_CATEGORY_CONFIG);
 
@@ -15,6 +17,7 @@ export default function MainPage() {
   const navigate = useNavigate();
   const user = useAuthStore(selectUser);
   const addToast = useToastStore(selectAddToast);
+  const { isOpen: isLoginOpen, openModal: openLogin, closeModal: closeLogin } = useModal();
 
   const handleCreateBattle = (e: React.MouseEvent) => {
     if (!user) {
@@ -27,11 +30,11 @@ export default function MainPage() {
 
   return (
     <div className="min-h-screen w-full">
-      <Header />
+      <Header onLoginClick={openLogin} />
+      <LoginModal isOpen={isLoginOpen} onClose={closeLogin} />
 
       <main>
         <div className="mx-auto max-w-6xl px-6 py-10 space-y-12">
-          {/* Hero */}
           <section className="flex flex-col gap-4 items-center">
             <div className="flex gap-6">
               <img src="logo.svg" alt="코문철 로고" className="w-16 h-16" />
@@ -57,7 +60,6 @@ export default function MainPage() {
             </div>
           </section>
 
-          {/* Stats */}
           <section>
             <div className="mt-6 grid grid-cols-3 gap-6">
               {BATTLE_CATEGORIES.slice(0, 3).map((c) => (

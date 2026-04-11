@@ -7,7 +7,6 @@ import BattlePage from './pages/battlePage';
 import TeamSelectPage from './pages/teamSelectPage';
 import InvitePage from './pages/invitePage';
 import BattleResultPage from './pages/battleResultPage';
-import LoginPage from './pages/loginPage';
 import NicknamePage from './pages/nicknamePage';
 import EntryPage from './pages/entryPage';
 import TutorialTeamSelectPage from './pages/tutorialPage/teamSelect';
@@ -29,7 +28,6 @@ const router = sentryCreateBrowserRouter([
       { index: true, element: <Navigate to="/entry" replace /> },
       { path: 'entry', element: <EntryPage /> },
       { path: 'main', element: <MainPage /> },
-      { path: 'login', element: <LoginPage /> },
       { path: 'nickname', element: <NicknamePage /> },
       { path: 'error', element: <ErrorPage /> },
       {

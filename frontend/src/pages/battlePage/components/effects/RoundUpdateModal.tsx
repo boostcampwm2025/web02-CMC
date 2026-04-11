@@ -26,7 +26,6 @@ export default function RoundUpdateModal({ isOpen, round, topic, onClose }: Roun
         return (
           <div
             className={`relative max-w-2xl w-full mx-4 p-12 rounded-3xl bg-gradient-to-br from-[#1a1a2e] to-[#16162a] border-2 border-orange-500/50 shadow-2xl shadow-orange-500/30 transition-all duration-500 ease-out ${modalClass}`}
-            onClick={(e) => e.stopPropagation()}
           >
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 animate-pulse" />
 
