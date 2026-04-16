@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBattleStore, selectSocket, selectBattleId } from '../stores/battleStore';
+import { useBattleStore, selectSocket, selectBattleId } from '@/features/battle/stores/battleStore';
 import type { BattleTeamUpdateAllResponse } from '@/commons/types/battle';
 import { soundManager } from '@/commons/utils/soundManager';
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
+import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import { useBattleTimer } from '../../hooks/useBattleTimer';
 import { soundManager } from '@/commons/utils/soundManager';
 

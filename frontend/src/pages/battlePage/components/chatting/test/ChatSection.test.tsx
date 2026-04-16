@@ -13,7 +13,7 @@ let mockAllMessages: Message[] = [];
 let mockOpponentNotice: Message | null = null;
 let mockChatInitialized = true;
 
-vi.mock('@/pages/battlePage/stores/battleStore', () => ({
+vi.mock('@/features/battle/stores/battleStore', () => ({
   useBattleStore: vi.fn((selector) => {
     const state = {
       userId: mockUserId,

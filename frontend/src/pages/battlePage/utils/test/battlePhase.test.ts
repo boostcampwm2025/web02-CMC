@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isInputDisabled } from '../battlePhase';
+import { isInputDisabled } from '@/features/battle/utils/battlePhase';
 
 describe('입력 가능 조건 검증', () => {
   it('ATTACK 페이즈에 팀 선택이 있으면 입력 가능', () => {

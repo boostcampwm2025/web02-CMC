@@ -9,7 +9,7 @@ import {
   selectBattleId,
   selectSocket,
   selectSelectedTeam
-} from '@/pages/battlePage/stores/battleStore';
+} from '@/features/battle/stores/battleStore';
 import type { BattlePhase } from '@/commons/types/battle';
 import PhaseSkip from './PhaseSkip';
 

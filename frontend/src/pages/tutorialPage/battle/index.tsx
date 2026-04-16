@@ -3,8 +3,8 @@ import Button from '@/commons/components/Button';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
 import type { BattleInfo, Team } from '@/commons/types/battle';
 import useModal from '@/commons/hooks/useModal';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/pages/battlePage/stores/battleStore';
-import { isInputDisabled } from '@/pages/battlePage/utils/battlePhase';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/features/battle/stores/battleStore';
+import { isInputDisabled } from '@/features/battle/utils/battlePhase';
 
 import BattleHeader from '@/pages/battlePage/components/header';
 import CodeSection from '@/pages/battlePage/components/codeview/CodeSection';

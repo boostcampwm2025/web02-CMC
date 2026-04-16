@@ -8,7 +8,7 @@ import {
   selectTeamChats,
   selectAllChats,
   selectOpponentNotice
-} from '../stores/battleStore';
+} from '@/features/battle/stores/battleStore';
 import { convertBattleChatToMessage } from '../utils/convertChatMessage';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 export function useBattleChat() {

@@ -1,4 +1,4 @@
-import { useBattleStore, selectTeamCounts } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore, selectTeamCounts } from '@/features/battle/stores/battleStore';
 import { useEffect, useState } from 'react';
 
 export default function TeamCounter() {

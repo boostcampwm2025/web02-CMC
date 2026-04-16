@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 
 export default function TimeProgressBar() {
   const battleProgress = useBattleStore(selectBattleProgress);

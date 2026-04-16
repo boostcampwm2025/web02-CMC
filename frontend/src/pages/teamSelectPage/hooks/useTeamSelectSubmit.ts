@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
-import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import type { Team } from '@/commons/types/battle';
 
 interface UseTeamSelectSubmitOptions {

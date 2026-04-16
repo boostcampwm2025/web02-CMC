@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
-import { getDiscussionConfig } from '../../utils/battlePhase';
-import { useBattleStore, selectBattleProgress } from '../../stores/battleStore';
+import { getDiscussionConfig } from '@/features/battle/utils/battlePhase';
+import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import Icon, { type IconName } from '@/commons/components/Icon';
 
 const MAX_LENGTH = 120;

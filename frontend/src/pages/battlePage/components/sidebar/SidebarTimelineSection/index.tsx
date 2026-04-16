@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useBattleStore, selectTimelines, selectBattleProgress } from '../../../stores/battleStore';
+import { useBattleStore, selectTimelines, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import RoundHeader from './RoundHeader';
 import PhaseCard from './PhaseCard';
 import PhaseDivider from './PhaseDivider';

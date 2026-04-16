@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { selectBattleId, selectSocket, useBattleStore } from '../stores/battleStore';
+import { selectBattleId, selectSocket, useBattleStore } from '@/features/battle/stores/battleStore';
 
 export function usePhaseSkip() {
   const socket = useBattleStore(selectSocket);

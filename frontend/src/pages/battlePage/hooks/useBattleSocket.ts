@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import type { BattleJoinData } from '@/commons/types/battle';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 
 export function useBattleSocket() {

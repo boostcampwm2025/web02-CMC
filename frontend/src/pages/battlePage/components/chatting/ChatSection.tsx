@@ -5,7 +5,12 @@ import ChatTabs from './ChatTabs';
 import Icon from '@/commons/components/Icon';
 
 import { useState, useMemo } from 'react';
-import { useBattleStore, selectSelectedTeam, selectTeamCounts, selectChatInitialized } from '../../stores/battleStore';
+import {
+  useBattleStore,
+  selectSelectedTeam,
+  selectTeamCounts,
+  selectChatInitialized
+} from '@/features/battle/stores/battleStore';
 import { useBattleChat } from '../../hooks/useBattleChat';
 import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
 import { useUnreadMessages } from '../../hooks/useUnreadMessages';

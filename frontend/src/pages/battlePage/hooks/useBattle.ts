@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useBattleSocket } from './useBattleSocket';
 import { useBattleSocketErrorHandling } from './useBattleSocketErrorHandling';
 import { useBattleProgress } from './useBattleProgress';

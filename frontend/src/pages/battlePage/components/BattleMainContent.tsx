@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '../stores/battleStore';
-import { isInputDisabled } from '../utils/battlePhase';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/features/battle/stores/battleStore';
+import { isInputDisabled } from '@/features/battle/utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import CodeSection from './codeview/CodeSection';
 import ChatSection from './chatting/ChatSection';

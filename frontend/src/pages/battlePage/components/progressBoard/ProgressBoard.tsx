@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { selectBattleProgress, useBattleStore } from '../../stores/battleStore';
-import { isBattleActive } from '../../utils/battlePhase';
+import { selectBattleProgress, useBattleStore } from '@/features/battle/stores/battleStore';
+import { isBattleActive } from '@/features/battle/utils/battlePhase';
 import { CollapseButton } from './CollapseButton';
 import { ExpandButton } from './ExpandButton';
 import { ProgressBar } from './ProgressBar';

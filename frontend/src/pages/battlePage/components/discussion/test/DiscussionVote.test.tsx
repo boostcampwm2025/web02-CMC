@@ -11,7 +11,7 @@ let mockBattleProgress: {
 };
 let mockSelectedTeam: 'A' | 'B' = 'A';
 
-vi.mock('@/pages/battlePage/stores/battleStore', () => ({
+vi.mock('@/features/battle/stores/battleStore', () => ({
   useBattleStore: vi.fn((selector) => {
     const state = {
       discussions: mockDiscussions,

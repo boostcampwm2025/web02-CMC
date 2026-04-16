@@ -1,5 +1,5 @@
 import Icon, { type IconName } from '@/commons/components/Icon';
-import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import type { BattleInfo, BattlePhase } from '@/commons/types/battle';
 import { useLoaderData } from 'react-router-dom';
 

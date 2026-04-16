@@ -1,4 +1,4 @@
-import { useBattleStore, selectTeamCounts } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore, selectTeamCounts } from '@/features/battle/stores/battleStore';
 
 export default function ParticipantRatioBar() {
   const { teamACount, teamBCount, none } = useBattleStore(selectTeamCounts);

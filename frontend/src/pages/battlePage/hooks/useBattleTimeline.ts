@@ -7,7 +7,7 @@ import type {
   BattleChat,
   Team
 } from '@/commons/types/battle';
-import { useBattleStore, selectSelectedTeam, selectSocket } from '../stores/battleStore';
+import { useBattleStore, selectSelectedTeam, selectSocket } from '@/features/battle/stores/battleStore';
 import { useEffectModal } from './useEffectModal';
 
 export function useBattleTimeline() {

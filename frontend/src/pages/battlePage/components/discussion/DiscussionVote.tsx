@@ -1,7 +1,12 @@
 import Icon from '@/commons/components/Icon';
 import DiscussionVoteItem from './DiscussionVoteItem';
-import { isMyTeamAttacking } from '../../utils/battlePhase';
-import { useBattleStore, selectDiscussions, selectBattleProgress, selectSelectedTeam } from '../../stores/battleStore';
+import { isMyTeamAttacking } from '@/features/battle/utils/battlePhase';
+import {
+  useBattleStore,
+  selectDiscussions,
+  selectBattleProgress,
+  selectSelectedTeam
+} from '@/features/battle/stores/battleStore';
 
 interface Discussion {
   id: number;

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import type { BattleProgressState } from '@/commons/types/battle';
-import { useBattleStore, selectSocket } from '../stores/battleStore';
+import { useBattleStore, selectSocket } from '@/features/battle/stores/battleStore';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
 import { soundManager } from '@/commons/utils/soundManager';
 
