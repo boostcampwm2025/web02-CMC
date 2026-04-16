@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useTeamVoteResult } from '../../hooks/useTeamVoteResult';
+import { useTeamVoteResult } from '@/features/battle/hooks/useTeamVoteResult';
 import { usePhaseSkip } from '../../hooks/usePhaseSkip';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import type { EffectModalState } from '../../hooks/useEffectModal';

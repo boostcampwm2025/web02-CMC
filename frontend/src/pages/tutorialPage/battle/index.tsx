@@ -19,7 +19,7 @@ import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/Pro
 import TeamChangeModal from '@/pages/battlePage/components/modals/TeamChangeModal';
 import TeamVoteResultModal from '@/pages/battlePage/components/effects/TeamVoteResultModal';
 import DiscussionModal from '@/pages/battlePage/components/effects/DiscussionModal';
-import { useTeamVoteResult } from '@/pages/battlePage/hooks/useTeamVoteResult';
+import { useTeamVoteResult } from '@/features/battle/hooks/useTeamVoteResult';
 import { useTutorialBattleSetup } from './hooks/useTutorialBattleSetup';
 import { usePracticeFlow } from './hooks/usePracticeFlow';
 import { useTutorialUI } from './hooks/useTutorialUI';

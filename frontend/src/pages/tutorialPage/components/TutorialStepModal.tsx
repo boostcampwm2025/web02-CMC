@@ -1,6 +1,6 @@
-import type { TutorialStep } from '@/pages/battlePage/hooks/useTutorial';
-import { useSpotlight } from '@/pages/battlePage/hooks/useSpotlight';
-import type { SpotlightPosition } from '@/pages/battlePage/hooks/useSpotlight';
+import type { TutorialStep } from '@/features/battle/hooks/useTutorial';
+import { useSpotlight } from '@/features/battle/hooks/useSpotlight';
+import type { SpotlightPosition } from '@/features/battle/hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
 import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
 import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';

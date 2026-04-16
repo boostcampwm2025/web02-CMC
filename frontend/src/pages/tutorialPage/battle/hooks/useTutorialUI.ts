@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useTutorial } from '@/pages/battlePage/hooks/useTutorial';
+import { useTutorial } from '@/features/battle/hooks/useTutorial';
 import type { SidebarTab } from '@/pages/battlePage/components/sidebar/SidebarHeader';
 
 interface UseTutorialUIOptions {
