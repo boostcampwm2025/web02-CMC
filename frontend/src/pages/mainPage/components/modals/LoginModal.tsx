@@ -1,48 +1,29 @@
+import Modal from '@/commons/components/Modal';
 import Icon from '@/commons/components/Icon';
 import Button from '@/commons/components/Button';
-import { loginWithGitHub } from './api/loginWithGithub';
-import { loginWithKakao } from './api/loginWithKakao';
-import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
+import { useLoginHandlers } from '../../hooks/useLoginHandlers';
 
-export default function LoginPage() {
-  const addToast = useToastStore(selectAddToast);
+interface LoginModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
 
-  const handleGitHubLogin = async () => {
-    try {
-      await loginWithGitHub();
-    } catch (error) {
-      addToast({ message: error instanceof Error ? error.message : '로그인에 실패했습니다.' });
-    }
-  };
-
-  const handleKakaoLogin = async () => {
-    try {
-      await loginWithKakao();
-    } catch (error) {
-      addToast({ message: error instanceof Error ? error.message : '로그인에 실패했습니다.' });
-    }
-  };
+export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+  const { handleGitHubLogin, handleKakaoLogin } = useLoginHandlers();
 
   return (
-    <div className="min-h-screen w-full flex flex-col gap-8 lg:gap-12 items-center justify-center px-4 py-8 lg:py-12">
-      <div className="flex flex-col gap-3 lg:gap-4 items-center">
-        <div className="flex flex-col gap-4 lg:gap-6 items-center relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 translate-y-1 w-12 h-12 lg:w-16 lg:h-16 bg-orange-500 rounded-xl blur-xl opacity-70 -z-10"></div>
-          <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-xl bg-orange-500 flex items-center justify-center relative z-10">
-            <Icon name="battle" className="w-8 h-8 lg:w-10 lg:h-10 text-white" />
-          </div>
-          <h1 className="text-white text-4xl lg:text-5xl xl:text-6xl font-extrabold">코문철</h1>
-        </div>
-        <p className="text-gray-400 text-sm lg:text-base text-center px-4">
-          두 가지 코드 중 당신의 선택은? 코드 리뷰 배틀을 시작해보세요!
-        </p>
-      </div>
-
-      {/* 로그인 카드 */}
+    <Modal isOpen={isOpen} onClose={onClose}>
       <div className="w-full max-w-sm lg:max-w-md bg-[#1A1A2E] rounded-2xl overflow-hidden shadow-2xl">
         <div className="h-1 w-full bg-orange-500" />
 
         <div className="p-6 lg:p-8 xl:p-10 flex flex-col items-center gap-4 lg:gap-6">
+          <div className="relative">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 translate-y-1 w-12 h-12 bg-orange-500 rounded-xl blur-xl opacity-70 -z-10" />
+            <div className="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center relative z-10">
+              <Icon name="battle" className="w-8 h-8 text-white" />
+            </div>
+          </div>
+
           <h2 className="text-white text-2xl lg:text-3xl font-bold">로그인</h2>
           <p className="text-gray-400 text-sm lg:text-base text-center">소셜 계정으로 간편하게 시작하세요</p>
 
@@ -56,9 +37,9 @@ export default function LoginPage() {
           </Button>
 
           <div className="flex items-center gap-3 w-full">
-            <div className="flex-1 h-px bg-[#2D2D3F]"></div>
+            <div className="flex-1 h-px bg-[#2D2D3F]" />
             <span className="text-gray-400 text-xs lg:text-sm">또는</span>
-            <div className="flex-1 h-px bg-[#2D2D3F]"></div>
+            <div className="flex-1 h-px bg-[#2D2D3F]" />
           </div>
 
           <Button
@@ -76,6 +57,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

@@ -69,7 +69,7 @@ export default function Modal({
     <div
       className={`fixed inset-0 ${zIndex} ${bg} ${blur} flex items-center justify-center transition-opacity duration-300 ${isAnimating ? 'opacity-100' : 'opacity-0'} ${className}`}
       style={style}
-      onClick={onClose}
+      onClick={(e) => e.target === e.currentTarget && onClose?.()}
       role={isOpen ? 'dialog' : undefined}
       aria-modal={isOpen ? 'true' : undefined}
     >

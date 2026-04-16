@@ -10,9 +10,10 @@ interface UserProfileDropdownProps {
     nickname: string;
     avatarUrl?: string;
   };
+  onNicknameClick?: () => void;
 }
 
-export default function UserProfileDropdown({ user }: UserProfileDropdownProps) {
+export default function UserProfileDropdown({ user, onNicknameClick }: UserProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export default function UserProfileDropdown({ user }: UserProfileDropdownProps) 
               variant="ghost"
               fullWidth
               onClick={() => {
-                navigate('/nickname');
+                onNicknameClick?.();
                 setIsOpen(false);
               }}
               className="px-4 py-2 border-none justify-start text-sm hover:bg-[#24292e]"

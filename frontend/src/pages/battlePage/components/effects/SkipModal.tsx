@@ -19,7 +19,6 @@ export default function SkipModal({ isOpen, onClose }: SkipModalProps) {
       {(isAnimating) => (
         <div
           className={`relative bg-gradient-to-br from-[#1a1a2e] to-[#16162a] rounded-3xl border-2 border-blue-500/50 shadow-2xl shadow-blue-500/30 p-12 max-w-2xl w-full mx-4 transition-all duration-500 ease-out ${isAnimating ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
-          onClick={(e) => e.stopPropagation()}
         >
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/20 via-cyan-500/20 to-blue-500/20 animate-pulse" />
 
