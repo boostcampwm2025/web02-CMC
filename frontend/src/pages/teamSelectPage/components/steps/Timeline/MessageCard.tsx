@@ -1,6 +1,6 @@
 import Icon from '@/commons/components/Icon';
 import type { BattleDiscussion, BattleDefense } from '@/commons/types/battle';
-import { formatTime } from '@/pages/battlePage/components/modals/TeamChangeModal/utils/formatTime';
+import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 
 interface MessageCardProps {
   message: BattleDiscussion | BattleDefense | null;
@@ -32,7 +32,9 @@ export default function MessageCard({ message, team, type }: MessageCardProps) {
           </span>
           <span className="text-white font-medium text-sm">{message.author?.nickname ?? 'SYSTEM'}</span>
         </div>
-        <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
+        <span className="text-gray-500 text-xs">
+          {message.selectedAt ? getTimeAgo(new Date(message.selectedAt).toISOString()) : '알 수 없음'}
+        </span>
       </div>
 
       <p className="text-gray-300 mb-4 leading-relaxed text-xs break-all text-left">{message.content}</p>

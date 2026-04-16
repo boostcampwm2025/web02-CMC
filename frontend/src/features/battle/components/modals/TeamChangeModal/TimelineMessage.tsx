@@ -1,4 +1,4 @@
-import { formatTime } from './utils/formatTime';
+import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import type { TimelineMessageProps } from './types';
 
 /**
@@ -34,7 +34,9 @@ export default function TimelineMessage({ message, team, type }: TimelineMessage
           </span>
           <span className="text-white font-medium text-xs">{message.author?.nickname ?? 'SYSTEM'}</span>
         </div>
-        <span className="text-gray-500 text-xs">{formatTime(message.selectedAt)}</span>
+        <span className="text-gray-500 text-xs">
+          {message.selectedAt ? getTimeAgo(new Date(message.selectedAt).toISOString()) : '알 수 없음'}
+        </span>
       </div>
 
       {/* 메시지 내용 */}
