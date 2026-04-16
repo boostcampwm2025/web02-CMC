@@ -3,7 +3,7 @@ import Button from '@/commons/components/Button';
 import SoundSettingsButton, { type BGMOption } from './SoundSettingsButton';
 import BattleHeader from './index';
 import InviteLinkButton from '@/pages/battleCreatePage/components/InviteLinkButton';
-import { usePhaseSkip } from '@/pages/battlePage/hooks/usePhaseSkip';
+import { usePhaseSkip } from '@/features/battle/hooks/usePhaseSkip';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 
 interface BattleTopBarProps {

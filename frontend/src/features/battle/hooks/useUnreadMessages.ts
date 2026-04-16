@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import type { Message } from '../utils/convertChatMessage';
+import type { Message } from '@/features/battle/utils/convertChatMessage';
 
 interface UseUnreadMessagesProps {
   teamMessages: Message[];

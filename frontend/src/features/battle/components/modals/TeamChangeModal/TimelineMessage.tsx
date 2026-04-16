@@ -1,15 +1,7 @@
 import { getTimeAgo } from '@/commons/utils/getTimeAgo';
 import type { TimelineMessageProps } from './types';
 
-/**
- * 단일 타임라인 메시지 컴포넌트
- *
- * @description
- * 공격(이의제기) 또는 수비(반론) 메시지를 카드 형태로 표시합니다.
- * 메시지가 없는 경우 "대기 중..." 상태를 표시합니다.
- */
 export default function TimelineMessage({ message, team, type }: TimelineMessageProps) {
-  // 메시지가 없는 경우 대기 중 상태 표시
   if (!message) {
     return (
       <div className="p-4 text-center">
@@ -22,7 +14,6 @@ export default function TimelineMessage({ message, team, type }: TimelineMessage
 
   return (
     <div className="p-4">
-      {/* 헤더: 작성자 정보 및 시간 */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span
@@ -39,7 +30,6 @@ export default function TimelineMessage({ message, team, type }: TimelineMessage
         </span>
       </div>
 
-      {/* 메시지 내용 */}
       <p className="text-gray-300 leading-relaxed text-sm break-words">{message.content}</p>
     </div>
   );

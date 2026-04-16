@@ -9,7 +9,7 @@ import {
   selectAllChats,
   selectOpponentNotice
 } from '@/features/battle/stores/battleStore';
-import { convertBattleChatToMessage } from '../utils/convertChatMessage';
+import { convertBattleChatToMessage } from '@/features/battle/utils/convertChatMessage';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 export function useBattleChat() {
   const socket = useBattleStore(selectSocket);

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
-import { useBattleTimer } from '@/pages/battlePage/hooks/useBattleTimer';
+import { useBattleTimer } from '@/features/battle/hooks/useBattleTimer';
 import { soundManager } from '@/commons/utils/soundManager';
 
 export default function BattleTimer() {

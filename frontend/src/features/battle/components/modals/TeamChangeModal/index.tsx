@@ -7,7 +7,7 @@ import {
   selectBattleProgress,
   selectTimelines
 } from '@/features/battle/stores/battleStore';
-import { useBattleTimer } from '@/pages/battlePage/hooks/useBattleTimer';
+import { useBattleTimer } from '@/features/battle/hooks/useBattleTimer';
 import TimelineSection from './TimelineSection';
 import VotingSection from './VotingSection';
 
@@ -53,10 +53,8 @@ export default function TeamChangeModal({
       <div
         className={`w-full max-w-4xl rounded-lg bg-[#1E1E2F] border-[0.188rem] border-[#FF6900] shadow-2xl flex flex-col gap-4 p-6 text-white my-8 ${className ?? ''}`}
       >
-        {/* 타임라인 섹션 */}
         <TimelineSection topic={currentTopic} currentRound={currentRound} timelines={timelines} />
 
-        {/* 투표 섹션 */}
         <VotingSection
           currentTeam={currentTeam}
           teamACount={teamACount}

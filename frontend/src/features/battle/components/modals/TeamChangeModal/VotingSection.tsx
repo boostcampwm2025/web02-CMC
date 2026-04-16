@@ -1,16 +1,6 @@
 import Icon from '@/commons/components/Icon';
 import type { VotingSectionProps } from './types';
 
-/**
- * 투표 섹션 컴포넌트
- *
- * @description
- * 팀 선택 투표 UI를 표시합니다.
- * - 남은 시간 타이머
- * - A팀, 중립, B팀 선택 버튼
- * - 각 팀의 현재 인원수
- * - 안내 문구
- */
 export default function VotingSection({
   currentTeam,
   teamACount,
@@ -21,15 +11,12 @@ export default function VotingSection({
 }: VotingSectionProps) {
   return (
     <div className="flex flex-col items-center gap-2 border-t border-[#2d2d3f] pt-4">
-      {/* 타이머 */}
       <div className="text-[#FF8904] text-2xl font-bold my-2 flex items-center">
         <Icon name="timer" className="w-6 h-6 mr-2" />
         <span>{remainingTime}</span>
       </div>
 
-      {/* 팀 선택 버튼들 */}
       <div className="flex gap-4">
-        {/* A팀 버튼 */}
         <button
           type="button"
           onClick={() => onTeamChange('A')}
@@ -40,7 +27,6 @@ export default function VotingSection({
           <span>{teamACount}명</span>
         </button>
 
-        {/* 중립 버튼 */}
         <button
           type="button"
           onClick={() => onTeamChange('NONE')}
@@ -51,7 +37,6 @@ export default function VotingSection({
           <span>{noneTeamCount}명</span>
         </button>
 
-        {/* B팀 버튼 */}
         <button
           type="button"
           onClick={() => onTeamChange('B')}
@@ -63,7 +48,6 @@ export default function VotingSection({
         </button>
       </div>
 
-      {/* 안내 문구 */}
       <p className="text-[#6A7282] text-sm">💡투표 후에도 다음 투표 시간에 팀을 변경할 수 있어요</p>
     </div>
   );

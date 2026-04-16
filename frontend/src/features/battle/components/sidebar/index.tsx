@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import SidebarHeader, { type SidebarTab } from './SidebarHeader';
 import BattleInfoSection from './BattleInfoSection';
 import ReferenceSection from './ReferenceSection';
-import { useResize } from '@/pages/battlePage/hooks/useResize';
+import { useResize } from '@/features/battle/hooks/useResize';
 import SidebarTimelineSection from './SidebarTimelineSection';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 

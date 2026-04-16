@@ -11,9 +11,9 @@ import {
   selectTeamCounts,
   selectChatInitialized
 } from '@/features/battle/stores/battleStore';
-import { useBattleChat } from '@/pages/battlePage/hooks/useBattleChat';
+import { useBattleChat } from '@/features/battle/hooks/useBattleChat';
 import { useAutoScrollDown } from '@/commons/hooks/useAutoScroll';
-import { useUnreadMessages } from '@/pages/battlePage/hooks/useUnreadMessages';
+import { useUnreadMessages } from '@/features/battle/hooks/useUnreadMessages';
 
 export default function ChatSection() {
   // Store 상태
