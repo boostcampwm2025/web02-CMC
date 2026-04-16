@@ -5,13 +5,13 @@ import useModal from '@/commons/hooks/useModal';
 import useBattleSound from './hooks/useBattleSound';
 import { useBattleLeave } from './hooks/useBattleLeave';
 
-import BattleTopBar from './components/header/BattleTopBar';
+import BattleTopBar from '@/features/battle/components/header/BattleTopBar';
 import BattleMainContent from './components/BattleMainContent';
-import BattleSidebar from './components/sidebar';
-import SidebarTrigger from './components/sidebar/SidebarTrigger';
+import BattleSidebar from '@/features/battle/components/sidebar';
+import SidebarTrigger from '@/features/battle/components/sidebar/SidebarTrigger';
 import BattleModals from './components/modals/BattleModals';
-import BattleProgressBoard from './components/progressBoard/ProgressBoard';
-import type { SidebarTab } from './components/sidebar/SidebarHeader';
+import BattleProgressBoard from '@/features/battle/components/progressBoard/ProgressBoard';
+import type { SidebarTab } from '@/features/battle/components/sidebar/SidebarHeader';
 
 export default function BattlePage() {
   const { id: battleId } = useParams<{ id: string }>();

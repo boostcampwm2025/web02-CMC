@@ -7,7 +7,7 @@ import {
   selectBattleProgress,
   selectTimelines
 } from '@/features/battle/stores/battleStore';
-import { useBattleTimer } from '../../../hooks/useBattleTimer';
+import { useBattleTimer } from '@/pages/battlePage/hooks/useBattleTimer';
 import TimelineSection from './TimelineSection';
 import VotingSection from './VotingSection';
 

@@ -3,10 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/features/battle/stores/battleStore';
 import { isInputDisabled } from '@/features/battle/utils/battlePhase';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
-import CodeSection from './codeview/CodeSection';
-import ChatSection from './chatting/ChatSection';
-import DiscussionVote from './discussion/DiscussionVote';
-import DiscussionInput from './discussion/DiscussionInput';
+import CodeSection from '@/features/battle/components/codeview/CodeSection';
+import ChatSection from '@/features/battle/components/chatting/ChatSection';
+import DiscussionVote from '@/features/battle/components/discussion/DiscussionVote';
+import DiscussionInput from '@/features/battle/components/discussion/DiscussionInput';
 
 interface BattleMainContentProps {
   isSidebarOpen: boolean;
