@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { convertBattleChatToMessage } from '../convertChatMessage';
+import { convertBattleChatToMessage } from '@/features/battle/utils/convertChatMessage';
 import type { BattleChat } from '@/commons/types/battle';
 
 describe('메시지 변환', () => {

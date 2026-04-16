@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useToastStore } from '@/commons/stores/toastStore';
 
 interface ErrorPayload {

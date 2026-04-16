@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getDiscussionConfig } from '../battlePhase';
+import { getDiscussionConfig } from '@/features/battle/utils/battlePhase';
 import type { BattlePhase } from '@/commons/types/battle';
 
 describe('getDiscussionConfig', () => {

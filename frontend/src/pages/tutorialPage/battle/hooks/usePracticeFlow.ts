@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { BattlePhase } from '@/commons/types/battle';
-import { useBattleStore, selectBattleProgress } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import { useAuthStore } from '@/commons/stores/authStore';
 import { soundManager } from '@/commons/utils/soundManager';
 import { TUTORIAL_ATTACK_MESSAGES, TUTORIAL_BATTLE_ID } from '@/pages/tutorialPage/const/tutorialBattle';

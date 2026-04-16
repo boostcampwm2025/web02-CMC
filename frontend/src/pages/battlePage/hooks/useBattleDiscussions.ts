@@ -6,8 +6,8 @@ import {
   selectSocket,
   selectBattleId,
   selectSelectedTeam
-} from '../stores/battleStore';
-import { getDiscussionConfig, isInputDisabled } from '../utils/battlePhase';
+} from '@/features/battle/stores/battleStore';
+import { getDiscussionConfig, isInputDisabled } from '@/features/battle/utils/battlePhase';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { soundManager } from '@/commons/utils/soundManager';
 

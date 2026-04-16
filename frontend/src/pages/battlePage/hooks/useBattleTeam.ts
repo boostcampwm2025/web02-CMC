@@ -7,7 +7,7 @@ import {
   selectSocket,
   selectBattleId,
   selectTeamCounts
-} from '../stores/battleStore';
+} from '@/features/battle/stores/battleStore';
 import type { BattleUserUpdateResponse } from '@/commons/types/battle';
 import { soundManager } from '@/commons/utils/soundManager';
 

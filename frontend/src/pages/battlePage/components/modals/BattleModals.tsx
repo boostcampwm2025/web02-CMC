@@ -1,14 +1,14 @@
 import { useParams } from 'react-router-dom';
-import { useTeamVoteResult } from '../../hooks/useTeamVoteResult';
-import { usePhaseSkip } from '../../hooks/usePhaseSkip';
+import { useTeamVoteResult } from '@/features/battle/hooks/useTeamVoteResult';
+import { usePhaseSkip } from '@/features/battle/hooks/usePhaseSkip';
 import { useGetBattleInfo } from '@/commons/hooks/useGetBattleInfo';
 import type { EffectModalState } from '../../hooks/useEffectModal';
 import type { RoundUpdateState } from '../../hooks/useRoundUpdateModal';
-import TeamChangeModal from './TeamChangeModal';
+import TeamChangeModal from '@/features/battle/components/modals/TeamChangeModal';
 import ConnectionErrorModal from './ConnectionErrorModal';
-import DiscussionModal from '../effects/DiscussionModal';
+import DiscussionModal from '@/features/battle/components/effects/DiscussionModal';
 import SkipModal from '../effects/SkipModal';
-import TeamVoteResultModal from '../effects/TeamVoteResultModal';
+import TeamVoteResultModal from '@/features/battle/components/effects/TeamVoteResultModal';
 import RoundUpdateModal from '../effects/RoundUpdateModal';
 
 interface BattleModalsProps {

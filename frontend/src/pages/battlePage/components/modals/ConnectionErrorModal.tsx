@@ -1,4 +1,4 @@
-import { useBattleStore } from '../../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import Button from '@/commons/components/Button';
 import Modal from '@/commons/components/Modal';
 

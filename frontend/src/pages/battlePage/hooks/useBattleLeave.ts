@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { soundManager } from '@/commons/utils/soundManager';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 
 export function useBattleLeave() {

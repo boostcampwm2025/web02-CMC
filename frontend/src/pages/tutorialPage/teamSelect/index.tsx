@@ -11,7 +11,7 @@ import CodeCompare from '@/pages/teamSelectPage/components/steps/CodeCompare';
 import ReferenceData from '@/pages/teamSelectPage/components/steps/ReferenceData';
 import Timeline from '@/pages/teamSelectPage/components/steps/Timeline';
 import TeamSelect from '@/pages/teamSelectPage/components/steps/TeamSelect';
-import { useBattleStore } from '@/pages/battlePage/stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { TUTORIAL_BATTLE_ID, TUTORIAL_BATTLE_INFO } from '@/pages/tutorialPage/const/tutorialBattle';
 import TutorialIntroModal from './components/TutorialIntroModal';
 
