@@ -165,21 +165,36 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     this.flushToDB(battleId, state)
   }
 
-  async updateSkipState(battleId: string, skipList: Set<string>): Promise<void> {
+  async updateSkipState(battleId: string, skipList: Set<string>, expectedPhase?: string): Promise<void> {
     const live = this.liveStates.get(battleId)
     if (live) {
+      if (expectedPhase && live.phase !== expectedPhase) return
       live.skipState = new Set(skipList)
       const coreJson = JSON.stringify(this.serializeCore(live))
-      void this.redis
-        .set(this.getCoreKey(battleId), coreJson)
-        .catch(err => this.logger.error(`[updateSkipState] Redis 업데이트 실패 ${battleId}: ${(err as Error).message}`))
+      try {
+        await this.redis.set(this.getCoreKey(battleId), coreJson)
+      } catch (err) {
+        this.logger.error(`[updateSkipState] Redis 업데이트 실패 ${battleId}: ${(err as Error).message}`)
+      }
     } else {
-      await this.patchSkipCache(battleId, skipList)
+      await this.patchSkipCache(battleId, skipList, expectedPhase)
     }
 
-    this.prisma.battle
-      .update({ where: { id: battleId }, data: { skipState: Array.from(skipList), updatedAt: new Date() } })
-      .catch(err => this.logger.error(`[updateSkipState] DB 업데이트 실패 ${battleId}: ${(err as Error).message}`))
+    try {
+      if (expectedPhase) {
+        await this.prisma.battle.updateMany({
+          where: { id: battleId, currentPhase: expectedPhase },
+          data: { skipState: Array.from(skipList), updatedAt: new Date() },
+        })
+      } else {
+        await this.prisma.battle.update({
+          where: { id: battleId },
+          data: { skipState: Array.from(skipList), updatedAt: new Date() },
+        })
+      }
+    } catch (err) {
+      this.logger.error(`[updateSkipState] DB 업데이트 실패 ${battleId}: ${(err as Error).message}`)
+    }
   }
 
   // 배틀 종료 시 인메모리, Redis 삭제
@@ -449,10 +464,11 @@ return {1, prev}
   }
 
   // Redis에서 skip 상태 업데이트
-  private async patchSkipCache(battleId: string, skipList: Set<string>): Promise<void> {
+  private async patchSkipCache(battleId: string, skipList: Set<string>, expectedPhase?: string): Promise<void> {
     const coreRaw = await this.redis.get(this.getCoreKey(battleId))
     if (!coreRaw) return
     const core = JSON.parse(coreRaw) as SerializedCore
+    if (expectedPhase && core.phase !== expectedPhase) return
     core.skipState = Array.from(skipList)
     void this.redis
       .set(this.getCoreKey(battleId), JSON.stringify(core))

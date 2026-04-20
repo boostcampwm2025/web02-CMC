@@ -37,6 +37,7 @@ describe('BattleStateRepositoryAdapter', () => {
       battle: {
         findUnique: jest.fn(),
         update: jest.fn(),
+        updateMany: jest.fn(),
       },
     } as unknown as jest.Mocked<PrismaService>
     const mockPipeline = {
@@ -203,6 +204,19 @@ describe('BattleStateRepositoryAdapter', () => {
         where: { id: 'battle-1' },
         data: expect.objectContaining({
           skipState: expect.arrayContaining(['user-1', 'user-2']),
+        }),
+      })
+    })
+
+    it('expectedPhase가 있으면 currentPhase가 일치할 때만 업데이트한다', async () => {
+      ;(prisma.battle.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      await adapter.updateSkipState('battle-1', new Set(['user-1']), 'ATTACK')
+
+      expect(prisma.battle.updateMany).toHaveBeenCalledWith({
+        where: { id: 'battle-1', currentPhase: 'ATTACK' },
+        data: expect.objectContaining({
+          skipState: ['user-1'],
         }),
       })
     })

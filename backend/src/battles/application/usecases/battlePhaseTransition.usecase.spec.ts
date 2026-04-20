@@ -194,7 +194,7 @@ describe('BattlePhaseTransitionUseCase', () => {
       const result = await useCase.handlePhaseSkip('battle-1', 'user-1', true)
 
       expect(skipService.applyPhaseSkip).toHaveBeenCalledWith(mockState, 'user-1', true)
-      expect(stateRepo.updateSkipState).toHaveBeenCalledWith('battle-1', mockState.skipState)
+      expect(stateRepo.updateSkipState).toHaveBeenCalledWith('battle-1', mockState.skipState, mockState.phase)
       expect(typeof result).toBe('number')
     })
 

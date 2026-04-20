@@ -10,7 +10,7 @@ export interface BattleStatePort {
   //캐시 삭제
   clearBattleStateFromRedis(battleId: string): Promise<void>
   //페이즈 스킵 상태 업데이트
-  updateSkipState(battleId: string, skipList: Set<string>): Promise<void>
+  updateSkipState(battleId: string, skipList: Set<string>, expectedPhase?: string): Promise<void>
   //MVP 상태 파싱
   parseMvpsState(value: unknown): Mvp[]
   //사용자 ID로 닉네임 조회

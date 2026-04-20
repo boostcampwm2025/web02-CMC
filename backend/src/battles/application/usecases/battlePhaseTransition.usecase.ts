@@ -110,7 +110,7 @@ export class BattlePhaseTransitionUseCase {
     const { state } = await this.stateRepo.loadBattleState(battleId)
 
     this.skipService.applyPhaseSkip(state, userId, skip)
-    await this.stateRepo.updateSkipState(battleId, state.skipState)
+    await this.stateRepo.updateSkipState(battleId, state.skipState, state.phase)
 
     const skipped = await this.checkAndSkipPhase(battleId, state)
     return skipped ? 0 : state.skipState.size
@@ -118,7 +118,8 @@ export class BattlePhaseTransitionUseCase {
 
   //스킵 페이즈
   private async skipPhase(battleId: string): Promise<void> {
-    await this.stateRepo.updateSkipState(battleId, new Set<string>())
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    await this.stateRepo.updateSkipState(battleId, new Set<string>(), state.phase)
     await this.advancePhase(battleId)
     this.broadcaster.emitPhaseSkipped(battleId)
   }
