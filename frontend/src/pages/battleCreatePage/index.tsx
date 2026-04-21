@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
-import { formatCode } from '@/commons/utils/codeFormatter';
+import { formatCode, type FormatterLanguage } from '@/commons/utils/codeFormatter';
 import { languageMapper } from '@/commons/utils/languageMapper';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
@@ -67,7 +67,7 @@ export default function BattleCreatePage() {
   const handleSubmit = async () => {
     if (!canSubmit || isPending) return;
 
-    const formatterLang = languageMapper(language) as Parameters<typeof formatCode>[1];
+    const formatterLang = languageMapper(language) as FormatterLanguage;
     const [formattedA, formattedB] = await Promise.all([
       formatCode(aCode, formatterLang),
       formatCode(bCode, formatterLang)

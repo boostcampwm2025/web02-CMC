@@ -1,8 +1,7 @@
 import type { IconName } from '@/commons/components/Icon';
+import type { BattleCategory, BattleStatus } from '@cmc/types';
 
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENT' | 'ETC';
-
-export type BattleStatus = 'OPEN' | 'CLOSED' | 'PENDING';
+export type { BattleCategory, BattleStatus } from '@cmc/types';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
 export const BATTLE_CATEGORY_CONFIG: Record<

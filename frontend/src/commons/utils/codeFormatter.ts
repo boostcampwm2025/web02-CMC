@@ -1,4 +1,4 @@
-export type BattleLanguage = 'javascript' | 'typescript' | 'python';
+export type FormatterLanguage = 'javascript' | 'typescript' | 'python';
 
 interface FormatResult {
   code: string;
@@ -42,7 +42,7 @@ async function formatPython(code: string): Promise<string> {
   return format(code);
 }
 
-export async function formatCode(code: string, language: BattleLanguage): Promise<FormatResult> {
+export async function formatCode(code: string, language: FormatterLanguage): Promise<FormatResult> {
   if (!code.trim()) {
     return { code, formatted: false };
   }
