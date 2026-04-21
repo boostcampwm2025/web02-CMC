@@ -101,6 +101,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
+      "^@cmc/types$": "<rootDir>/../../packages/types/src/index.ts",
       "^src/(.*)$": "<rootDir>/$1",
       "^generated/prisma/(.*)$": "<rootDir>/../generated/prisma/$1.ts",
       "^generated/prisma/(.*)\\.js$": "<rootDir>/../generated/prisma/$1.ts",

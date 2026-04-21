@@ -5,6 +5,7 @@ import type { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateR
 import type { BattleTeamUpdateAllResponseDto } from '../../../dto/battleTeamUpdateAllResponse.dto'
 import type { BattleClosedResponseDto } from '../../../dto/battleClosedResponse.dto'
 import type { DiscussionVoteResultDto } from '../../../dto/discussionVoteResult.dto'
+import { BATTLE_SERVER_EVENTS } from '@cmc/types'
 
 describe('BattleBroadcasterAdapter', () => {
   let adapter: BattleBroadcasterAdapter
@@ -36,7 +37,7 @@ describe('BattleBroadcasterAdapter', () => {
     it('battle room에 phase:updated 이벤트를 전송한다', () => {
       const dto = { battleId: 'battle-1' } as BattlePhaseResponseDto
       const listener = jest.fn()
-      adapter.on('battle:phase:updated', listener)
+      adapter.on(BATTLE_SERVER_EVENTS.PHASE_UPDATED, listener)
 
       adapter.emitPhaseUpdated(dto)
 
@@ -90,7 +91,7 @@ describe('BattleBroadcasterAdapter', () => {
   describe('emitPhaseSkipped', () => {
     it('battle room에 phase:skipped 이벤트를 전송한다', () => {
       const listener = jest.fn()
-      adapter.on('battle:phase:skipped', listener)
+      adapter.on(BATTLE_SERVER_EVENTS.PHASE_SKIPPED, listener)
 
       adapter.emitPhaseSkipped('battle-1')
 
