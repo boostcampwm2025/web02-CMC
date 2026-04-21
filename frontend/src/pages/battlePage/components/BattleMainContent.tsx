@@ -30,7 +30,7 @@ export default function BattleMainContent({ isSidebarOpen, onVote, onDiscussionS
             <CodeSection
               onViewChange={setViewMode}
               currentView={viewMode}
-              language={language ?? 'javascript'}
+              language={language ?? 'JS'}
               codeA={codeA ?? ''}
               codeB={codeB ?? ''}
             />

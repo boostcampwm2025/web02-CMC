@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
 import { formatCode } from '@/commons/utils/codeFormatter';
+import { languageMapper } from '@/commons/utils/languageMapper';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { useCreateBattle } from './hooks/useCreateBattle';
@@ -10,9 +11,9 @@ import Button from '@/commons/components/Button';
 import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'TypeScript', value: 'typescript' },
-  { label: 'Python', value: 'python' }
+  { label: 'JavaScript', value: 'JS' },
+  { label: 'TypeScript', value: 'TS' },
+  { label: 'Python', value: 'PYTHON' }
 ];
 
 const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: number }> = [
@@ -44,7 +45,7 @@ export default function BattleCreatePage() {
   const [description, setDescription] = useState('');
   const [aCode, setACode] = useState('');
   const [bCode, setBCode] = useState('');
-  const [language, setLanguage] = useState<BattleLanguage>('javascript');
+  const [language, setLanguage] = useState<BattleLanguage>('JS');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
@@ -66,7 +67,11 @@ export default function BattleCreatePage() {
   const handleSubmit = async () => {
     if (!canSubmit || isPending) return;
 
-    const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
+    const formatterLang = languageMapper(language) as Parameters<typeof formatCode>[1];
+    const [formattedA, formattedB] = await Promise.all([
+      formatCode(aCode, formatterLang),
+      formatCode(bCode, formatterLang)
+    ]);
 
     if (!authorId) {
       addToast({ message: '로그인이 필요합니다.' });

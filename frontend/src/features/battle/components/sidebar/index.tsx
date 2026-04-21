@@ -69,7 +69,7 @@ export default function BattleSidebar({
           <BattleInfoSection
             title={title ?? ''}
             description={description ?? ''}
-            language={language ?? 'javascript'}
+            language={language ?? 'JS'}
             category={category ?? 'ALGORITHM'}
           />
         );

@@ -1,5 +1,5 @@
 export type BattleType = 'PUBLIC' | 'PRIVATE';
-export type BattleLanguage = 'javascript' | 'typescript' | 'python';
+export type BattleLanguage = 'TS' | 'JS' | 'PYTHON';
 export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 export interface CreateBattleRequest {
