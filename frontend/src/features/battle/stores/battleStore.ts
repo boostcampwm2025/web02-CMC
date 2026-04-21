@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
 import type { BattleProgressState, BattleDiscussion, BattleDefense, BattleChat } from '@/commons/types/battle';
+import { BATTLE_CLIENT_EVENTS } from '@cmc/types';
 
 interface BattleStore {
   userId: string;
@@ -176,7 +177,7 @@ export const useBattleStore = create<BattleStore>((set, get) => ({
   setPendingBattleClosed: (pending) => set({ pendingBattleClosed: pending }),
   leaveBattle: () => {
     const { socket, battleId } = get();
-    socket?.emit('battle:leave', { battleId });
+    socket?.emit(BATTLE_CLIENT_EVENTS.LEAVE, { battleId });
 
     socket?.removeAllListeners();
     socket?.disconnect();
