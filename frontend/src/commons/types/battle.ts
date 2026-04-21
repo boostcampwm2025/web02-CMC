@@ -1,7 +1,10 @@
+import type { BattlePhaseName, BattleTeam, BattleDiscussionStatus, BattleChatScope } from '@cmc/types';
+export type { BattlePhaseName, BattleTeam, BattleDiscussionStatus, BattleChatScope };
+
 // BattleChat 타입
 export interface BattleChat {
   battleId: string;
-  scope: 'TEAM' | 'ALL';
+  scope: BattleChatScope;
   messageId: string;
   sender: { userId: string; nickname: string; tier?: string };
   team: BattleTeam;
@@ -31,8 +34,6 @@ export interface BattleInfo {
   inviteCode?: string;
 }
 
-export type { BattlePhaseName, BattleTeam } from '@cmc/types';
-
 // BattleDiscussion 타입
 export interface BattleDiscussion {
   discussionId: string;
@@ -44,7 +45,7 @@ export interface BattleDiscussion {
   content: string;
   upvotes: number;
   votes: string[];
-  status: 'PENDING' | 'SELECTED' | 'REJECTED';
+  status: BattleDiscussionStatus;
   selectedAt?: number; // SELECTED로 변경된 시간 (timestamp)
   team: 'A' | 'B'; // 어느 팀의 토론인지 (NONE은 불가)
 }
