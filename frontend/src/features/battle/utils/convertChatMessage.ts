@@ -1,9 +1,9 @@
-import type { BattleChat, Team } from '@/commons/types/battle';
+import type { BattleChat, BattleTeam } from '@/commons/types/battle';
 
 export interface Message {
   id: string;
   user: string;
-  team: Team;
+  team: BattleTeam;
   content: string;
   timestamp: string;
   tier?: string;

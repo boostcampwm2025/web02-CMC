@@ -1,4 +1,4 @@
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@/commons/types/battle';
 
 export interface VoteResult {
   votes: number;
@@ -6,7 +6,7 @@ export interface VoteResult {
 }
 
 export interface BattleResult {
-  winner: Exclude<Team, 'NONE'> | 'DRAW';
+  winner: Exclude<BattleTeam, 'NONE'> | 'DRAW';
   teamA: VoteResult;
   teamB: VoteResult;
   neutral: VoteResult;
@@ -37,7 +37,7 @@ export interface TimelineItem {
   id: string;
   type: DiscussionType;
   author: TimelineAuthor;
-  team: Exclude<Team, 'NONE'>;
+  team: Exclude<BattleTeam, 'NONE'>;
   content: string;
   turn: number;
   upvotes: number;
@@ -47,7 +47,7 @@ export interface TimelineItem {
 export interface Mvp {
   userId: string;
   nickname: string;
-  team: Exclude<Team, 'NONE'>;
+  team: Exclude<BattleTeam, 'NONE'>;
   score: number;
   totalVotes: number;
   opinionCount: number;

@@ -1,4 +1,4 @@
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
 
 interface PhaseInfo {
   title: string;
@@ -13,7 +13,7 @@ export const getPhaseInfo = (phase: string | null): PhaseInfo => {
     };
   }
 
-  const PHASE_MAP: Record<BattlePhase, PhaseInfo> = {
+  const PHASE_MAP: Record<BattlePhaseName, PhaseInfo> = {
     PENDING: {
       title: '대기 중',
       description: '배틀이 곧 시작됩니다.'
@@ -37,7 +37,7 @@ export const getPhaseInfo = (phase: string | null): PhaseInfo => {
   };
 
   if (phase in PHASE_MAP) {
-    return PHASE_MAP[phase as BattlePhase];
+    return PHASE_MAP[phase as BattlePhaseName];
   }
 
   return {

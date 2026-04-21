@@ -1,9 +1,9 @@
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@/commons/types/battle';
 import Icon from '@/commons/components/Icon';
 import type { IconName } from '@/commons/components/Icon';
 
 interface TeamCardProps {
-  team: Team;
+  team: BattleTeam;
   label: string;
   description: string;
   isSelected: boolean;

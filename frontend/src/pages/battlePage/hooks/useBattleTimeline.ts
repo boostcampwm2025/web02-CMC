@@ -5,7 +5,7 @@ import type {
   BattleDiscussion,
   BattleDefense,
   BattleChat,
-  Team
+  BattleTeam
 } from '@/commons/types/battle';
 import { useBattleStore, selectSelectedTeam, selectSocket } from '@/features/battle/stores/battleStore';
 import { useEffectModal } from './useEffectModal';
@@ -20,7 +20,7 @@ export function useBattleTimeline() {
 
     const pushTimelineAndChat = (
       battleId: string,
-      team: Team,
+      team: BattleTeam,
       entry: {
         id: string | null;
         text: string | null;

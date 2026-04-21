@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import Button from '@/commons/components/Button';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
-import type { BattleInfo, Team } from '@/commons/types/battle';
+import type { BattleInfo, BattleTeam } from '@/commons/types/battle';
 import useModal from '@/commons/hooks/useModal';
 import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/features/battle/stores/battleStore';
 import { isInputDisabled } from '@/features/battle/utils/battlePhase';
@@ -41,7 +41,7 @@ export default function TutorialBattlePage() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);
 
-  const selectedTeamFromState = (location.state as { selectedTeam?: Team })?.selectedTeam;
+  const selectedTeamFromState = (location.state as { selectedTeam?: BattleTeam })?.selectedTeam;
 
   useTutorialBattleSetup({ battleInfo, selectedTeamFromState });
 

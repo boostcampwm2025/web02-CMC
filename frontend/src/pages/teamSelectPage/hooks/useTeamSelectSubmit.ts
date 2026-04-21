@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { selectIsOAuth, selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useBattleStore } from '@/features/battle/stores/battleStore';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@/commons/types/battle';
 
 interface UseTeamSelectSubmitOptions {
   battleId: string;
-  selectedTeam: Team | null;
+  selectedTeam: BattleTeam | null;
 }
 
 export function useTeamSelectSubmit({ battleId, selectedTeam }: UseTeamSelectSubmitOptions) {

@@ -13,7 +13,7 @@ import CodeCompare from './components/steps/CodeCompare';
 import ReferenceData from './components/steps/ReferenceData';
 import Timeline from './components/steps/Timeline';
 import TeamSelect from './components/steps/TeamSelect';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@/commons/types/battle';
 
 export default function TeamSelectPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +21,7 @@ export default function TeamSelectPage() {
   const hasReferenceData = !!battleInfo?.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
   const { currentStep, goToNext, goToPrev, isLastStep } = useStepFlow({ totalSteps });
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<BattleTeam | null>(null);
   const isLoggingIn = useAuthStore(selectIsLoggingIn);
   const { handleSubmit } = useTeamSelectSubmit({ battleId: id!, selectedTeam });
 

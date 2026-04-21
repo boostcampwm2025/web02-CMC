@@ -1,12 +1,12 @@
 import Icon from '@/commons/components/Icon';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
 import { PHASE_CONFIG } from './phaseConfig';
 
 interface RoundProgressCardProps {
   currentRound: number;
   totalRounds: number;
   topics: string[];
-  currentPhase: BattlePhase | null;
+  currentPhase: BattlePhaseName | null;
   phaseCount: number | null;
 }
 

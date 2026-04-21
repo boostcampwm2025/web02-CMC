@@ -4,7 +4,7 @@ export interface BattleChat {
   scope: 'TEAM' | 'ALL';
   messageId: string;
   sender: { userId: string; nickname: string; tier?: string };
-  team: Team;
+  team: BattleTeam;
   text: string;
   createdAt: Date | string;
   type?: 'chat' | 'attack' | 'defense';
@@ -21,7 +21,7 @@ export interface BattleInfo {
   currentRound: number;
   totalRounds: number;
   topics: string[];
-  currentPhase: BattlePhase;
+  currentPhase: BattlePhaseName;
   phaseCount: number;
   timelines: {
     attacks: BattleDiscussion[];
@@ -31,9 +31,7 @@ export interface BattleInfo {
   inviteCode?: string;
 }
 
-// 공통 타입들
-export type BattlePhase = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH';
-export type Team = 'A' | 'B' | 'NONE';
+export type { BattlePhaseName, BattleTeam } from '@cmc/types';
 
 // BattleDiscussion 타입
 export interface BattleDiscussion {
@@ -65,8 +63,8 @@ export interface TeamCounts {
 
 export interface TeamChange {
   clientId: string;
-  from: Team;
-  to: Team;
+  from: BattleTeam;
+  to: BattleTeam;
 }
 
 // BattleJoinResponseDto 타입
@@ -86,7 +84,7 @@ export interface BattleJoinData {
   // 배틀 상태 정보
   round: number;
   topics: string[];
-  phase: BattlePhase;
+  phase: BattlePhaseName;
   phaseCount: number;
   startedAt: number | null;
   expiredAt: number | null;
@@ -95,13 +93,13 @@ export interface BattleJoinData {
 export interface UseBattleSocketProps {
   battleId: string;
   userId: string;
-  team: Team;
+  team: BattleTeam;
   password?: string;
 }
 
 export interface BattleProgressState {
   round: number;
-  phase: BattlePhase;
+  phase: BattlePhaseName;
   phaseCount: number;
   topic: string;
   startedAt: number | null;
@@ -115,7 +113,7 @@ export interface DiscussionVoteResultItem {
   ownerId: string | null;
   nickname: string | null;
   count: number | null;
-  team: Team | null;
+  team: BattleTeam | null;
 }
 
 export interface BattleAttackedResult {
@@ -157,7 +155,7 @@ export interface BattleTeamUpdateAllResponse {
     teamB: number;
     teamNone: number;
   };
-  dominantTeam: Team | null;
+  dominantTeam: BattleTeam | null;
 }
 
 // AI 참고 자료 타입

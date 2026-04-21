@@ -1,8 +1,8 @@
 import Icon from '@/commons/components/Icon';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
 
 interface PhaseSkipProps {
-  phase: BattlePhase;
+  phase: BattlePhaseName;
   isSkipEnabled: boolean;
   toggleSkip: () => void;
   totalSkips: number;
