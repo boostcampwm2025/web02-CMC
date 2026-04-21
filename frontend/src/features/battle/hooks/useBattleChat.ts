@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import type { BattleChat } from '@/commons/types/battle';
+import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types';
 import {
   useBattleStore,
   selectSocket,
@@ -49,9 +50,9 @@ export function useBattleChat() {
     const handleChatUpdate = (message: BattleChat) => {
       addChat(message);
     };
-    socket.on('battle:chatted', handleChatUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.CHATTED, handleChatUpdate);
     return () => {
-      socket.off('battle:chatted', handleChatUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.CHATTED, handleChatUpdate);
     };
   }, [socket, addChat]);
 
@@ -78,7 +79,7 @@ export function useBattleChat() {
         createdAt: new Date().toISOString()
       };
       addChat(optimisticMessage);
-      socket.emit('battle:chat', chatMessage);
+      socket.emit(BATTLE_CLIENT_EVENTS.CHAT, chatMessage);
     },
     [socket, battleId, team, user, addChat]
   );

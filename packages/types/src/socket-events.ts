@@ -36,6 +36,9 @@ export const BATTLE_SERVER_EVENTS = {
   TEAM_UPDATED: 'battle:team:updated',
   USER_UPDATED: 'battle:user:updated',
   USER_SKIPPED: 'battle:user:skipped',
+  CHAT_ERROR: 'battle:chat:error',
+  TEAM_VOTE_ERROR: 'battle:team:vote:error',
+  USER_SKIP_ERROR: 'battle:user:skip:error',
 } as const
 
 export type BattleClientEvent = (typeof BATTLE_CLIENT_EVENTS)[keyof typeof BATTLE_CLIENT_EVENTS]
