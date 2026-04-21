@@ -9,6 +9,7 @@ export const BATTLE_CLIENT_EVENTS = {
   DEFENSE_VOTE: 'battle:defense:vote',
   CHAT: 'battle:chat',
   USER_SKIP: 'battle:user:skip',
+  TEAM_VOTE: 'battle:team:vote',
 } as const
 
 /** 서버 → 클라이언트 이벤트 */

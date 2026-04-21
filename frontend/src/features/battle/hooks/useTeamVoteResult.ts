@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBattleStore, selectSocket, selectBattleId } from '@/features/battle/stores/battleStore';
+import { BATTLE_SERVER_EVENTS } from '@cmc/types';
 import type { BattleTeamUpdateAllResponse } from '@/commons/types/battle';
 import { soundManager } from '@/commons/utils/soundManager';
 
@@ -45,10 +46,10 @@ export function useTeamVoteResult() {
       }
     };
 
-    socket.on('battle:all:updated', handleTeamUpdateAll);
+    socket.on(BATTLE_SERVER_EVENTS.ALL_UPDATED, handleTeamUpdateAll);
 
     return () => {
-      socket.off('battle:all:updated', handleTeamUpdateAll);
+      socket.off(BATTLE_SERVER_EVENTS.ALL_UPDATED, handleTeamUpdateAll);
       if (autoCloseTimerRef.current) {
         clearTimeout(autoCloseTimerRef.current);
       }

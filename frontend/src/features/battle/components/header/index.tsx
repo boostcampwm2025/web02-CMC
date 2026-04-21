@@ -11,6 +11,7 @@ import {
   selectSelectedTeam
 } from '@/features/battle/stores/battleStore';
 import type { BattlePhaseName } from '@/commons/types/battle';
+import { BATTLE_CLIENT_EVENTS } from '@cmc/types';
 import PhaseSkip from './PhaseSkip';
 
 const PHASE_INSTRUCTIONS: Record<BattlePhaseName, string> = {
@@ -39,7 +40,7 @@ export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: 
 
   const handleStart = () => {
     if (!socket || !battleId) return;
-    socket.emit('battle:start', { battleId });
+    socket.emit(BATTLE_CLIENT_EVENTS.START, { battleId });
   };
 
   return (
