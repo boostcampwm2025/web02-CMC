@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/commons/components/Button';
-import type { Team } from '@/commons/types/battle';
+import type { BattleTeam } from '@/commons/types/battle';
 import { useStepFlow } from '@/pages/teamSelectPage/hooks/useStepFlow';
 import StepIndicator from '@/pages/teamSelectPage/components/StepIndicator';
 import StepNavigation from '@/pages/teamSelectPage/components/StepNavigation';
@@ -21,7 +21,7 @@ export default function TutorialTeamSelectPage() {
   const hasReferenceData = !!battleInfo.referenceData;
   const totalSteps = hasReferenceData ? 5 : 4;
   const { currentStep, goToNext, goToPrev, isLastStep } = useStepFlow({ totalSteps });
-  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<BattleTeam | null>(null);
   const [introStep, setIntroStep] = useState<0 | 1>(0);
   const [showIntro, setShowIntro] = useState(true);
 

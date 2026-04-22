@@ -1,4 +1,4 @@
-export type Team = 'A' | 'B' | 'NONE';
+import type { BattleTeam } from '@cmc/types';
 
 export interface TeamColors {
   primary: string;
@@ -12,7 +12,7 @@ export interface TeamColors {
   codeText: string;
 }
 
-export const TEAM_COLORS: Record<Team, TeamColors> = {
+export const TEAM_COLORS: Record<BattleTeam, TeamColors> = {
   A: {
     primary: 'text-[#6BA3FF]',
     border: 'border-[#3B6FA8]',

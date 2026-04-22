@@ -1,5 +1,5 @@
 import type { IconName } from '@/commons/components/Icon';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
 
 export interface PhaseConfig {
   label: string;
@@ -9,7 +9,7 @@ export interface PhaseConfig {
   icon: IconName;
 }
 
-export const PHASE_CONFIG: Record<BattlePhase, PhaseConfig> = {
+export const PHASE_CONFIG: Record<BattlePhaseName, PhaseConfig> = {
   PENDING: {
     label: '대기 중',
     color: 'text-gray-400',

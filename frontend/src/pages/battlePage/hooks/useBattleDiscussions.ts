@@ -10,6 +10,7 @@ import {
 import { getDiscussionConfig, isInputDisabled } from '@/features/battle/utils/battlePhase';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { soundManager } from '@/commons/utils/soundManager';
+import { BATTLE_SERVER_EVENTS, BATTLE_CLIENT_EVENTS } from '@cmc/types';
 
 export function useBattleDiscussions() {
   const socket = useBattleStore(selectSocket);
@@ -28,7 +29,7 @@ export function useBattleDiscussions() {
       if (targetDiscussion?.hasVoted) return;
 
       const { isAttacking } = getDiscussionConfig(battleProgress?.phase);
-      const eventName = isAttacking ? 'battle:attack:vote' : 'battle:defense:vote';
+      const eventName = isAttacking ? BATTLE_CLIENT_EVENTS.ATTACK_VOTE : BATTLE_CLIENT_EVENTS.DEFENSE_VOTE;
 
       soundManager.play('click2');
 
@@ -53,7 +54,7 @@ export function useBattleDiscussions() {
         return;
       }
 
-      socket.emit(isAttacking ? 'battle:attack' : 'battle:defense', {
+      socket.emit(isAttacking ? BATTLE_CLIENT_EVENTS.ATTACK : BATTLE_CLIENT_EVENTS.DEFENSE, {
         battleId,
         authorId: user.id,
         content,
@@ -95,16 +96,16 @@ export function useBattleDiscussions() {
       soundManager.play('notificationPing');
     };
 
-    socket.on('battle:attack:voted', handleVoteUpdate);
-    socket.on('battle:defense:voted', handleVoteUpdate);
-    socket.on('battle:attack:created', handleNewDiscussion);
-    socket.on('battle:defense:created', handleNewDiscussion);
+    socket.on(BATTLE_SERVER_EVENTS.ATTACK_VOTED, handleVoteUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.DEFENSE_VOTED, handleVoteUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.ATTACK_CREATED, handleNewDiscussion);
+    socket.on(BATTLE_SERVER_EVENTS.DEFENSE_CREATED, handleNewDiscussion);
 
     return () => {
-      socket.off('battle:attack:voted', handleVoteUpdate);
-      socket.off('battle:defense:voted', handleVoteUpdate);
-      socket.off('battle:attack:created', handleNewDiscussion);
-      socket.off('battle:defense:created', handleNewDiscussion);
+      socket.off(BATTLE_SERVER_EVENTS.ATTACK_VOTED, handleVoteUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.DEFENSE_VOTED, handleVoteUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.ATTACK_CREATED, handleNewDiscussion);
+      socket.off(BATTLE_SERVER_EVENTS.DEFENSE_CREATED, handleNewDiscussion);
     };
   }, [socket, user, team, updateDiscussionVote, addDiscussion]);
 

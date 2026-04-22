@@ -10,10 +10,11 @@ import {
   selectSocket,
   selectSelectedTeam
 } from '@/features/battle/stores/battleStore';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
+import { BATTLE_CLIENT_EVENTS } from '@cmc/types';
 import PhaseSkip from './PhaseSkip';
 
-const PHASE_INSTRUCTIONS: Record<BattlePhase, string> = {
+const PHASE_INSTRUCTIONS: Record<BattlePhaseName, string> = {
   PENDING: '',
   OPINION_SHARE: '자유롭게 의견을 작성하고 투표에 참여해주세요',
   ATTACK: '주어진 시간 내에 상대 코드의 문제점을 지적해주세요',
@@ -32,14 +33,14 @@ export default function BattleHeader({ isSkipEnabled, toggleSkip, totalSkips }: 
   const team = useBattleStore(selectSelectedTeam);
   const battleId = useBattleStore(selectBattleId);
   const socket = useBattleStore(selectSocket);
-  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhaseName) || 'PENDING';
   const instruction = PHASE_INSTRUCTIONS[phase] || PHASE_INSTRUCTIONS.PENDING;
 
   const isSkipVisible = team !== 'NONE';
 
   const handleStart = () => {
     if (!socket || !battleId) return;
-    socket.emit('battle:start', { battleId });
+    socket.emit(BATTLE_CLIENT_EVENTS.START, { battleId });
   };
 
   return (

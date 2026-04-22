@@ -1,6 +1,6 @@
 import Icon, { type IconName } from '@/commons/components/Icon';
 import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
-import type { BattleInfo, BattlePhase } from '@/commons/types/battle';
+import type { BattleInfo, BattlePhaseName } from '@/commons/types/battle';
 import { useLoaderData } from 'react-router-dom';
 
 interface PhaseStyle {
@@ -11,7 +11,7 @@ interface PhaseStyle {
   iconName: IconName;
 }
 
-const PHASE_CONFIG: Record<BattlePhase, PhaseStyle> = {
+const PHASE_CONFIG: Record<BattlePhaseName, PhaseStyle> = {
   PENDING: {
     category: '대기 중',
     message: '배틀이 시작되기를 기다리고 있습니다.',
@@ -56,7 +56,7 @@ export default function StageIndicator() {
 
   const topics = battleInfo?.topics || [];
   const { round, phaseCount } = battleProgress;
-  const phase = (battleProgress?.phase as BattlePhase) || 'PENDING';
+  const phase = (battleProgress?.phase as BattlePhaseName) || 'PENDING';
   const { iconName, category, message, container, icon } = PHASE_CONFIG[phase] || PHASE_CONFIG.PENDING;
   const phaseName = ['ATTACK', 'DEFENSE'].includes(phase) ? `${phaseCount}차 ${category}` : category;
 

@@ -1,4 +1,4 @@
-import type { BattlePhase, BattleProgressState, Team } from '@/commons/types/battle';
+import type { BattlePhaseName, BattleProgressState, BattleTeam } from '@/commons/types/battle';
 
 export const isBattleActive = (battleProgress: BattleProgressState | null): battleProgress is BattleProgressState => {
   if (!battleProgress) return false;
@@ -9,12 +9,12 @@ export const isBattleActive = (battleProgress: BattleProgressState | null): batt
   );
 };
 
-export const isMyTeamAttacking = (team: Team, phase?: BattlePhase): boolean => {
+export const isMyTeamAttacking = (team: BattleTeam, phase?: BattlePhaseName): boolean => {
   if (!phase) return false;
   return phase === 'ATTACK' && team !== 'NONE';
 };
 
-export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = false): boolean => {
+export const isInputDisabled = (team: BattleTeam, phase?: BattlePhaseName, disabled = false): boolean => {
   if (disabled) return true;
   if (!phase) return true;
 
@@ -24,7 +24,7 @@ export const isInputDisabled = (team: Team, phase?: BattlePhase, disabled = fals
   return false;
 };
 
-export const getDiscussionConfig = (phase?: BattlePhase) => {
+export const getDiscussionConfig = (phase?: BattlePhaseName) => {
   if (phase === 'ATTACK') {
     return {
       label: '이의제기',

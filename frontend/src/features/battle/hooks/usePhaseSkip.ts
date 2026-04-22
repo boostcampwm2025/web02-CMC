@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { selectBattleId, selectSocket, useBattleStore } from '@/features/battle/stores/battleStore';
+import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types';
 
 export function usePhaseSkip() {
   const socket = useBattleStore(selectSocket);
@@ -13,7 +14,7 @@ export function usePhaseSkip() {
 
     setIsSkipEnabled((prev) => {
       const next = !prev;
-      socket.emit('battle:user:skip', { skip: next, battleId: battleId });
+      socket.emit(BATTLE_CLIENT_EVENTS.USER_SKIP, { skip: next, battleId: battleId });
       return next;
     });
   }, [socket, battleId]);
@@ -37,18 +38,18 @@ export function usePhaseSkip() {
       setIsSkipEnabled(false);
       setTotalSkips(0);
     };
-    socket.on('battle:phase:skipped', handleTeamUpdateAll);
-    socket.on('battle:user:skipped', handleSkipped);
-    socket.on('battle:leaved', handleSkipped);
-    socket.on('battle:joined', handleSkipped);
-    socket.on('battle:phase:updated', handlePhaseUpdated);
+    socket.on(BATTLE_SERVER_EVENTS.PHASE_SKIPPED, handleTeamUpdateAll);
+    socket.on(BATTLE_SERVER_EVENTS.USER_SKIPPED, handleSkipped);
+    socket.on(BATTLE_SERVER_EVENTS.LEAVED, handleSkipped);
+    socket.on(BATTLE_SERVER_EVENTS.JOINED, handleSkipped);
+    socket.on(BATTLE_SERVER_EVENTS.PHASE_UPDATED, handlePhaseUpdated);
 
     return () => {
-      socket.off('battle:phase:skipped', handleTeamUpdateAll);
-      socket.off('battle:user:skipped', handleSkipped);
-      socket.off('battle:leaved', handleSkipped);
-      socket.off('battle:joined', handleSkipped);
-      socket.off('battle:phase:updated', handlePhaseUpdated);
+      socket.off(BATTLE_SERVER_EVENTS.PHASE_SKIPPED, handleTeamUpdateAll);
+      socket.off(BATTLE_SERVER_EVENTS.USER_SKIPPED, handleSkipped);
+      socket.off(BATTLE_SERVER_EVENTS.LEAVED, handleSkipped);
+      socket.off(BATTLE_SERVER_EVENTS.JOINED, handleSkipped);
+      socket.off(BATTLE_SERVER_EVENTS.PHASE_UPDATED, handlePhaseUpdated);
     };
   }, [socket]);
 

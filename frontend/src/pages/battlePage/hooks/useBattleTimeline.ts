@@ -5,9 +5,10 @@ import type {
   BattleDiscussion,
   BattleDefense,
   BattleChat,
-  Team
+  BattleTeam
 } from '@/commons/types/battle';
 import { useBattleStore, selectSelectedTeam, selectSocket } from '@/features/battle/stores/battleStore';
+import { BATTLE_SERVER_EVENTS } from '@cmc/types';
 import { useEffectModal } from './useEffectModal';
 
 export function useBattleTimeline() {
@@ -20,7 +21,7 @@ export function useBattleTimeline() {
 
     const pushTimelineAndChat = (
       battleId: string,
-      team: Team,
+      team: BattleTeam,
       entry: {
         id: string | null;
         text: string | null;
@@ -184,12 +185,12 @@ export function useBattleTimeline() {
       }
     };
 
-    socket.on('battle:attacked', handleAttacked);
-    socket.on('battle:defensed', handleDefensed);
+    socket.on(BATTLE_SERVER_EVENTS.ATTACKED, handleAttacked);
+    socket.on(BATTLE_SERVER_EVENTS.DEFENSED, handleDefensed);
 
     return () => {
-      socket.off('battle:attacked', handleAttacked);
-      socket.off('battle:defensed', handleDefensed);
+      socket.off(BATTLE_SERVER_EVENTS.ATTACKED, handleAttacked);
+      socket.off(BATTLE_SERVER_EVENTS.DEFENSED, handleDefensed);
     };
   }, [socket, showEffect, selectedTeam]);
 

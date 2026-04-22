@@ -22,6 +22,9 @@ COPY backend/prisma ./backend/prisma
 # Prisma Client 생성
 RUN pnpm -C backend prisma:generate
 
+# Build shared packages
+RUN pnpm -C packages/types build
+
 # Build backend
 RUN pnpm -C backend build
 

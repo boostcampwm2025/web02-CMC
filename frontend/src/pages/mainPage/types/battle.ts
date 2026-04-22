@@ -1,8 +1,7 @@
 import type { IconName } from '@/commons/components/Icon';
+import type { BattleCategory, BattleStatus } from '@cmc/types';
 
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
-
-export type BattleStatus = 'OPEN' | 'CLOSED' | 'PENDING';
+export type { BattleCategory, BattleStatus } from '@cmc/types';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
 
 export const BATTLE_CATEGORY_CONFIG: Record<
@@ -37,8 +36,8 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     icon: 'battle'
   },
 
-  IMPLEMENTATION: {
-    key: 'IMPLEMENTATION',
+  IMPLEMENT: {
+    key: 'IMPLEMENT',
     title: '💡 구현 배틀',
     description: '같은 기능, 다른 접근법의 대결',
     text: 'text-orange-400',

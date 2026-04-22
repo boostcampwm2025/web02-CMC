@@ -1,0 +1,8 @@
+export type BattlePhaseName = 'PENDING' | 'OPINION_SHARE' | 'ATTACK' | 'DEFENSE' | 'TEAM_SWITCH'
+export type BattleTeam = 'A' | 'B' | 'NONE'
+export type BattleStatus = 'PENDING' | 'OPEN' | 'CLOSED'
+export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
+export type BattleLanguage = 'TS' | 'JS' | 'PYTHON'
+export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENT' | 'ETC'
+export type BattleType = 'PUBLIC' | 'PRIVATE'
+export type BattleChatScope = 'ALL' | 'TEAM'

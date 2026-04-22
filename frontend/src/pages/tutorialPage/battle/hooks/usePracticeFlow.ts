@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { BattlePhase } from '@/commons/types/battle';
+import type { BattlePhaseName } from '@/commons/types/battle';
 import { useBattleStore, selectBattleProgress } from '@/features/battle/stores/battleStore';
 import { useAuthStore } from '@/commons/stores/authStore';
 import { soundManager } from '@/commons/utils/soundManager';
@@ -99,7 +99,7 @@ export function usePracticeFlow({ currentStep, onOpenTeamChangeModal }: Practice
   }, [introOverride, practicePhase]);
 
   const updatePhase = useCallback(
-    (phase: BattlePhase) => {
+    (phase: BattlePhaseName) => {
       const now = Date.now();
       const expiresInMs = 3 * 60 * 1000;
       useBattleStore.getState().updateBattleProgress({

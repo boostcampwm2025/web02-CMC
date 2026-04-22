@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import type { BattleJoinData } from '@/commons/types/battle';
+import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types';
 import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useAuthStore, selectUser } from '@/commons/stores/authStore';
 
@@ -46,7 +47,7 @@ export function useBattleSocket() {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      newSocket.emit('battle:join', {
+      newSocket.emit(BATTLE_CLIENT_EVENTS.JOIN, {
         userId,
         battleId,
         team: selectedTeam,
@@ -55,7 +56,7 @@ export function useBattleSocket() {
     });
 
     // 배틀 참여 성공시 데이터 동기화
-    newSocket.on('battle:joined', (data: BattleJoinData) => {
+    newSocket.on(BATTLE_SERVER_EVENTS.JOINED, (data: BattleJoinData) => {
       // 초기 battleState 설정
       setBattleProgress({
         round: data.round,
@@ -132,7 +133,7 @@ export function useBattleSocket() {
       }
     });
 
-    newSocket.on('battle:leaved', (data) => {
+    newSocket.on(BATTLE_SERVER_EVENTS.LEAVED, (data) => {
       setTeamCounts({
         teamACount: data.counts.teamA,
         teamBCount: data.counts.teamB,
@@ -142,15 +143,15 @@ export function useBattleSocket() {
 
     return () => {
       newSocket.off('connect');
-      newSocket.off('battle:joined');
-      newSocket.off('battle:phase:updated');
-      newSocket.off('battle:round:updated');
-      newSocket.off('battle:attacked');
-      newSocket.off('battle:defensed');
-      newSocket.off('battle:attack:voted');
-      newSocket.off('battle:defense:voted');
-      newSocket.off('battle:attack:created');
-      newSocket.off('battle:defense:created');
+      newSocket.off(BATTLE_SERVER_EVENTS.JOINED);
+      newSocket.off(BATTLE_SERVER_EVENTS.PHASE_UPDATED);
+      newSocket.off(BATTLE_SERVER_EVENTS.ROUND_UPDATED);
+      newSocket.off(BATTLE_SERVER_EVENTS.ATTACKED);
+      newSocket.off(BATTLE_SERVER_EVENTS.DEFENSED);
+      newSocket.off(BATTLE_SERVER_EVENTS.ATTACK_VOTED);
+      newSocket.off(BATTLE_SERVER_EVENTS.DEFENSE_VOTED);
+      newSocket.off(BATTLE_SERVER_EVENTS.ATTACK_CREATED);
+      newSocket.off(BATTLE_SERVER_EVENTS.DEFENSE_CREATED);
       newSocket.disconnect();
       setSocket(null);
       setIsConnected(false);
