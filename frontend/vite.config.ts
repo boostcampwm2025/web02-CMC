@@ -10,7 +10,8 @@ import path from 'path';
 export default defineConfig({
   plugins: [react(), tailwindcss(), svgr(), wasm(), topLevelAwait()],
   optimizeDeps: {
-    exclude: ['@wasm-fmt/ruff_fmt']
+    exclude: ['@wasm-fmt/ruff_fmt'],
+    include: ['@cmc/types']
   },
   resolve: {
     alias: {
