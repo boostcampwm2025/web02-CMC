@@ -1,4 +1,5 @@
-export type { BattleType, BattleLanguage } from '@cmc/types';
+import type { BattleType, BattleLanguage } from '@cmc/types';
+export type { BattleType, BattleLanguage };
 export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 export interface CreateBattleRequest {
