@@ -18,6 +18,9 @@ RUN pnpm install --frozen-lockfile
 # Copy source
 COPY frontend ./frontend
 
+# Build shared packages
+RUN pnpm -C packages/types build
+
 # Build
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
