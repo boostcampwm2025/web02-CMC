@@ -1,5 +1,4 @@
 import type { BattlePhaseName, BattleTeam, BattleDiscussionStatus, BattleChatScope } from '@cmc/types';
-export type { BattlePhaseName, BattleTeam, BattleDiscussionStatus, BattleChatScope };
 
 // BattleChat 타입
 export interface BattleChat {

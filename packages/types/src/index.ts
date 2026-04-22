@@ -1,2 +1,2 @@
-export * from './battle'
-export * from './socket-events'
+export * from './battle.js'
+export * from './socket-events.js'
