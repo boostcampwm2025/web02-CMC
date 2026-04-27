@@ -49,7 +49,7 @@ describe('BattleTerminationUseCase', () => {
     } as unknown as jest.Mocked<BattleRepoPort>
 
     stateRepo = {
-      clearCache: jest.fn().mockResolvedValue(undefined),
+      clearBattleStateFromRedis: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<BattleStatePort>
 
     broadcaster = {

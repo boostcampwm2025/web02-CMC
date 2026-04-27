@@ -9,9 +9,10 @@ describe('BattleSkipService', () => {
 
   const createActiveState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
     battleId: 'battle-id',
-    all: { roomId: 'battle:battle-id', chats: [], attacks: [], defenses: [] },
-    teamA: { roomId: 'battle:battle-id:A', chats: [], users: ['user-a'], attacks: [], defenses: [] },
-    teamB: { roomId: 'battle:battle-id:B', chats: [], users: ['user-b'], attacks: [], defenses: [] },
+    status: 'OPEN',
+    all: { roomId: 'battle:battle-id:room:all', chats: [], attacks: [], defenses: [] },
+    teamA: { roomId: 'battle:battle-id:room:A', chats: [], users: ['user-a'], attacks: [], defenses: [] },
+    teamB: { roomId: 'battle:battle-id:room:B', chats: [], users: ['user-b'], attacks: [], defenses: [] },
     phase: BATTLE_PHASE.OPINION_SHARE.name,
     participants: new Map([
       ['user-a', BATTLE_TEAM.A],

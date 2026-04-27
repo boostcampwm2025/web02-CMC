@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import { Prisma } from 'generated/prisma/client'
 import { BATTLE_STATUS, BATTLE_PHASE, BATTLE_TYPE } from '../../domains/models/const/battles.const'
-import { Battle, ActiveBattleState } from '../../domains/models/types/battle.types'
+import { Battle } from '../../domains/models/types/battle.types'
 import type { BattleReferenceData } from '../../domains/models/types/ai.types'
 import type { BattleCreateQueryDto } from '../../dto/battleCreateQuery.dto'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battleTurnResponse.dto'
@@ -98,8 +98,7 @@ export class BattleCreationUseCase {
 
   //배틀 시작
   async start(battleId: string): Promise<void> {
-    const battleStateResult = await this.stateRepo.loadBattleState(battleId)
-    const state: ActiveBattleState = battleStateResult.state
+    const { state } = await this.stateRepo.loadBattleState(battleId)
 
     const startedAt = Date.now()
     const expiredAt = startedAt + BATTLE_PHASE.PENDING.time
@@ -110,7 +109,7 @@ export class BattleCreationUseCase {
       status: BATTLE_STATUS.OPEN,
       updatedAt: new Date(),
     })
-    await this.stateRepo.saveBattleState(battleId, state)
+    this.stateRepo.saveBattleState(battleId, state)
 
     const phaseRes = BattlePhaseResponseDto.of({
       battleId,

@@ -93,6 +93,8 @@ export interface BattleTeamData extends BattleData {
 export interface ActiveBattleState {
   battleId: string
 
+  status: string
+
   all: BattleData
   teamA: BattleTeamData
   teamB: BattleTeamData

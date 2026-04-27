@@ -14,6 +14,7 @@ import { BattleDiscussionService } from '../../domains/services/battleDiscussion
 import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
 import { BattleSkipService } from '../../domains/services/battleSkip/battleSkip.service'
 import { BattleTerminationUseCase } from './battleTermination.usecase'
+import { BATTLE_PHASE } from 'src/battles/domains/models/const/battles.const'
 
 @Injectable()
 export class BattlePhaseTransitionUseCase {
@@ -37,6 +38,8 @@ export class BattlePhaseTransitionUseCase {
     const prevRound = state.round
     const now = Date.now()
 
+    let resetType: 'attack' | 'defense' | null = null
+
     const nextPhase = this.phaseService.nextPhase(
       state,
       state => {
@@ -47,7 +50,15 @@ export class BattlePhaseTransitionUseCase {
         const top = this.voteService.buildDefensedResult(state, (team, type) => this.discussionService.buildNullPlaceholder(team, type))
         this.broadcaster.emitDefensed(DiscussionVoteResultDto.defensed(state.battleId, top))
       },
-      state => this.discussionService.resetDiscussions(state),
+      state => {
+        const prevPhase = state.phase
+        if (prevPhase === BATTLE_PHASE.ATTACK.name || prevPhase === BATTLE_PHASE.OPINION_SHARE.name) {
+          resetType = 'attack'
+        } else {
+          resetType = 'defense'
+        }
+        this.discussionService.resetDiscussions(state)
+      },
       async state => await this.terminationUseCase.finish(state),
       state => {
         this.teamSwitchService.applyTeamSwitch(
@@ -86,7 +97,12 @@ export class BattlePhaseTransitionUseCase {
       this.broadcaster.emitPhaseUpdated(res)
     }
 
-    await this.stateRepo.saveBattleState(battleId, state)
+    this.stateRepo.saveBattleState(battleId, state)
+
+    // Redis 키도 정리
+    if (resetType !== null) {
+      void this.stateRepo.resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B'])
+    }
     void this.scheduleNextTick(battleId)
   }
 
@@ -95,7 +111,7 @@ export class BattlePhaseTransitionUseCase {
     const { state } = await this.stateRepo.loadBattleState(battleId)
 
     this.skipService.applyPhaseSkip(state, userId, skip)
-    await this.stateRepo.updateSkipState(battleId, state.skipState)
+    await this.stateRepo.updateSkipState(battleId, state.skipState, state.phase)
 
     const skipped = await this.checkAndSkipPhase(battleId, state)
     return skipped ? 0 : state.skipState.size
@@ -103,7 +119,8 @@ export class BattlePhaseTransitionUseCase {
 
   //스킵 페이즈
   private async skipPhase(battleId: string): Promise<void> {
-    await this.stateRepo.updateSkipState(battleId, new Set<string>())
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    await this.stateRepo.updateSkipState(battleId, new Set<string>(), state.phase)
     await this.advancePhase(battleId)
     this.broadcaster.emitPhaseSkipped(battleId)
   }

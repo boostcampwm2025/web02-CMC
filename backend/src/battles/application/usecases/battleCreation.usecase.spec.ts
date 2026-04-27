@@ -76,7 +76,7 @@ describe('BattleCreationUseCase', () => {
         battle: {},
         state: createMockState(),
       }),
-      saveBattleState: jest.fn().mockResolvedValue(undefined),
+      saveBattleState: jest.fn(),
     } as unknown as jest.Mocked<BattleStatePort>
 
     broadcaster = {

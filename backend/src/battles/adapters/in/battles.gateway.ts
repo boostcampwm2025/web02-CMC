@@ -17,7 +17,6 @@ import { AttackRequestDto, DefenseRequestDto, AttackVoteRequestDto, DefenseVoteR
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battleTurnResponse.dto'
 import { BattleChatDto } from '../../dto/battleChat.dto'
 import { BATTLE_CHAT_SCOPE } from '../../domains/models/const/battles.const'
-import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types'
 import { DiscussionVoteResultDto } from '../../dto/discussionVoteResult.dto'
 import { BattleTeamVoteDto } from '../../dto/battleTeamVote.dto'
 import { BattleClosedResponseDto } from '../../dto/battleClosedResponse.dto'
@@ -32,6 +31,7 @@ import { BattlePhaseTransitionUseCase } from '../../application/usecases/battleP
 import { BattleQueryUseCase } from '../../application/usecases/battleQuery.usecase'
 import { getBattleRoomId } from '../../domains/services/utils/battle.util'
 import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
+import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types'
 
 @WebSocketGateway({
   cors: {
@@ -96,7 +96,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       try {
         const result = await this.participationUseCase.leave(userId, battleId)
         const battleRoomId = getBattleRoomId(battleId)
-        this.server.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.LEAVED, result)
+        this.server.to(battleRoomId).emit('battle:leaved', result)
       } catch (error) {
         if (!(error instanceof NotFoundException)) {
           this.logger.error(`[소켓 연결 해제 처리 실패] userId: ${userId}, battleId: ${battleId}`, error as Error)
@@ -201,6 +201,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:attack error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit(BATTLE_SERVER_EVENTS.ATTACK_ERROR, {
           message: error.message,
         })
@@ -224,6 +225,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:defense error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit(BATTLE_SERVER_EVENTS.DEFENSE_ERROR, {
           message: error.message,
         })
@@ -250,6 +252,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:attack:vote error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit(BATTLE_SERVER_EVENTS.ATTACK_VOTE_ERROR, {
           message: error.message,
         })
@@ -276,6 +279,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     } catch (error) {
       stopTimer('error')
       if (error instanceof Error) {
+        this.logger.error(`[battle:defense:vote error] userId=${client.data?.userId} ${error.constructor.name}: ${error.message}`)
         client.emit(BATTLE_SERVER_EVENTS.DEFENSE_VOTE_ERROR, {
           message: error.message,
         })
@@ -372,7 +376,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const team: BattleTeam = battleChatDto.team
       const roomId = scope === BATTLE_CHAT_SCOPE.ALL ? getBattleRoomId(battleId) : getBattleRoomId(battleId, team)
 
-      // this.server.to(roomId).emit(BATTLE_SERVER_EVENTS.CHATTED, saved)
+      // this.server.to(roomId).emit('battle:chatted', saved)
       this.server.to(roomId).except(client.id).emit(BATTLE_SERVER_EVENTS.CHATTED, saved)
       stopTimer('success')
     } catch (error) {

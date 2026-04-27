@@ -37,7 +37,7 @@ describe('BattleParticipationUseCase', () => {
 
     stateRepo = {
       loadBattleState: jest.fn(),
-      saveBattleState: jest.fn().mockResolvedValue(undefined),
+      saveBattleState: jest.fn(),
     } as unknown as jest.Mocked<BattleStatePort>
 
     broadcaster = {
@@ -108,7 +108,7 @@ describe('BattleParticipationUseCase', () => {
     it('CLOSED 상태의 배틀에는 참가할 수 없다', async () => {
       stateRepo.loadBattleState.mockResolvedValue({
         battle: { status: BATTLE_STATUS.CLOSED },
-        state: createMockState(),
+        state: { ...createMockState(), status: BATTLE_STATUS.CLOSED },
       } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
 
       const dto: BattleJoinRequestDto = {

@@ -16,9 +16,10 @@ describe('BattlePhaseService', () => {
 
   const createState = (overrides: Partial<ActiveBattleState> = {}): ActiveBattleState => ({
     battleId: 'battle-1',
-    all: { roomId: 'battle:battle-1', chats: [], attacks: [], defenses: [] },
-    teamA: { roomId: 'battle:battle-1:A', chats: [], users: [], attacks: [], defenses: [] },
-    teamB: { roomId: 'battle:battle-1:B', chats: [], users: [], attacks: [], defenses: [] },
+    status: 'OPEN',
+    all: { roomId: 'battle:battle-1:room:all', chats: [], attacks: [], defenses: [] },
+    teamA: { roomId: 'battle:battle-1:room:A', chats: [], users: [], attacks: [], defenses: [] },
+    teamB: { roomId: 'battle:battle-1:room:B', chats: [], users: [], attacks: [], defenses: [] },
     participants: new Map(),
     teamVotes: new Map(),
     userInfoMap: new Map(),
