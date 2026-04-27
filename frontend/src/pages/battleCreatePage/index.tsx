@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react';
 import { BATTLE_CATEGORY_CONFIG } from '../mainPage/types/battle';
 import BattleTopicInput from './components/BattleTopicInput';
-import { formatCode } from '@/commons/utils/codeFormatter';
+import { formatCode, type FormatterLanguage } from '@/commons/utils/codeFormatter';
+import { languageMapper } from '@/commons/utils/languageMapper';
 import { selectUser, useAuthStore } from '@/commons/stores/authStore';
 import { useToastStore, selectAddToast } from '@/commons/stores/toastStore';
 import { useCreateBattle } from './hooks/useCreateBattle';
 import LoadingOverlay from '@/commons/components/LoadingOverlay';
+import Button from '@/commons/components/Button';
 import type { BattleType, BattleLanguage, BattlePlayTime } from './api/types';
 
 const LANGUAGE_OPTIONS: Array<{ label: string; value: BattleLanguage }> = [
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'TypeScript', value: 'typescript' },
-  { label: 'Python', value: 'python' }
+  { label: 'JavaScript', value: 'JS' },
+  { label: 'TypeScript', value: 'TS' },
+  { label: 'Python', value: 'PYTHON' }
 ];
 
 const PLAYTIME_OPTIONS: Array<{ label: string; value: BattlePlayTime; rounds: number }> = [
@@ -43,7 +45,7 @@ export default function BattleCreatePage() {
   const [description, setDescription] = useState('');
   const [aCode, setACode] = useState('');
   const [bCode, setBCode] = useState('');
-  const [language, setLanguage] = useState<BattleLanguage>('javascript');
+  const [language, setLanguage] = useState<BattleLanguage>('JS');
   const [category, setCategory] = useState(categoryOptions[0]?.value ?? 'ALGORITHM');
   const [playTime, setPlayTime] = useState<BattlePlayTime>('FIFTEEN_MIN');
   const [topics, setTopics] = useState<string[]>([]);
@@ -65,7 +67,11 @@ export default function BattleCreatePage() {
   const handleSubmit = async () => {
     if (!canSubmit || isPending) return;
 
-    const [formattedA, formattedB] = await Promise.all([formatCode(aCode, language), formatCode(bCode, language)]);
+    const formatterLang = languageMapper(language) as FormatterLanguage;
+    const [formattedA, formattedB] = await Promise.all([
+      formatCode(aCode, formatterLang),
+      formatCode(bCode, formatterLang)
+    ]);
 
     if (!authorId) {
       addToast({ message: '로그인이 필요합니다.' });
@@ -92,12 +98,14 @@ export default function BattleCreatePage() {
       <div className="min-h-screen w-full px-6 py-8">
         <div className="mx-auto create-max-width">
           <div className="flex items-center justify-start gap-4 mt-10 mb-8">
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => window.history.back()}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors shrink-0 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
+              className="shrink-0 w-[100px] sm:w-auto sm:min-w-[100px]"
             >
               ← 돌아가기
-            </button>
+            </Button>
           </div>
 
           <div className="mt-4 rounded-2xl border border-[#2b2b3e] bg-[#121226] shadow-[0_18px_35px_rgba(0,0,0,0.35)]">
@@ -229,23 +237,19 @@ export default function BattleCreatePage() {
                 <BattleTopicInput rounds={rounds} selectedTopics={topics} onTopicsChange={setTopics} />
 
                 <div className="flex items-center justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => (window.location.href = '/main')}
-                    className="rounded-xl border border-[#2b2b3e] bg-transparent px-5 py-3 text-gray-200 hover:bg-[#1a1a2e] transition-colors"
-                  >
+                  <Button type="button" variant="ghost" onClick={() => (window.location.href = '/main')}>
                     취소
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
                     disabled={!canSubmit || isPending}
                     onClick={handleSubmit}
                     data-testid="create-battle-button"
-                    className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:cursor-not-allowed disabled:bg-orange-500/50 transition-colors"
+                    className="shadow-[0_12px_24px_rgba(255,105,0,0.25)] hover:bg-orange-400 disabled:bg-orange-500/50"
                   >
                     배틀 생성하기
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

@@ -22,6 +22,7 @@
     "prisma:generate": "npx prisma generate"
   },
   "dependencies": {
+    "@cmc/types": "workspace:*",
     "@google/generative-ai": "^0.24.1",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
@@ -100,6 +101,7 @@
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
     "moduleNameMapper": {
+      "^@cmc/types$": "<rootDir>/../../packages/types/src/index.ts",
       "^src/(.*)$": "<rootDir>/$1",
       "^generated/prisma/(.*)$": "<rootDir>/../generated/prisma/$1.ts",
       "^generated/prisma/(.*)\\.js$": "<rootDir>/../generated/prisma/$1.ts",

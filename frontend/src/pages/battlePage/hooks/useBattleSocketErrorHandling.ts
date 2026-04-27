@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/react';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useToastStore } from '@/commons/stores/toastStore';
+import { BATTLE_SERVER_EVENTS } from '@cmc/types';
 
 interface ErrorPayload {
   message: string;
@@ -141,7 +142,7 @@ export function useBattleSocketErrorHandling() {
     });
 
     // 서버 비즈니스 에러 핸들러
-    socket.on('battle:join:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.JOIN_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '배틀 입장에 실패했습니다.' });
 
       Sentry.captureException(new Error('배틀 입장 실패'), {
@@ -156,7 +157,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:attack:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.ATTACK_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '공격 제출에 실패했습니다.' });
 
       Sentry.captureException(new Error('공격 제출 실패'), {
@@ -171,7 +172,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:defense:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.DEFENSE_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '방어 제출에 실패했습니다.' });
 
       Sentry.captureException(new Error('방어 제출 실패'), {
@@ -186,7 +187,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:attack:vote:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.ATTACK_VOTE_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '투표에 실패했습니다.' });
 
       Sentry.captureException(new Error('공격 투표 실패'), {
@@ -201,7 +202,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:defense:vote:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.DEFENSE_VOTE_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '투표에 실패했습니다.' });
 
       Sentry.captureException(new Error('방어 투표 실패'), {
@@ -216,7 +217,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:chat:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.CHAT_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '메시지 전송에 실패했습니다.' });
 
       Sentry.captureException(new Error('채팅 전송 실패'), {
@@ -231,7 +232,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:team:vote:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.TEAM_VOTE_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '팀 투표에 실패했습니다.' });
 
       Sentry.captureException(new Error('팀 투표 실패'), {
@@ -246,7 +247,7 @@ export function useBattleSocketErrorHandling() {
       });
     });
 
-    socket.on('battle:user:skip:error', (data: ErrorPayload) => {
+    socket.on(BATTLE_SERVER_EVENTS.USER_SKIP_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '스킵 요청에 실패했습니다.' });
 
       Sentry.captureException(new Error('스킵 요청 실패'), {
@@ -268,14 +269,14 @@ export function useBattleSocketErrorHandling() {
       socket.io.off('reconnect');
       socket.io.off('reconnect_attempt');
       socket.io.off('reconnect_failed');
-      socket.off('battle:join:error');
-      socket.off('battle:attack:error');
-      socket.off('battle:defense:error');
-      socket.off('battle:attack:vote:error');
-      socket.off('battle:defense:vote:error');
-      socket.off('battle:chat:error');
-      socket.off('battle:team:vote:error');
-      socket.off('battle:user:skip:error');
+      socket.off(BATTLE_SERVER_EVENTS.JOIN_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.ATTACK_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.DEFENSE_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.ATTACK_VOTE_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.DEFENSE_VOTE_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.CHAT_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.TEAM_VOTE_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.USER_SKIP_ERROR);
     };
   }, [socket, setIsConnected, setConnectionError, addToast]);
 }

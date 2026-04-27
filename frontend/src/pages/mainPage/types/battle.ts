@@ -1,11 +1,8 @@
-export type BattleCategory = 'ALGORITHM' | 'REFACTORING' | 'IMPLEMENTATION' | 'ETC';
+import type { IconName } from '@/commons/components/Icon';
+import type { BattleCategory, BattleStatus } from '@cmc/types';
 
-export type BattleStatus = 'OPEN' | 'CLOSED' | 'PENDING';
+export type { BattleCategory, BattleStatus } from '@cmc/types';
 export type WinnerTeam = 'A' | 'B' | 'DRAW';
-
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
-import CrownIcon from '@/assets/icon/crown.svg?react';
-import BattleIcon from '@/assets/icon/battle.svg?react';
 
 export const BATTLE_CATEGORY_CONFIG: Record<
   BattleCategory,
@@ -13,10 +10,10 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     key: BattleCategory;
     title: string;
     description: string;
-    text: string; // 아이콘 / 텍스트 컬러
-    bg: string; // 상단 바 / 강조 컬러
-    bgSoft: string; // IconBox 배경
-    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    text: string;
+    bg: string;
+    bgSoft: string;
+    icon: IconName;
   }
 > = {
   ALGORITHM: {
@@ -26,7 +23,7 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     text: 'text-yellow-400',
     bg: 'bg-yellow-400',
     bgSoft: 'bg-yellow-400/15',
-    icon: TrophyIcon
+    icon: 'trophy'
   },
 
   REFACTORING: {
@@ -36,17 +33,17 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     text: 'text-emerald-400',
     bg: 'bg-emerald-400',
     bgSoft: 'bg-emerald-400/15',
-    icon: BattleIcon
+    icon: 'battle'
   },
 
-  IMPLEMENTATION: {
-    key: 'IMPLEMENTATION',
+  IMPLEMENT: {
+    key: 'IMPLEMENT',
     title: '💡 구현 배틀',
     description: '같은 기능, 다른 접근법의 대결',
     text: 'text-orange-400',
     bg: 'bg-orange-400',
     bgSoft: 'bg-orange-400/15',
-    icon: CrownIcon
+    icon: 'crown'
   },
 
   ETC: {
@@ -56,7 +53,7 @@ export const BATTLE_CATEGORY_CONFIG: Record<
     text: 'text-gray-400',
     bg: 'bg-gray-400',
     bgSoft: 'bg-gray-400/15',
-    icon: BattleIcon
+    icon: 'battle'
   }
 };
 

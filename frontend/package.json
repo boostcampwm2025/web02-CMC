@@ -17,6 +17,7 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
+    "@cmc/types": "workspace:*",
     "@sentry/react": "^10.38.0",
     "@tanstack/react-query": "^5.90.20",
     "@wasm-fmt/ruff_fmt": "^0.14.13",
@@ -28,6 +29,7 @@
     "react-syntax-highlighter": "^16.1.0",
     "recharts": "^3.6.0",
     "socket.io-client": "^4.8.1",
+    "tailwind-merge": "^3.5.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

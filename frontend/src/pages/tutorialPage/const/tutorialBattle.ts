@@ -131,7 +131,7 @@ export const TUTORIAL_BATTLE_INFO: BattleInfo = {
 }`,
   bCode: `if (!user) return null;`,
   language: 'TS',
-  category: 'IMPLEMENTATION',
+  category: 'IMPLEMENT',
   participantCount: 30,
   currentRound: 1,
   totalRounds: topics.length,

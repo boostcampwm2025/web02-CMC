@@ -1,24 +1,25 @@
 import { useState, useCallback } from 'react';
+import Button from '@/commons/components/Button';
 import { useLocation, useNavigate, useLoaderData } from 'react-router-dom';
-import type { BattleInfo, Team } from '@/commons/types/battle';
+import type { BattleInfo, BattleTeam } from '@/commons/types/battle';
 import useModal from '@/commons/hooks/useModal';
-import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/pages/battlePage/stores/battleStore';
-import { isInputDisabled } from '@/pages/battlePage/utils/battlePhase';
+import { useBattleStore, selectBattleProgress, selectSelectedTeam } from '@/features/battle/stores/battleStore';
+import { isInputDisabled } from '@/features/battle/utils/battlePhase';
 
-import BattleHeader from '@/pages/battlePage/components/header';
-import CodeSection from '@/pages/battlePage/components/codeview/CodeSection';
-import ChatSection from '@/pages/battlePage/components/chatting/ChatSection';
-import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
-import DiscussionVote from '@/pages/battlePage/components/discussion/DiscussionVote';
-import BattleSidebar from '@/pages/battlePage/components/sidebar';
-import BookmarkButton from '@/pages/battlePage/components/sidebar/BookmarkButton';
+import BattleHeader from '@/features/battle/components/header';
+import CodeSection from '@/features/battle/components/codeview/CodeSection';
+import ChatSection from '@/features/battle/components/chatting/ChatSection';
+import DiscussionInput from '@/features/battle/components/discussion/DiscussionInput';
+import DiscussionVote from '@/features/battle/components/discussion/DiscussionVote';
+import BattleSidebar from '@/features/battle/components/sidebar';
+import SidebarTrigger from '@/features/battle/components/sidebar/SidebarTrigger';
 import TutorialModal from '@/pages/tutorialPage/components/TutorialModal';
 import TutorialStepModal from '@/pages/tutorialPage/components/TutorialStepModal';
-import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
-import TeamChangeModal from '@/pages/battlePage/components/modals/TeamChangeModal';
-import TeamVoteResultModal from '@/pages/battlePage/components/effects/TeamVoteResultModal';
-import DiscussionModal from '@/pages/battlePage/components/effects/DiscussionModal';
-import { useTeamVoteResult } from '@/pages/battlePage/hooks/useTeamVoteResult';
+import BattleProgressBoard from '@/features/battle/components/progressBoard/ProgressBoard';
+import TeamChangeModal from '@/features/battle/components/modals/TeamChangeModal';
+import TeamVoteResultModal from '@/features/battle/components/effects/TeamVoteResultModal';
+import DiscussionModal from '@/features/battle/components/effects/DiscussionModal';
+import { useTeamVoteResult } from '@/features/battle/hooks/useTeamVoteResult';
 import { useTutorialBattleSetup } from './hooks/useTutorialBattleSetup';
 import { usePracticeFlow } from './hooks/usePracticeFlow';
 import { useTutorialUI } from './hooks/useTutorialUI';
@@ -40,7 +41,7 @@ export default function TutorialBattlePage() {
   const battleProgress = useBattleStore(selectBattleProgress);
   const selectedTeam = useBattleStore(selectSelectedTeam);
 
-  const selectedTeamFromState = (location.state as { selectedTeam?: Team })?.selectedTeam;
+  const selectedTeamFromState = (location.state as { selectedTeam?: BattleTeam })?.selectedTeam;
 
   useTutorialBattleSetup({ battleInfo, selectedTeamFromState });
 
@@ -109,26 +110,19 @@ export default function TutorialBattlePage() {
 
   return (
     <div className="text-white relative">
-      <BookmarkButton
+      <SidebarTrigger
         onOpen={(tab) => {
           setActiveSidebarTab(tab);
           handleOpenSidebar();
         }}
         isOpen={isSidebarOpen}
         highlight={isTutorialOpen && currentStep === 'sidebar'}
-        hasReferenceData={!!battleInfo.referenceData}
       />
 
       <BattleSidebar
         isOpen={isSidebarOpen}
         onClose={handleCloseSidebar}
-        title={battleInfo.title}
-        description={battleInfo.description}
-        language={battleInfo.language}
-        category={battleInfo.category}
-        topics={battleInfo.topics}
         raiseZIndex={isTutorialOpen && currentStep === 'sidebarPanel'}
-        referenceData={battleInfo.referenceData}
         activeTab={activeSidebarTab}
         onActiveTabChange={setActiveSidebarTab}
       />
@@ -155,21 +149,11 @@ export default function TutorialBattlePage() {
         />
 
         <BattleProgressBoard />
-        <div
-          className={`transition-all duration-300 main-width-closed ${
-            battleProgress &&
-            (battleProgress.phase as string) !== 'PENDING' &&
-            battleProgress.expiredAt != null &&
-            battleProgress.startedAt
-          }`}
-        >
+        <div className="transition-all duration-300 main-width-closed">
           <div className="flex items-center justify-between mt-10 mb-8">
-            <button
-              onClick={handleLeaveBattle}
-              className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors"
-            >
+            <Button variant="secondary" size="sm" onClick={handleLeaveBattle}>
               ← 돌아가기
-            </button>
+            </Button>
           </div>
           <BattleHeader isSkipEnabled={false} toggleSkip={() => {}} totalSkips={0} />
         </div>
@@ -224,14 +208,13 @@ export default function TutorialBattlePage() {
           </div>
         </div>
 
-        {isTeamChangeModalOpen && (
-          <TeamChangeModal
-            topics={battleInfo.topics}
-            handleTeamChange={handleTeamSelect}
-            onClose={handleCloseTeamChangeModal}
-            className={teamSwitchModalClassName}
-          />
-        )}
+        <TeamChangeModal
+          isOpen={isTeamChangeModalOpen}
+          topics={battleInfo.topics}
+          handleTeamChange={handleTeamSelect}
+          onClose={handleCloseTeamChangeModal}
+          className={teamSwitchModalClassName}
+        />
 
         {isVoteResultModalOpen && voteResult && (
           <TeamVoteResultModal

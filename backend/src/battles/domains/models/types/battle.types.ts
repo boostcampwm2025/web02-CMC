@@ -1,27 +1,14 @@
-import {
-  BATTLE_CATEGORY,
-  BATTLE_LANGUAGE,
-  BATTLE_PHASE,
-  BATTLE_PLAYTIME,
-  BATTLE_TYPE,
-  BATTLE_STATUS,
-  BATTLE_TEAM,
-  BATTLE_DISCUSSION_TYPE,
-} from '../const/battles.const'
+import { BATTLE_PHASE, BATTLE_PLAYTIME, BATTLE_DISCUSSION_TYPE } from '../const/battles.const'
+import type { BattlePhaseName, BattleTeam, BattleStatus, BattleLanguage, BattleCategory, BattleType, BattleDiscussionStatus } from '@cmc/types'
 
 import { BattleResult, Metrics, VoteTimeline, TimelineItem, Mvp } from './battleResult.types'
 import type { BattleReferenceData } from './ai.types'
-export type BattlePhaseName = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]['name']
+
+export type { BattlePhaseName, BattleTeam, BattleStatus, BattleLanguage, BattleCategory, BattleType, BattleDiscussionStatus }
 export type BattlePhase = (typeof BATTLE_PHASE)[keyof typeof BATTLE_PHASE]
-export type BattleLanguage = (typeof BATTLE_LANGUAGE)[keyof typeof BATTLE_LANGUAGE]
-export type BattleStatus = (typeof BATTLE_STATUS)[keyof typeof BATTLE_STATUS]
-export type BattleType = (typeof BATTLE_TYPE)[keyof typeof BATTLE_TYPE]
 export type BattleDiscussionType = (typeof BATTLE_DISCUSSION_TYPE)[keyof typeof BATTLE_DISCUSSION_TYPE]
-export type BattleCategory = (typeof BATTLE_CATEGORY)[keyof typeof BATTLE_CATEGORY]
 export type BattlePlayTimeName = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]['name']
 export type BattlePlayTime = (typeof BATTLE_PLAYTIME)[keyof typeof BATTLE_PLAYTIME]
-export type BattleTeam = (typeof BATTLE_TEAM)[keyof typeof BATTLE_TEAM]
-export type BattleDiscussionStatus = 'PENDING' | 'SELECTED' | 'REJECTED'
 
 export interface Battle {
   id: string

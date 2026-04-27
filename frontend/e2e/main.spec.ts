@@ -47,11 +47,11 @@ test.describe('메인 페이지 - 렌더링', () => {
     await expect(page.getByRole('heading', { name: '지난 배틀 결과' })).toBeVisible();
   });
 
-  test('비로그인 상태에서 헤더에 로그인 링크가 표시된다', async ({ page }) => {
+  test('비로그인 상태에서 헤더에 로그인 버튼이 표시된다', async ({ page }) => {
     await mockUnauthenticated(page);
     await page.goto('/main');
 
-    await expect(page.getByRole('link', { name: '로그인' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인' })).toBeVisible();
   });
 
   test('로그인 상태에서 헤더에 유저 닉네임과 티어 아이콘이 표시된다', async ({ page }) => {
@@ -133,6 +133,146 @@ test.describe('메인 페이지 - 배틀 카드 클릭', () => {
     await page.getByRole('link', { name: '결과 보기 →' }).click();
 
     await expect(page).toHaveURL(`/battles/${MOCK_CLOSED_BATTLE.id}/result`);
+  });
+});
+
+test.describe('메인 페이지 - 로그인 모달', () => {
+  test('로그인 버튼 클릭 시 로그인 모달이 열린다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: '로그인' }).click();
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('button', { name: /GitHub로 계속하기/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /카카오로 계속하기/ })).toBeVisible();
+  });
+
+  test('로그인 모달 backdrop 클릭 시 모달이 닫힌다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: '로그인' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    await page.mouse.click(10, 10);
+
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('GitHub 로그인 버튼 클릭 시 GitHub OAuth 엔드포인트로 요청이 전송된다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route('**/api/auth/github', (route) => route.fulfill({ status: 200 }));
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: '로그인' }).click();
+
+    const requestPromise = page.waitForRequest('**/api/auth/github');
+    await page.getByRole('button', { name: /GitHub로 계속하기/ }).click();
+    await requestPromise;
+  });
+
+  test('카카오 로그인 버튼 클릭 시 카카오 OAuth 엔드포인트로 요청이 전송된다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route('**/api/auth/kakao', (route) => route.fulfill({ status: 200 }));
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: '로그인' }).click();
+
+    const requestPromise = page.waitForRequest('**/api/auth/kakao');
+    await page.getByRole('button', { name: /카카오로 계속하기/ }).click();
+    await requestPromise;
+  });
+
+  test('OAuth API 실패 시 에러 toast가 표시된다', async ({ page }) => {
+    await mockUnauthenticated(page);
+    await page.route('**/api/auth/github', (route) => route.fulfill({ status: 500 }));
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: '로그인' }).click();
+    await page.getByRole('button', { name: /GitHub로 계속하기/ }).click();
+
+    await expect(page.getByText('서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.')).toBeVisible();
+  });
+});
+
+test.describe('메인 페이지 - 닉네임 변경 모달', () => {
+  test('프로필 드롭다운에 닉네임 변경 버튼이 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+
+    await expect(page.getByRole('button', { name: '닉네임 변경' })).toBeVisible();
+  });
+
+  test('닉네임 변경 클릭 시 닉네임 변경 모달이 열린다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)')).toBeVisible();
+    await expect(page.getByRole('button', { name: '시작하기' })).toBeVisible();
+  });
+
+  test('닉네임 변경 모달 backdrop 클릭 시 모달이 닫힌다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    await page.mouse.click(10, 10);
+
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('빈 닉네임 제출 시 에러 메시지가 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByText('닉네임을 입력해주세요.')).toBeVisible();
+  });
+
+  test('닉네임 변경 성공 시 모달이 닫힌다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/auth/nickname', (route) =>
+      route.fulfill({ status: 200, json: { id: 'test-user-id', nickname: '새닉네임', avatarUrl: '' } })
+    );
+    await page.route('**/api/auth/me', (route) =>
+      route.fulfill({ status: 200, json: { id: 'test-user-id', nickname: '새닉네임', type: 'oauth', provider: 'github' } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)').fill('새닉네임');
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+  });
+
+  test('닉네임 변경 API 실패 시 에러 toast가 표시된다', async ({ page }) => {
+    await injectOAuthUser(page);
+    await page.route('**/api/auth/nickname', (route) =>
+      route.fulfill({ status: 400, json: { message: '이미 사용 중인 닉네임입니다.' } })
+    );
+    await page.goto('/main');
+
+    await page.getByRole('button', { name: /테스트유저/ }).click();
+    await page.getByRole('button', { name: '닉네임 변경' }).click();
+    await page.getByPlaceholder('닉네임을 입력하세요 (최대 8자)').fill('새닉네임');
+    await page.getByRole('button', { name: '시작하기' }).click();
+
+    await expect(page.getByText('이미 사용 중인 닉네임입니다.')).toBeVisible();
   });
 });
 

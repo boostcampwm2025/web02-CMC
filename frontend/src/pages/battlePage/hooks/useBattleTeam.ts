@@ -7,9 +7,10 @@ import {
   selectSocket,
   selectBattleId,
   selectTeamCounts
-} from '../stores/battleStore';
+} from '@/features/battle/stores/battleStore';
 import type { BattleUserUpdateResponse } from '@/commons/types/battle';
 import { soundManager } from '@/commons/utils/soundManager';
+import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types';
 
 interface UseBattleTeamProps {
   onOpenTeamChangeModal: () => void;
@@ -56,10 +57,10 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       });
     };
 
-    socket.on('battle:team:updated', handleChangedTeam);
+    socket.on(BATTLE_SERVER_EVENTS.TEAM_UPDATED, handleChangedTeam);
 
     return () => {
-      socket.off('battle:team:updated', handleChangedTeam);
+      socket.off(BATTLE_SERVER_EVENTS.TEAM_UPDATED, handleChangedTeam);
     };
   }, [socket, battleId, setSelectedTeam]);
 
@@ -80,10 +81,10 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       );
     };
 
-    socket.on('battle:user:updated', handleUserUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.USER_UPDATED, handleUserUpdate);
 
     return () => {
-      socket.off('battle:user:updated', handleUserUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.USER_UPDATED, handleUserUpdate);
     };
   }, [socket, battleId, setTeamCounts]);
 
@@ -109,7 +110,7 @@ export function useBattleTeam({ onOpenTeamChangeModal, onCloseTeamChangeModal }:
       setTeamCounts(newCounts);
 
       // 서버에 전송
-      socket.emit('battle:team:vote', { battleId, team });
+      socket.emit(BATTLE_CLIENT_EVENTS.TEAM_VOTE, { battleId, team });
 
       onCloseTeamChangeModal();
     },

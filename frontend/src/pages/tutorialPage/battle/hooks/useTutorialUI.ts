@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useTutorial } from '@/pages/battlePage/hooks/useTutorial';
-import type { SidebarTab } from '@/pages/battlePage/components/sidebar/SidebarHeader';
+import { useTutorial } from '@/features/battle/hooks/useTutorial';
+import type { SidebarTab } from '@/features/battle/components/sidebar/SidebarHeader';
 
 interface UseTutorialUIOptions {
   isSidebarOpen: boolean;

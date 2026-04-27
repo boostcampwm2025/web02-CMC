@@ -1,0 +1,106 @@
+{
+  "title": "CMC DB/Cache/Deps",
+  "uid": "cmc-deps",
+  "tags": ["cmc", "deps", "db", "cache", "external"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "현재 상태",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 5 },
+      "options": {
+        "mode": "markdown",
+        "content": "Postgres/Redis/외부 API 지표 exporter 연동 필요."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Backend scrape",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 5, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "up{job=\"backend\"}",
+          "legendFormat": "backend"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Cadvisor scrape",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 8, "y": 5, "w": 8, "h": 4 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "up{job=\"cadvisor\"}",
+          "legendFormat": "cadvisor"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "LLM API 요청량",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 9, "w": 24, "h": 7 },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{route=~\".*(gemini|ai|external|openai|llm).*\"}[5m])) by (route)",
+          "legendFormat": "{{route}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "DB/Cache container resource guess",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "decimals": 0 } },
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{job=\"cadvisor\", id=~\".*(postgres|redis|backend|frontend).*\"}) by (id)",
+          "legendFormat": "mem {{id}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "DB/Cache container CPU 추정치",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "fieldConfig": { "defaults": { "unit": "cores", "decimals": 3 } },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{job=\"cadvisor\", id=~\".*(postgres|redis|backend|frontend).*\"}[1m])) by (id)",
+          "legendFormat": "cpu {{id}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "text",
+      "title": "연동 예정",
+      "datasource": "Prometheus",
+      "gridPos": { "x": 0, "y": 24, "w": 24, "h": 6 },
+      "options": {
+        "mode": "markdown",
+        "content": "- Postgres: postgres_exporter 또는 pg_exporter 연결\n- Redis: redis_exporter 연결\n- 외부 API/Gemini: 의존성 전용 클라이언트 레이어에서 histogram/counter 추가"
+      }
+    }
+  ]
+}

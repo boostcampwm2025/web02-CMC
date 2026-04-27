@@ -1,5 +1,5 @@
-export type BattleType = 'PUBLIC' | 'PRIVATE';
-export type BattleLanguage = 'javascript' | 'typescript' | 'python';
+import type { BattleType, BattleLanguage } from '@cmc/types';
+export type { BattleType, BattleLanguage };
 export type BattlePlayTime = 'FIFTEEN_MIN' | 'THIRTY_MIN';
 
 export interface CreateBattleRequest {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import CheckIcon from '@/assets/icon/check.svg?react';
-import CopyIcon from '@/assets/icon/copy.svg?react';
+import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 interface InviteLinkProps {
   inviteCode: string;
@@ -22,22 +22,24 @@ export default function InviteLinkButton({ inviteCode }: InviteLinkProps) {
   };
 
   return (
-    <button
+    <Button
+      variant="secondary"
+      size="sm"
       onClick={handleCopy}
-      className="px-4 py-2 rounded-lg bg-[#2D2D3F] hover:bg-[#3D3D4F] text-white transition-colors flex items-center justify-center gap-2 text-sm w-[100px] sm:w-auto sm:min-w-[100px]"
       title="링크 복사"
+      className="w-[100px] sm:w-auto sm:min-w-[100px]"
     >
       {copied ? (
         <>
-          <CheckIcon className="w-4 h-4 shrink-0" />
+          <Icon name="check" className="w-4 h-4 shrink-0" />
           <span className="text-sm hidden sm:inline">복사됨</span>
         </>
       ) : (
         <>
-          <CopyIcon className="w-4 h-4 shrink-0" />
+          <Icon name="copy" className="w-4 h-4 shrink-0" />
           <span className="text-sm hidden sm:inline">친구 초대</span>
         </>
       )}
-    </button>
+    </Button>
   );
 }

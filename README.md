@@ -4,7 +4,7 @@
 
 <div align="center">
 
-#### 📺 [코문철 - CMC](https://5yii1ap713732.edge.naverncp.com)
+#### 📺 [코문철 - CMC](https://comuncheol.kro.kr)
 
 <div align="center">
 

@@ -1,4 +1,4 @@
-import { Users, Eye, MessageSquare } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 
 interface MetricsCardsProps {
   totalParticipants: number;
@@ -17,7 +17,7 @@ export default function MetricsCards({ totalParticipants, totalViews, strategies
             <div className="text-5xl font-extrabold mb-2">{totalParticipants}</div>
           </div>
           <div className="bg-white/20 p-3 rounded-2xl">
-            <Users size={32} strokeWidth={2} />
+            <Icon name="peoples" className="w-8 h-8" />
           </div>
         </div>
       </div>
@@ -30,7 +30,7 @@ export default function MetricsCards({ totalParticipants, totalViews, strategies
             <div className="text-5xl font-extrabold mb-2">{totalViews.toLocaleString()}</div>
           </div>
           <div className="bg-white/20 p-3 rounded-2xl">
-            <Eye size={32} strokeWidth={2} />
+            <Icon name="eye" className="w-8 h-8" />
           </div>
         </div>
       </div>
@@ -43,7 +43,7 @@ export default function MetricsCards({ totalParticipants, totalViews, strategies
             <div className="text-5xl font-extrabold mb-2">{strategiesCount}</div>
           </div>
           <div className="bg-white/20 p-3 rounded-2xl">
-            <MessageSquare size={32} strokeWidth={2} />
+            <Icon name="message" className="w-8 h-8" />
           </div>
         </div>
       </div>

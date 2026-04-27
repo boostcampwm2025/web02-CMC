@@ -1,4 +1,4 @@
-import { Crown, Award, ThumbsUp, Medal } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { Mvp, TimelineItem } from '../types';
 
 interface MvpCardProps {
@@ -33,7 +33,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
           {/* MVP 아이콘 및 뱃지 */}
           <div className="relative">
             <div className="bg-white/20 backdrop-blur-sm p-5 rounded-2xl border-2 border-white/30">
-              <Crown className="w-12 h-12 text-yellow-300" />
+              <Icon name="crown" className="w-12 h-12 text-yellow-300" />
             </div>
             <div className="absolute -top-2 -right-2 bg-yellow-400 text-orange-900 px-2.5 py-0.5 rounded-full text-xs font-bold border-2 border-white shadow-lg">
               MVP
@@ -64,14 +64,14 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
             {bestOpinion && (
               <div className="bg-black/20 backdrop-blur-sm rounded-xl p-4 border border-white/20">
                 <div className="flex items-start gap-2 mb-2">
-                  <Award className="w-4 h-4 text-yellow-300 flex-shrink-0 mt-1" />
+                  <Icon name="award" className="w-4 h-4 text-yellow-300 flex-shrink-0 mt-1" />
                   <div className="flex-1 text-left">
                     <div className="text-white/90 text-xs font-medium mb-1">가장 많은 좋아요를 받은 의견</div>
                     <p className="text-white text-sm leading-relaxed break-all">{bestOpinion.content}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-white/10">
-                  <ThumbsUp className="w-4 h-4 text-yellow-300" />
+                  <Icon name="like" className="w-4 h-4 text-yellow-300" />
                   <span className="text-xl font-bold text-white">{bestOpinion.upvotes}</span>
                   <span className="text-white/80 text-sm">좋아요</span>
                 </div>
@@ -100,7 +100,7 @@ export default function MvpCard({ mvpList, bestOpinion }: MvpCardProps) {
                       className="flex items-center justify-between bg-black/10 rounded-lg px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <Medal className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-amber-900'}`} />
+                        <Icon name="medal" className={`w-4 h-4 ${index === 0 ? 'text-gray-300' : 'text-amber-900'}`} />
                         <span className="text-white/80 text-sm">{index + 2}등</span>
                         <span className="text-white font-medium">{runner.nickname}</span>
                       </div>

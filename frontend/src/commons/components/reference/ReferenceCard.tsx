@@ -1,4 +1,4 @@
-import { ExternalLink } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
 import type { ReferenceLink } from '@/commons/types/battle';
 
 interface ReferenceCardProps {
@@ -55,7 +55,7 @@ export default function ReferenceCard({ reference, team, size = 'md' }: Referenc
         className={`${colors.text} font-semibold ${classes.title} hover:underline inline-flex items-center gap-1.5`}
       >
         {reference.title}
-        <ExternalLink className={`${classes.icon} opacity-60 flex-shrink-0`} />
+        <Icon name="externalLink" className={`${classes.icon} opacity-60 flex-shrink-0`} />
       </a>
 
       <p className={`text-gray-300 ${classes.description} leading-relaxed`}>{reference.summary}</p>

@@ -1,15 +1,43 @@
-import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Button from '@/commons/components/Button';
 
 export default function InvitePage() {
   const { inviteCode } = useParams<{ inviteCode: string }>();
+  const [isInvalid, setIsInvalid] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!inviteCode) {
+      setIsInvalid(true);
       return;
     }
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/battles/${inviteCode}`;
+
+    fetch(`${import.meta.env.VITE_API_URL}/api/battles/${inviteCode}`, {
+      redirect: 'manual'
+    })
+      .then((res) => {
+        if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) {
+          window.location.href = `${import.meta.env.VITE_API_URL}/api/battles/${inviteCode}`;
+        } else {
+          setIsInvalid(true);
+        }
+      })
+      .catch(() => setIsInvalid(true));
   }, [inviteCode]);
+
+  if (isInvalid) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-lg mb-4">유효하지 않은 초대 링크입니다.</p>
+          <Button variant="secondary" size="sm" onClick={() => navigate('/main')}>
+            메인으로 돌아가기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center">

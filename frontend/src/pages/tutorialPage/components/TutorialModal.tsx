@@ -1,4 +1,6 @@
-import QuestionIcon from '@/assets/icon/question.svg?react';
+import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
+import Modal from '@/commons/components/Modal';
 
 interface TutorialModalProps {
   isOpen: boolean;
@@ -8,18 +10,16 @@ interface TutorialModalProps {
 }
 
 export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontShowAgainChange }: TutorialModalProps) {
-  if (!isOpen) return null;
-
   const handleStart = () => {
     onStart();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <Modal isOpen={isOpen} bg="bg-black/60">
       <div className="relative max-w-md rounded-2xl bg-[#1E2432] border border-[#2D3648] shadow-2xl p-8">
         <div className="flex justify-center mb-6">
           <div className="w-15 h-15 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
-            <QuestionIcon className="w-10 h-10 text-white" />
+            <Icon name="question" className="w-10 h-10 text-white" />
           </div>
         </div>
 
@@ -41,12 +41,13 @@ export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontSh
           <span className="text-xs text-[#99A1AF]">다시 보지 않기</span>
         </label>
 
-        <button
+        <Button
           onClick={handleStart}
-          className="w-full h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-base font-bold transition-all shadow-lg shadow-orange-500/30"
+          fullWidth
+          className="h-12 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-base font-bold shadow-lg shadow-orange-500/30"
         >
           시작하기
-        </button>
+        </Button>
 
         <div className="flex items-center justify-center gap-1 mt-4">
           <span className="text-[0.625rem] text-[#6A7282]">💡 우측 상단</span>
@@ -54,6 +55,6 @@ export default function TutorialModal({ isOpen, onStart, dontShowAgain, onDontSh
           <span className="text-[0.625rem] text-[#6A7282]">버튼을 클릭하면 언제든지 튜토리얼을 다시 볼 수 있어요.</span>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

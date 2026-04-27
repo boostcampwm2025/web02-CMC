@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useBattleStore } from '../stores/battleStore';
+import { useBattleStore } from '@/features/battle/stores/battleStore';
 import { useBattleSocket } from './useBattleSocket';
 import { useBattleSocketErrorHandling } from './useBattleSocketErrorHandling';
 import { useBattleProgress } from './useBattleProgress';
@@ -8,14 +8,13 @@ import { useBattleDiscussions } from './useBattleDiscussions';
 import { useBattleTimeline } from './useBattleTimeline';
 import { useBattleTeam } from './useBattleTeam';
 import { useAuthStore } from '@/commons/stores/authStore';
+import useModal from '@/commons/hooks/useModal';
 
 interface UseBattle {
   battleId?: string;
-  onOpenTeamChangeModal: () => void;
-  onCloseTeamChangeModal: () => void;
 }
 
-export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeModal }: UseBattle) {
+export function useBattle({ battleId }: UseBattle) {
   const location = useLocation();
   const selectedTeamFromState = (location.state as { selectedTeam?: 'A' | 'B' | 'NONE' })?.selectedTeam;
   const user = useAuthStore((state) => state.user);
@@ -40,6 +39,12 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
     });
   }, [battleId, selectedTeamFromState, user]);
 
+  const {
+    isOpen: isTeamChangeModalOpen,
+    openModal: openTeamChangeModal,
+    closeModal: closeTeamChangeModal
+  } = useModal(false);
+
   useBattleSocket();
   useBattleSocketErrorHandling();
 
@@ -47,8 +52,8 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
   const { roundModal, hideRoundEffect } = useBattleProgress();
   const { effectModal, hideEffect } = useBattleTimeline();
   const { handleTeamChange } = useBattleTeam({
-    onOpenTeamChangeModal,
-    onCloseTeamChangeModal
+    onOpenTeamChangeModal: openTeamChangeModal,
+    onCloseTeamChangeModal: closeTeamChangeModal
   });
 
   return {
@@ -58,6 +63,8 @@ export function useBattle({ battleId, onOpenTeamChangeModal, onCloseTeamChangeMo
     effectModal,
     hideEffect,
     hideRoundEffect,
-    handleTeamChange
+    handleTeamChange,
+    isTeamChangeModalOpen,
+    closeTeamChangeModal
   };
 }

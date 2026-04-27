@@ -1,34 +1,14 @@
 import { Link } from 'react-router-dom';
-import BattleIcon from '@/assets/icon/battle.svg?react';
+import Icon, { type TierName } from './Icon';
 import { useAuthStore, selectUser, selectIsOAuth } from '@/commons/stores/authStore';
 import UserProfileDropdown from './UserProfileDropdown';
-import tierBronze from '@/assets/icon/bronze.png';
-import tierSilver from '@/assets/icon/silver.png';
-import tierGold from '@/assets/icon/gold.png';
-import tierDiamond from '@/assets/icon/diamond.png';
-import tierMaster from '@/assets/icon/master.png';
-import tierGrandmaster from '@/assets/icon/grandmaster.png';
 
-const TIER_ICON_MAP: Record<string, string> = {
-  BRONZE: tierBronze,
-  SILVER: tierSilver,
-  GOLD: tierGold,
-  DIAMOND: tierDiamond,
-  MASTER: tierMaster,
-  GRANDMASTER: tierGrandmaster
-};
+interface HeaderProps {
+  onLoginClick?: () => void;
+  onNicknameClick?: () => void;
+}
 
-const TIER_ICON_SCALE: Record<string, number> = {
-  BRONZE: 1.12,
-  SILVER: 1.12,
-  GOLD: 1.12,
-  PLATINUM: 1.12,
-  DIAMOND: 1.12,
-  MASTER: 1.12,
-  GRANDMASTER: 1.12
-};
-
-export default function Header() {
+export default function Header({ onLoginClick, onNicknameClick }: HeaderProps) {
   const user = useAuthStore(selectUser);
   const isOAuth = useAuthStore(selectIsOAuth);
 
@@ -38,7 +18,7 @@ export default function Header() {
         <div className="w-full px-8 h-full flex items-center justify-between">
           {/* 좌측 로고 */}
           <Link to="/main" className="flex items-center gap-2">
-            <BattleIcon className="w-6 h-6 text-orange-500" />
+            <Icon name="battle" className="w-6 h-6 text-orange-500" />
             <span className=" font-semibold ">배틀 아레나</span>
           </Link>
 
@@ -47,14 +27,14 @@ export default function Header() {
             {user && isOAuth ? (
               // OAuth 로그인 사용자: 프로필 드롭다운 표시
               <div className="flex items-center gap-1">
-                {user.tier && TIER_ICON_MAP[user.tier] && (
+                {user.tier && (
                   <div className="relative group flex items-center">
                     <div className="w-[25px] h-[25px] flex items-center justify-center overflow-hidden">
-                      <img
-                        src={TIER_ICON_MAP[user.tier]}
+                      <Icon
+                        name={user.tier.toLowerCase() as TierName}
                         alt={`${user.tier} tier`}
                         className="w-full h-full object-contain block"
-                        style={{ transform: `scale(${TIER_ICON_SCALE[user.tier] ?? 1})` }}
+                        style={{ transform: 'scale(1.12)' }}
                       />
                     </div>
                     <div className="absolute left-1/2 top-full mt-2 -translate-x-1/2 scale-95 opacity-0 pointer-events-none transition-all duration-150 group-hover:opacity-100 group-hover:scale-100">
@@ -71,13 +51,14 @@ export default function Header() {
                     nickname: user.nickname,
                     avatarUrl: user.avatarUrl
                   }}
+                  onNicknameClick={onNicknameClick}
                 />
               </div>
             ) : (
               <>
-                <Link to="/login" className="mr-8 px-3 py-1.5 text-gray-400">
+                <button onClick={onLoginClick} className="mr-8 px-3 py-1.5 text-gray-400">
                   로그인
-                </Link>
+                </button>
               </>
             )}
           </nav>

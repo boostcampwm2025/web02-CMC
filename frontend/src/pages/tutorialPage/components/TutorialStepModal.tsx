@@ -1,11 +1,12 @@
-import type { TutorialStep } from '@/pages/battlePage/hooks/useTutorial';
-import { useSpotlight } from '@/pages/battlePage/hooks/useSpotlight';
-import type { SpotlightPosition } from '@/pages/battlePage/hooks/useSpotlight';
+import type { TutorialStep } from '@/features/battle/hooks/useTutorial';
+import { useSpotlight } from '@/features/battle/hooks/useSpotlight';
+import type { SpotlightPosition } from '@/features/battle/hooks/useSpotlight';
 import SpotlightOverlay from './SpotlightOverlay';
-import DiscussionInput from '@/pages/battlePage/components/discussion/DiscussionInput';
-import BattleProgressBoard from '@/pages/battlePage/components/progressBoard/ProgressBoard';
+import DiscussionInput from '@/features/battle/components/discussion/DiscussionInput';
+import BattleProgressBoard from '@/features/battle/components/progressBoard/ProgressBoard';
 import { TUTORIAL_STEPS, TOTAL_STEPS } from './const/tutorialSteps';
-import QuestionIcon from '@/assets/icon/question.svg?react';
+import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 const MODAL_WIDTH = 448;
 const MODAL_GAP = 32;
@@ -128,7 +129,7 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
         <div className="relative max-w-md rounded-2xl bg-[#1E2432] border-2 border-[#FF6900] shadow-2xl p-6">
           <div className="flex justify-center mb-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#FF6900] to-[#FB2C36] flex items-center justify-center">
-              <QuestionIcon className="w-8 h-8 text-white" />
+              <Icon name="question" className="w-8 h-8 text-white" />
             </div>
           </div>
 
@@ -178,21 +179,22 @@ export default function TutorialStepModal({ isOpen, currentStep, onNext, onPrev 
           </div>
 
           <div className="flex gap-2">
-            <button
+            <Button
               onClick={onPrev}
               disabled={stepNumber === 1}
-              className="flex-1 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors flex items-center justify-center gap-1"
+              variant="secondary"
+              className="flex-1 h-11 rounded-lg bg-[#2D3648] hover:bg-[#3A4255] text-sm font-medium"
             >
               <span>←</span>
               <span>이전</span>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={onNext}
-              className="flex-1 h-11 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-white text-sm font-bold transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-1"
+              className="flex-1 h-11 rounded-lg bg-gradient-to-r from-[#FF6900] to-[#FB2C36] hover:from-[#FF7A1A] hover:to-[#FC3D47] text-sm font-bold shadow-lg shadow-orange-500/30"
             >
               <span>{isLastStep ? '완료' : '다음'}</span>
               <span>→</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>

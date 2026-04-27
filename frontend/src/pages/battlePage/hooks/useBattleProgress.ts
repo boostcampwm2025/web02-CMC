@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import type { BattleProgressState } from '@/commons/types/battle';
-import { useBattleStore, selectSocket } from '../stores/battleStore';
+import { useBattleStore, selectSocket } from '@/features/battle/stores/battleStore';
+import { BATTLE_SERVER_EVENTS } from '@cmc/types';
 import { useRoundUpdateModal } from './useRoundUpdateModal';
 import { soundManager } from '@/commons/utils/soundManager';
 
@@ -63,8 +64,8 @@ export function useBattleProgress() {
       showEffect(data.round, data.topic);
     };
 
-    socket.on('battle:phase:updated', handlePhaseUpdate);
-    socket.on('battle:round:updated', handleRoundUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.PHASE_UPDATED, handlePhaseUpdate);
+    socket.on(BATTLE_SERVER_EVENTS.ROUND_UPDATED, handleRoundUpdate);
 
     const handleBattleClosed = (data: { battleId: string }) => {
       const { isTeamVoteResultShowing, setPendingBattleClosed } = useBattleStore.getState();
@@ -76,12 +77,12 @@ export function useBattleProgress() {
         navigate(`/battles/${data.battleId}/result`);
       }
     };
-    socket.on('battle:closed', handleBattleClosed);
+    socket.on(BATTLE_SERVER_EVENTS.CLOSED, handleBattleClosed);
 
     return () => {
-      socket.off('battle:phase:updated', handlePhaseUpdate);
-      socket.off('battle:round:updated', handleRoundUpdate);
-      socket.off('battle:closed', handleBattleClosed);
+      socket.off(BATTLE_SERVER_EVENTS.PHASE_UPDATED, handlePhaseUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.ROUND_UPDATED, handleRoundUpdate);
+      socket.off(BATTLE_SERVER_EVENTS.CLOSED, handleBattleClosed);
     };
   }, [socket, setCurrentStage, updateBattleProgress, navigate, showEffect]);
 

@@ -1,4 +1,5 @@
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import Icon from '@/commons/components/Icon';
+import Button from '@/commons/components/Button';
 
 interface SectionErrorFallbackProps {
   error: Error;
@@ -22,7 +23,7 @@ export default function SectionErrorFallback({
     >
       <div className="flex flex-col items-center gap-4 text-center">
         <div className="p-3 bg-orange-500/10 rounded-full">
-          <AlertTriangle className="w-8 h-8 text-orange-500" />
+          <Icon name="alertTriangle" className="w-8 h-8 text-orange-500" />
         </div>
 
         <div className="space-y-2">
@@ -30,13 +31,13 @@ export default function SectionErrorFallback({
           <p className="text-sm text-gray-400">{error.message}</p>
         </div>
 
-        <button
+        <Button
           onClick={reset}
           className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors duration-200"
         >
-          <RefreshCw className="w-4 h-4" />
+          <Icon name="refreshCw" className="w-4 h-4" />
           다시 시도
-        </button>
+        </Button>
       </div>
     </div>
   );

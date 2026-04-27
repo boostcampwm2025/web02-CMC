@@ -1,0 +1,1 @@
+{"root":["./e2e/battle.spec.ts","./e2e/battlecreate.spec.ts","./e2e/main.spec.ts","./e2e/teamselect.spec.ts","./e2e/tutorialteamselect.spec.ts","./e2e/helpers/auth.ts","./e2e/helpers/mockdata.ts","./e2e/helpers/socket.ts"],"version":"5.9.3"}

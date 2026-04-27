@@ -1,9 +1,9 @@
-import type { Team } from '@/commons/types/battle';
-import Sheild from '@/assets/icon/shield.svg?react';
-import Scale from '@/assets/icon/scale.svg?react';
+import type { BattleTeam } from '@/commons/types/battle';
+import Icon from '@/commons/components/Icon';
+import type { IconName } from '@/commons/components/Icon';
 
 interface TeamCardProps {
-  team: Team;
+  team: BattleTeam;
   label: string;
   description: string;
   isSelected: boolean;
@@ -30,7 +30,7 @@ const TEAM_STYLES = {
 
 export default function TeamCard({ team, label, description, isSelected, onClick }: TeamCardProps) {
   const styles = TEAM_STYLES[team];
-  const Icon = team === 'NONE' ? Scale : Sheild;
+  const iconName = (team === 'NONE' ? 'scale' : 'shield') as IconName;
 
   const getBorderClass = () => {
     return isSelected ? styles.button : 'border-[#2D2D3F]';
@@ -55,7 +55,7 @@ export default function TeamCard({ team, label, description, isSelected, onClick
     >
       {/* 아이콘 */}
       <div className={`team-card-icon-size rounded-full ${styles.icon} flex items-center justify-center`}>
-        <Icon className="team-card-icon-inner-size text-white" />
+        <Icon name={iconName} className="team-card-icon-inner-size text-white" />
       </div>
 
       {/* 라벨 */}

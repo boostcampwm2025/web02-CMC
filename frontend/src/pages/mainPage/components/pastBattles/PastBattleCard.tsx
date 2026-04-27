@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom';
 import type { ClosedBattleItem } from '../../types/battle';
 import { TEAM_STYLE } from '../../types/team';
 import IconBox from '../IconBox';
-import ClockIcon from '@/assets/icon/clock.svg?react';
-import TrophyIcon from '@/assets/icon/trophy.svg?react';
+import Icon from '@/commons/components/Icon';
 import Badge from '@/commons/components/Badge';
 
 export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
@@ -18,7 +17,7 @@ export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <IconBox className={teamStyle.bgSoft}>
-              <TrophyIcon className={`w-5 h-5 ${teamStyle.text}`} />
+              <Icon name="trophy" className={`w-5 h-5 ${teamStyle.text}`} />
             </IconBox>
 
             <div className="flex flex-col text-left">
@@ -46,7 +45,7 @@ export default function PastBattleCard({ item }: { item: ClosedBattleItem }) {
 
         <div className="mt-1 flex items-center justify-between text-gray-400 text-sm">
           <div className="flex items-center gap-1">
-            <ClockIcon className="w-4 h-4" />
+            <Icon name="clock" className="w-4 h-4" />
             <span>종료됨</span>
           </div>
 
