@@ -14,6 +14,7 @@ import { BattleDiscussionService } from '../../domains/services/battleDiscussion
 import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
 import { BattleSkipService } from '../../domains/services/battleSkip/battleSkip.service'
 import { BattleTerminationUseCase } from './battleTermination.usecase'
+import { BATTLE_PHASE } from 'src/battles/domains/models/const/battles.const'
 
 @Injectable()
 export class BattlePhaseTransitionUseCase {
@@ -51,9 +52,9 @@ export class BattlePhaseTransitionUseCase {
       },
       state => {
         const prevPhase = state.phase
-        if (prevPhase === 'ATTACK' || prevPhase === 'OPINION_SHARE') {
+        if (prevPhase === BATTLE_PHASE.ATTACK.name || prevPhase === BATTLE_PHASE.OPINION_SHARE.name) {
           resetType = 'attack'
-        } else if (prevPhase === 'DEFENSE') {
+        } else {
           resetType = 'defense'
         }
         this.discussionService.resetDiscussions(state)
@@ -100,7 +101,7 @@ export class BattlePhaseTransitionUseCase {
 
     // Redis 키도 정리
     if (resetType !== null) {
-      void this.stateRepo.resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B']).catch(() => {})
+      void this.stateRepo.resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B'])
     }
     void this.scheduleNextTick(battleId)
   }
