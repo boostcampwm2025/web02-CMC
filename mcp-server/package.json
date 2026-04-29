@@ -8,6 +8,7 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@cmc/types": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "dotenv": "^16.5.0",
     "ioredis": "^5.6.1",
