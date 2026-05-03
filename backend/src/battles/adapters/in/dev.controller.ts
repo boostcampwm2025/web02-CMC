@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { BadRequestException, Body, Controller, ForbiddenException, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
+import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
@@ -149,6 +149,79 @@ export class DevController implements OnModuleInit {
       team: body.team,
       voterId,
       updatedCount: updates.length,
+    }
+  }
+
+  @Get(':id/inspect')
+  async inspect(@Param('id') battleId: string) {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    const now = Date.now()
+
+    const teamAUsers = state.teamA.users.map(userId => ({
+      userId,
+      nickname: state.userInfoMap.get(userId) ?? null,
+    }))
+    const teamBUsers = state.teamB.users.map(userId => ({
+      userId,
+      nickname: state.userInfoMap.get(userId) ?? null,
+    }))
+    const noneUsers = Array.from(state.participants.entries())
+      .filter(([, team]) => team === 'NONE')
+      .map(([userId]) => ({ userId, nickname: state.userInfoMap.get(userId) ?? null }))
+
+    const teamVoteCounts = { A: 0, B: 0, NONE: 0 }
+    state.teamVotes.forEach(team => {
+      teamVoteCounts[team] = (teamVoteCounts[team] ?? 0) + 1
+    })
+
+    const countDiscussions = (arr: unknown[]) => arr.filter(d => d !== null).length
+
+    return {
+      battleId,
+      now,
+      meta: {
+        status: state.status,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        round: state.round,
+        totalRounds: state.totalRounds,
+        currentTopic: state.topics[state.round - 1] ?? null,
+        topics: state.topics,
+      },
+      timer: {
+        startedAt: state.startedAt,
+        expiredAt: state.expiredAt,
+        remainingMs: state.expiredAt ? state.expiredAt - now : null,
+      },
+      participants: {
+        total: state.participants.size,
+        teamA: { count: teamAUsers.length, users: teamAUsers },
+        teamB: { count: teamBUsers.length, users: teamBUsers },
+        teamNone: { count: noneUsers.length, users: noneUsers },
+      },
+      teamVotes: {
+        A: teamVoteCounts.A,
+        B: teamVoteCounts.B,
+        NONE: teamVoteCounts.NONE,
+        totalVoted: state.teamVotes.size,
+      },
+      discussions: {
+        all: { attacks: countDiscussions(state.all.attacks), defenses: countDiscussions(state.all.defenses) },
+        teamA: { attacks: countDiscussions(state.teamA.attacks), defenses: countDiscussions(state.teamA.defenses) },
+        teamB: { attacks: countDiscussions(state.teamB.attacks), defenses: countDiscussions(state.teamB.defenses) },
+        opinionHistory: state.opinionHistory.length,
+      },
+      chats: {
+        all: state.all.chats.length,
+        teamA: state.teamA.chats.length,
+        teamB: state.teamB.chats.length,
+      },
+      skipState: {
+        count: state.skipState.size,
+        userIds: Array.from(state.skipState),
+      },
     }
   }
 

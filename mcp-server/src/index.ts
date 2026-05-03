@@ -10,6 +10,7 @@ import { createTestBattle, createTestBattleSchema } from './tools/createTestBatt
 import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
 import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
 import { injectVote, injectVoteSchema } from './tools/injectVote.js';
+import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -101,6 +102,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectVote(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'inspectBattle',
+  '배틀의 현재 백엔드 상태(liveStates)를 한 번에 덤프합니다. phase/round/타이머 잔여/참가자/팀투표/토론·채팅 카운트/스킵까지. 디버깅 시작점. (로컬 개발 전용)',
+  inspectBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await inspectBattle(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
