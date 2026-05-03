@@ -41,4 +41,10 @@ export class BattleTimerAdapter implements BattleTimerPort {
   clear(): void {
     void this.redisRepository.del(this.TIMERS_KEY)
   }
+
+  //특정 배틀의 ZSET 등록 score 조회
+  async getScheduledScore(battleId: string): Promise<number | null> {
+    const score = await this.redisRepository.zscore(this.TIMERS_KEY, battleId)
+    return score === null ? null : Number(score)
+  }
 }

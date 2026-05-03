@@ -9,4 +9,6 @@ export interface BattleTimerPort {
   getExpiredBattles(): Promise<string[]>
   //만료된 배틀 제거
   removeExpiredBattles(battleIds: string[]): Promise<void>
+  //특정 배틀의 ZSET 등록 score 조회 (없으면 null)
+  getScheduledScore(battleId: string): Promise<number | null>
 }

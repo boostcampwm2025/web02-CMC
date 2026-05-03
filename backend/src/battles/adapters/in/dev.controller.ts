@@ -3,9 +3,10 @@ import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCod
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
-import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT } from '../../application/ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '../../application/ports/tokens'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
+import type { BattleTimerPort } from '../../application/ports/out/battleTimer.port'
 import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto, DevInjectVoteDto } from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 
@@ -16,6 +17,7 @@ export class DevController implements OnModuleInit {
     private readonly interactionUseCase: BattleInteractionUseCase,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
+    @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
     private readonly config: ConfigService,
   ) {}
 
@@ -157,6 +159,7 @@ export class DevController implements OnModuleInit {
     this.assertNotProduction()
 
     const { state } = await this.stateRepo.loadBattleState(battleId)
+    const zsetScore = await this.timer.getScheduledScore(battleId)
     const now = Date.now()
 
     const teamAUsers = state.teamA.users.map(userId => ({
@@ -194,6 +197,12 @@ export class DevController implements OnModuleInit {
         startedAt: state.startedAt,
         expiredAt: state.expiredAt,
         remainingMs: state.expiredAt ? state.expiredAt - now : null,
+        zset: {
+          registered: zsetScore !== null,
+          score: zsetScore,
+          consistent: this.isTimerConsistent(state.expiredAt, zsetScore),
+          mismatch: this.describeTimerMismatch(state.expiredAt, zsetScore),
+        },
       },
       participants: {
         total: state.participants.size,
@@ -223,6 +232,23 @@ export class DevController implements OnModuleInit {
         userIds: Array.from(state.skipState),
       },
     }
+  }
+
+  private isTimerConsistent(stateExpiredAt: number | null, zsetScore: number | null): boolean {
+    if (stateExpiredAt === null && zsetScore === null) return true
+    if (stateExpiredAt === null || zsetScore === null) return false
+    return stateExpiredAt === zsetScore
+  }
+
+  private describeTimerMismatch(stateExpiredAt: number | null, zsetScore: number | null): string | null {
+    if (this.isTimerConsistent(stateExpiredAt, zsetScore)) return null
+    if (stateExpiredAt !== null && zsetScore === null) {
+      return `state.expiredAt 있는데 ZSET 등록 안 됨 → 워커가 모름. timer.schedule 누락 의심`
+    }
+    if (stateExpiredAt === null && zsetScore !== null) {
+      return `state.expiredAt=null 인데 ZSET에 등록됨 → cancel 누락`
+    }
+    return `score 다름: state=${stateExpiredAt}, zset=${zsetScore}`
   }
 
   private assertNotProduction(): void {

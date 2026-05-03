@@ -20,6 +20,12 @@ interface InspectResponse {
     startedAt: number | null;
     expiredAt: number | null;
     remainingMs: number | null;
+    zset: {
+      registered: boolean;
+      score: number | null;
+      consistent: boolean;
+      mismatch: string | null;
+    };
   };
   participants: {
     total: number;
@@ -78,6 +84,8 @@ export async function inspectBattle({ battleId }: { battleId: string }): Promise
     `startedAt     : ${fmtTime(data.timer.startedAt)}`,
     `expiredAt     : ${fmtTime(data.timer.expiredAt)}`,
     `잔여          : ${fmtRemaining(data.timer.remainingMs)}`,
+    `ZSET 등록     : ${data.timer.zset.registered ? `등록됨 (score=${data.timer.zset.score})` : '등록 안 됨'}`,
+    `정합성        : ${data.timer.zset.consistent ? '✓ 일치' : `⚠️ ${data.timer.zset.mismatch}`}`,
     '',
     '── 참가자 ──',
     `total         : ${data.participants.total}`,

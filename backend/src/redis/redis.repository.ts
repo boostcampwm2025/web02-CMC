@@ -103,6 +103,10 @@ export class RedisRepository implements OnModuleDestroy {
     return this.redisClient.zrangebyscore(key, min, max)
   }
 
+  async zscore(key: string, member: string): Promise<string | null> {
+    return this.redisClient.zscore(key, member)
+  }
+
   //set연산
   async sadd(key: string, ...members: string[]): Promise<number> {
     return this.redisClient.sadd(key, ...members)
