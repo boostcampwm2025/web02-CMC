@@ -1,5 +1,5 @@
 packages:
   - 'frontend'
   - 'backend'
-  - 'mcp-server'
+  - 'dev-mcp'
   - 'packages/*'

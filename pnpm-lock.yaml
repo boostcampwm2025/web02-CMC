@@ -196,6 +196,43 @@ importers:
         specifier: ^8.20.0
         version: 8.50.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  dev-mcp:
+    dependencies:
+      '@cmc/types':
+        specifier: workspace:*
+        version: link:../packages/types
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.12.1
+        version: 1.29.0(zod@3.25.76)
+      dotenv:
+        specifier: ^16.5.0
+        version: 16.6.1
+      ioredis:
+        specifier: ^5.6.1
+        version: 5.9.2
+      pg:
+        specifier: ^8.17.1
+        version: 8.17.1
+      zod:
+        specifier: ^3.24.4
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.3
+        version: 22.19.3
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@swc/core@1.15.10)(@swc/wasm@1.15.10)(@types/node@22.19.3)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   frontend:
     dependencies:
       '@cmc/types':
@@ -325,43 +362,6 @@ importers:
       vitest:
         specifier: ^4.0.16
         version: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(jiti@2.6.1)(jsdom@27.4.0)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
-
-  mcp-server:
-    dependencies:
-      '@cmc/types':
-        specifier: workspace:*
-        version: link:../packages/types
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.12.1
-        version: 1.29.0(zod@3.25.76)
-      dotenv:
-        specifier: ^16.5.0
-        version: 16.6.1
-      ioredis:
-        specifier: ^5.6.1
-        version: 5.9.2
-      pg:
-        specifier: ^8.17.1
-        version: 8.17.1
-      zod:
-        specifier: ^3.24.4
-        version: 3.25.76
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.3
-        version: 22.19.3
-      '@types/pg':
-        specifier: ^8.16.0
-        version: 8.16.0
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@swc/core@1.15.10)(@swc/wasm@1.15.10)(@types/node@22.19.3)(typescript@5.9.3)
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
 
   packages/types:
     devDependencies:
