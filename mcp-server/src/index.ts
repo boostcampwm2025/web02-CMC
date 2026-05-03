@@ -9,6 +9,7 @@ import { setTimer, setTimerSchema } from './tools/setTimer.js';
 import { createTestBattle, createTestBattleSchema } from './tools/createTestBattle.js';
 import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
 import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
+import { injectVote, injectVoteSchema } from './tools/injectVote.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -87,6 +88,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectDiscussion(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectVote',
+  '이의제기(attack) 또는 반론(defense) discussion에 투표를 강제로 주입합니다. voterId 미지정 시 배틀 첫 참가자가 투표합니다. 팀 룸에 *_VOTED emit. (로컬 개발 전용)',
+  injectVoteSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectVote(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }

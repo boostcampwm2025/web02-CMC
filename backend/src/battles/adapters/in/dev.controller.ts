@@ -6,7 +6,7 @@ import { BattleInteractionUseCase } from '../../application/usecases/battleInter
 import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT } from '../../application/ports/tokens'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
-import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto } from '../../dto/devForcePhase.dto'
+import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto, DevInjectVoteDto } from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 
 @Controller('dev/battles')
@@ -114,6 +114,41 @@ export class DevController implements OnModuleInit {
       team: body.team,
       authorId,
       nickname: discussion.author.nickname,
+    }
+  }
+
+  @Post(':id/vote')
+  @HttpCode(200)
+  async injectVote(
+    @Param('id') battleId: string,
+    @Body() body: DevInjectVoteDto,
+  ): Promise<{ battleId: string; discussionId: string; type: string; team: string; voterId: string; updatedCount: number }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    const voterId = body.voterId ?? Array.from(state.participants.keys())[0]
+    if (!voterId) {
+      throw new BadRequestException('배틀에 참가자가 없습니다. voterId를 명시하거나 먼저 참가자를 추가하세요.')
+    }
+
+    const updates = await this.interactionUseCase.submitVote(battleId, body.discussionId, voterId, body.team, body.type)
+
+    updates.forEach(update => {
+      if (body.type === 'attack') {
+        this.broadcaster.emitAttackVoted(battleId, body.team, update)
+      } else {
+        this.broadcaster.emitDefenseVoted(battleId, body.team, update)
+      }
+    })
+
+    return {
+      battleId,
+      discussionId: body.discussionId,
+      type: body.type,
+      team: body.team,
+      voterId,
+      updatedCount: updates.length,
     }
   }
 

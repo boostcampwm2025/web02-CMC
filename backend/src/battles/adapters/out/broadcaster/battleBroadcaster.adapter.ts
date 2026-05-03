@@ -9,6 +9,7 @@ import { BattleTeamUpdateAllResponseDto } from '../../../dto/battleTeamUpdateAll
 import { BattleClosedResponseDto } from '../../../dto/battleClosedResponse.dto'
 import { DiscussionVoteResultDto } from '../../../dto/discussionVoteResult.dto'
 import type { BattleDiscussion, BattleTeam } from '../../../domains/models/types/battle.types'
+import { DiscussionVoteResponseDto } from '../../../dto/discussionVoteResponse.dto'
 import { BATTLE_SERVER_EVENTS } from '@cmc/types'
 
 @Injectable()
@@ -90,5 +91,17 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     const teamRoom = getBattleRoomId(battleId, team)
     this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.DEFENSE_CREATED, discussion)
     this.emit('battle:defense:created', { battleId, team, discussion })
+  }
+
+  emitAttackVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.ATTACK_VOTED, voteRes)
+    this.emit('battle:attack:voted', { battleId, team, voteRes })
+  }
+
+  emitDefenseVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.DEFENSE_VOTED, voteRes)
+    this.emit('battle:defense:voted', { battleId, team, voteRes })
   }
 }

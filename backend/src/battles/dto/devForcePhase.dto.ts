@@ -52,3 +52,19 @@ export class DevInjectDiscussionDto {
   @IsString()
   authorId?: string
 }
+
+export class DevInjectVoteDto {
+  @IsEnum(['attack', 'defense'])
+  type: 'attack' | 'defense'
+
+  @IsEnum(['A', 'B'])
+  team: 'A' | 'B'
+
+  @IsString()
+  @IsNotEmpty()
+  discussionId: string
+
+  @IsOptional()
+  @IsString()
+  voterId?: string
+}
