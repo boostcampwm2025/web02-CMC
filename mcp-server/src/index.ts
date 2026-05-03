@@ -4,6 +4,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { closeDb } from './clients/db.js';
 import { closeRedis } from './clients/redis.js';
 import { findBattle, findBattleSchema } from './tools/findBattle.js';
+import { setPhase, setPhaseSchema } from './tools/setPhase.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -17,6 +18,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await findBattle(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'setPhase',
+  '배틀 페이즈를 강제로 변경합니다. 백엔드 dev API를 호출해 in-memory state·Redis·DB·소켓 emit·timer 스케줄을 모두 갱신합니다. durationMs 생략 시 페이즈 기본 시간 사용. (로컬 개발 전용)',
+  setPhaseSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await setPhase(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
