@@ -189,6 +189,36 @@ export class BattlePhaseTransitionUseCase {
     }
   }
 
+  //[DEV ONLY] 타이머 강제 변경 — durationMs 후 만료. 페이즈는 그대로.
+  async forceTimer(battleId: string, durationMs: number): Promise<void> {
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    if (state.status === BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('종료된 배틀은 타이머를 변경할 수 없습니다.')
+    }
+    if (state.phase === 'PENDING') {
+      throw new BadRequestException('PENDING 페이즈에서는 타이머를 설정할 수 없습니다.')
+    }
+
+    const now = Date.now()
+    state.startedAt = now
+    state.expiredAt = now + Math.max(0, durationMs)
+
+    this.stateRepo.saveBattleState(battleId, state)
+
+    this.broadcaster.emitPhaseUpdated(
+      BattlePhaseResponseDto.of({
+        battleId,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt,
+        expiredAt: state.expiredAt,
+      }),
+    )
+
+    this.timer.schedule(battleId, state)
+  }
+
   //다음 타이머 스케줄링
   private async scheduleNextTick(battleId: string): Promise<void> {
     try {

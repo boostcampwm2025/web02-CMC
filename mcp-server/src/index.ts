@@ -5,6 +5,7 @@ import { closeDb } from './clients/db.js';
 import { closeRedis } from './clients/redis.js';
 import { findBattle, findBattleSchema } from './tools/findBattle.js';
 import { setPhase, setPhaseSchema } from './tools/setPhase.js';
+import { setTimer, setTimerSchema } from './tools/setTimer.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -31,6 +32,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await setPhase(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'setTimer',
+  '배틀 타이머만 강제로 변경합니다. 페이즈는 유지하고 만료 시각만 갱신합니다. (로컬 개발 전용)',
+  setTimerSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await setTimer(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }

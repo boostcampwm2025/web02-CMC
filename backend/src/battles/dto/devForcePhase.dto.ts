@@ -17,3 +17,9 @@ export class DevForcePhaseDto {
   @Min(1)
   round?: number
 }
+
+export class DevForceTimerDto {
+  @IsInt()
+  @Min(0)
+  durationMs: number
+}

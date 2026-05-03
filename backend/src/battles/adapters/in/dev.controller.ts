@@ -1,7 +1,7 @@
 import { Body, Controller, ForbiddenException, HttpCode, OnModuleInit, Param, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
-import { DevForcePhaseDto } from '../../dto/devForcePhase.dto'
+import { DevForcePhaseDto, DevForceTimerDto } from '../../dto/devForcePhase.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
@@ -23,6 +23,14 @@ export class DevController implements OnModuleInit {
     this.assertNotProduction()
     await this.phaseTransitionUseCase.forcePhase(battleId, body.phase, body.durationMs, body.round)
     return { battleId, phase: body.phase, durationMs: body.durationMs ?? null, round: body.round ?? null }
+  }
+
+  @Post(':id/timer')
+  @HttpCode(200)
+  async forceTimer(@Param('id') battleId: string, @Body() body: DevForceTimerDto): Promise<{ battleId: string; durationMs: number }> {
+    this.assertNotProduction()
+    await this.phaseTransitionUseCase.forceTimer(battleId, body.durationMs)
+    return { battleId, durationMs: body.durationMs }
   }
 
   private assertNotProduction(): void {
