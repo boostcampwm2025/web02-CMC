@@ -6,6 +6,7 @@ import { closeRedis } from './clients/redis.js';
 import { findBattle, findBattleSchema } from './tools/findBattle.js';
 import { setPhase, setPhaseSchema } from './tools/setPhase.js';
 import { setTimer, setTimerSchema } from './tools/setTimer.js';
+import { createTestBattle, createTestBattleSchema } from './tools/createTestBattle.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -45,6 +46,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await setTimer(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'createTestBattle',
+  '테스트용 배틀을 빠르게 생성하고 접속 링크를 반환합니다. 모든 입력은 옵션이며 합리적 기본값으로 채워집니다. authorId 미지정 시 MCP_DEFAULT_AUTHOR_ID 또는 users 테이블 첫 행을 사용합니다. (로컬 개발 전용)',
+  createTestBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await createTestBattle(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
