@@ -7,6 +7,7 @@ import { findBattle, findBattleSchema } from './tools/findBattle.js';
 import { setPhase, setPhaseSchema } from './tools/setPhase.js';
 import { setTimer, setTimerSchema } from './tools/setTimer.js';
 import { createTestBattle, createTestBattleSchema } from './tools/createTestBattle.js';
+import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -59,6 +60,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await createTestBattle(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'addParticipant',
+  '배틀에 가짜 참가자를 강제로 추가합니다. 솔로 테스트 시 양 팀에 1명씩 채울 때 사용. userId/nickname 생략 시 자동 생성. team-vote도 자동으로 본인 팀에 투표 처리됩니다. (로컬 개발 전용)',
+  addParticipantSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await addParticipant(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }

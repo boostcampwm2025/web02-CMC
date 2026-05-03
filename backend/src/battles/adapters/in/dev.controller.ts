@@ -1,12 +1,19 @@
-import { Body, Controller, ForbiddenException, HttpCode, OnModuleInit, Param, Post } from '@nestjs/common'
+import { randomUUID } from 'node:crypto'
+import { BadRequestException, Body, Controller, ForbiddenException, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
-import { DevForcePhaseDto, DevForceTimerDto } from '../../dto/devForcePhase.dto'
+import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT } from '../../application/ports/tokens'
+import type { BattleStatePort } from '../../application/ports/out/battleState.port'
+import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
+import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto } from '../../dto/devForcePhase.dto'
+import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
   constructor(
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
+    @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
+    @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     private readonly config: ConfigService,
   ) {}
 
@@ -31,6 +38,42 @@ export class DevController implements OnModuleInit {
     this.assertNotProduction()
     await this.phaseTransitionUseCase.forceTimer(battleId, body.durationMs)
     return { battleId, durationMs: body.durationMs }
+  }
+
+  @Post(':id/participant')
+  @HttpCode(200)
+  async addParticipant(
+    @Param('id') battleId: string,
+    @Body() body: DevAddParticipantDto,
+  ): Promise<{ battleId: string; userId: string; team: string; nickname: string; counts: { teamA: number; teamB: number; teamNone: number } }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    const userId = body.userId ?? randomUUID()
+    if (state.participants.has(userId)) {
+      throw new BadRequestException(`userId=${userId}는 이미 배틀에 참가 중입니다.`)
+    }
+
+    const teamUsers = body.team === 'A' ? state.teamA.users : state.teamB.users
+    const nickname = body.nickname ?? `테스터-${body.team}${teamUsers.length + 1}`
+
+    state.participants.set(userId, body.team)
+    state.userInfoMap.set(userId, nickname)
+    state.teamVotes.set(userId, body.team)
+    teamUsers.push(userId)
+
+    this.stateRepo.saveBattleState(battleId, state)
+
+    const counts = {
+      teamA: state.teamA.users.length,
+      teamB: state.teamB.users.length,
+      teamNone: state.participants.size - state.teamA.users.length - state.teamB.users.length,
+    }
+
+    this.broadcaster.emitUserUpdated(BattleUserUpdateResponseDto.of(battleId, counts))
+
+    return { battleId, userId, team: body.team, nickname, counts }
   }
 
   private assertNotProduction(): void {
