@@ -2,16 +2,18 @@ import { randomUUID } from 'node:crypto'
 import { BadRequestException, Body, Controller, ForbiddenException, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
+import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
 import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT } from '../../application/ports/tokens'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
-import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto } from '../../dto/devForcePhase.dto'
+import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto } from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
   constructor(
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
+    private readonly interactionUseCase: BattleInteractionUseCase,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     private readonly config: ConfigService,
@@ -74,6 +76,45 @@ export class DevController implements OnModuleInit {
     this.broadcaster.emitUserUpdated(BattleUserUpdateResponseDto.of(battleId, counts))
 
     return { battleId, userId, team: body.team, nickname, counts }
+  }
+
+  @Post(':id/discussion')
+  @HttpCode(200)
+  async injectDiscussion(
+    @Param('id') battleId: string,
+    @Body() body: DevInjectDiscussionDto,
+  ): Promise<{ battleId: string; discussionId: string; type: string; team: string; authorId: string; nickname: string }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    const expectedPhase = body.type === 'attack' ? 'ATTACK' : 'DEFENSE'
+    if (state.phase !== expectedPhase) {
+      throw new BadRequestException(`현재 페이즈가 ${state.phase}입니다. ${body.type} 주입은 ${expectedPhase} 페이즈에서만 가능합니다.`)
+    }
+
+    const teamUsers = body.team === 'A' ? state.teamA.users : state.teamB.users
+    const authorId = body.authorId ?? teamUsers[0]
+    if (!authorId) {
+      throw new BadRequestException(`team ${body.team}에 참가자가 없습니다. authorId를 명시하거나 먼저 참가자를 추가하세요.`)
+    }
+
+    const discussion = await this.interactionUseCase.submitDiscussion(battleId, authorId, body.content, body.team, body.type)
+
+    if (body.type === 'attack') {
+      this.broadcaster.emitAttackCreated(battleId, body.team, discussion)
+    } else {
+      this.broadcaster.emitDefenseCreated(battleId, body.team, discussion)
+    }
+
+    return {
+      battleId,
+      discussionId: discussion.discussionId,
+      type: body.type,
+      team: body.team,
+      authorId,
+      nickname: discussion.author.nickname,
+    }
   }
 
   private assertNotProduction(): void {

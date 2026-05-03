@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator'
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator'
 import type { BattlePhaseName } from '@cmc/types'
 
 const PHASE_VALUES: BattlePhaseName[] = ['PENDING', 'OPINION_SHARE', 'ATTACK', 'DEFENSE', 'TEAM_SWITCH']
@@ -35,4 +35,20 @@ export class DevAddParticipantDto {
   @IsOptional()
   @IsString()
   nickname?: string
+}
+
+export class DevInjectDiscussionDto {
+  @IsEnum(['attack', 'defense'])
+  type: 'attack' | 'defense'
+
+  @IsEnum(['A', 'B'])
+  team: 'A' | 'B'
+
+  @IsString()
+  @IsNotEmpty()
+  content: string
+
+  @IsOptional()
+  @IsString()
+  authorId?: string
 }

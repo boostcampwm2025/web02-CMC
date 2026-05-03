@@ -8,6 +8,7 @@ import { setPhase, setPhaseSchema } from './tools/setPhase.js';
 import { setTimer, setTimerSchema } from './tools/setTimer.js';
 import { createTestBattle, createTestBattleSchema } from './tools/createTestBattle.js';
 import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
+import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
 
 const server = new McpServer({
   name: 'cmc-battle-mcp',
@@ -73,6 +74,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await addParticipant(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectDiscussion',
+  '이의제기(attack) 또는 반론(defense)을 강제로 주입합니다. 현재 페이즈와 type이 일치해야 합니다(ATTACK 페이즈→attack, DEFENSE 페이즈→defense). authorId 미지정 시 해당 팀 첫 참가자로 작성됩니다. 팀 룸에만 emit됩니다 (실제 흐름과 동일). (로컬 개발 전용)',
+  injectDiscussionSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectDiscussion(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
