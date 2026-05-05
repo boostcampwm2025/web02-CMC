@@ -8,6 +8,8 @@ import { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateRespon
 import { BattleTeamUpdateAllResponseDto } from '../../../dto/battleTeamUpdateAllResponse.dto'
 import { BattleClosedResponseDto } from '../../../dto/battleClosedResponse.dto'
 import { DiscussionVoteResultDto } from '../../../dto/discussionVoteResult.dto'
+import type { BattleDiscussion, BattleTeam } from '../../../domains/models/types/battle.types'
+import { DiscussionVoteResponseDto } from '../../../dto/discussionVoteResponse.dto'
 import { BATTLE_SERVER_EVENTS } from '@cmc/types'
 
 @Injectable()
@@ -77,5 +79,29 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     const battleRoomId = getBattleRoomId(defensedRes.battleId)
     this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.DEFENSED, defensedRes)
     this.emit('battle:defensed', defensedRes)
+  }
+
+  emitAttackCreated(battleId: string, team: BattleTeam, discussion: BattleDiscussion): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.ATTACK_CREATED, discussion)
+    this.emit('battle:attack:created', { battleId, team, discussion })
+  }
+
+  emitDefenseCreated(battleId: string, team: BattleTeam, discussion: BattleDiscussion): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.DEFENSE_CREATED, discussion)
+    this.emit('battle:defense:created', { battleId, team, discussion })
+  }
+
+  emitAttackVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.ATTACK_VOTED, voteRes)
+    this.emit('battle:attack:voted', { battleId, team, voteRes })
+  }
+
+  emitDefenseVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void {
+    const teamRoom = getBattleRoomId(battleId, team)
+    this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.DEFENSE_VOTED, voteRes)
+    this.emit('battle:defense:voted', { battleId, team, voteRes })
   }
 }

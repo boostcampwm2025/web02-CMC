@@ -1,5 +1,5 @@
-import { Injectable, Inject } from '@nestjs/common'
-import { ActiveBattleState } from '../../domains/models/types/battle.types'
+import { Injectable, Inject, BadRequestException } from '@nestjs/common'
+import { ActiveBattleState, BattlePhaseName } from '../../domains/models/types/battle.types'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battleTurnResponse.dto'
 import { DiscussionVoteResultDto } from '../../dto/discussionVoteResult.dto'
 import { BattleTeamUpdateAllResponseDto } from '../../dto/battleTeamUpdateAllResponse.dto'
@@ -14,7 +14,7 @@ import { BattleDiscussionService } from '../../domains/services/battleDiscussion
 import { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
 import { BattleSkipService } from '../../domains/services/battleSkip/battleSkip.service'
 import { BattleTerminationUseCase } from './battleTermination.usecase'
-import { BATTLE_PHASE } from 'src/battles/domains/models/const/battles.const'
+import { BATTLE_PHASE, BATTLE_STATUS } from 'src/battles/domains/models/const/battles.const'
 
 @Injectable()
 export class BattlePhaseTransitionUseCase {
@@ -132,6 +132,91 @@ export class BattlePhaseTransitionUseCase {
       state => this.skipService.buildActiveParticipantsCount(state),
       async battleId => await this.skipPhase(battleId),
     )
+  }
+
+  //[DEV ONLY] 페이즈 강제 전환 — 정상 전이 로직 우회. liveStates·소켓·타이머 갱신.
+  async forcePhase(battleId: string, phase: BattlePhaseName, durationMs?: number, round?: number): Promise<void> {
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    if (state.status === BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('종료된 배틀은 페이즈를 변경할 수 없습니다.')
+    }
+
+    if (round !== undefined) {
+      if (round < 1 || round > state.totalRounds) {
+        throw new BadRequestException(`round는 1~${state.totalRounds} 범위여야 합니다.`)
+      }
+    }
+
+    const now = Date.now()
+    const phaseDef = BATTLE_PHASE[phase]
+    const time = durationMs ?? phaseDef.time
+
+    const prevRound = state.round
+    if (round !== undefined) state.round = round
+
+    state.phase = phase
+    state.startedAt = phase === 'PENDING' ? null : now
+    state.expiredAt = phase === 'PENDING' || time <= 0 ? null : now + time
+    state.skipState = new Set<string>()
+
+    this.stateRepo.saveBattleState(battleId, state)
+
+    if (round !== undefined && prevRound !== state.round) {
+      this.broadcaster.emitRoundUpdated(
+        BattleRoundResponseDto.of({
+          battleId,
+          round: state.round,
+          topic: state.topics[state.round - 1],
+        }),
+      )
+    }
+
+    this.broadcaster.emitPhaseUpdated(
+      BattlePhaseResponseDto.of({
+        battleId,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt ?? 0,
+        expiredAt: state.expiredAt ?? 0,
+      }),
+    )
+
+    if (state.expiredAt) {
+      this.timer.schedule(battleId, state)
+    } else {
+      this.timer.cancel(battleId)
+    }
+  }
+
+  //[DEV ONLY] 타이머 강제 변경 — durationMs 후 만료. 페이즈는 그대로.
+  async forceTimer(battleId: string, durationMs: number): Promise<void> {
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+
+    if (state.status === BATTLE_STATUS.CLOSED) {
+      throw new BadRequestException('종료된 배틀은 타이머를 변경할 수 없습니다.')
+    }
+    if (state.phase === 'PENDING') {
+      throw new BadRequestException('PENDING 페이즈에서는 타이머를 설정할 수 없습니다.')
+    }
+
+    const now = Date.now()
+    state.startedAt = now
+    state.expiredAt = now + Math.max(0, durationMs)
+
+    this.stateRepo.saveBattleState(battleId, state)
+
+    this.broadcaster.emitPhaseUpdated(
+      BattlePhaseResponseDto.of({
+        battleId,
+        phase: state.phase,
+        phaseCount: state.phaseCount,
+        startedAt: state.startedAt,
+        expiredAt: state.expiredAt,
+      }),
+    )
+
+    this.timer.schedule(battleId, state)
   }
 
   //다음 타이머 스케줄링

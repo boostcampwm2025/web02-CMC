@@ -1,4 +1,5 @@
 packages:
   - 'frontend'
   - 'backend'
+  - 'dev-mcp'
   - 'packages/*'
