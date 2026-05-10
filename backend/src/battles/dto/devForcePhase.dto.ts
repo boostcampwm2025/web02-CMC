@@ -84,3 +84,12 @@ export class DevChatDto {
   @MaxLength(500)
   text: string
 }
+
+export class DevSkipDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string
+
+  @IsOptional()
+  skip?: boolean
+}

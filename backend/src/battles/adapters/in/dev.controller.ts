@@ -14,6 +14,7 @@ import {
   DevInjectDiscussionDto,
   DevInjectVoteDto,
   DevChatDto,
+  DevSkipDto,
 } from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
@@ -186,6 +187,22 @@ export class DevController implements OnModuleInit {
     this.broadcaster.emitChatted(saved)
 
     return { battleId, messageId: saved.messageId, scope: saved.scope, team: saved.team, userId: body.userId, nickname: saved.sender.nickname }
+  }
+
+  @Post(':id/skip')
+  @HttpCode(200)
+  async skip(
+    @Param('id') battleId: string,
+    @Body() body: DevSkipDto,
+  ): Promise<{ battleId: string; userId: string; skip: boolean; totalSkips: number }> {
+    this.assertNotProduction()
+
+    const skip = body.skip ?? true
+    const totalSkips = await this.phaseTransitionUseCase.handlePhaseSkip(battleId, body.userId, skip)
+
+    this.broadcaster.emitUserSkipped(battleId, totalSkips)
+
+    return { battleId, userId: body.userId, skip, totalSkips }
   }
 
   @Get(':id/inspect')
