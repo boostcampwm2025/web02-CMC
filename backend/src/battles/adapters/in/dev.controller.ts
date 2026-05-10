@@ -7,8 +7,17 @@ import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '.
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../../application/ports/out/battleTimer.port'
-import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto, DevInjectVoteDto } from '../../dto/devForcePhase.dto'
+import {
+  DevForcePhaseDto,
+  DevForceTimerDto,
+  DevAddParticipantDto,
+  DevInjectDiscussionDto,
+  DevInjectVoteDto,
+  DevChatDto,
+} from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
+import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
+import type { BattleChatDto } from '../../dto/battleChat.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
@@ -152,6 +161,31 @@ export class DevController implements OnModuleInit {
       voterId,
       updatedCount: updates.length,
     }
+  }
+
+  @Post(':id/chat')
+  @HttpCode(200)
+  async chat(
+    @Param('id') battleId: string,
+    @Body() body: DevChatDto,
+  ): Promise<{ battleId: string; messageId: string; scope: string; team: string; userId: string; nickname: string }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    const team = state.participants.get(body.userId)
+    if (!team) {
+      throw new BadRequestException(`userId=${body.userId}는 배틀에 참가하지 않았습니다. 먼저 addParticipant로 추가하세요.`)
+    }
+    if (body.scope === BATTLE_CHAT_SCOPE.TEAM && team === BATTLE_TEAM.NONE) {
+      throw new BadRequestException('NONE 진영은 TEAM scope 채팅을 보낼 수 없습니다.')
+    }
+
+    const dto: BattleChatDto = { battleId, scope: body.scope, team, text: body.text }
+    const saved = await this.interactionUseCase.sendChat(dto, body.userId)
+
+    this.broadcaster.emitChatted(saved)
+
+    return { battleId, messageId: saved.messageId, scope: saved.scope, team: saved.team, userId: body.userId, nickname: saved.sender.nickname }
   }
 
   @Get(':id/inspect')

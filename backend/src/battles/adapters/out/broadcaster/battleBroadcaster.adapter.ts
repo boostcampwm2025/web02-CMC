@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common'
 import { Server } from 'socket.io'
 import { EventEmitter } from 'node:events'
 import { getBattleRoomId } from '../../../domains/services/utils/battle.util'
-import { BattleBroadcasterPort } from '../../../application/ports/out/battleBroadcaster.port'
+import { BattleBroadcasterPort, BattleChatBroadcastPayload } from '../../../application/ports/out/battleBroadcaster.port'
+import { BATTLE_CHAT_SCOPE } from '../../../domains/models/const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../../dto/battleTurnResponse.dto'
 import { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../../../dto/battleTeamUpdateAllResponse.dto'
@@ -103,5 +104,11 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     const teamRoom = getBattleRoomId(battleId, team)
     this.io.to(teamRoom).emit(BATTLE_SERVER_EVENTS.DEFENSE_VOTED, voteRes)
     this.emit('battle:defense:voted', { battleId, team, voteRes })
+  }
+
+  emitChatted(payload: BattleChatBroadcastPayload): void {
+    const roomId = payload.scope === BATTLE_CHAT_SCOPE.ALL ? getBattleRoomId(payload.battleId) : getBattleRoomId(payload.battleId, payload.team)
+    this.io.to(roomId).emit(BATTLE_SERVER_EVENTS.CHATTED, payload)
+    this.emit('battle:chatted', payload)
   }
 }

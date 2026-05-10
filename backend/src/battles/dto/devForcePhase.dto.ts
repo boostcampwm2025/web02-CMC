@@ -1,5 +1,6 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator'
+import { IsEnum, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator'
 import type { BattlePhaseName } from '@cmc/types'
+import { BATTLE_CHAT_SCOPE } from '../domains/models/const/battles.const'
 
 const PHASE_VALUES: BattlePhaseName[] = ['PENDING', 'OPINION_SHARE', 'ATTACK', 'DEFENSE', 'TEAM_SWITCH']
 
@@ -67,4 +68,19 @@ export class DevInjectVoteDto {
   @IsOptional()
   @IsString()
   voterId?: string
+}
+
+export class DevChatDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string
+
+  @IsString()
+  @IsIn([BATTLE_CHAT_SCOPE.ALL, BATTLE_CHAT_SCOPE.TEAM])
+  scope: typeof BATTLE_CHAT_SCOPE.ALL | typeof BATTLE_CHAT_SCOPE.TEAM
+
+  @IsString()
+  @MinLength(1)
+  @MaxLength(500)
+  text: string
 }
