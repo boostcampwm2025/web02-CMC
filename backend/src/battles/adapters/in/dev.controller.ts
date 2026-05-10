@@ -14,7 +14,7 @@ import {
   DevInjectDiscussionDto,
   DevInjectVoteDto,
   DevChatDto,
-  DevSkipDto,
+  DevTeamVoteDto,
 } from '../../dto/devForcePhase.dto'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
@@ -189,20 +189,28 @@ export class DevController implements OnModuleInit {
     return { battleId, messageId: saved.messageId, scope: saved.scope, team: saved.team, userId: body.userId, nickname: saved.sender.nickname }
   }
 
-  @Post(':id/skip')
+  @Post(':id/team-vote')
   @HttpCode(200)
-  async skip(
+  async teamVote(
     @Param('id') battleId: string,
-    @Body() body: DevSkipDto,
-  ): Promise<{ battleId: string; userId: string; skip: boolean; totalSkips: number }> {
+    @Body() body: DevTeamVoteDto,
+  ): Promise<{ battleId: string; userId: string; team: string; counts: { A: number; B: number; NONE: number } }> {
     this.assertNotProduction()
 
-    const skip = body.skip ?? true
-    const totalSkips = await this.phaseTransitionUseCase.handlePhaseSkip(battleId, body.userId, skip)
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    if (!state.participants.has(body.userId)) {
+      throw new BadRequestException(`userId=${body.userId}는 배틀에 참가하지 않았습니다.`)
+    }
 
-    this.broadcaster.emitUserSkipped(battleId, totalSkips)
+    await this.interactionUseCase.switchTeam(battleId, body.userId, body.team)
 
-    return { battleId, userId: body.userId, skip, totalSkips }
+    const { state: after } = await this.stateRepo.loadBattleState(battleId)
+    const counts = { A: 0, B: 0, NONE: 0 }
+    after.teamVotes.forEach(team => {
+      counts[team] = (counts[team] ?? 0) + 1
+    })
+
+    return { battleId, userId: body.userId, team: body.team, counts }
   }
 
   @Get(':id/inspect')

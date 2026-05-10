@@ -85,11 +85,11 @@ export class DevChatDto {
   text: string
 }
 
-export class DevSkipDto {
+export class DevTeamVoteDto {
   @IsString()
   @IsNotEmpty()
   userId: string
 
-  @IsOptional()
-  skip?: boolean
+  @IsEnum(['A', 'B', 'NONE'])
+  team: 'A' | 'B' | 'NONE'
 }
