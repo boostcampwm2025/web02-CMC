@@ -32,5 +32,6 @@ export interface BattleBroadcasterPort {
   emitDefenseVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void
   emitChatted(payload: BattleChatBroadcastPayload): void
   emitLeaved(payload: BattleLeaveResponseDto): void
+  emitStarted(battleId: string): void
   on(event: string, listener: (...args: any[]) => void): void
 }

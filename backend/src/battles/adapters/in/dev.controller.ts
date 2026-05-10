@@ -18,6 +18,7 @@ import {
   DevLeaveDto,
 } from '../../dto/devForcePhase.dto'
 import { BattleParticipationUseCase } from '../../application/usecases/battleParticipation.usecase'
+import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
 import type { BattleChatDto } from '../../dto/battleChat.dto'
@@ -28,6 +29,7 @@ export class DevController implements OnModuleInit {
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
     private readonly interactionUseCase: BattleInteractionUseCase,
     private readonly participationUseCase: BattleParticipationUseCase,
+    private readonly creationUseCase: BattleCreationUseCase,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
@@ -229,6 +231,17 @@ export class DevController implements OnModuleInit {
     this.broadcaster.emitLeaved(result)
 
     return { battleId, userId: body.userId, counts: result.counts, totalSkips: result.totalSkips }
+  }
+
+  @Post(':id/start')
+  @HttpCode(200)
+  async start(@Param('id') battleId: string): Promise<{ battleId: string }> {
+    this.assertNotProduction()
+
+    await this.creationUseCase.start(battleId)
+    this.broadcaster.emitStarted(battleId)
+
+    return { battleId }
   }
 
   @Get(':id/inspect')

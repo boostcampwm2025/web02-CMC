@@ -118,4 +118,10 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.LEAVED, payload)
     this.emit('battle:leaved', payload)
   }
+
+  emitStarted(battleId: string): void {
+    const battleRoomId = getBattleRoomId(battleId)
+    this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.STARTED)
+    this.emit('battle:started', { battleId })
+  }
 }
