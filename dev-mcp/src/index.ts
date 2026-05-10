@@ -11,6 +11,7 @@ import { addParticipant, addParticipantSchema } from './tools/addParticipant.js'
 import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
 import { injectVote, injectVoteSchema } from './tools/injectVote.js';
 import { injectChat, injectChatSchema } from './tools/injectChat.js';
+import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -116,6 +117,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectChat(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectTeamVote',
+  '특정 유저의 진영 변경 투표를 강제로 주입합니다. 실제 흐름과 동일하게 broadcast 없이 state만 변경됩니다. TEAM_SWITCH 페이즈 진입 시 applyTeamSwitch가 ALL_UPDATED 한 번에 emit. (로컬 개발 전용)',
+  injectTeamVoteSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectTeamVote(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
