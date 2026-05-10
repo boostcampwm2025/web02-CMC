@@ -14,6 +14,7 @@ import { injectChat, injectChatSchema } from './tools/injectChat.js';
 import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
 import { injectLeave, injectLeaveSchema } from './tools/injectLeave.js';
 import { startBattle, startBattleSchema } from './tools/startBattle.js';
+import { resetBattle, resetBattleSchema } from './tools/resetBattle.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -158,6 +159,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await startBattle(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'resetBattle',
+  '배틀을 완전히 정리합니다. timer ZSET → in-memory liveStates · Redis battle:* 키 → DB row(BattleParticipant cascade) 순서로 삭제. 장시간 테스트 메모리 누적 해소용. (로컬 개발 전용)',
+  resetBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await resetBattle(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }

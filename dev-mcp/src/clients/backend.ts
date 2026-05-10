@@ -19,3 +19,14 @@ export async function postBackend<TBody extends object, TResponse = unknown>(
   }
   return text ? (JSON.parse(text) as TResponse) : ({} as TResponse);
 }
+
+export async function deleteBackend<TResponse = unknown>(path: string): Promise<TResponse> {
+  const url = `${getBackendUrl()}${path}`;
+  const response = await fetch(url, { method: 'DELETE' });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`백엔드 응답 ${response.status}: ${text || response.statusText}`);
+  }
+  return text ? (JSON.parse(text) as TResponse) : ({} as TResponse);
+}
