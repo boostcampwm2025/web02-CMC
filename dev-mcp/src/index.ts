@@ -10,6 +10,7 @@ import { createTestBattle, createTestBattleSchema } from './tools/createTestBatt
 import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
 import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
 import { injectVote, injectVoteSchema } from './tools/injectVote.js';
+import { injectChat, injectChatSchema } from './tools/injectChat.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -102,6 +103,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectVote(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectChat',
+  '특정 유저 명의로 채팅을 강제로 전송합니다. scope=ALL이면 전체 채팅 룸, scope=TEAM이면 해당 유저의 팀 룸으로 broadcast. team은 state.participants에서 자동 추출. NONE 진영 유저는 TEAM scope 불가. (로컬 개발 전용)',
+  injectChatSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectChat(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
