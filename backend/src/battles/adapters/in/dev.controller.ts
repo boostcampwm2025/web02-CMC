@@ -1,12 +1,26 @@
 import { randomUUID } from 'node:crypto'
-import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  HttpCode,
+  Inject,
+  Logger,
+  OnModuleInit,
+  Param,
+  Post,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
-import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '../../application/ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT, BATTLE_REPO_PORT } from '../../application/ports/tokens'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../../application/ports/out/battleTimer.port'
+import type { BattleRepoPort } from '../../application/ports/out/battleRepository.port'
 import {
   DevForcePhaseDto,
   DevForceTimerDto,
@@ -25,6 +39,8 @@ import type { BattleChatDto } from '../../dto/battleChat.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
+  private readonly logger = new Logger(DevController.name)
+
   constructor(
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
     private readonly interactionUseCase: BattleInteractionUseCase,
@@ -33,6 +49,7 @@ export class DevController implements OnModuleInit {
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
+    @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
     private readonly config: ConfigService,
   ) {}
 
@@ -242,6 +259,40 @@ export class DevController implements OnModuleInit {
     this.broadcaster.emitStarted(battleId)
 
     return { battleId }
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  async reset(
+    @Param('id') battleId: string,
+  ): Promise<{ battleId: string; deleted: { timer: boolean; redis: boolean; memory: boolean; db: boolean } }> {
+    this.assertNotProduction()
+
+    const result = { timer: false, redis: false, memory: false, db: false }
+
+    try {
+      this.timer.cancel(battleId)
+      result.timer = true
+    } catch (err) {
+      this.logger.error(`[reset] timer.cancel 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    try {
+      await this.stateRepo.clearBattleStateFromRedis(battleId)
+      result.redis = true
+      result.memory = true
+    } catch (err) {
+      this.logger.error(`[reset] state clear 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    try {
+      await this.repo.delete(battleId)
+      result.db = true
+    } catch (err) {
+      this.logger.error(`[reset] DB delete 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    return { battleId, deleted: result }
   }
 
   @Get(':id/inspect')

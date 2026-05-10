@@ -107,4 +107,7 @@ export interface BattleRepoPort {
 
   //배틀 참가자 업데이트
   updateManyBattleParticipants(args: { where: { battleId: string; userId?: { in?: string[] } }; data: { isMvp: boolean } }): Promise<void>
+
+  //배틀 삭제 (DEV ONLY) — BattleParticipant cascade 삭제
+  delete(battleId: string): Promise<void>
 }
