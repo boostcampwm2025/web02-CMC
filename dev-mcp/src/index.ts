@@ -12,6 +12,7 @@ import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussi
 import { injectVote, injectVoteSchema } from './tools/injectVote.js';
 import { injectChat, injectChatSchema } from './tools/injectChat.js';
 import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
+import { injectLeave, injectLeaveSchema } from './tools/injectLeave.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -130,6 +131,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectTeamVote(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectLeave',
+  '특정 유저를 배틀에서 강제로 나가게 합니다. 참가자/팀 목록/투표/스킵 상태에서 제거 후 LEAVED broadcast. 잔여 참가자 모두 skip 상태면 자동 페이즈 advance. (로컬 개발 전용)',
+  injectLeaveSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectLeave(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
