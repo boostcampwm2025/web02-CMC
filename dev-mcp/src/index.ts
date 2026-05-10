@@ -13,6 +13,7 @@ import { injectVote, injectVoteSchema } from './tools/injectVote.js';
 import { injectChat, injectChatSchema } from './tools/injectChat.js';
 import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
 import { injectLeave, injectLeaveSchema } from './tools/injectLeave.js';
+import { startBattle, startBattleSchema } from './tools/startBattle.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -144,6 +145,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectLeave(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'startBattle',
+  '배틀을 시작합니다. status를 OPEN으로 변경하고 PENDING→OPINION_SHARE로 자동 advance. PHASE_UPDATED/ROUND_UPDATED/STARTED broadcast. 가짜 참가자 양 팀 채운 후 호출하면 솔로 테스트에서도 진행 가능. (로컬 개발 전용)',
+  startBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await startBattle(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
