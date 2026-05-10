@@ -3,6 +3,7 @@ import { Server } from 'socket.io'
 import { EventEmitter } from 'node:events'
 import { getBattleRoomId } from '../../../domains/services/utils/battle.util'
 import { BattleBroadcasterPort, BattleChatBroadcastPayload } from '../../../application/ports/out/battleBroadcaster.port'
+import { BattleLeaveResponseDto } from '../../../dto/battleLeaveResponse.dto'
 import { BATTLE_CHAT_SCOPE } from '../../../domains/models/const/battles.const'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../../dto/battleTurnResponse.dto'
 import { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateResponse.dto'
@@ -110,5 +111,11 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     const roomId = payload.scope === BATTLE_CHAT_SCOPE.ALL ? getBattleRoomId(payload.battleId) : getBattleRoomId(payload.battleId, payload.team)
     this.io.to(roomId).emit(BATTLE_SERVER_EVENTS.CHATTED, payload)
     this.emit('battle:chatted', payload)
+  }
+
+  emitLeaved(payload: BattleLeaveResponseDto): void {
+    const battleRoomId = getBattleRoomId(payload.battleId)
+    this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.LEAVED, payload)
+    this.emit('battle:leaved', payload)
   }
 }

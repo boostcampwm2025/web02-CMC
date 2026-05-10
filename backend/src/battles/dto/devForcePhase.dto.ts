@@ -93,3 +93,9 @@ export class DevTeamVoteDto {
   @IsEnum(['A', 'B', 'NONE'])
   team: 'A' | 'B' | 'NONE'
 }
+
+export class DevLeaveDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string
+}

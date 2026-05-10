@@ -2,6 +2,7 @@ import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../../dto/bat
 import { BattleUserUpdateResponseDto } from '../../../dto/battleUserUpdateResponse.dto'
 import { BattleTeamUpdateAllResponseDto } from '../../../dto/battleTeamUpdateAllResponse.dto'
 import { BattleClosedResponseDto } from '../../../dto/battleClosedResponse.dto'
+import { BattleLeaveResponseDto } from '../../../dto/battleLeaveResponse.dto'
 import { DiscussionVoteResultDto } from '../../../dto/discussionVoteResult.dto'
 import type { BattleDiscussion, BattleTeam } from '../../../domains/models/types/battle.types'
 import type { DiscussionVoteResponseDto } from '../../../dto/discussionVoteResponse.dto'
@@ -30,5 +31,6 @@ export interface BattleBroadcasterPort {
   emitAttackVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void
   emitDefenseVoted(battleId: string, team: BattleTeam, voteRes: DiscussionVoteResponseDto): void
   emitChatted(payload: BattleChatBroadcastPayload): void
+  emitLeaved(payload: BattleLeaveResponseDto): void
   on(event: string, listener: (...args: any[]) => void): void
 }
