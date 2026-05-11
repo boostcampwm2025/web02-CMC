@@ -13,6 +13,7 @@ import { injectVote, injectVoteSchema } from './tools/injectVote.js';
 import { injectChat, injectChatSchema } from './tools/injectChat.js';
 import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
 import { injectLeave, injectLeaveSchema } from './tools/injectLeave.js';
+import { injectSkip, injectSkipSchema } from './tools/injectSkip.js';
 import { startBattle, startBattleSchema } from './tools/startBattle.js';
 import { resetBattle, resetBattleSchema } from './tools/resetBattle.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
@@ -146,6 +147,19 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectLeave(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectSkip',
+  '특정 유저의 페이즈 스킵 토글을 강제로 주입합니다. skip 기본 true(활성화), false면 해제. 참가자 전원 스킵 시 다음 페이즈로 자동 advance. USER_SKIPPED broadcast. (로컬 개발 전용)',
+  injectSkipSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectSkip(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
