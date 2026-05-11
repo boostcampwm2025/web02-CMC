@@ -1,4 +1,4 @@
-import { IsEnum, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator'
+import { IsBoolean, IsEnum, IsIn, IsInt, IsNotEmpty, IsOptional, IsString, MaxLength, Min, MinLength } from 'class-validator'
 import type { BattlePhaseName } from '@cmc/types'
 import { BATTLE_CHAT_SCOPE } from '../domains/models/const/battles.const'
 
@@ -98,4 +98,14 @@ export class DevLeaveDto {
   @IsString()
   @IsNotEmpty()
   userId: string
+}
+
+export class DevSkipDto {
+  @IsString()
+  @IsNotEmpty()
+  userId: string
+
+  @IsOptional()
+  @IsBoolean()
+  skip?: boolean
 }

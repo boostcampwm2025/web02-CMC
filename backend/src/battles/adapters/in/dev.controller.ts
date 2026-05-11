@@ -30,6 +30,7 @@ import {
   DevChatDto,
   DevTeamVoteDto,
   DevLeaveDto,
+  DevSkipDto,
 } from '../../dto/devForcePhase.dto'
 import { BattleParticipationUseCase } from '../../application/usecases/battleParticipation.usecase'
 import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
@@ -259,6 +260,22 @@ export class DevController implements OnModuleInit {
     this.broadcaster.emitStarted(battleId)
 
     return { battleId }
+  }
+
+  @Post(':id/skip')
+  @HttpCode(200)
+  async skip(
+    @Param('id') battleId: string,
+    @Body() body: DevSkipDto,
+  ): Promise<{ battleId: string; userId: string; skip: boolean; totalSkips: number }> {
+    this.assertNotProduction()
+
+    const skip = body.skip ?? true
+    const totalSkips = await this.phaseTransitionUseCase.handlePhaseSkip(battleId, body.userId, skip)
+
+    this.broadcaster.emitUserSkipped(battleId, totalSkips)
+
+    return { battleId, userId: body.userId, skip, totalSkips }
   }
 
   @Delete(':id')

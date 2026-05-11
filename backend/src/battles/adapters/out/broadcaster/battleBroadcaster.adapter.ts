@@ -124,4 +124,10 @@ export class BattleBroadcasterAdapter extends EventEmitter implements BattleBroa
     this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.STARTED)
     this.emit('battle:started', { battleId })
   }
+
+  emitUserSkipped(battleId: string, totalSkips: number): void {
+    const battleRoomId = getBattleRoomId(battleId)
+    this.io.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.USER_SKIPPED, { totalSkips })
+    this.emit('battle:user:skipped', { battleId, totalSkips })
+  }
 }
