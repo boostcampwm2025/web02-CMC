@@ -198,4 +198,8 @@ export class BattleRepositoryAdapter implements BattleRepoPort {
       data: args.data,
     })
   }
+
+  async delete(battleId: string): Promise<void> {
+    await this.prisma.battle.delete({ where: { id: battleId } })
+  }
 }

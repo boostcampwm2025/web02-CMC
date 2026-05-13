@@ -1,23 +1,56 @@
 import { randomUUID } from 'node:crypto'
-import { BadRequestException, Body, Controller, ForbiddenException, Get, HttpCode, Inject, OnModuleInit, Param, Post } from '@nestjs/common'
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  HttpCode,
+  Inject,
+  Logger,
+  OnModuleInit,
+  Param,
+  Post,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BattlePhaseTransitionUseCase } from '../../application/usecases/battlePhaseTransition.usecase'
 import { BattleInteractionUseCase } from '../../application/usecases/battleInteraction.usecase'
-import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '../../application/ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT, BATTLE_REPO_PORT } from '../../application/ports/tokens'
 import type { BattleStatePort } from '../../application/ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../../application/ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../../application/ports/out/battleTimer.port'
-import { DevForcePhaseDto, DevForceTimerDto, DevAddParticipantDto, DevInjectDiscussionDto, DevInjectVoteDto } from '../../dto/devForcePhase.dto'
+import type { BattleRepoPort } from '../../application/ports/out/battleRepository.port'
+import {
+  DevForcePhaseDto,
+  DevForceTimerDto,
+  DevAddParticipantDto,
+  DevInjectDiscussionDto,
+  DevInjectVoteDto,
+  DevChatDto,
+  DevTeamVoteDto,
+  DevLeaveDto,
+  DevSkipDto,
+} from '../../dto/devForcePhase.dto'
+import { BattleParticipationUseCase } from '../../application/usecases/battleParticipation.usecase'
+import { BattleCreationUseCase } from '../../application/usecases/battleCreation.usecase'
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
+import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
+import type { BattleChatDto } from '../../dto/battleChat.dto'
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
+  private readonly logger = new Logger(DevController.name)
+
   constructor(
     private readonly phaseTransitionUseCase: BattlePhaseTransitionUseCase,
     private readonly interactionUseCase: BattleInteractionUseCase,
+    private readonly participationUseCase: BattleParticipationUseCase,
+    private readonly creationUseCase: BattleCreationUseCase,
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
+    @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
     private readonly config: ConfigService,
   ) {}
 
@@ -152,6 +185,131 @@ export class DevController implements OnModuleInit {
       voterId,
       updatedCount: updates.length,
     }
+  }
+
+  @Post(':id/chat')
+  @HttpCode(200)
+  async chat(
+    @Param('id') battleId: string,
+    @Body() body: DevChatDto,
+  ): Promise<{ battleId: string; messageId: string; scope: string; team: string; userId: string; nickname: string }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    const team = state.participants.get(body.userId)
+    if (!team) {
+      throw new BadRequestException(`userId=${body.userId}는 배틀에 참가하지 않았습니다. 먼저 addParticipant로 추가하세요.`)
+    }
+    if (body.scope === BATTLE_CHAT_SCOPE.TEAM && team === BATTLE_TEAM.NONE) {
+      throw new BadRequestException('NONE 진영은 TEAM scope 채팅을 보낼 수 없습니다.')
+    }
+
+    const dto: BattleChatDto = { battleId, scope: body.scope, team, text: body.text }
+    const saved = await this.interactionUseCase.sendChat(dto, body.userId)
+
+    this.broadcaster.emitChatted(saved)
+
+    return { battleId, messageId: saved.messageId, scope: saved.scope, team: saved.team, userId: body.userId, nickname: saved.sender.nickname }
+  }
+
+  @Post(':id/team-vote')
+  @HttpCode(200)
+  async teamVote(
+    @Param('id') battleId: string,
+    @Body() body: DevTeamVoteDto,
+  ): Promise<{ battleId: string; userId: string; team: string; counts: { A: number; B: number; NONE: number } }> {
+    this.assertNotProduction()
+
+    const { state } = await this.stateRepo.loadBattleState(battleId)
+    if (!state.participants.has(body.userId)) {
+      throw new BadRequestException(`userId=${body.userId}는 배틀에 참가하지 않았습니다.`)
+    }
+
+    await this.interactionUseCase.switchTeam(battleId, body.userId, body.team)
+
+    const { state: after } = await this.stateRepo.loadBattleState(battleId)
+    const counts = { A: 0, B: 0, NONE: 0 }
+    after.teamVotes.forEach(team => {
+      counts[team] = (counts[team] ?? 0) + 1
+    })
+
+    return { battleId, userId: body.userId, team: body.team, counts }
+  }
+
+  @Post(':id/leave')
+  @HttpCode(200)
+  async leave(
+    @Param('id') battleId: string,
+    @Body() body: DevLeaveDto,
+  ): Promise<{ battleId: string; userId: string; counts: { teamA: number; teamB: number; teamNone: number }; totalSkips: number }> {
+    this.assertNotProduction()
+
+    const result = await this.participationUseCase.leave(body.userId, battleId)
+
+    this.broadcaster.emitLeaved(result)
+
+    return { battleId, userId: body.userId, counts: result.counts, totalSkips: result.totalSkips }
+  }
+
+  @Post(':id/start')
+  @HttpCode(200)
+  async start(@Param('id') battleId: string): Promise<{ battleId: string }> {
+    this.assertNotProduction()
+
+    await this.creationUseCase.start(battleId)
+    this.broadcaster.emitStarted(battleId)
+
+    return { battleId }
+  }
+
+  @Post(':id/skip')
+  @HttpCode(200)
+  async skip(
+    @Param('id') battleId: string,
+    @Body() body: DevSkipDto,
+  ): Promise<{ battleId: string; userId: string; skip: boolean; totalSkips: number }> {
+    this.assertNotProduction()
+
+    const skip = body.skip ?? true
+    const totalSkips = await this.phaseTransitionUseCase.handlePhaseSkip(battleId, body.userId, skip)
+
+    this.broadcaster.emitUserSkipped(battleId, totalSkips)
+
+    return { battleId, userId: body.userId, skip, totalSkips }
+  }
+
+  @Delete(':id')
+  @HttpCode(200)
+  async reset(
+    @Param('id') battleId: string,
+  ): Promise<{ battleId: string; deleted: { timer: boolean; redis: boolean; memory: boolean; db: boolean } }> {
+    this.assertNotProduction()
+
+    const result = { timer: false, redis: false, memory: false, db: false }
+
+    try {
+      this.timer.cancel(battleId)
+      result.timer = true
+    } catch (err) {
+      this.logger.error(`[reset] timer.cancel 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    try {
+      await this.stateRepo.clearBattleStateFromRedis(battleId)
+      result.redis = true
+      result.memory = true
+    } catch (err) {
+      this.logger.error(`[reset] state clear 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    try {
+      await this.repo.delete(battleId)
+      result.db = true
+    } catch (err) {
+      this.logger.error(`[reset] DB delete 실패 ${battleId}: ${(err as Error).message}`)
+    }
+
+    return { battleId, deleted: result }
   }
 
   @Get(':id/inspect')

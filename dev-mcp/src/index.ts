@@ -10,6 +10,12 @@ import { createTestBattle, createTestBattleSchema } from './tools/createTestBatt
 import { addParticipant, addParticipantSchema } from './tools/addParticipant.js';
 import { injectDiscussion, injectDiscussionSchema } from './tools/injectDiscussion.js';
 import { injectVote, injectVoteSchema } from './tools/injectVote.js';
+import { injectChat, injectChatSchema } from './tools/injectChat.js';
+import { injectTeamVote, injectTeamVoteSchema } from './tools/injectTeamVote.js';
+import { injectLeave, injectLeaveSchema } from './tools/injectLeave.js';
+import { injectSkip, injectSkipSchema } from './tools/injectSkip.js';
+import { startBattle, startBattleSchema } from './tools/startBattle.js';
+import { resetBattle, resetBattleSchema } from './tools/resetBattle.js';
 import { inspectBattle, inspectBattleSchema } from './tools/inspectBattle.js';
 
 const server = new McpServer({
@@ -102,6 +108,84 @@ server.tool(
   async (params) => {
     try {
       return { content: [{ type: 'text', text: await injectVote(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectChat',
+  '특정 유저 명의로 채팅을 강제로 전송합니다. scope=ALL이면 전체 채팅 룸, scope=TEAM이면 해당 유저의 팀 룸으로 broadcast. team은 state.participants에서 자동 추출. NONE 진영 유저는 TEAM scope 불가. (로컬 개발 전용)',
+  injectChatSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectChat(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectTeamVote',
+  '특정 유저의 진영 변경 투표를 강제로 주입합니다. 실제 흐름과 동일하게 broadcast 없이 state만 변경됩니다. TEAM_SWITCH 페이즈 진입 시 applyTeamSwitch가 ALL_UPDATED 한 번에 emit. (로컬 개발 전용)',
+  injectTeamVoteSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectTeamVote(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectLeave',
+  '특정 유저를 배틀에서 강제로 나가게 합니다. 참가자/팀 목록/투표/스킵 상태에서 제거 후 LEAVED broadcast. 잔여 참가자 모두 skip 상태면 자동 페이즈 advance. (로컬 개발 전용)',
+  injectLeaveSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectLeave(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'injectSkip',
+  '특정 유저의 페이즈 스킵 토글을 강제로 주입합니다. skip 기본 true(활성화), false면 해제. 참가자 전원 스킵 시 다음 페이즈로 자동 advance. USER_SKIPPED broadcast. (로컬 개발 전용)',
+  injectSkipSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await injectSkip(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'startBattle',
+  '배틀을 시작합니다. status를 OPEN으로 변경하고 PENDING→OPINION_SHARE로 자동 advance. PHASE_UPDATED/ROUND_UPDATED/STARTED broadcast. 가짜 참가자 양 팀 채운 후 호출하면 솔로 테스트에서도 진행 가능. (로컬 개발 전용)',
+  startBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await startBattle(params) }] };
+    } catch (err) {
+      return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
+    }
+  },
+);
+
+server.tool(
+  'resetBattle',
+  '배틀을 완전히 정리합니다. timer ZSET → in-memory liveStates · Redis battle:* 키 → DB row(BattleParticipant cascade) 순서로 삭제. 장시간 테스트 메모리 누적 해소용. (로컬 개발 전용)',
+  resetBattleSchema,
+  async (params) => {
+    try {
+      return { content: [{ type: 'text', text: await resetBattle(params) }] };
     } catch (err) {
       return { content: [{ type: 'text', text: `[오류] ${(err as Error).message}` }] };
     }
