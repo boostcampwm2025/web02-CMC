@@ -42,3 +42,17 @@ Thumbs.db
 
 # prisma
 /backend/generated/*
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.tfstate.lock.info
+*.tfplan
+*.tfplan.*
+tfplan
+crash.log
+crash.*.log
+terraform/envs/*/ncloud.env
