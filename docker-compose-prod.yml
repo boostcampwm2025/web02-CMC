@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   migrate:
     image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
@@ -69,16 +67,9 @@ services:
       - letsencrypt:/etc/letsencrypt:ro
       - certbot-webroot:/var/www/certbot:ro
     depends_on:
-      - frontend
       - backend
     restart: unless-stopped
     command: "/bin/sh -c 'while :; do sleep 12h; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
-  frontend:
-    image: ghcr.io/boostcampwm2025/web02-cmc-frontend-prod:${VERSION_TAG:-latest}
-    depends_on:
-      - backend
-    restart: unless-stopped
 
   certbot:
     image: certbot/certbot:latest
