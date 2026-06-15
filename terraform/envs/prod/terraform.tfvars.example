@@ -1,0 +1,50 @@
+owner                  = "team-cmc"
+cost_center            = "bootcamp"
+root_domain            = "example.com"
+frontend_subdomain     = "www"
+api_subdomain          = "api"
+frontend_bucket_name   = "cmc-prod-frontend"
+frontend_asset_prefix  = ""
+frontend_certificate_name = "cmc-frontend-cert"
+
+zone                   = "KR-2"
+ssh_access_cidrs       = ["0.0.0.0/0"]
+public_access_cidrs    = ["0.0.0.0/0"]
+nat_subnet_cidr     = "10.10.30.0/24"
+nat_subnet_name     = "cmc-prod-nat-subnet"
+nat_gateway_name    = "cmc-prod-nat"
+extra_public_inbound_rules = [
+  {
+    protocol    = "TCP"
+    ip_block    = "0.0.0.0/0"
+    port_range  = "3001"
+    description = "grafana-admin"
+  }
+]
+
+server_image_name      = "ubuntu-22.04"
+server_hypervisor_type = "KVM"
+server_spec_code       = "c2-g3a"
+login_key_name         = "web02"
+
+postgres_server_name           = "cmc-prod-postgres"
+postgres_server_spec_code      = "mi1-g3"
+postgres_fee_system_type_code  = "FXSUM"
+# Keep PostgreSQL database/user/password in the server .env or DB bootstrap process, not in Terraform state.
+
+redis_mode             = "container"
+redis_version          = "7.0.13-simple"
+observability_mode     = "docker-compose"
+
+server_init_script = <<-EOT
+#!/bin/bash
+set -e
+# TODO: install docker, docker compose plugin, nginx, certbot, node exporter, deploy user bootstrap
+EOT
+
+postgres_server_init_script = <<-EOT
+#!/bin/bash
+set -e
+# TODO: install and configure PostgreSQL on the private DB VM.
+# Do not put DB passwords in this Terraform script; Terraform stores init script content in state.
+EOT
