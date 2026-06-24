@@ -168,10 +168,11 @@ describe('BattleCreationUseCase', () => {
       const payload = createMockPayload()
 
       const result = await useCase.create(payload)
+      const [createArg] = (repo.create as unknown as jest.Mock).mock.calls[0]
 
       expect(result.battle.id).toBe('battle-id-123')
       expect(result.aiRateLimit).toBeNull()
-      expect(repo.create).toHaveBeenCalledWith(expect.not.objectContaining({ referenceData: expect.anything() }))
+      expect(createArg).not.toHaveProperty('referenceData')
     })
   })
 
