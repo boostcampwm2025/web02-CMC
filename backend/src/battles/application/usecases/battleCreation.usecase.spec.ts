@@ -86,8 +86,16 @@ describe('BattleCreationUseCase', () => {
 
     referencePort = {
       generate: jest.fn().mockResolvedValue({
-        summary: 'AI 요약',
-        keyPoints: ['point1', 'point2'],
+        referenceData: {
+          summary: 'AI 요약',
+          keyPoints: ['point1', 'point2'],
+        },
+        rateLimit: {
+          limitPerMinute: 5,
+          remainingMinute: 4,
+          limitPerDay: 20,
+          remainingDay: 19,
+        },
       }),
     } as unknown as jest.Mocked<BattleReferencePort>
 
@@ -118,7 +126,13 @@ describe('BattleCreationUseCase', () => {
           status: BATTLE_STATUS.PENDING,
         }),
       )
-      expect(result.id).toBe('battle-id-123')
+      expect(result.battle.id).toBe('battle-id-123')
+      expect(result.aiRateLimit).toEqual({
+        limitPerMinute: 5,
+        remainingMinute: 4,
+        limitPerDay: 20,
+        remainingDay: 19,
+      })
     })
 
     it('비공개 배틀 생성 시 초대 코드를 생성한다', async () => {
@@ -155,12 +169,9 @@ describe('BattleCreationUseCase', () => {
 
       const result = await useCase.create(payload)
 
-      expect(result.id).toBe('battle-id-123')
-      expect(repo.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          referenceData: null,
-        }),
-      )
+      expect(result.battle.id).toBe('battle-id-123')
+      expect(result.aiRateLimit).toBeNull()
+      expect(repo.create).toHaveBeenCalledWith(expect.not.objectContaining({ referenceData: expect.anything() }))
     })
   })
 

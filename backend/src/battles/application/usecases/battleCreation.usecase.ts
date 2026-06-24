@@ -11,10 +11,16 @@ import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleReferencePort } from '../ports/out/battleReference.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
+import type { GeminiRateLimitInfo } from '../../../gemini/gemini.service'
 
 import { shuffleTopics } from '../../domains/services/utils/battle.util'
 import { toBattleEntity } from '../mappers/battle.mapper'
 import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
+
+export interface BattleCreationResult {
+  battle: Battle
+  aiRateLimit: GeminiRateLimitInfo | null
+}
 
 @Injectable()
 export class BattleCreationUseCase {
@@ -28,13 +34,14 @@ export class BattleCreationUseCase {
   ) {}
 
   //배틀 생성
-  async create(payload: BattleCreateQueryDto): Promise<Battle> {
+  async create(payload: BattleCreateQueryDto): Promise<BattleCreationResult> {
     const now = new Date()
     const battleId = this.identifierPort.generateId()
     const shuffledTopics = shuffleTopics(payload.topics, payload.playTime)
     const isPrivate = payload.type === BATTLE_TYPE.PRIVATE
 
     let referenceData: BattleReferenceData | null = null
+    let aiRateLimit: GeminiRateLimitInfo | null = null
     try {
       const title = String(payload.title)
       const description = String(payload.description)
@@ -51,14 +58,15 @@ export class BattleCreationUseCase {
         category,
         topics: payload.topics,
       })
-      referenceData = generated
+      referenceData = generated.referenceData
+      aiRateLimit = generated.rateLimit
     } catch {
       // AI 참고 자료 생성 실패 시 null로 유지하고 배틀 생성은 계속 진행
     }
 
     const inviteCode: string | null = isPrivate ? this.identifierPort.generateInviteCode() : null
 
-    const createData = {
+    const createData: Parameters<BattleRepoPort['create']>[0] = {
       id: battleId,
       userId: String(payload.authorId),
       title: String(payload.title).trim(),
@@ -88,12 +96,14 @@ export class BattleCreationUseCase {
       chatsAllState: [] as Prisma.InputJsonValue,
       chatsTeamAState: [] as Prisma.InputJsonValue,
       chatsTeamBState: [] as Prisma.InputJsonValue,
-      referenceData: referenceData as unknown as Prisma.InputJsonValue,
+    }
+    if (referenceData !== null) {
+      createData.referenceData = referenceData as unknown as Prisma.InputJsonValue
     }
     const created = await this.repo.create(createData)
 
     const battleEntity = toBattleEntity(created, 1)
-    return battleEntity
+    return { battle: battleEntity, aiRateLimit }
   }
 
   //배틀 시작
