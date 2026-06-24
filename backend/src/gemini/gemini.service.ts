@@ -8,6 +8,18 @@ export interface GeminiGenerationConfig {
   responseSchema?: Schema
 }
 
+export interface GeminiRateLimitInfo {
+  limitPerMinute: number
+  remainingMinute: number
+  limitPerDay: number
+  remainingDay: number
+}
+
+export interface GeminiExecutionResult<T> {
+  data: T
+  rateLimit: GeminiRateLimitInfo
+}
+
 @Injectable()
 export class GeminiService implements OnModuleInit {
   private readonly logger = new Logger(GeminiService.name)
@@ -16,6 +28,7 @@ export class GeminiService implements OnModuleInit {
   private rateLimitPerMinute: number = 5
   private rateLimitPerDay: number = 20
   private readonly BACKOFF_BASE_MS = 1000
+  private readonly GEMINI_MODEL = 'gemini-3.5-flash'
 
   constructor(
     private readonly configService: ConfigService,
@@ -46,9 +59,9 @@ export class GeminiService implements OnModuleInit {
 
   async execute<T>(
     executor: (model: GenerativeModel) => Promise<T>,
-    modelName: string = 'gemini-3-flash-preview',
+    modelName: string = this.GEMINI_MODEL,
     generationConfig?: GeminiGenerationConfig,
-  ): Promise<T> {
+  ): Promise<GeminiExecutionResult<T>> {
     const triedKeys = new Set<string>()
     let lastError: Error | null = null
 
@@ -65,7 +78,7 @@ export class GeminiService implements OnModuleInit {
       triedKeys.add(apiKey)
 
       try {
-        await this.recordUsage(apiKey)
+        const usage = await this.recordUsage(apiKey)
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({
@@ -79,7 +92,15 @@ export class GeminiService implements OnModuleInit {
 
         this.logger.debug(`[Gemini] success key=${apiKey.substring(6, 14)}... model=${modelName}`)
 
-        return result
+        return {
+          data: result,
+          rateLimit: {
+            limitPerMinute: this.rateLimitPerMinute,
+            remainingMinute: Math.max(0, this.rateLimitPerMinute - usage.minUsage),
+            limitPerDay: this.rateLimitPerDay,
+            remainingDay: Math.max(0, this.rateLimitPerDay - usage.dayUsage),
+          },
+        }
       } catch (error) {
         lastError = error as Error
 
@@ -156,11 +177,12 @@ export class GeminiService implements OnModuleInit {
     return bestKey
   }
 
-  private async recordUsage(apiKey: string): Promise<void> {
+  private async recordUsage(apiKey: string): Promise<{ minUsage: number; dayUsage: number }> {
     const minKey = `gemini:usage:min:${apiKey}`
     const dayKey = `gemini:usage:day:${apiKey}`
 
-    await Promise.all([this.redisRepository.incr(minKey, 60), this.redisRepository.incr(dayKey, 86400)])
+    const [minUsage, dayUsage] = await Promise.all([this.redisRepository.incr(minKey, 60), this.redisRepository.incr(dayKey, 86400)])
+    return { minUsage, dayUsage }
   }
 
   private async handleKeyFailure(apiKey: string, errorType: string): Promise<void> {
