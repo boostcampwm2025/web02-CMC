@@ -1,6 +1,7 @@
 import { Body, Controller, Post, Get, Query, Param, HttpCode, Res, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Response } from 'express'
+import type { GeminiRateLimitInfo } from '../../../gemini/gemini.service'
 import { BattleResultResponseDto } from '../../dto/battleResult.dto'
 import { BattleCreateQueryDto } from '../../dto/battleCreateQuery.dto'
 import { BattleJoinInfoResponseDto } from '../../dto/battleJoinResponse.dto'
@@ -23,7 +24,8 @@ export class BattlesController {
 
   @Post()
   async createBattle(@Body() body: BattleCreateQueryDto, @Res() res: Response): Promise<void> {
-    const battle = await this.creationUseCase.create(body)
+    const { battle, aiRateLimit } = await this.creationUseCase.create(body)
+    this.setAiRateLimitHeaders(aiRateLimit, res)
 
     if (battle.type === BATTLE_TYPE.PRIVATE) {
       this.setInviteAccessCookie(battle.id, res)
@@ -33,6 +35,15 @@ export class BattlesController {
       battleId: battle.id,
       inviteCode: battle.inviteCode ?? null,
     })
+  }
+
+  private setAiRateLimitHeaders(aiRateLimit: GeminiRateLimitInfo | null, res: Response) {
+    if (!aiRateLimit) return
+
+    res.setHeader('X-RateLimit-Limit-Minute', aiRateLimit.limitPerMinute)
+    res.setHeader('X-RateLimit-Remaining-Minute', aiRateLimit.remainingMinute)
+    res.setHeader('X-RateLimit-Limit-Day', aiRateLimit.limitPerDay)
+    res.setHeader('X-RateLimit-Remaining-Day', aiRateLimit.remainingDay)
   }
 
   @Get('open')

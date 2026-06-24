@@ -15,6 +15,12 @@ describe('BattlesController', () => {
   let controller: BattlesController
   let creationUseCase: jest.Mocked<BattleCreationUseCase>
   let queryUseCase: jest.Mocked<BattleQueryUseCase>
+  const aiRateLimit = {
+    limitPerMinute: 5,
+    remainingMinute: 4,
+    limitPerDay: 20,
+    remainingDay: 19,
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -126,10 +132,11 @@ describe('BattlesController', () => {
 
       const jsonMock = jest.fn()
       const cookieMock = jest.fn()
-      const res = { json: jsonMock, cookie: cookieMock } as unknown as Response
+      const setHeaderMock = jest.fn()
+      const res = { json: jsonMock, cookie: cookieMock, setHeader: setHeaderMock } as unknown as Response
 
       const createSpy = jest.spyOn(creationUseCase, 'create')
-      createSpy.mockResolvedValue(mockBattle)
+      createSpy.mockResolvedValue({ battle: mockBattle, aiRateLimit })
 
       await controller.createBattle(
         {
@@ -148,6 +155,10 @@ describe('BattlesController', () => {
       )
 
       expect(createSpy).toHaveBeenCalled()
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Limit-Minute', 5)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Remaining-Minute', 4)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Limit-Day', 20)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Remaining-Day', 19)
       expect(cookieMock).toHaveBeenCalledWith('inviteAccess_battle-1', 'true', expect.any(Object))
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
@@ -183,10 +194,11 @@ describe('BattlesController', () => {
 
       const jsonMock = jest.fn()
       const cookieMock = jest.fn()
-      const res = { json: jsonMock, cookie: cookieMock } as unknown as Response
+      const setHeaderMock = jest.fn()
+      const res = { json: jsonMock, cookie: cookieMock, setHeader: setHeaderMock } as unknown as Response
 
       const createSpy = jest.spyOn(creationUseCase, 'create')
-      createSpy.mockResolvedValue(mockBattle)
+      createSpy.mockResolvedValue({ battle: mockBattle, aiRateLimit })
 
       await controller.createBattle(
         {
@@ -205,6 +217,10 @@ describe('BattlesController', () => {
       )
 
       expect(createSpy).toHaveBeenCalled()
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Limit-Minute', 5)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Remaining-Minute', 4)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Limit-Day', 20)
+      expect(setHeaderMock).toHaveBeenCalledWith('X-RateLimit-Remaining-Day', 19)
       expect(cookieMock).not.toHaveBeenCalled()
       expect(jsonMock).toHaveBeenCalledWith({
         battleId: 'battle-1',
