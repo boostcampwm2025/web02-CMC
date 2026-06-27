@@ -210,7 +210,7 @@ describe('BattleResultResponseDto', () => {
     const now = new Date('2024-01-01T00:00:00.000Z')
     const finishedAt = new Date('2024-01-01T00:15:00.000Z')
 
-    const mockPrismaBattle: PrismaBattle = {
+    const mockPrismaBattle = {
       id: 'prisma-battle-123',
       userId: 'prisma-user-123',
       title: 'Prisma Battle',
@@ -219,7 +219,7 @@ describe('BattleResultResponseDto', () => {
       codeB: 'const prismaB = 2;',
       language: 'TS',
       category: 'REFACTORING',
-      type: 'PUBLIC',
+      isPrivate: false,
       playTime: 'FIFTEEN_MIN',
       topics: ['prisma-topic1', 'prisma-topic2'],
       status: 'CLOSED',
@@ -231,7 +231,7 @@ describe('BattleResultResponseDto', () => {
       createdAt: now,
       updatedAt: now,
       finishedAt: finishedAt,
-    }
+    } as PrismaBattle
 
     it('Prisma 배틀에서 모든 필드가 포함된 DTO를 생성해야 한다', () => {
       const dto = BattleResultResponseDto.fromPrismaBattle(mockPrismaBattle, mockResult, mockTimeline, mockMvps)
