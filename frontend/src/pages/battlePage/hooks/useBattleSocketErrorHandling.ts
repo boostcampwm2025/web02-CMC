@@ -171,6 +171,20 @@ export function useBattleSocketErrorHandling() {
         }
       });
     });
+    socket.on(BATTLE_SERVER_EVENTS.THROTTLE_ERROR, (data: ErrorPayload) => {
+      addToast({ message: data.message || '잠시 후에 다시 시도해주세요.' });
+
+      Sentry.captureException(new Error('요청 초과로 인한 실패'), {
+        level: 'warning',
+        tags: {
+          errorType: '요청 초과로 인한 실패',
+          battleId: battleId
+        },
+        extra: {
+          errorMessage: data.message
+        }
+      });
+    });
 
     socket.on(BATTLE_SERVER_EVENTS.DEFENSE_ERROR, (data: ErrorPayload) => {
       addToast({ message: data.message || '방어 제출에 실패했습니다.' });
@@ -277,6 +291,7 @@ export function useBattleSocketErrorHandling() {
       socket.off(BATTLE_SERVER_EVENTS.CHAT_ERROR);
       socket.off(BATTLE_SERVER_EVENTS.TEAM_VOTE_ERROR);
       socket.off(BATTLE_SERVER_EVENTS.USER_SKIP_ERROR);
+      socket.off(BATTLE_SERVER_EVENTS.THROTTLE_ERROR);
     };
-  }, [socket, setIsConnected, setConnectionError, addToast]);
+  }, [socket, setIsConnected, setConnectionError, addToast, battleId]);
 }
