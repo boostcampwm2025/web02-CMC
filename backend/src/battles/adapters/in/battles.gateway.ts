@@ -1,4 +1,4 @@
-import { Logger, UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common'
+import { Logger, UnauthorizedException, NotFoundException, ForbiddenException, UseGuards, UseFilters } from '@nestjs/common'
 import { Server } from 'socket.io'
 import type { SocketWithUserId } from '../../domains/models/types/socket.types'
 import type { BattleTeam } from '../../domains/models/types/battle.types'
@@ -32,6 +32,8 @@ import { BattleQueryUseCase } from '../../application/usecases/battleQuery.useca
 import { getBattleRoomId } from '../../domains/services/utils/battle.util'
 import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
 import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types'
+import { WsThrottlerGuard } from 'src/battles/guards/WsThrottler.guard'
+import { WsThrottleExceptionFilter } from 'src/battles/filters/wsThrottleException.filter'
 
 @WebSocketGateway({
   cors: {
@@ -39,6 +41,7 @@ import { BATTLE_CLIENT_EVENTS, BATTLE_SERVER_EVENTS } from '@cmc/types'
     credentials: true,
   },
 })
+@UseFilters(WsThrottleExceptionFilter)
 export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server
@@ -185,6 +188,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
   }
 
+  @UseGuards(WsThrottlerGuard)
   @SubscribeMessage(BATTLE_CLIENT_EVENTS.ATTACK)
   async handleAttack(@MessageBody() dto: AttackRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:attack')
@@ -209,6 +213,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
   }
 
+  @UseGuards(WsThrottlerGuard)
   @SubscribeMessage(BATTLE_CLIENT_EVENTS.DEFENSE)
   async handleDefense(@MessageBody() dto: DefenseRequestDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:defense')
@@ -364,6 +369,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
     this.server.to(battleRoomId).emit(BATTLE_SERVER_EVENTS.PHASE_SKIPPED)
   }
 
+  @UseGuards(WsThrottlerGuard)
   @SubscribeMessage(BATTLE_CLIENT_EVENTS.CHAT)
   async handleChat(@MessageBody() battleChatDto: BattleChatDto, @ConnectedSocket() client: SocketWithUserId) {
     const stopTimer = this.metricsService.startSocketTimer('battle:chat')
@@ -376,8 +382,7 @@ export class BattlesGateway implements OnGatewayConnection, OnGatewayDisconnect 
       const team: BattleTeam = battleChatDto.team
       const roomId = scope === BATTLE_CHAT_SCOPE.ALL ? getBattleRoomId(battleId) : getBattleRoomId(battleId, team)
 
-      // this.server.to(roomId).emit('battle:chatted', saved)
-      this.server.to(roomId).except(client.id).emit(BATTLE_SERVER_EVENTS.CHATTED, saved)
+      this.server.to(roomId).emit(BATTLE_SERVER_EVENTS.CHATTED, saved)
       stopTimer('success')
     } catch (error) {
       stopTimer('error')

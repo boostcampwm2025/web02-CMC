@@ -43,6 +43,9 @@ import { BattleIdentifierAdapter } from './adapters/out/battleIdentifier/battleI
 import { GuestCheckAdapter } from './adapters/out/guestCheck/guestCheck.adapter'
 import { BattlePrivacyCheckAdapter } from './adapters/out/battlePrivacyCheck/battlePrivacyCheck.adapter'
 
+// Guards
+import { WsThrottlerGuard } from './guards/WsThrottler.guard'
+
 // Port Tokens
 import {
   BATTLE_REPO_PORT,
@@ -109,6 +112,9 @@ const controllers = isProduction ? [BattlesController, GuestController] : [Battl
     { provide: BATTLE_IDENTIFIER_PORT, useClass: BattleIdentifierAdapter },
     { provide: GUEST_CHECK_PORT, useClass: GuestCheckAdapter },
     { provide: BATTLE_PRIVACY_CHECK_PORT, useClass: BattlePrivacyCheckAdapter },
+
+    // Guards
+    WsThrottlerGuard,
   ],
 })
 export class BattlesModule {}

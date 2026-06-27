@@ -65,23 +65,10 @@ export function useBattleChat() {
         team,
         text: content.trim()
       };
-      const optimisticMessage: BattleChat = {
-        messageId: `temp-${Date.now()}`,
-        battleId,
-        sender: {
-          userId: user.id,
-          nickname: user.nickname,
-          tier: user.tier
-        },
-        team,
-        scope,
-        text: content.trim(),
-        createdAt: new Date().toISOString()
-      };
-      addChat(optimisticMessage);
+
       socket.emit(BATTLE_CLIENT_EVENTS.CHAT, chatMessage);
     },
-    [socket, battleId, team, user, addChat]
+    [socket, battleId, team, user]
   );
   return {
     teamMessages,

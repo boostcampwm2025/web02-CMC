@@ -21,6 +21,8 @@ import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.
 import { BattleTeamUpdateAllResponseDto } from '../../dto/battleTeamUpdateAllResponse.dto'
 import { MetricsService } from '../../../metrics/metrics.service'
 import { BattleBroadcasterAdapter } from '../out/broadcaster/battleBroadcaster.adapter'
+import { ThrottlerModule } from '@nestjs/throttler'
+import { BATTLE_CLIENT_EVENTS } from '@cmc/types'
 
 describe('BattlesGateway - Discussion Events', () => {
   let gateway: BattlesGateway
@@ -30,6 +32,16 @@ describe('BattlesGateway - Discussion Events', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [
+        ThrottlerModule.forRoot({
+          throttlers: [
+            { name: BATTLE_CLIENT_EVENTS.CHAT, ttl: 1000, limit: 5 },
+            { name: BATTLE_CLIENT_EVENTS.ATTACK, ttl: 3000, limit: 1 },
+            { name: BATTLE_CLIENT_EVENTS.DEFENSE, ttl: 3000, limit: 1 },
+          ],
+          setHeaders: false,
+        }),
+      ],
       providers: [
         BattlesGateway,
         {
