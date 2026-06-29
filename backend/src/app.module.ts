@@ -10,6 +10,7 @@ import { GeminiModule } from './gemini/gemini.module'
 import { RedisModule } from './redis/redis.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { HealthModule } from './health/health.module'
+import { KafkaModule } from './kafka/kafka.module'
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { HealthModule } from './health/health.module'
     BattlesModule,
     OauthModule,
     MetricsModule,
+    KafkaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
