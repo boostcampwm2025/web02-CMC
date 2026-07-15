@@ -5,10 +5,11 @@ import { BattleDiscussion, BattleTeam } from '../../domains/models/types/battle.
 import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
 import type { BattleChatDto } from '../../dto/battleChat.dto'
 
-import { BATTLE_STATE_PORT, BATTLE_REPO_PORT, BATTLE_IDENTIFIER_PORT } from '../ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_REPO_PORT, BATTLE_IDENTIFIER_PORT, KAFKA_PUB_PORT } from '../ports/tokens'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 
 import { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
 import { BattleChatService } from '../../domains/services/battleChat/battleChat.service'
@@ -22,6 +23,7 @@ export class BattleInteractionUseCase {
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_REPO_PORT) private readonly repo: BattleRepoPort,
     @Inject(BATTLE_IDENTIFIER_PORT) private readonly identifierPort: BattleIdentifierPort,
+    @Inject(KAFKA_PUB_PORT) private readonly kafkaPubPort: KafkaPubPort,
     private readonly discussionService: BattleDiscussionService,
     private readonly chatService: BattleChatService,
     private readonly teamSwitchService: BattleTeamSwitchService,
@@ -142,6 +144,19 @@ export class BattleInteractionUseCase {
 
     this.chatService.applyChatMessage(state, chat, scope, team)
     this.stateRepo.saveBattleState(battleId, state)
+
+    //chat 이벤트 생성
+    await this.kafkaPubPort
+      .publishChat({
+        battleId,
+        messageId: chat.messageId,
+        team: chat.team,
+        sender: chat.sender,
+        text: chat.text,
+        createdAt: chat.createdAt.toISOString(),
+      })
+      .catch(err => this.logger.error(`카프카 채팅 전송 실패: ${err instanceof Error ? err.message : String(err)}`))
+
     return { battleId, scope, ...chat }
   }
 
