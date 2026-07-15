@@ -27,7 +27,7 @@ export class ChatEventProducer {
       await this.producer.send({
         topic,
         messages: [{ key, value: message }],
-        compression: CompressionTypes.ZSTD,
+        compression: CompressionTypes.GZIP,
         acks: -1,
       })
       this.logger.log(`[Chat Kafka] 메시지 전송 완료:  ${topic} | ${message}`)
