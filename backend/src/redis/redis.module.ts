@@ -2,7 +2,8 @@ import { Module, Global } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import Redis from 'ioredis'
 import { RedisRepository } from './redis.repository'
-import { REDIS_CLIENT } from './redis.const'
+import { RedisHealthRepository } from './redis-health.repository'
+import { REDIS_CLIENT, REDIS_HEALTH_CLIENT } from './redis.const'
 
 @Global()
 @Module({
@@ -14,21 +15,30 @@ import { REDIS_CLIENT } from './redis.const'
         return new Redis({
           host: configService.get<string>('REDIS_HOST') || 'localhost',
           port: configService.get<number>('REDIS_PORT') || 6379,
-          retryStrategy: times => {
-            const MAX_RETRIES = 10
-            const DELAY = 3000
-
-            if (times > MAX_RETRIES) {
-              return null
-            }
-
-            return DELAY
-          },
+          retryStrategy: times => Math.min(times * 1000, 30000),
         })
       },
     },
+    {
+      provide: REDIS_HEALTH_CLIENT,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const client = new Redis({
+          host: configService.get<string>('REDIS_HOST') || 'localhost',
+          port: configService.get<number>('REDIS_PORT') || 6379,
+          connectTimeout: 2000,
+          commandTimeout: 2000,
+          enableOfflineQueue: false,
+          maxRetriesPerRequest: 0,
+          retryStrategy: times => Math.min(times * 1000, 30000),
+        })
+        client.on('error', () => undefined)
+        return client
+      },
+    },
     RedisRepository,
+    RedisHealthRepository,
   ],
-  exports: [RedisRepository],
+  exports: [RedisRepository, RedisHealthRepository],
 })
 export class RedisModule {}

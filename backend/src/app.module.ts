@@ -8,9 +8,20 @@ import { MetricsModule } from './metrics/metrics.module'
 import { HttpMetricsMiddleware } from './metrics/http-metrics.middleware'
 import { GeminiModule } from './gemini/gemini.module'
 import { RedisModule } from './redis/redis.module'
+import { PrismaModule } from './prisma/prisma.module'
+import { HealthModule } from './health/health.module'
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), RedisModule, GeminiModule, BattlesModule, OauthModule, MetricsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
+    RedisModule,
+    HealthModule,
+    GeminiModule,
+    BattlesModule,
+    OauthModule,
+    MetricsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -37,6 +37,10 @@ CLAUDE.md
 *.swo
 *~
 
+# Codex personal harness
+.codex/
+agent.md
+
 # OS
 Thumbs.db
 
@@ -55,4 +59,3 @@ Thumbs.db
 tfplan
 crash.log
 crash.*.log
-terraform/envs/*/ncloud.env

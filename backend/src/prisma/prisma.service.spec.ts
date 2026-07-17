@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { UnauthorizedException } from '@nestjs/common'
+import { Logger, UnauthorizedException } from '@nestjs/common'
 import { PrismaService } from './prisma.service'
 import type { ConfigService } from '@nestjs/config'
 
@@ -8,6 +8,7 @@ jest.mock('generated/prisma/client', () => ({
     constructor() {}
     $connect = jest.fn().mockResolvedValue(undefined)
     $disconnect = jest.fn().mockResolvedValue(undefined)
+    $queryRaw = jest.fn().mockResolvedValue([{ '?column?': 1 }])
   },
 }))
 
@@ -51,6 +52,26 @@ describe('PrismaService', () => {
       await service.onModuleInit()
 
       expect(service.$connect).toHaveBeenCalled()
+    })
+
+    it('초기 연결 실패를 전파하지 않고 readiness 재시도를 허용한다', async () => {
+      const configService = createMockConfigService('postgresql://localhost:5432/test')
+      const service = new PrismaService(configService)
+      jest.spyOn(service, '$connect').mockRejectedValueOnce(new Error('database unavailable'))
+      jest.spyOn(Logger.prototype, 'error').mockImplementation()
+
+      await expect(service.onModuleInit()).resolves.toBeUndefined()
+    })
+  })
+
+  describe('ping', () => {
+    it('SELECT 1 쿼리로 데이터베이스 연결을 확인한다', async () => {
+      const configService = createMockConfigService('postgresql://localhost:5432/test')
+      const service = new PrismaService(configService)
+
+      await service.ping()
+
+      expect(service.$queryRaw).toHaveBeenCalled()
     })
   })
 

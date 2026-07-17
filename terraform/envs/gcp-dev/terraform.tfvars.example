@@ -1,0 +1,22 @@
+gcp_project_id = "your-gcp-project-id"
+owner          = "cmc"
+
+root_domain          = "codebattle.kro.kr"
+frontend_subdomain   = "dev"
+api_subdomain        = "dev-api"
+frontend_bucket_name = "your-globally-unique-cmc-dev-frontend-bucket"
+
+managed_zone_name = "codebattle-kro-kr"
+
+# Dev does not create DNS records by default to avoid conflicting with prod DNS ownership.
+create_dns_zone    = false
+create_dns_records = false
+
+# Additional non-Terraform publishers only. The GitHub deployer is wired automatically.
+artifact_registry_push_members = []
+
+# Prefer IAP TCP forwarding. Only set direct admin CIDRs temporarily.
+admin_access_cidrs = []
+
+# Flip to true only after the deployed backend and Nginx return 200 from /livez.
+backend_autohealing_enabled = false

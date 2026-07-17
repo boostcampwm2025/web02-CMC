@@ -1,6 +1,6 @@
 services:
   migrate:
-    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE must be set}:${VERSION_TAG:-latest}
     profiles:
       - tools
     working_dir: /app/backend
@@ -9,14 +9,18 @@ services:
       - ./.env
 
   backend:
-    image: ghcr.io/boostcampwm2025/web02-cmc-backend-prod:${VERSION_TAG:-latest}
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE must be set}:${VERSION_TAG:-latest}
     environment:
       PORT: 3000
     env_file:
       - ./.env
-    ports:
-      - "3000:3000"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health/live').then(response => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       redis:
         condition: service_healthy
@@ -36,7 +40,7 @@ services:
     image: grafana/grafana:latest
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD must be set}
     volumes:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
@@ -61,31 +65,15 @@ services:
     image: nginx:1.27-alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - letsencrypt:/etc/letsencrypt:ro
-      - certbot-webroot:/var/www/certbot:ro
     depends_on:
       - backend
-    restart: unless-stopped
-    command: "/bin/sh -c 'while :; do sleep 12h; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-      - certbot-webroot:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    depends_on:
-      - nginx
     restart: unless-stopped
 
   redis:
     image: redis:alpine
     command: redis-server --appendonly yes
-    ports:
-      - "6379:6379"
     volumes:
       - redis-data:/data
     healthcheck:
@@ -96,6 +84,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  letsencrypt:
-  certbot-webroot:
   redis-data:

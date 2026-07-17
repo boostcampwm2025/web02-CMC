@@ -4,7 +4,6 @@ import { BattlesController } from './adapters/in/battles.controller'
 import { GuestController } from './adapters/in/guests.controller'
 import { BattlesGateway } from './adapters/in/battles.gateway'
 import { DevController } from './adapters/in/dev.controller'
-import { PrismaService } from 'src/prisma/prisma.service'
 import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
 import { InviteAccessGuard } from './guards/inviteAccess.guard'
@@ -62,7 +61,6 @@ const controllers = isProduction ? [BattlesController, GuestController] : [Battl
   imports: [OauthModule, MetricsModule, ConfigModule],
   controllers,
   providers: [
-    PrismaService,
     BattlesGateway,
     InviteAccessGuard,
 
