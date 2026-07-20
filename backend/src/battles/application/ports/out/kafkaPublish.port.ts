@@ -1,4 +1,4 @@
-import { BattleTeam, BattleLanguage, BattleCategory } from '../../../domains/models/types/battle.types'
+import { BattleTeam, BattleLanguage, BattleCategory, BattlePhaseName } from '../../../domains/models/types/battle.types'
 
 //----채팅 이벤트---
 export interface ChatMessageParam {
@@ -27,6 +27,16 @@ export interface BattleCreatedParam {
   topics: string[]
 }
 
+export interface BattlePhaseChangedParam {
+  type: 'battle.phase_changed'
+  battleId: string
+  currentPhase: BattlePhaseName
+  currentRound: number
+  phaseCount: number
+  startedAt: number
+  expiredAt: number
+}
+
 export interface BattleTerminatedParam {
   type: 'battle.finished'
   battleId: string
@@ -40,4 +50,5 @@ export interface KafkaPubPort {
   publishChat(param: ChatMessageParam): Promise<void>
   publishBattleCreated(param: BattleCreatedParam): Promise<void>
   publishBattleTerminated(param: BattleTerminatedParam): Promise<void>
+  publishBattlePhaseChanged(param: BattlePhaseChangedParam): Promise<void>
 }
