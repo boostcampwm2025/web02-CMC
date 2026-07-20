@@ -1,22 +1,19 @@
-import type { BattleCategory, BattleLanguage } from '@cmc/types'
+import type { BattleTeam } from '@cmc/types'
 
 export const BATTLE_EVENT_TYPE = {
-  CREATED: 'battle.created',
+  FINISHED: 'battle.finished',
 } as const
 export type BattleEventType = (typeof BATTLE_EVENT_TYPE)[keyof typeof BATTLE_EVENT_TYPE]
 
-export interface BattleCreatedEvent {
-  type: typeof BATTLE_EVENT_TYPE.CREATED
+export interface BattleTerminatedEvent {
+  type: typeof BATTLE_EVENT_TYPE.FINISHED
   battleId: string
 
-  title: string
-  description: string
-  codeA: string
-  codeB: string
+  participants: [string, BattleTeam][]
+  winningTeam: 'A' | 'B' | 'DRAW'
 
-  language: BattleLanguage
-  category: BattleCategory
-  topics: string[]
+  mvpIds: string[]
+  finishedAt: string
 }
 
-export type BattleEvent = BattleCreatedEvent
+export type BattleEvent = BattleTerminatedEvent
