@@ -33,9 +33,25 @@ describe('BattleReferenceGeneratorAdapter', () => {
 
   describe('generate', () => {
     it('AI 참고 자료를 정상적으로 생성한다', async () => {
-      geminiService.execute.mockResolvedValue(mockReferenceData)
+      geminiService.execute.mockResolvedValue({
+        data: mockReferenceData,
+        rateLimit: {
+          limitPerMinute: 5,
+          remainingMinute: 4,
+          limitPerDay: 20,
+          remainingDay: 19,
+        },
+      })
       const result = await adapter.generate(mockRequest)
-      expect(result).toEqual(mockReferenceData)
+      expect(result).toEqual({
+        referenceData: mockReferenceData,
+        rateLimit: {
+          limitPerMinute: 5,
+          remainingMinute: 4,
+          limitPerDay: 20,
+          remainingDay: 19,
+        },
+      })
       expect(geminiService.execute).toHaveBeenCalledTimes(1)
     })
 
@@ -53,7 +69,15 @@ describe('BattleReferenceGeneratorAdapter', () => {
     })
 
     it('topics가 빈 배열이면 "없음"으로 처리된다', async () => {
-      geminiService.execute.mockResolvedValue(mockReferenceData)
+      geminiService.execute.mockResolvedValue({
+        data: mockReferenceData,
+        rateLimit: {
+          limitPerMinute: 5,
+          remainingMinute: 4,
+          limitPerDay: 20,
+          remainingDay: 19,
+        },
+      })
       const requestWithEmptyTopics: GenerateReferenceRequest = { ...mockRequest, topics: [] }
       await adapter.generate(requestWithEmptyTopics)
       expect(geminiService.execute).toHaveBeenCalledTimes(1)

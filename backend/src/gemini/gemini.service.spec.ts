@@ -37,6 +37,7 @@ describe('GeminiService', () => {
     } as unknown as jest.Mocked<RedisRepository>
 
     service = new GeminiService(configService, redisRepository)
+    jest.spyOn(service as unknown as { sleep: (ms: number) => Promise<void> }, 'sleep').mockResolvedValue(undefined)
     return service
   }
 
@@ -93,7 +94,11 @@ describe('GeminiService', () => {
 
       const executor = jest.fn().mockResolvedValue('result')
       const result = await service.execute(executor)
-      expect(result).toBe('result')
+      expect(result.data).toBe('result')
+      expect(result.rateLimit).toHaveProperty('limitPerDay')
+      expect(result.rateLimit).toHaveProperty('limitPerMinute')
+      expect(result.rateLimit).toHaveProperty('remainingDay')
+      expect(result.rateLimit).toHaveProperty('remainingMinute')
       expect(executor).toHaveBeenCalledTimes(1)
     })
   })
@@ -162,7 +167,7 @@ describe('GeminiService', () => {
 
       const result = await service.execute(executor)
 
-      expect(result).toBe('success')
+      expect(result.data).toBe('success')
       expect(executor).toHaveBeenCalledTimes(2)
     })
 

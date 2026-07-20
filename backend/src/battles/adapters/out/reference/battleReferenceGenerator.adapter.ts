@@ -8,7 +8,7 @@ import { BUILD_AI_REFERENCE_PROMPT, AI_REFERENCE_SCHEMA } from '../../../domains
 export class BattleReferenceGeneratorAdapter implements BattleReferencePort {
   constructor(private readonly geminiService: GeminiService) {}
 
-  async generate(dto: GenerateReferenceRequest): Promise<BattleReferenceData> {
+  async generate(dto: GenerateReferenceRequest): ReturnType<BattleReferencePort['generate']> {
     const prompt = BUILD_AI_REFERENCE_PROMPT({
       title: dto.title,
       description: dto.description,
@@ -20,7 +20,7 @@ export class BattleReferenceGeneratorAdapter implements BattleReferencePort {
     })
 
     try {
-      return await this.geminiService.execute(
+      const result = await this.geminiService.execute(
         async model => {
           const result = await model.generateContent(prompt)
           const response = result.response
@@ -33,6 +33,10 @@ export class BattleReferenceGeneratorAdapter implements BattleReferencePort {
           responseSchema: AI_REFERENCE_SCHEMA,
         },
       )
+      return {
+        referenceData: result.data,
+        rateLimit: result.rateLimit,
+      }
     } catch (error: unknown) {
       if (error instanceof InternalServerErrorException) {
         throw error

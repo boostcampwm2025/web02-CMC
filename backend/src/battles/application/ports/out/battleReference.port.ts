@@ -1,4 +1,5 @@
 import type { BattleReferenceData } from '../../../domains/models/types/ai.types'
+import type { GeminiRateLimitInfo } from '../../../../gemini/gemini.service'
 
 export interface GenerateReferenceRequest {
   title: string
@@ -11,5 +12,8 @@ export interface GenerateReferenceRequest {
 }
 
 export interface BattleReferencePort {
-  generate(dto: GenerateReferenceRequest): Promise<BattleReferenceData>
+  generate(dto: GenerateReferenceRequest): Promise<{
+    referenceData: BattleReferenceData
+    rateLimit: GeminiRateLimitInfo
+  }>
 }
