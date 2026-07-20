@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ChatMessageParam, BattleTerminatedParam, KafkaPubPort } from '../../../application/ports/out/kafkaPublish.port'
+import { ChatMessageParam, BattleCreatedParam, BattleTerminatedParam, KafkaPubPort } from '../../../application/ports/out/kafkaPublish.port'
 import { ChatEventProducer } from '../../../../kafka/services/chatEventProducer'
 import { BattleEventProducer } from '../../../../kafka/services/battleEventProducer'
 
@@ -13,6 +13,11 @@ export class KafkaAdapter implements KafkaPubPort {
   //채팅 이벤트
   async publishChat(param: ChatMessageParam): Promise<void> {
     await this.chatEventProducer.publishChatEvent(param)
+  }
+
+  //배틀 생성 이벤트
+  async publishBattleCreated(param: BattleCreatedParam): Promise<void> {
+    await this.battleEventProducer.publishBattleEvent(param)
   }
 
   //배틀 종료 이벤트
