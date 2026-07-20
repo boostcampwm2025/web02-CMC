@@ -4,15 +4,10 @@ on:
   pull_request:
     branches:
       - dev
+      - release
 
 permissions:
   contents: read
-  packages: write
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_BACKEND: ${{ github.repository }}-backend
-  IMAGE_FRONTEND: ${{ github.repository }}-frontend
 
 jobs:
   test:
@@ -41,12 +36,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set lowercase image names
-        id: image_names
-        run: |
-          echo "backend_image=${IMAGE_BACKEND,,}" >> "$GITHUB_OUTPUT"
-          echo "frontend_image=${IMAGE_FRONTEND,,}" >> "$GITHUB_OUTPUT"
-
       - uses: docker/setup-buildx-action@v3
 
       - name: Build backend (no push)
@@ -55,8 +44,7 @@ jobs:
           context: .
           file: backend/Dockerfile
           push: false
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:pr-${{ github.event.pull_request.number }}
+          tags: cmc-backend:pr-${{ github.event.pull_request.number }}
 
       - name: Build frontend (no push)
         uses: docker/build-push-action@v6
@@ -65,9 +53,8 @@ jobs:
           file: frontend/Dockerfile
           push: false
           build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
-            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
-            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:pr-${{ github.event.pull_request.number }}
+            VITE_API_URL=${{ vars.VITE_API_URL }}
+            VITE_SOCKET_URL=${{ vars.VITE_SOCKET_URL }}
+            VITE_SENTRY_DSN=${{ secrets.VITE_SENTRY_DSN }}
+            VITE_ENABLE_SENTRY=${{ vars.VITE_ENABLE_SENTRY }}
+          tags: cmc-frontend:pr-${{ github.event.pull_request.number }}

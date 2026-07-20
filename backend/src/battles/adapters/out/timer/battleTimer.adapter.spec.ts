@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { Logger } from '@nestjs/common'
 import { BattleTimerAdapter } from './battleTimer.adapter'
 import type { RedisRepository } from '../../../../redis/redis.repository'
 import type { ActiveBattleState } from '../../../domains/models/types/battle.types'
@@ -6,8 +7,10 @@ import type { ActiveBattleState } from '../../../domains/models/types/battle.typ
 describe('BattleTimerAdapter', () => {
   let adapter: BattleTimerAdapter
   let redis: jest.Mocked<RedisRepository>
+  let loggerErrorSpy: jest.SpyInstance
 
   beforeEach(() => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation()
     redis = {
       zadd: jest.fn().mockResolvedValue(undefined),
       zrem: jest.fn().mockResolvedValue(undefined),
@@ -15,6 +18,10 @@ describe('BattleTimerAdapter', () => {
       del: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<RedisRepository>
     adapter = new BattleTimerAdapter(redis)
+  })
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore()
   })
 
   const createState = (expiredAt: number | null): ActiveBattleState => ({ expiredAt }) as unknown as ActiveBattleState
@@ -31,6 +38,15 @@ describe('BattleTimerAdapter', () => {
 
       expect(redis.zadd).toHaveBeenCalledWith('battle:timers', expiredAt, 'battle-1')
     })
+
+    it('Redis 저장 실패를 처리하고 기록한다', async () => {
+      redis.zadd.mockRejectedValue(new Error('redis unavailable'))
+
+      adapter.schedule('battle-1', createState(Date.now() + 5000))
+      await Promise.resolve()
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to schedule battle timer battle-1', expect.any(String))
+    })
   })
 
   describe('cancel', () => {
@@ -38,6 +54,15 @@ describe('BattleTimerAdapter', () => {
       adapter.cancel('battle-1')
 
       expect(redis.zrem).toHaveBeenCalledWith('battle:timers', 'battle-1')
+    })
+
+    it('Redis 제거 실패를 처리하고 기록한다', async () => {
+      redis.zrem.mockRejectedValue(new Error('redis unavailable'))
+
+      adapter.cancel('battle-1')
+      await Promise.resolve()
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to cancel battle timer battle-1', expect.any(String))
     })
   })
 
@@ -65,6 +90,15 @@ describe('BattleTimerAdapter', () => {
       adapter.clear()
 
       expect(redis.del).toHaveBeenCalledWith('battle:timers')
+    })
+
+    it('Redis 삭제 실패를 처리하고 기록한다', async () => {
+      redis.del.mockRejectedValue(new Error('redis unavailable'))
+
+      adapter.clear()
+      await Promise.resolve()
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to clear battle timers', expect.any(String))
     })
   })
 })

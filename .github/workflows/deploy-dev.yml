@@ -1,103 +1,121 @@
-name: deploy
+name: deploy-dev
 
 on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.repository }}-deploy-dev
+  cancel-in-progress: false
 
 permissions:
   contents: read
-  packages: write
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_BACKEND: ${{ github.repository }}-backend
-  IMAGE_FRONTEND: ${{ github.repository }}-frontend
+  id-token: write
 
 jobs:
-  ci:
+  backend:
     runs-on: ubuntu-latest
+    environment: dev
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_BACKEND_MIG: ${{ vars.GCP_BACKEND_MIG }}
+      GCP_DEPLOY_PATH: ${{ vars.GCP_DEPLOY_PATH }}
+      BACKEND_IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPOSITORY }}/backend
+      VERSION_TAG: dev-${{ github.sha }}
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set lowercase image names
-        id: image_names
+      - name: Validate deployment ref
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          echo "backend_image=${IMAGE_BACKEND,,}" >> "$GITHUB_OUTPUT"
-          echo "frontend_image=${IMAGE_FRONTEND,,}" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" != "refs/heads/dev" ]]; then
+            echo "manual dev deployment must run from the dev branch" >&2
+            exit 1
+          fi
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
 
       - uses: docker/setup-buildx-action@v3
 
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure Artifact Registry authentication
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
 
       - name: Build and push backend
         uses: docker/build-push-action@v6
         with:
           context: .
           file: backend/Dockerfile
+          platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:latest
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.backend_image }}:${{ github.sha }}
+            ${{ env.BACKEND_IMAGE }}:dev-latest
+            ${{ env.BACKEND_IMAGE }}:${{ env.VERSION_TAG }}
 
-      - name: Build and push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: frontend/Dockerfile
-          push: true
-          build-args: |
-            VITE_API_URL=${{ secrets.VITE_API_URL }}
-            VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
-            VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
-            VITE_ENABLE_SENTRY: ${{ secrets.VITE_ENABLE_SENTRY }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:latest
-            ${{ env.REGISTRY }}/${{ steps.image_names.outputs.frontend_image }}:${{ github.sha }}
+      - name: Deploy backend to GCP
+        run: bash .github/scripts/deploy-gcp-backend.sh
 
-  cd:
-    needs: ci
+  frontend:
+    needs: backend
     runs-on: ubuntu-latest
+    environment: dev
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_FRONTEND_BUCKET: ${{ vars.GCP_FRONTEND_BUCKET }}
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync monitoring configs to server
-        uses: appleboy/scp-action@v0.1.7
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.NCP_HOST }}
-          username: ${{ secrets.NCP_USER }}
-          password: ${{ secrets.NCP_PASSWORD }}
-          source: "monitoring/**"
-          target: ${{ secrets.NCP_DEPLOY_PATH }}
+          node-version: 20
+          cache: pnpm
 
-      - name: Deploy on NCP via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Install dependencies
+        env:
+          HUSKY: 0
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared types
+        run: pnpm -C packages/types build
+
+      - name: Build frontend
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+          VITE_ENABLE_SENTRY: ${{ vars.VITE_ENABLE_SENTRY }}
+        run: pnpm -C frontend build
+
+      - uses: google-github-actions/auth@v3
         with:
-          host: ${{ secrets.NCP_HOST }}
-          username: ${{ secrets.NCP_USER }}
-          password: ${{ secrets.NCP_PASSWORD }}
-          script: |
-            set -e
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
-            cd "${{ secrets.NCP_DEPLOY_PATH }}"
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
 
-            # === 기존 컨테이너 종료 ===
-            docker compose -f docker-compose.yml down || true
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
 
-            # === 이미지 pull ===
-            docker compose -f docker-compose.yml pull
-
-            # === Prisma Migration용 컨테이너 실행 ===
-            docker compose -f docker-compose.yml run --rm migrate
-
-            # === 오래된 이미지 정리 ===
-            docker image prune -f
-
-            # === 새 버전 실행 ===
-            docker compose -f docker-compose.yml up -d
-
-            echo "[SUCCESS] Deployment completed successfully ✅"
+      - name: Upload frontend to Cloud Storage
+        run: |
+          gcloud storage rsync frontend/dist "gs://${GCP_FRONTEND_BUCKET}" \
+            --recursive \
+            --delete-unmatched-destination-objects \
+            --exclude='(^|/)index\.html$' \
+            --cache-control='public, max-age=31536000, immutable'
+          gcloud storage cp frontend/dist/index.html "gs://${GCP_FRONTEND_BUCKET}/index.html" \
+            --cache-control='no-cache, no-store, must-revalidate'

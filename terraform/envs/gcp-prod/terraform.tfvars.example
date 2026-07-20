@@ -1,0 +1,24 @@
+gcp_project_id = "your-gcp-project-id"
+owner          = "cmc"
+
+root_domain          = "codebattle.kro.kr"
+frontend_subdomain   = "www"
+api_subdomain        = "api"
+frontend_bucket_name = "your-globally-unique-cmc-prod-frontend-bucket"
+
+managed_zone_name = "cmctv"
+
+artifact_registry_repository_id = "cmc-prod"
+
+# Prod reuses the existing Cloud DNS managed zone and manages prod A records in it.
+create_dns_zone    = false
+create_dns_records = true
+
+# Additional non-Terraform publishers only. The GitHub deployer is wired automatically.
+artifact_registry_push_members = []
+
+# Prefer IAP TCP forwarding. Only set direct admin CIDRs temporarily.
+admin_access_cidrs = []
+
+# Flip to true only after the deployed backend and Nginx return 200 from /livez.
+backend_autohealing_enabled = false

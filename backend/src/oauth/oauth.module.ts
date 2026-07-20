@@ -10,7 +10,6 @@ import { KakaoStrategy } from './strategy/kakao.strategy'
 import { TokenService } from './service/token.service'
 import { JwtStrategy } from './strategy/jwt.strategy'
 import { RefreshGuard } from './strategy/jwt-refresh.strategy'
-import { PrismaService } from 'src/prisma/prisma.service'
 import { RedisModule } from 'src/redis/redis.module'
 
 @Module({
@@ -32,7 +31,7 @@ import { RedisModule } from 'src/redis/redis.module'
     RedisModule,
   ],
   controllers: [OauthController],
-  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshGuard, TokenService, PrismaService],
+  providers: [OauthService, GithubStrategy, KakaoStrategy, JwtStrategy, RefreshGuard, TokenService],
   exports: [OauthService],
 })
 export class OauthModule {}

@@ -1,4 +1,4 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common'
+import { Injectable, Inject, BadRequestException, Logger } from '@nestjs/common'
 import { ActiveBattleState, BattlePhaseName } from '../../domains/models/types/battle.types'
 import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battleTurnResponse.dto'
 import { DiscussionVoteResultDto } from '../../dto/discussionVoteResult.dto'
@@ -18,6 +18,8 @@ import { BATTLE_PHASE, BATTLE_STATUS } from 'src/battles/domains/models/const/ba
 
 @Injectable()
 export class BattlePhaseTransitionUseCase {
+  private readonly logger = new Logger(BattlePhaseTransitionUseCase.name)
+
   constructor(
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
@@ -101,7 +103,11 @@ export class BattlePhaseTransitionUseCase {
 
     // Redis 키도 정리
     if (resetType !== null) {
-      void this.stateRepo.resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B'])
+      void this.stateRepo
+        .resetPhaseDiscussionsInRedis(battleId, resetType, ['A', 'B'])
+        .catch(error =>
+          this.logger.error(`Failed to reset ${resetType} discussions for battle ${battleId}`, error instanceof Error ? error.stack : String(error)),
+        )
     }
     void this.scheduleNextTick(battleId)
   }

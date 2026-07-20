@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { Logger } from '@nestjs/common'
 import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
@@ -22,6 +23,7 @@ describe('BattlePhaseTransitionUseCase', () => {
   let teamSwitchService: jest.Mocked<BattleTeamSwitchService>
   let skipService: jest.Mocked<BattleSkipService>
   let terminationUseCase: jest.Mocked<BattleTerminationUseCase>
+  let loggerErrorSpy: jest.SpyInstance
 
   const createMockState = (overrides = {}): ActiveBattleState =>
     ({
@@ -41,6 +43,7 @@ describe('BattlePhaseTransitionUseCase', () => {
     }) as unknown as ActiveBattleState
 
   beforeEach(() => {
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation()
     stateRepo = {
       loadBattleState: jest.fn(),
       saveBattleState: jest.fn(),
@@ -100,6 +103,10 @@ describe('BattlePhaseTransitionUseCase', () => {
       skipService,
       terminationUseCase,
     )
+  })
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore()
   })
 
   describe('advancePhase', () => {
@@ -180,6 +187,25 @@ describe('BattlePhaseTransitionUseCase', () => {
       await useCase.advancePhase('battle-1')
 
       expect(mockState.skipState.size).toBe(0)
+    })
+
+    it('Redis 토론 초기화 실패를 처리하고 페이즈 전환을 유지한다', async () => {
+      const mockState = createMockState({ phase: 'ATTACK' })
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.resetPhaseDiscussionsInRedis.mockRejectedValue(new Error('redis unavailable'))
+      phaseService.nextPhase.mockImplementation((state, _emitAttacked, _emitDefensed, resetDiscussions) => {
+        resetDiscussions(state)
+        return { name: 'DEFENSE', time: 30000 }
+      })
+
+      await useCase.advancePhase('battle-1')
+      await Promise.resolve()
+
+      expect(stateRepo.saveBattleState).toHaveBeenCalled()
+      expect(loggerErrorSpy).toHaveBeenCalledWith('Failed to reset attack discussions for battle battle-1', expect.any(String))
     })
   })
 

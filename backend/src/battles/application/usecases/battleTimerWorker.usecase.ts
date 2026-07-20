@@ -7,6 +7,7 @@ import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 export class BattleTimerWorkerUseCase implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(BattleTimerWorkerUseCase.name)
   private intervalId: NodeJS.Timeout | null = null
+  private polling = false
   private readonly POLL_INTERVAL_MS = 1000 // 1초
 
   constructor(
@@ -24,7 +25,12 @@ export class BattleTimerWorkerUseCase implements OnModuleInit, OnModuleDestroy {
 
   private startPolling(): void {
     this.intervalId = setInterval(() => {
-      void this.checkExpiredBattles()
+      if (this.polling) return
+
+      this.polling = true
+      void this.checkExpiredBattles().finally(() => {
+        this.polling = false
+      })
     }, this.POLL_INTERVAL_MS)
   }
 
