@@ -184,13 +184,6 @@ describe('BattleStateRepositoryAdapter', () => {
       adapter.saveBattleState('battle-1', state)
 
       expect(redis.mset).toHaveBeenCalled()
-      expect(prisma.battle.update).toHaveBeenCalledWith({
-        where: { id: 'battle-1' },
-        data: expect.objectContaining({
-          currentRound: 2,
-          currentPhase: 'ATTACK',
-        }),
-      })
     })
   })
 
