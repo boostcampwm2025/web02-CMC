@@ -94,6 +94,25 @@ describe('BattleParticipationUseCase', () => {
       expect(mockState.userInfoMap.get('user-1')).toBe('테스터')
     })
 
+    it('등록된 사용자의 tier를 userInfoMap에 함께 저장한다', async () => {
+      repo.findUniqueUser.mockResolvedValue({ id: 'user-1', tier: 'GOLD' })
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: { status: BATTLE_STATUS.OPEN },
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+
+      const dto: BattleJoinRequestDto = {
+        battleId: 'battle-1',
+        team: BATTLE_TEAM.A,
+        nickname: '테스터',
+      } as unknown as BattleJoinRequestDto
+
+      await useCase.join(dto, 'user-1')
+
+      expect(mockState.userInfoMap.get('user-1')).toEqual({ nickname: '테스터', tier: 'GOLD' })
+    })
+
     it('battleId가 없으면 BadRequestException을 던진다', async () => {
       const dto: BattleJoinRequestDto = {
         battleId: '',

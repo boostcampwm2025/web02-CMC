@@ -37,6 +37,12 @@ import { BattleCreationUseCase } from '../../application/usecases/battleCreation
 import { BattleUserUpdateResponseDto } from '../../dto/battleUserUpdateResponse.dto'
 import { BATTLE_CHAT_SCOPE, BATTLE_TEAM } from '../../domains/models/const/battles.const'
 import type { BattleChatDto } from '../../dto/battleChat.dto'
+import type { BattleUserInfo } from '../../domains/models/types/battle.types'
+
+const getNicknameFromUserInfo = (info: BattleUserInfo | undefined): string | null => {
+  if (!info) return null
+  return typeof info === 'string' ? info : info.nickname
+}
 
 @Controller('dev/battles')
 export class DevController implements OnModuleInit {
@@ -322,15 +328,15 @@ export class DevController implements OnModuleInit {
 
     const teamAUsers = state.teamA.users.map(userId => ({
       userId,
-      nickname: state.userInfoMap.get(userId) ?? null,
+      nickname: getNicknameFromUserInfo(state.userInfoMap.get(userId)),
     }))
     const teamBUsers = state.teamB.users.map(userId => ({
       userId,
-      nickname: state.userInfoMap.get(userId) ?? null,
+      nickname: getNicknameFromUserInfo(state.userInfoMap.get(userId)),
     }))
     const noneUsers = Array.from(state.participants.entries())
       .filter(([, team]) => team === 'NONE')
-      .map(([userId]) => ({ userId, nickname: state.userInfoMap.get(userId) ?? null }))
+      .map(([userId]) => ({ userId, nickname: getNicknameFromUserInfo(state.userInfoMap.get(userId)) }))
 
     const teamVoteCounts = { A: 0, B: 0, NONE: 0 }
     state.teamVotes.forEach(team => {

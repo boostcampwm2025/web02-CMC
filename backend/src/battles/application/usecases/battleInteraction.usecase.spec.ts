@@ -47,6 +47,7 @@ describe('BattleInteractionUseCase', () => {
       loadBattleState: jest.fn(),
       saveBattleState: jest.fn(),
       getNicknameByUserId: jest.fn().mockReturnValue('테스터'),
+      getTierByUserId: jest.fn().mockReturnValue(null),
       saveDiscussionToRedis: jest.fn().mockResolvedValue(undefined),
       castVoteInRedis: jest.fn().mockResolvedValue({ added: true, prevDiscussionId: null }),
     } as unknown as jest.Mocked<BattleStatePort>
@@ -218,6 +219,48 @@ describe('BattleInteractionUseCase', () => {
       expect(stateRepo.saveBattleState).toHaveBeenCalled()
       expect(result.battleId).toBe('battle-1')
       expect(result.scope).toBe('all')
+    })
+
+    it('상태에 tier가 있으면 채팅 메시지에 포함한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.getTierByUserId.mockReturnValue('GOLD')
+
+      const dto = {
+        battleId: 'battle-1',
+        scope: 'all',
+        team: BATTLE_TEAM.A,
+        text: '안녕하세요',
+      } as unknown as BattleChatDto
+
+      await useCase.sendChat(dto, 'user-1')
+
+      expect(repo.findUniqueUser).not.toHaveBeenCalled()
+      expect(chatService.buildChatMessage).toHaveBeenCalledWith('new-id-123', 'user-1', '테스터', 'GOLD', BATTLE_TEAM.A, '안녕하세요')
+    })
+
+    it('상태에 tier가 없어도 사용자 tier 조회를 위해 DB를 호출하지 않는다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.getTierByUserId.mockReturnValue(null)
+
+      const dto = {
+        battleId: 'battle-1',
+        scope: 'all',
+        team: BATTLE_TEAM.A,
+        text: '안녕하세요',
+      } as unknown as BattleChatDto
+
+      await useCase.sendChat(dto, 'guest-1')
+
+      expect(repo.findUniqueUser).not.toHaveBeenCalled()
+      expect(chatService.buildChatMessage).toHaveBeenCalledWith('new-id-123', 'guest-1', '테스터', undefined, BATTLE_TEAM.A, '안녕하세요')
     })
 
     it('battleId가 없으면 BadRequestException을 던진다', async () => {

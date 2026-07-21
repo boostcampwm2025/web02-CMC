@@ -54,6 +54,7 @@ export interface BattleChat {
 export type ParticipantEntry = { userId: string; team: BattleTeam }
 export type TeamVoteEntry = { userId: string; team: BattleTeam }
 export type UserInfoEntry = { userId: string; nickname: string }
+export type BattleUserInfo = string | { nickname: string; tier?: string | null }
 export type BattleChatSnapshot = Omit<BattleChat, 'createdAt'> & { createdAt: string }
 
 export interface BattleDiscussion {
@@ -102,7 +103,7 @@ export interface ActiveBattleState {
   participants: Map<string, BattleTeam>
   teamVotes: Map<string, BattleTeam>
 
-  userInfoMap: Map<string, string>
+  userInfoMap: Map<string, BattleUserInfo>
 
   opinionHistory: BattleDiscussion[]
   skipState: Set<string>

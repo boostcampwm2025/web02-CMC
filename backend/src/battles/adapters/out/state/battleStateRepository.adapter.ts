@@ -5,6 +5,7 @@ import { PrismaService } from '../../../../prisma/prisma.service'
 import { RedisRepository } from '../../../../redis/redis.repository'
 import {
   ActiveBattleState,
+  BattleUserInfo,
   BattleTeam,
   BattleDiscussion,
   BattleDefense,
@@ -30,7 +31,7 @@ interface SerializedCore {
   skipState: string[]
   participants: [string, BattleTeam][]
   teamVotes: [string, BattleTeam][]
-  userInfoMap: [string, string][]
+  userInfoMap: [string, BattleUserInfo][]
   teamAUsers: string[]
   teamBUsers: string[]
   allRoomId: string
@@ -293,12 +294,16 @@ return {1, prev}
   }
 
   getNicknameByUserId(state: ActiveBattleState, userId: string): string | null {
-    return state.userInfoMap.get(userId) ?? null
+    return this.getNicknameFromUserInfo(state.userInfoMap.get(userId))
+  }
+
+  getTierByUserId(state: ActiveBattleState, userId: string): string | null {
+    return this.getTierFromUserInfo(state.userInfoMap.get(userId))
   }
 
   async isNicknameDuplicate(battleId: string, nickname: string): Promise<boolean> {
     const { state } = await this.loadBattleState(battleId)
-    return Array.from(state.userInfoMap.values()).includes(nickname)
+    return Array.from(state.userInfoMap.values()).some(info => this.getNicknameFromUserInfo(info) === nickname)
   }
 
   // ─── 비동기 flush 헬퍼 ──────────────────────────────────────────────────────
@@ -523,7 +528,7 @@ return {1, prev}
     return [...teamVotes.entries()]
   }
 
-  private serializeUserInfoState(userInfoMap: Map<string, string>): [string, string][] {
+  private serializeUserInfoState(userInfoMap: Map<string, BattleUserInfo>): [string, BattleUserInfo][] {
     return [...userInfoMap.entries()]
   }
 
@@ -542,7 +547,7 @@ return {1, prev}
   ): ActiveBattleState {
     const participants = new Map<string, BattleTeam>(core.participants ?? [])
     const teamVotes = new Map<string, BattleTeam>(core.teamVotes ?? [])
-    const userInfoMap = new Map<string, string>(core.userInfoMap ?? [])
+    const userInfoMap = new Map<string, BattleUserInfo>(core.userInfoMap ?? [])
 
     return {
       battleId: core.battleId,
@@ -586,7 +591,7 @@ return {1, prev}
     //참가자, 투표, 유저 정보 복원
     const participants = this.restoreMap<string, BattleTeam>(battle.participantsState)
     const teamVotes = this.restoreMap<string, BattleTeam>(battle.teamVotesState)
-    const userInfoMap = this.restoreMap<string, string>(battle.userInfoState)
+    const userInfoMap = this.restoreMap<string, BattleUserInfo>(battle.userInfoState)
 
     const attackStateRaw = this.normalizeTeamState(battle.attacksState)
     const defenseStateRaw = this.normalizeTeamState(battle.defensesState)
@@ -682,5 +687,15 @@ return {1, prev}
   // Redis에 배열 형태로 저장된 Map snapshot을 Map으로 복원
   private restoreMap<K, V>(value: unknown): Map<K, V> {
     return new Map((value as [K, V][]) ?? [])
+  }
+
+  private getNicknameFromUserInfo(info: BattleUserInfo | undefined): string | null {
+    if (!info) return null
+    return typeof info === 'string' ? info : info.nickname
+  }
+
+  private getTierFromUserInfo(info: BattleUserInfo | undefined): string | null {
+    if (!info || typeof info === 'string') return null
+    return info.tier ?? null
   }
 }

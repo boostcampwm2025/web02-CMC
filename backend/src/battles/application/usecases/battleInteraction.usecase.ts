@@ -136,9 +136,9 @@ export class BattleInteractionUseCase {
 
     const { state } = await this.stateRepo.loadBattleState(battleId)
     const nickname = this.stateRepo.getNicknameByUserId(state, userId) || ''
-    const userTier = await this.repo.findUniqueUser(userId, { tier: true })
+    const tier = this.stateRepo.getTierByUserId(state, userId) ?? undefined
 
-    const chat = this.chatService.buildChatMessage(this.identifierPort.generateId(), userId, nickname, userTier?.tier ?? undefined, team, text)
+    const chat = this.chatService.buildChatMessage(this.identifierPort.generateId(), userId, nickname, tier, team, text)
 
     this.chatService.applyChatMessage(state, chat, scope, team)
     this.stateRepo.saveBattleState(battleId, state)
