@@ -162,7 +162,6 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
     if (state.status !== BATTLE_STATUS.CLOSED) {
       this.flushAllToRedis(state)
     }
-    this.flushToDB(battleId, state)
   }
 
   async updateSkipState(battleId: string, skipList: Set<string>, expectedPhase?: string): Promise<void> {
