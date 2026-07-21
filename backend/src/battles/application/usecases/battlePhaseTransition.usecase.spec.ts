@@ -4,6 +4,7 @@ import { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 import type { BattlePhaseService } from '../../domains/services/battlePhase/battlePhase.service'
 import type { BattleVoteService } from '../../domains/services/battleVote/battleVote.service'
 import type { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
@@ -17,6 +18,7 @@ describe('BattlePhaseTransitionUseCase', () => {
   let stateRepo: jest.Mocked<BattleStatePort>
   let broadcaster: jest.Mocked<BattleBroadcasterPort>
   let timer: jest.Mocked<BattleTimerPort>
+  let kafkaPubPort: jest.Mocked<KafkaPubPort>
   let phaseService: jest.Mocked<BattlePhaseService>
   let voteService: jest.Mocked<BattleVoteService>
   let discussionService: jest.Mocked<BattleDiscussionService>
@@ -64,6 +66,13 @@ describe('BattlePhaseTransitionUseCase', () => {
       schedule: jest.fn(),
     } as unknown as jest.Mocked<BattleTimerPort>
 
+    kafkaPubPort = {
+      publishChat: jest.fn().mockResolvedValue(undefined),
+      publishBattleCreated: jest.fn().mockResolvedValue(undefined),
+      publishBattlePhaseChanged: jest.fn().mockResolvedValue(undefined),
+      publishBattleTerminated: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<KafkaPubPort>
+
     phaseService = {
       nextPhase: jest.fn().mockReturnValue({ name: 'ATTACK_VOTE', time: 30000 }),
     } as unknown as jest.Mocked<BattlePhaseService>
@@ -96,6 +105,7 @@ describe('BattlePhaseTransitionUseCase', () => {
       stateRepo,
       broadcaster,
       timer,
+      kafkaPubPort,
       phaseService,
       voteService,
       discussionService,
@@ -121,6 +131,13 @@ describe('BattlePhaseTransitionUseCase', () => {
 
       expect(phaseService.nextPhase).toHaveBeenCalled()
       expect(stateRepo.saveBattleState).toHaveBeenCalled()
+
+      expect(kafkaPubPort.publishBattlePhaseChanged).toHaveBeenCalledWith(
+        expect.objectContaining({
+          battleId: 'battle-1',
+          currentPhase: 'ATTACK_VOTE',
+        }),
+      )
     })
 
     it('페이즈가 변경되면 브로드캐스트한다', async () => {

@@ -5,6 +5,7 @@ import { BATTLE_TEAM } from '../../domains/models/const/battles.const'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 import type { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
 import type { BattleChatService } from '../../domains/services/battleChat/battleChat.service'
 import type { BattleTeamSwitchService } from '../../domains/services/battleTeamSwitch/battleTeamSwitch.service'
@@ -16,6 +17,7 @@ describe('BattleInteractionUseCase', () => {
   let stateRepo: jest.Mocked<BattleStatePort>
   let repo: jest.Mocked<BattleRepoPort>
   let identifierPort: jest.Mocked<BattleIdentifierPort>
+  let kafkaPubPort: jest.Mocked<KafkaPubPort>
   let discussionService: jest.Mocked<BattleDiscussionService>
   let chatService: jest.Mocked<BattleChatService>
   let teamSwitchService: jest.Mocked<BattleTeamSwitchService>
@@ -59,6 +61,13 @@ describe('BattleInteractionUseCase', () => {
       generateId: jest.fn().mockReturnValue('new-id-123'),
     } as unknown as jest.Mocked<BattleIdentifierPort>
 
+    kafkaPubPort = {
+      publishChat: jest.fn().mockResolvedValue(undefined),
+      publishBattleCreated: jest.fn().mockResolvedValue(undefined),
+      publishBattlePhaseChanged: jest.fn().mockResolvedValue(undefined),
+      publishBattleTerminated: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<KafkaPubPort>
+
     discussionService = {
       applyAttack: jest.fn().mockReturnValue(createMockDiscussion()),
       applyDefense: jest.fn().mockReturnValue(createMockDiscussion()),
@@ -83,7 +92,7 @@ describe('BattleInteractionUseCase', () => {
       applyTeamVote: jest.fn(),
     } as unknown as jest.Mocked<BattleTeamSwitchService>
 
-    useCase = new BattleInteractionUseCase(stateRepo, repo, identifierPort, discussionService, chatService, teamSwitchService)
+    useCase = new BattleInteractionUseCase(stateRepo, repo, identifierPort, kafkaPubPort, discussionService, chatService, teamSwitchService)
   })
 
   describe('submitDiscussion', () => {
@@ -216,6 +225,16 @@ describe('BattleInteractionUseCase', () => {
       expect(chatService.buildChatMessage).toHaveBeenCalled()
       expect(chatService.applyChatMessage).toHaveBeenCalled()
       expect(stateRepo.saveBattleState).toHaveBeenCalled()
+
+      expect(kafkaPubPort.publishChat).toHaveBeenCalledWith({
+        battleId: 'battle-1',
+        messageId: 'msg-1',
+        team: BATTLE_TEAM.A,
+        sender: { userId: 'user-1', nickname: '테스터', tier: 'GOLD' },
+        text: '안녕하세요',
+        createdAt: expect.any(String),
+      })
+
       expect(result.battleId).toBe('battle-1')
       expect(result.scope).toBe('all')
     })

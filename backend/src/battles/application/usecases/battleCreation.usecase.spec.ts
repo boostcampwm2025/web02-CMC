@@ -4,8 +4,8 @@ import { BATTLE_STATUS, BATTLE_TYPE } from '../../domains/models/const/battles.c
 import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
-import type { BattleReferencePort } from '../ports/out/battleReference.port'
 import type { BattleIdentifierPort } from '../ports/out/battleIdentifier.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 import type { BattlePhaseTransitionUseCase } from './battlePhaseTransition.usecase'
 import type { BattleCreateQueryDto } from '../../dto/battleCreateQuery.dto'
 import type { ActiveBattleState } from '../../domains/models/types/battle.types'
@@ -15,8 +15,8 @@ describe('BattleCreationUseCase', () => {
   let repo: jest.Mocked<BattleRepoPort>
   let stateRepo: jest.Mocked<BattleStatePort>
   let broadcaster: jest.Mocked<BattleBroadcasterPort>
-  let referencePort: jest.Mocked<BattleReferencePort>
   let identifierPort: jest.Mocked<BattleIdentifierPort>
+  let kafkaPubPort: jest.Mocked<KafkaPubPort>
   let phaseTransitionUseCase: jest.Mocked<BattlePhaseTransitionUseCase>
 
   const createMockPayload = (overrides = {}): BattleCreateQueryDto =>
@@ -84,31 +84,23 @@ describe('BattleCreationUseCase', () => {
       emitRoundUpdated: jest.fn(),
     } as unknown as jest.Mocked<BattleBroadcasterPort>
 
-    referencePort = {
-      generate: jest.fn().mockResolvedValue({
-        referenceData: {
-          summary: 'AI 요약',
-          keyPoints: ['point1', 'point2'],
-        },
-        rateLimit: {
-          limitPerMinute: 5,
-          remainingMinute: 4,
-          limitPerDay: 20,
-          remainingDay: 19,
-        },
-      }),
-    } as unknown as jest.Mocked<BattleReferencePort>
-
     identifierPort = {
       generateId: jest.fn().mockReturnValue('battle-id-123'),
       generateInviteCode: jest.fn().mockReturnValue('INVITE123'),
     } as unknown as jest.Mocked<BattleIdentifierPort>
 
+    kafkaPubPort = {
+      publishChat: jest.fn().mockResolvedValue(undefined),
+      publishBattleCreated: jest.fn().mockResolvedValue(undefined),
+      publishBattlePhaseChanged: jest.fn().mockResolvedValue(undefined),
+      publishBattleTerminated: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<KafkaPubPort>
+
     phaseTransitionUseCase = {
       advancePhase: jest.fn(),
     } as unknown as jest.Mocked<BattlePhaseTransitionUseCase>
 
-    useCase = new BattleCreationUseCase(repo, stateRepo, broadcaster, referencePort, identifierPort, phaseTransitionUseCase)
+    useCase = new BattleCreationUseCase(repo, stateRepo, broadcaster, identifierPort, kafkaPubPort, phaseTransitionUseCase)
   })
 
   describe('create', () => {
@@ -127,12 +119,7 @@ describe('BattleCreationUseCase', () => {
         }),
       )
       expect(result.battle.id).toBe('battle-id-123')
-      expect(result.aiRateLimit).toEqual({
-        limitPerMinute: 5,
-        remainingMinute: 4,
-        limitPerDay: 20,
-        remainingDay: 19,
-      })
+      expect(result.aiRateLimit).toBeNull()
     })
 
     it('비공개 배틀 생성 시 초대 코드를 생성한다', async () => {
@@ -163,16 +150,24 @@ describe('BattleCreationUseCase', () => {
       )
     })
 
-    it('AI 참고 자료 생성에 실패해도 배틀 생성은 계속 진행된다', async () => {
-      referencePort.generate.mockRejectedValue(new Error('AI error'))
+    it('배틀을 생성하고 AI 참고 자료 생성을 위한 카프카 이벤트를 발행한다', async () => {
       const payload = createMockPayload()
 
       const result = await useCase.create(payload)
-      const [createArg] = (repo.create as unknown as jest.Mock).mock.calls[0]
 
       expect(result.battle.id).toBe('battle-id-123')
       expect(result.aiRateLimit).toBeNull()
-      expect(createArg).not.toHaveProperty('referenceData')
+
+      expect(kafkaPubPort.publishBattleCreated).toHaveBeenCalledWith({
+        battleId: 'battle-id-123',
+        title: '테스트 배틀',
+        description: '설명',
+        codeA: 'code A',
+        codeB: 'code B',
+        language: 'javascript',
+        category: 'algorithm',
+        topics: ['topic1'],
+      })
     })
   })
 
