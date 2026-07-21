@@ -16,7 +16,6 @@ export interface ChatMessageParam {
 
 //---배틀 이벤트---
 export interface BattleCreatedParam {
-  type: 'battle.created'
   battleId: string
   title: string
   description: string
@@ -28,7 +27,6 @@ export interface BattleCreatedParam {
 }
 
 export interface BattlePhaseChangedParam {
-  type: 'battle.phase_changed'
   battleId: string
   currentPhase: BattlePhaseName
   currentRound: number
@@ -38,12 +36,11 @@ export interface BattlePhaseChangedParam {
 }
 
 export interface BattleTerminatedParam {
-  type: 'battle.finished'
   battleId: string
   participants: [string, BattleTeam][]
   winningTeam: 'A' | 'B' | 'DRAW'
   mvpIds: string[]
-  finishedAt: string
+  finishedAt: number
 }
 
 export interface KafkaPubPort {

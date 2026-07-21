@@ -41,7 +41,7 @@ export interface BattleTerminatedEvent {
   winningTeam: 'A' | 'B' | 'DRAW'
 
   mvpIds: string[]
-  finishedAt: string
+  finishedAt: number
 }
 
 export type BattleEvent = BattleCreatedEvent | BattlePhaseChangedEvent | BattleTerminatedEvent
