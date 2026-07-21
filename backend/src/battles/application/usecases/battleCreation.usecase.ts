@@ -105,7 +105,6 @@ export class BattleCreationUseCase {
 
     //배틀 생성 이벤트 발행 -> AI 레퍼런스 컨슈머
     await this.kafkaPubPort.publishBattleCreated({
-      type: 'battle.created',
       battleId: created.id,
       title: created.title,
       description: created.description,

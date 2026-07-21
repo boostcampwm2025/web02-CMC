@@ -82,12 +82,11 @@ export class BattleTerminationUseCase {
       const mvpIds = mvps.slice(0, 3).map(mvp => mvp.userId)
 
       await this.kafkaPubPort.publishBattleTerminated({
-        type: 'battle.finished',
         battleId: state.battleId,
         participants,
         winningTeam,
         mvpIds,
-        finishedAt: new Date().toISOString(),
+        finishedAt: Date.now(),
       })
     } catch (error) {
       this.logger.error(`[Battle Kafka Error] 배틀 종료 이벤트 발행 실패: ${error instanceof Error ? error.message : String(error)}`)

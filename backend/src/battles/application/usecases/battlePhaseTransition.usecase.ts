@@ -113,7 +113,6 @@ export class BattlePhaseTransitionUseCase {
     }
 
     await this.kafkaPubPort.publishBattlePhaseChanged({
-      type: 'battle.phase_changed',
       battleId,
       currentPhase: state.phase,
       currentRound: state.round,
@@ -208,7 +207,6 @@ export class BattlePhaseTransitionUseCase {
     }
 
     await this.kafkaPubPort.publishBattlePhaseChanged({
-      type: 'battle.phase_changed',
       battleId,
       currentPhase: state.phase,
       currentRound: state.round,
@@ -248,7 +246,6 @@ export class BattlePhaseTransitionUseCase {
     this.timer.schedule(battleId, state)
 
     await this.kafkaPubPort.publishBattlePhaseChanged({
-      type: 'battle.phase_changed',
       battleId,
       currentPhase: state.phase,
       currentRound: state.round,
