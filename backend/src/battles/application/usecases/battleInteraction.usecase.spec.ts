@@ -98,6 +98,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '의견 내용', BATTLE_TEAM.A, 'attack')
 
       expect(discussionService.applyAttack).toHaveBeenCalled()
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('ATTACK')
     })
@@ -115,6 +116,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '반론 내용', BATTLE_TEAM.A, 'defense')
 
       expect(discussionService.applyDefense).toHaveBeenCalled()
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('DEFENSE')
     })
@@ -123,6 +125,7 @@ describe('BattleInteractionUseCase', () => {
   describe('submitVote', () => {
     it('공격에 투표한다', async () => {
       const mockState = createMockState()
+      mockState.opinionHistory = [{ ...mockState.teamA.attacks[0] }] as BattleDiscussion[]
       stateRepo.loadBattleState.mockResolvedValue({
         battle: {},
         state: mockState,
@@ -131,6 +134,9 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')
 
       expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
+      expect(mockState.opinionHistory[0].votes).toEqual(['user-1'])
+      expect(mockState.opinionHistory[0].upvotes).toBe(1)
       expect(result).toHaveLength(1)
       expect(result[0].discussionId).toBe('discussion-1')
     })
@@ -153,6 +159,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'defense')
 
       expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(result).toHaveLength(1)
     })
 
