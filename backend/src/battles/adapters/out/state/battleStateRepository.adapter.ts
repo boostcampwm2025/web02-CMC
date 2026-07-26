@@ -120,6 +120,13 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
       return { battle: { id: battleId, status: live.status } as PrismaBattle, state: live }
     }
 
+    //캐시에서 상태 로드
+    const cached = await this.loadBattleStateFromRedis(battleId)
+    if (cached) {
+      this.liveStates.set(battleId, cached)
+      return { battle: { id: battleId, status: cached.status } as PrismaBattle, state: cached }
+    }
+
     const statusRow = await this.prisma.battle.findUnique({ where: { id: battleId }, select: { status: true } })
     if (!statusRow) throw new NotFoundException('배틀이 존재하지 않습니다.')
 
@@ -135,13 +142,6 @@ export class BattleStateRepositoryAdapter implements BattleStatePort {
         this.logger.error(`[loadBattleState] Redis 삭제 실패 ${battleId}: ${(err as Error).message}`),
       )
       return { battle, state }
-    }
-
-    //캐시에서 상태 로드
-    const cached = await this.loadBattleStateFromRedis(battleId)
-    if (cached) {
-      this.liveStates.set(battleId, cached)
-      return { battle: { id: battleId, status: cached.status } as PrismaBattle, state: cached }
     }
 
     //캐시에서 상태 로드 실패 시 데이터베이스에서 상태 로드
