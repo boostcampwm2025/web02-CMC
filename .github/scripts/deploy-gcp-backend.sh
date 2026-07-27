@@ -1,13 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+mode="deploy"
+case "${1:-}" in
+  "")
+    ;;
+  --preflight)
+    mode="preflight"
+    ;;
+  *)
+    echo "usage: $0 [--preflight]" >&2
+    exit 2
+    ;;
+esac
+
 required_variables=(
   GCP_PROJECT_ID
   GCP_REGION
   GCP_BACKEND_MIG
-  BACKEND_IMAGE
-  VERSION_TAG
 )
+
+if [[ "$mode" == "deploy" ]]; then
+  required_variables+=(
+    BACKEND_IMAGE
+    VERSION_TAG
+  )
+fi
 
 for name in "${required_variables[@]}"; do
   if [[ -z "${!name:-}" ]]; then
@@ -26,14 +44,16 @@ if [[ ! "$GCP_REGION" =~ ^[a-z0-9-]+$ ]]; then
   exit 1
 fi
 
-if [[ ! "$BACKEND_IMAGE" =~ ^[a-z0-9][a-z0-9._/-]*$ ]]; then
-  echo "BACKEND_IMAGE contains unsupported characters" >&2
-  exit 1
-fi
+if [[ "$mode" == "deploy" ]]; then
+  if [[ ! "$BACKEND_IMAGE" =~ ^[a-z0-9][a-z0-9._/-]*$ ]]; then
+    echo "BACKEND_IMAGE contains unsupported characters" >&2
+    exit 1
+  fi
 
-if [[ ! "$VERSION_TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]]; then
-  echo "VERSION_TAG must be a valid container image tag" >&2
-  exit 1
+  if [[ ! "$VERSION_TAG" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$ ]]; then
+    echo "VERSION_TAG must be a valid container image tag" >&2
+    exit 1
+  fi
 fi
 
 GCP_DEPLOY_PATH="${GCP_DEPLOY_PATH:-/opt/cmc}"
@@ -71,22 +91,137 @@ if [[ -z "${instance:-}" || -z "${zone:-}" || "$instance_status" != "RUNNING" ||
   exit 1
 fi
 
-echo "deploying $BACKEND_IMAGE:$VERSION_TAG to $instance ($zone)"
+if ! command -v jq >/dev/null 2>&1; then
+  echo "jq is required to inspect effective OS Login metadata" >&2
+  exit 1
+fi
+
+instance_metadata="$(
+  gcloud compute instances describe "$instance" \
+    --project "$GCP_PROJECT_ID" \
+    --zone "$zone" \
+    --format='json(metadata.items)'
+)"
+instance_oslogin="$(
+  jq -r '[.metadata.items[]? | select(.key == "enable-oslogin") | .value][0] // empty' \
+    <<< "$instance_metadata"
+)"
+
+if [[ -n "$instance_oslogin" ]]; then
+  effective_oslogin="$instance_oslogin"
+  oslogin_source="instance metadata"
+else
+  project_metadata="$(
+    gcloud compute project-info describe \
+      --project "$GCP_PROJECT_ID" \
+      --format='json(commonInstanceMetadata.items)'
+  )"
+  effective_oslogin="$(
+    jq -r '[.commonInstanceMetadata.items[]? | select(.key == "enable-oslogin") | .value][0] // empty' \
+      <<< "$project_metadata"
+  )"
+  oslogin_source="project metadata"
+fi
+
+if [[ ! "$effective_oslogin" =~ ^[Tt][Rr][Uu][Ee]$ ]]; then
+  echo "OS Login is not enabled for $instance; effective value from $oslogin_source is '${effective_oslogin:-unset}'" >&2
+  echo "set enable-oslogin=TRUE on the current instance before rerunning deployment" >&2
+  exit 1
+fi
+
+echo "backend preflight passed: instance=$instance zone=$zone oslogin=$oslogin_source"
+
+required_runtime_variables=(
+  GF_SECURITY_ADMIN_PASSWORD
+  NODE_ENV
+  FRONTEND_URL
+  DATABASE_URL
+  REDIS_HOST
+  REDIS_PORT
+  JWT_ACCESS_SECRET
+  JWT_REFRESH_SECRET
+  JWT_ACCESS_EXPIRES_IN
+  JWT_REFRESH_EXPIRES_IN
+  GEMINI_API_KEYS
+  GITHUB_CLIENT_ID
+  GITHUB_CLIENT_SECRET
+  GITHUB_CALLBACK_URL
+  KAKAO_CLIENT_ID
+  KAKAO_CLIENT_SECRET
+  KAKAO_CALLBACK_URL
+)
+printf -v required_runtime_variables_q '%q ' "${required_runtime_variables[@]}"
 
 gcloud compute ssh "$instance" \
   --project "$GCP_PROJECT_ID" \
   --zone "$zone" \
   --tunnel-through-iap \
   --quiet \
-  --command="sudo install -d -o \"\$(id -un)\" -g \"\$(id -gn)\" '$GCP_DEPLOY_PATH'"
+  --command="set -euo pipefail
+env_file='$GCP_DEPLOY_PATH/.env'
+sudo test -f \"\$env_file\"
+for name in $required_runtime_variables_q; do
+  if ! sudo grep -Eq \"^\${name}=.+\" \"\$env_file\"; then
+    echo \"missing or empty runtime variable in \$env_file: \$name\" >&2
+    exit 1
+  fi
+done"
+echo "backend SSH preflight passed: required runtime variables exist in $GCP_DEPLOY_PATH/.env"
+
+if [[ "$mode" == "preflight" ]]; then
+  exit 0
+fi
+
+echo "deploying $BACKEND_IMAGE:$VERSION_TAG to $instance ($zone)"
+
+remote_stage_path="/tmp/cmc-deploy-${VERSION_TAG}"
+printf -v deploy_path_q '%q' "$GCP_DEPLOY_PATH"
+printf -v remote_stage_path_q '%q' "$remote_stage_path"
+printf -v backend_image_q '%q' "$BACKEND_IMAGE"
+printf -v version_tag_q '%q' "$VERSION_TAG"
+
+gcloud compute ssh "$instance" \
+  --project "$GCP_PROJECT_ID" \
+  --zone "$zone" \
+  --tunnel-through-iap \
+  --quiet \
+  --command="set -euo pipefail
+remote_stage_path=$remote_stage_path_q
+rm -rf \"\$remote_stage_path\"
+install -d -m 0700 \"\$remote_stage_path\""
 
 gcloud compute scp --recurse \
   docker-compose-prod.yml nginx monitoring \
-  "$instance:$GCP_DEPLOY_PATH/" \
+  "$instance:$remote_stage_path/" \
   --project "$GCP_PROJECT_ID" \
   --zone "$zone" \
   --tunnel-through-iap \
   --quiet
+
+gcloud compute ssh "$instance" \
+  --project "$GCP_PROJECT_ID" \
+  --zone "$zone" \
+  --tunnel-through-iap \
+  --quiet \
+  --command="set -euo pipefail
+deploy_path=$deploy_path_q
+remote_stage_path=$remote_stage_path_q
+
+sudo install -d -o \"\$(id -un)\" -g \"\$(id -gn)\" \"\$deploy_path\"
+sudo install \
+  -o \"\$(id -un)\" \
+  -g \"\$(id -gn)\" \
+  -m 0644 \
+  \"\$remote_stage_path/docker-compose-prod.yml\" \
+  \"\$deploy_path/docker-compose-prod.yml\"
+
+for directory in nginx monitoring; do
+  sudo install -d \"\$deploy_path/\$directory\"
+  sudo cp -a \"\$remote_stage_path/\$directory/.\" \"\$deploy_path/\$directory/\"
+  sudo chown -R \"\$(id -un):\$(id -gn)\" \"\$deploy_path/\$directory\"
+done
+
+rm -rf \"\$remote_stage_path\""
 
 gcloud auth print-access-token \
   | gcloud compute ssh "$instance" \
@@ -95,10 +230,6 @@ gcloud auth print-access-token \
       --tunnel-through-iap \
       --quiet \
       --command="sudo docker login -u oauth2accesstoken --password-stdin 'https://${GCP_REGION}-docker.pkg.dev'"
-
-printf -v deploy_path_q '%q' "$GCP_DEPLOY_PATH"
-printf -v backend_image_q '%q' "$BACKEND_IMAGE"
-printf -v version_tag_q '%q' "$VERSION_TAG"
 
 gcloud compute ssh "$instance" \
   --project "$GCP_PROJECT_ID" \

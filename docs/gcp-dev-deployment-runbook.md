@@ -883,6 +883,34 @@ health endpoint가 배포되기 전에 auto-healing을 연결하면 `/livez` 404
 8. dev VM recreate drill 후 `.env`, Redis session/AOF, OAuth, battle timer를 확인한다.
 9. 같은 snapshot/2단계 apply/recreate 검증을 prod에 반복한다.
 
+기존 VM은 `OPPORTUNISTIC` MIG 정책 때문에 새 instance template metadata를 자동으로 받지 않는다. 현재 instance에만 OS Login을 활성화하고, project 전체 metadata는 변경하지 않는다.
+
+```bash
+INSTANCE=$(gcloud compute instance-groups managed list-instances cmc-dev-backend \
+  --project cmctv-500213 \
+  --region asia-northeast3 \
+  --format='value(name)')
+
+ZONE=$(gcloud compute instance-groups managed list-instances cmc-dev-backend \
+  --project cmctv-500213 \
+  --region asia-northeast3 \
+  --format='value(instance.scope().segment(0))')
+
+gcloud compute instances add-metadata "$INSTANCE" \
+  --project cmctv-500213 \
+  --zone "$ZONE" \
+  --metadata=enable-oslogin=TRUE
+
+GCP_PROJECT_ID=cmctv-500213 \
+GCP_REGION=asia-northeast3 \
+GCP_BACKEND_MIG=cmc-dev-backend \
+bash .github/scripts/deploy-gcp-backend.sh --preflight
+```
+
+preflight는 image build/push 전에 실행되며 instance metadata가 project metadata보다 우선한다. instance에 `enable-oslogin=FALSE`가 명시돼 있으면 project 값이 `TRUE`여도 실패한다. effective OS Login 확인 후에는 IAP SSH로 `$GCP_DEPLOY_PATH/.env`와 필수 runtime key의 비어 있지 않은 설정을 검사하되 값은 출력하지 않는다. 이 경우 deployer에 `compute.instances.setMetadata`를 추가하지 말고 현재 instance metadata를 복구한다.
+
+OS Login service account의 POSIX 사용자는 기존 배포 사용자의 파일을 직접 덮어쓸 수 없다. 배포 script는 Compose/Nginx/monitoring을 `/tmp/cmc-deploy-<tag>`에 먼저 업로드한 뒤 `sudo`로 `$GCP_DEPLOY_PATH`에 승격한다. 이 과정은 기존 `.env`와 마지막 성공 배포의 `release.env`를 보존한다.
+
 상태 확인:
 
 ```bash
