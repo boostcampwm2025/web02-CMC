@@ -47,6 +47,7 @@ describe('BattleInteractionUseCase', () => {
       loadBattleState: jest.fn(),
       saveBattleState: jest.fn(),
       getNicknameByUserId: jest.fn().mockReturnValue('테스터'),
+      getTierByUserId: jest.fn().mockReturnValue(null),
       saveDiscussionToRedis: jest.fn().mockResolvedValue(undefined),
       castVoteInRedis: jest.fn().mockResolvedValue({ added: true, prevDiscussionId: null }),
     } as unknown as jest.Mocked<BattleStatePort>
@@ -97,6 +98,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '의견 내용', BATTLE_TEAM.A, 'attack')
 
       expect(discussionService.applyAttack).toHaveBeenCalled()
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('ATTACK')
     })
@@ -114,6 +116,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitDiscussion('battle-1', 'user-1', '반론 내용', BATTLE_TEAM.A, 'defense')
 
       expect(discussionService.applyDefense).toHaveBeenCalled()
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(stateRepo.saveDiscussionToRedis).toHaveBeenCalled()
       expect(result.type).toBe('DEFENSE')
     })
@@ -122,6 +125,7 @@ describe('BattleInteractionUseCase', () => {
   describe('submitVote', () => {
     it('공격에 투표한다', async () => {
       const mockState = createMockState()
+      mockState.opinionHistory = [{ ...mockState.teamA.attacks[0] }] as BattleDiscussion[]
       stateRepo.loadBattleState.mockResolvedValue({
         battle: {},
         state: mockState,
@@ -130,6 +134,9 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'attack')
 
       expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
+      expect(mockState.opinionHistory[0].votes).toEqual(['user-1'])
+      expect(mockState.opinionHistory[0].upvotes).toBe(1)
       expect(result).toHaveLength(1)
       expect(result[0].discussionId).toBe('discussion-1')
     })
@@ -152,6 +159,7 @@ describe('BattleInteractionUseCase', () => {
       const result = await useCase.submitVote('battle-1', 'discussion-1', 'user-1', BATTLE_TEAM.A, 'defense')
 
       expect(stateRepo.castVoteInRedis).toHaveBeenCalledWith('battle-1', 'discussion-1', 'user-1')
+      expect(stateRepo.saveBattleState).toHaveBeenCalledWith('battle-1', mockState)
       expect(result).toHaveLength(1)
     })
 
@@ -218,6 +226,48 @@ describe('BattleInteractionUseCase', () => {
       expect(stateRepo.saveBattleState).toHaveBeenCalled()
       expect(result.battleId).toBe('battle-1')
       expect(result.scope).toBe('all')
+    })
+
+    it('상태에 tier가 있으면 채팅 메시지에 포함한다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.getTierByUserId.mockReturnValue('GOLD')
+
+      const dto = {
+        battleId: 'battle-1',
+        scope: 'all',
+        team: BATTLE_TEAM.A,
+        text: '안녕하세요',
+      } as unknown as BattleChatDto
+
+      await useCase.sendChat(dto, 'user-1')
+
+      expect(repo.findUniqueUser).not.toHaveBeenCalled()
+      expect(chatService.buildChatMessage).toHaveBeenCalledWith('new-id-123', 'user-1', '테스터', 'GOLD', BATTLE_TEAM.A, '안녕하세요')
+    })
+
+    it('상태에 tier가 없어도 사용자 tier 조회를 위해 DB를 호출하지 않는다', async () => {
+      const mockState = createMockState()
+      stateRepo.loadBattleState.mockResolvedValue({
+        battle: {},
+        state: mockState,
+      } as unknown as Awaited<ReturnType<BattleStatePort['loadBattleState']>>)
+      stateRepo.getTierByUserId.mockReturnValue(null)
+
+      const dto = {
+        battleId: 'battle-1',
+        scope: 'all',
+        team: BATTLE_TEAM.A,
+        text: '안녕하세요',
+      } as unknown as BattleChatDto
+
+      await useCase.sendChat(dto, 'guest-1')
+
+      expect(repo.findUniqueUser).not.toHaveBeenCalled()
+      expect(chatService.buildChatMessage).toHaveBeenCalledWith('new-id-123', 'guest-1', '테스터', undefined, BATTLE_TEAM.A, '안녕하세요')
     })
 
     it('battleId가 없으면 BadRequestException을 던진다', async () => {

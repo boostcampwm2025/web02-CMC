@@ -1,7 +1,7 @@
 import { Injectable, Inject, BadRequestException, ForbiddenException, Logger, NotFoundException } from '@nestjs/common'
 
 import { BATTLE_TEAM } from '../../domains/models/const/battles.const'
-import { BattleDiscussion, BattleTeam } from '../../domains/models/types/battle.types'
+import { ActiveBattleState, BattleDiscussion, BattleTeam } from '../../domains/models/types/battle.types'
 import { DiscussionVoteResponseDto } from '../../dto/discussionVoteResponse.dto'
 import type { BattleChatDto } from '../../dto/battleChat.dto'
 
@@ -53,6 +53,7 @@ export class BattleInteractionUseCase {
       )
     }
 
+    this.stateRepo.saveBattleState(battleId, state)
     void this.stateRepo
       .saveDiscussionToRedis(battleId, result, discussionType, team)
       .catch(err => this.logger.error(`[submitDiscussion] Redis write failed: ${(err as Error).message}`))
@@ -98,6 +99,7 @@ export class BattleInteractionUseCase {
     const target = discussions[targetIdx]
     target.votes = [...target.votes.filter(v => v !== userId), userId]
     target.upvotes = target.votes.length
+    this.replaceDiscussionInOpinionHistory(state, target)
 
     const updatedDiscussions: DiscussionVoteResponseDto[] = [DiscussionVoteResponseDto.of(battleId, target)]
 
@@ -105,13 +107,26 @@ export class BattleInteractionUseCase {
       const prevIdx = discussions.findIndex(d => d?.discussionId === prevDiscussionId)
       if (prevIdx >= 0 && discussions[prevIdx]) {
         const prev = discussions[prevIdx]
+
         prev.votes = prev.votes.filter(v => v !== userId)
         prev.upvotes = prev.votes.length
+        this.replaceDiscussionInOpinionHistory(state, prev)
+
         updatedDiscussions.push(DiscussionVoteResponseDto.of(battleId, prev))
       }
     }
 
+    this.stateRepo.saveBattleState(battleId, state)
     return updatedDiscussions
+  }
+
+  private replaceDiscussionInOpinionHistory(state: ActiveBattleState, discussion: BattleDiscussion): void {
+    if (!Array.isArray(state.opinionHistory)) return
+
+    const idx = state.opinionHistory.findIndex(item => item.discussionId === discussion.discussionId)
+    if (idx >= 0) {
+      state.opinionHistory[idx] = discussion
+    }
   }
 
   //채팅 전송
@@ -136,9 +151,9 @@ export class BattleInteractionUseCase {
 
     const { state } = await this.stateRepo.loadBattleState(battleId)
     const nickname = this.stateRepo.getNicknameByUserId(state, userId) || ''
-    const userTier = await this.repo.findUniqueUser(userId, { tier: true })
+    const tier = this.stateRepo.getTierByUserId(state, userId) ?? undefined
 
-    const chat = this.chatService.buildChatMessage(this.identifierPort.generateId(), userId, nickname, userTier?.tier ?? undefined, team, text)
+    const chat = this.chatService.buildChatMessage(this.identifierPort.generateId(), userId, nickname, tier, team, text)
 
     this.chatService.applyChatMessage(state, chat, scope, team)
     this.stateRepo.saveBattleState(battleId, state)

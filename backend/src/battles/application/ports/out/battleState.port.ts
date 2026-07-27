@@ -15,6 +15,8 @@ export interface BattleStatePort {
   parseMvpsState(value: unknown): Mvp[]
   //사용자 ID로 닉네임 조회
   getNicknameByUserId(state: ActiveBattleState, userId: string): string | null
+  //사용자 ID로 티어 조회
+  getTierByUserId(state: ActiveBattleState, userId: string): string | null
   //닉네임 중복 체크
   isNicknameDuplicate(battleId: string, nickname: string): Promise<boolean>
   //discussion 메타데이터를 Redis HASH에 저장장.

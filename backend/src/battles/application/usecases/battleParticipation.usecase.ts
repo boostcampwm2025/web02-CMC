@@ -34,8 +34,9 @@ export class BattleParticipationUseCase {
     if (state.status === BATTLE_STATUS.CLOSED) throw new BadRequestException('이미 종료된 배틀입니다.')
 
     const existingTeam = state.participants.get(userId)
+    const userExists = await this.repo.findUniqueUser(userId, { id: true, tier: true })
     if (!state.userInfoMap.has(userId)) {
-      state.userInfoMap.set(userId, nickname)
+      state.userInfoMap.set(userId, userExists?.tier ? { nickname, tier: userExists.tier } : nickname)
     }
 
     if (!existingTeam || existingTeam !== team) {
@@ -44,7 +45,6 @@ export class BattleParticipationUseCase {
       })
     }
 
-    const userExists = await this.repo.findUniqueUser(userId, { id: true })
     if (userExists) {
       await this.repo.upsertBattleParticipant({ userId, battleId, team: String(team), isMvp: false })
     }

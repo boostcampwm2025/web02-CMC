@@ -77,6 +77,47 @@ describe('BattleStateRepositoryAdapter', () => {
       expect(result.state.phase).toBe('PENDING')
     })
 
+    it('Redis에 상태가 있으면 DB를 조회하지 않는다', async () => {
+      const core = {
+        battleId: 'battle-1',
+        status: 'OPEN',
+        round: 2,
+        topics: ['topic1', 'topic2'],
+        totalRounds: 2,
+        phase: 'ATTACK',
+        phaseCount: 1,
+        startedAt: 1700000000000,
+        expiredAt: 1700000060000,
+        skipState: [],
+        participants: [['user-1', BATTLE_TEAM.A]],
+        teamVotes: [],
+        userInfoMap: [['user-1', '테스터']],
+        teamAUsers: ['user-1'],
+        teamBUsers: [],
+        allRoomId: 'battle:battle-1:room:all',
+        teamARoomId: 'battle:battle-1:room:A',
+        teamBRoomId: 'battle:battle-1:room:B',
+      }
+      const redisValues: Record<string, string> = {
+        'battle:core:battle-1': JSON.stringify(core),
+        'battle:attacks:battle-1': JSON.stringify({ all: [], opinionHistory: [] }),
+        'battle:defenses:battle-1': JSON.stringify({ all: [] }),
+        'battle:chats:all:battle-1': JSON.stringify([]),
+        'battle:chats:a:battle-1': JSON.stringify([]),
+        'battle:chats:b:battle-1': JSON.stringify([]),
+      }
+      ;(redis.get as jest.Mock).mockImplementation((key: string) => Promise.resolve(redisValues[key] ?? null))
+
+      const result = await adapter.loadBattleState('battle-1')
+
+      expect(prisma.battle.findUnique).not.toHaveBeenCalled()
+      expect(result.battle.status).toBe('OPEN')
+      expect(result.state.battleId).toBe('battle-1')
+      expect(result.state.round).toBe(2)
+      expect(result.state.phase).toBe('ATTACK')
+      expect(result.state.participants.get('user-1')).toBe(BATTLE_TEAM.A)
+    })
+
     it('배틀이 없으면 NotFoundException을 던진다', async () => {
       ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(null)
 
@@ -116,6 +157,18 @@ describe('BattleStateRepositoryAdapter', () => {
       const result = await adapter.loadBattleState('battle-1')
 
       expect(result.state.userInfoMap.get('user-1')).toBe('테스터')
+    })
+
+    it('tier가 포함된 userInfoMap을 파싱한다', async () => {
+      const mockBattle = createMockBattle({
+        userInfoState: [['user-1', { nickname: '테스터', tier: 'GOLD' }]],
+      })
+      ;(prisma.battle.findUnique as jest.Mock).mockResolvedValue(mockBattle)
+
+      const result = await adapter.loadBattleState('battle-1')
+
+      expect(adapter.getNicknameByUserId(result.state, 'user-1')).toBe('테스터')
+      expect(adapter.getTierByUserId(result.state, 'user-1')).toBe('GOLD')
     })
 
     it('채팅 상태를 파싱한다', async () => {
@@ -282,6 +335,28 @@ describe('BattleStateRepositoryAdapter', () => {
       } as Parameters<typeof adapter.getNicknameByUserId>[0]
 
       const result = adapter.getNicknameByUserId(state, 'nonexistent')
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe('getTierByUserId', () => {
+    it('userId로 티어를 찾는다', () => {
+      const state = {
+        userInfoMap: new Map([['user-1', { nickname: '테스터', tier: 'GOLD' }]]),
+      } as Parameters<typeof adapter.getTierByUserId>[0]
+
+      const result = adapter.getTierByUserId(state, 'user-1')
+
+      expect(result).toBe('GOLD')
+    })
+
+    it('문자열 userInfo이면 null을 반환한다', () => {
+      const state = {
+        userInfoMap: new Map([['user-1', '테스터']]),
+      } as Parameters<typeof adapter.getTierByUserId>[0]
+
+      const result = adapter.getTierByUserId(state, 'user-1')
 
       expect(result).toBeNull()
     })
