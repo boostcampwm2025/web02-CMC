@@ -1,6 +1,9 @@
 name: deploy-loadtest
 
 on:
+  push:
+    branches:
+      - loadtest-*
   workflow_dispatch:
 
 concurrency:
