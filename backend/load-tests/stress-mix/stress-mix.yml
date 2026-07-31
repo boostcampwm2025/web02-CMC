@@ -1,0 +1,27 @@
+config:
+  target: "http://localhost:3000"
+  processor: "./stress-mix.processor.js"
+  phases:
+    - name: "stress mix"
+      duration: 1
+      arrivalCount: 40
+  variables:
+    durationSeconds: 180
+    warmupSeconds: 10
+    chatMinIntervalMs: 1050
+    chatMaxIntervalMs: 1250
+    attackMinIntervalMs: 7200
+    attackMaxIntervalMs: 8800
+    voteMinIntervalMs: 1200
+    voteMaxIntervalMs: 1450
+    allScopeRatio: 0.7
+    attackSeedPerTeam: 4
+
+before:
+  flow:
+    - function: "prepareStressMixBattle"
+
+scenarios:
+  - name: "guest joins and sends stress mix"
+    flow:
+      - function: "runStressMixSession"

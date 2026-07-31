@@ -19,7 +19,12 @@
     "test:cov": "pnpm prisma:generate && jest --coverage",
     "test:debug": "pnpm prisma:generate && node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma:generate": "npx prisma generate"
+    "loadtest:chat-only": "node load-tests/run-load-test.js chat-only",
+    "loadtest:attack-only": "node load-tests/run-load-test.js attack-only",
+    "loadtest:vote-only": "node load-tests/run-load-test.js vote-only",
+    "prisma:generate": "npx prisma generate",
+    "loadtest:normal-mix-target": "node load-tests/run-load-test.js normal-mix-target",
+    "loadtest:stress-mix": "node load-tests/run-load-test.js stress-mix"
   },
   "dependencies": {
     "@cmc/types": "workspace:*",
@@ -70,6 +75,7 @@
     "@types/pg": "^8.16.0",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^11.0.0",
+    "artillery": "^2.0.33",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

@@ -1,0 +1,22 @@
+config:
+  target: "http://localhost:3000"
+  processor: "./vote-only.processor.js"
+  phases:
+    - name: "vote only threshold"
+      duration: 1
+      arrivalCount: 40
+  variables:
+    durationSeconds: 180
+    voteMinIntervalMs: 1000
+    voteMaxIntervalMs: 1500
+    attackSeedPerTeam: 4
+
+before:
+  flow:
+    - function: "prepareVoteOnlyBattle"
+
+scenarios:
+  - name: "guest joins and sends vote only"
+    flow:
+      - function: "runVoteOnlySession"
+

@@ -1,0 +1,21 @@
+config:
+  target: "http://localhost:3000"
+  processor: "./attack-only.processor.js"
+  phases:
+    - name: "attack only threshold"
+      duration: 1
+      arrivalCount: 40
+  variables:
+    durationSeconds: 180
+    attackMinIntervalMs: 4000
+    attackMaxIntervalMs: 5000
+
+before:
+  flow:
+    - function: "prepareAttackOnlyBattle"
+
+scenarios:
+  - name: "guest joins and sends attack only"
+    flow:
+      - function: "runAttackOnlySession"
+

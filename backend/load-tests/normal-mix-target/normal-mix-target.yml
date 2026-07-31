@@ -1,0 +1,27 @@
+config:
+  target: "http://localhost:3000"
+  processor: "./normal-mix-target.processor.js"
+  phases:
+    - name: "normal mix target"
+      duration: 1
+      arrivalCount: 40
+  variables:
+    durationSeconds: 180
+    warmupSeconds: 10
+    chatMinIntervalMs: 850
+    chatMaxIntervalMs: 1050
+    attackMinIntervalMs: 6000
+    attackMaxIntervalMs: 7300
+    voteMinIntervalMs: 750
+    voteMaxIntervalMs: 950
+    allScopeRatio: 0.7
+    attackSeedPerTeam: 4
+
+before:
+  flow:
+    - function: "prepareNormalMixTargetBattle"
+
+scenarios:
+  - name: "guest joins and sends normal mix target"
+    flow:
+      - function: "runNormalMixTargetSession"

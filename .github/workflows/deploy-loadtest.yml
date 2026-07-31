@@ -1,0 +1,74 @@
+name: deploy-loadtest
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.repository }}-deploy-loadtest
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    environment: loadtest
+    env:
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_BACKEND_MIG: ${{ vars.GCP_BACKEND_MIG }}
+      GCP_DEPLOY_PATH: ${{ vars.GCP_DEPLOY_PATH }}
+      BACKEND_IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPOSITORY }}/backend
+      VERSION_TAG: loadtest-${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate loadtest deployment ref
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" != refs/heads/loadtest-* ]]; then
+            echo "loadtest deployment must run from a loadtest-* branch" >&2
+            echo "current ref: $GITHUB_REF" >&2
+            exit 1
+          fi
+
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Configure Artifact Registry authentication
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: backend/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:loadtest-latest
+            ${{ env.BACKEND_IMAGE }}:${{ env.VERSION_TAG }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ env.VERSION_TAG }}
+
+      - name: Verify backend artifact
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "${BACKEND_IMAGE}:${VERSION_TAG}" >/dev/null
+
+      - name: Deploy backend to loadtest GCP
+        run: bash .github/scripts/deploy-gcp-loadtest-backend.sh

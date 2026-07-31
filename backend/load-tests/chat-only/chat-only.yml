@@ -1,0 +1,22 @@
+config:
+  target: "http://localhost:3000"
+  processor: "./chat-only.processor.js"
+  phases:
+    - name: "chat only threshold"
+      duration: 1
+      arrivalCount: 40
+  variables:
+    durationSeconds: 180
+    chatMinIntervalMs: 3000
+    chatMaxIntervalMs: 5000
+    allScopeRatio: 0.7
+
+before:
+  flow:
+    - function: "prepareChatOnlyBattle"
+
+scenarios:
+  - name: "guest joins and sends chat only"
+    flow:
+      - function: "runChatOnlySession"
+
