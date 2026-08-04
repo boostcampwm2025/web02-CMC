@@ -104,14 +104,15 @@ flowchart TD
 ### Backend
 
 1. GitHub Actions authenticates with Workload Identity Federation.
-2. The workflow builds `linux/amd64` images.
-3. Images are pushed to Artifact Registry with an immutable version tag.
-4. The workflow resolves exactly one running instance from the configured MIG name.
-5. Compose, Nginx, and monitoring configuration are copied through IAP.
-6. The VM authenticates to Artifact Registry with a short-lived access token.
-7. Prisma migration runs as a separate Compose tool service.
-8. `docker compose up -d --remove-orphans` activates the new version.
-9. Nginx config, `/livez`, and `/healthz` must pass before `release.env` is updated.
+2. Before image build/push, the dev workflow resolves exactly one stable instance from the configured MIG, verifies effective OS Login, opens an IAP SSH session, and confirms that required runtime `.env` keys have non-empty values without printing them.
+3. The workflow builds `linux/amd64` images.
+4. Images are pushed to Artifact Registry with an immutable version tag.
+5. The deploy script repeats the MIG stability and effective OS Login checks immediately before SSH.
+6. Compose, Nginx, and monitoring configuration are copied through IAP to an OS Login user-owned staging directory, then promoted with `sudo` without replacing `.env`.
+7. The VM authenticates to Artifact Registry with a short-lived access token.
+8. Prisma migration runs as a separate Compose tool service.
+9. `docker compose up -d --remove-orphans` activates the new version.
+10. Nginx config, `/livez`, and `/healthz` must pass before `release.env` is updated.
 
 ### Frontend
 
@@ -148,7 +149,7 @@ Configure this build-time value as a repository-level Actions secret. An Environ
 
 Pull request CI does not authenticate to or push into a container registry. Its frontend image check uses repository variables `VITE_API_URL`, `VITE_SOCKET_URL`, and `VITE_ENABLE_SENTRY` with the dev public origins, plus the repository `VITE_SENTRY_DSN` secret. GCP deployment jobs use the environment-scoped values above.
 
-Terraform creates one repository-, environment-, and ref-restricted Workload Identity Provider and deployer service account per environment. The deployer uses Artifact Registry writer and frontend bucket object admin at resource scope, plus Compute read/OS Login, IAP tunnel, service usage, and target backend service-account-user permissions. Service account JSON keys are forbidden.
+Terraform creates one repository-, environment-, and ref-restricted Workload Identity Provider and deployer service account per environment. The deployer uses Artifact Registry writer plus frontend bucket object admin and bucket metadata reader at resource scope, as well as Compute read/OS Login, IAP tunnel, service usage, and target backend service-account-user permissions. Service account JSON keys are forbidden.
 
 GitHub deployment branch policies allow only `dev` for the dev Environment and `release` for prod. The repository ruleset requires pull requests for `release`, and the tag ruleset prevents moving or deleting existing `v*` release tags.
 

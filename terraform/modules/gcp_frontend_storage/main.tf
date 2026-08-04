@@ -40,3 +40,11 @@ resource "google_storage_bucket_iam_member" "upload" {
   role   = "roles/storage.objectAdmin"
   member = each.value
 }
+
+resource "google_storage_bucket_iam_member" "upload_bucket_reader" {
+  for_each = toset(var.upload_members)
+
+  bucket = google_storage_bucket.this.name
+  role   = "roles/storage.legacyBucketReader"
+  member = each.value
+}

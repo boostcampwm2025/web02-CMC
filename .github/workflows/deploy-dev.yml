@@ -47,6 +47,9 @@ jobs:
         with:
           project_id: ${{ vars.GCP_PROJECT_ID }}
 
+      - name: Preflight backend instance
+        run: bash .github/scripts/deploy-gcp-backend.sh --preflight
+
       - uses: docker/setup-buildx-action@v3
 
       - name: Configure Artifact Registry authentication

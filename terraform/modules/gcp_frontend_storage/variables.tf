@@ -44,7 +44,7 @@ variable "public_read" {
 }
 
 variable "upload_members" {
-  description = "IAM members allowed to upload and replace frontend objects."
+  description = "IAM members allowed to inspect the bucket and upload, replace, or delete frontend objects."
   type        = list(string)
   default     = []
 }
