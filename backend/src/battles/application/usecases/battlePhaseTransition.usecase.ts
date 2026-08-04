@@ -4,10 +4,11 @@ import { BattlePhaseResponseDto, BattleRoundResponseDto } from '../../dto/battle
 import { DiscussionVoteResultDto } from '../../dto/discussionVoteResult.dto'
 import { BattleTeamUpdateAllResponseDto } from '../../dto/battleTeamUpdateAllResponse.dto'
 import type { TeamCounts, TeamChange } from '../../dto/battleTeamUpdateAllResponse.dto'
-import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT } from '../ports/tokens'
+import { BATTLE_STATE_PORT, BATTLE_BROADCASTER_PORT, BATTLE_TIMER_PORT, KAFKA_PUB_PORT } from '../ports/tokens'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 import { BattlePhaseService } from '../../domains/services/battlePhase/battlePhase.service'
 import { BattleVoteService } from '../../domains/services/battleVote/battleVote.service'
 import { BattleDiscussionService } from '../../domains/services/battleDiscussion/battleDiscussion.service'
@@ -24,6 +25,7 @@ export class BattlePhaseTransitionUseCase {
     @Inject(BATTLE_STATE_PORT) private readonly stateRepo: BattleStatePort,
     @Inject(BATTLE_BROADCASTER_PORT) private readonly broadcaster: BattleBroadcasterPort,
     @Inject(BATTLE_TIMER_PORT) private readonly timer: BattleTimerPort,
+    @Inject(KAFKA_PUB_PORT) private readonly kafkaPubPort: KafkaPubPort,
     private readonly phaseService: BattlePhaseService,
     private readonly voteService: BattleVoteService,
     private readonly discussionService: BattleDiscussionService,
@@ -109,6 +111,16 @@ export class BattlePhaseTransitionUseCase {
           this.logger.error(`Failed to reset ${resetType} discussions for battle ${battleId}`, error instanceof Error ? error.stack : String(error)),
         )
     }
+
+    await this.kafkaPubPort.publishBattlePhaseChanged({
+      battleId,
+      currentPhase: state.phase,
+      currentRound: state.round,
+      phaseCount: state.phaseCount,
+      startedAt: state.startedAt,
+      expiredAt: state.expiredAt,
+    })
+
     void this.scheduleNextTick(battleId)
   }
 
@@ -193,6 +205,15 @@ export class BattlePhaseTransitionUseCase {
     } else {
       this.timer.cancel(battleId)
     }
+
+    await this.kafkaPubPort.publishBattlePhaseChanged({
+      battleId,
+      currentPhase: state.phase,
+      currentRound: state.round,
+      phaseCount: state.phaseCount,
+      startedAt: state.startedAt ?? 0,
+      expiredAt: state.expiredAt ?? 0,
+    })
   }
 
   //[DEV ONLY] 타이머 강제 변경 — durationMs 후 만료. 페이즈는 그대로.
@@ -223,6 +244,15 @@ export class BattlePhaseTransitionUseCase {
     )
 
     this.timer.schedule(battleId, state)
+
+    await this.kafkaPubPort.publishBattlePhaseChanged({
+      battleId,
+      currentPhase: state.phase,
+      currentRound: state.round,
+      phaseCount: state.phaseCount,
+      startedAt: state.startedAt,
+      expiredAt: state.expiredAt,
+    })
   }
 
   //다음 타이머 스케줄링

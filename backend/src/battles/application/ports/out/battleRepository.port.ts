@@ -52,7 +52,7 @@ export interface BattleRepoPort {
     chatsAllState: Prisma.InputJsonValue
     chatsTeamAState: Prisma.InputJsonValue
     chatsTeamBState: Prisma.InputJsonValue
-    referenceData?: Prisma.InputJsonValue
+    referenceData?: Prisma.InputJsonValue | null
   }): Promise<PrismaBattle>
 
   //배틀 업데이트

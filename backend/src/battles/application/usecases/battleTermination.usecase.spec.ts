@@ -5,10 +5,10 @@ import type { BattleRepoPort } from '../ports/out/battleRepository.port'
 import type { BattleStatePort } from '../ports/out/battleState.port'
 import type { BattleBroadcasterPort } from '../ports/out/battleBroadcaster.port'
 import type { BattleTimerPort } from '../ports/out/battleTimer.port'
+import type { KafkaPubPort } from '../ports/out/kafkaPublish.port'
 import type { BattleResultService } from '../../domains/services/battleResult/battleResult.service'
 import type { BattleTimelineService } from '../../domains/services/battleTimeline/battleTimeline.service'
 import type { BattleMvpService } from '../../domains/services/battleMvp/battleMvp.service'
-import type { BattleTierService } from '../../domains/services/battleTier/battleTier.service'
 import type { ActiveBattleState } from '../../domains/models/types/battle.types'
 
 describe('BattleTerminationUseCase', () => {
@@ -17,10 +17,10 @@ describe('BattleTerminationUseCase', () => {
   let stateRepo: jest.Mocked<BattleStatePort>
   let broadcaster: jest.Mocked<BattleBroadcasterPort>
   let timer: jest.Mocked<BattleTimerPort>
+  let kafkaPubPort: jest.Mocked<KafkaPubPort>
   let resultService: jest.Mocked<BattleResultService>
   let timelineService: jest.Mocked<BattleTimelineService>
   let mvpService: jest.Mocked<BattleMvpService>
-  let tierService: jest.Mocked<BattleTierService>
 
   const createMockState = (overrides = {}): ActiveBattleState =>
     ({
@@ -60,6 +60,13 @@ describe('BattleTerminationUseCase', () => {
       cancel: jest.fn(),
     } as unknown as jest.Mocked<BattleTimerPort>
 
+    kafkaPubPort = {
+      publishChat: jest.fn().mockResolvedValue(undefined),
+      publishBattleCreated: jest.fn().mockResolvedValue(undefined),
+      publishBattlePhaseChanged: jest.fn().mockResolvedValue(undefined),
+      publishBattleTerminated: jest.fn().mockResolvedValue(undefined),
+    } as unknown as jest.Mocked<KafkaPubPort>
+
     resultService = {
       determineWinningTeam: jest.fn().mockReturnValue('A'),
       toBattleResultForTeam: jest.fn().mockReturnValue('WIN'),
@@ -72,12 +79,7 @@ describe('BattleTerminationUseCase', () => {
     mvpService = {
       buildMvps: jest.fn().mockReturnValue([{ userId: 'user-1', nickname: 'MVP1', team: 'A', score: 100 }]),
     } as unknown as jest.Mocked<BattleMvpService>
-
-    tierService = {
-      buildRatingUpdates: jest.fn().mockReturnValue([]),
-    } as unknown as jest.Mocked<BattleTierService>
-
-    useCase = new BattleTerminationUseCase(repo, stateRepo, broadcaster, timer, resultService, timelineService, mvpService, tierService)
+    useCase = new BattleTerminationUseCase(repo, stateRepo, broadcaster, timer, kafkaPubPort, resultService, timelineService, mvpService)
   })
 
   describe('finish', () => {
@@ -134,6 +136,23 @@ describe('BattleTerminationUseCase', () => {
       expect(timelineService.buildTimeline).toHaveBeenCalledWith(mockState)
     })
 
+    it('배틀 종료 카프카 이벤트를 발행한다 (티어 계산 컨슈머용)', async () => {
+      const mockState = createMockState()
+
+      await useCase.finish(mockState)
+
+      expect(kafkaPubPort.publishBattleTerminated).toHaveBeenCalledWith({
+        battleId: 'battle-1',
+        participants: [
+          ['user-1', 'A'],
+          ['user-2', 'B'],
+        ],
+        winningTeam: 'A',
+        mvpIds: ['user-1'],
+        finishedAt: expect.any(Number),
+      })
+    })
+
     it('배틀 종료를 브로드캐스트한다', async () => {
       const mockState = createMockState()
 
@@ -144,46 +163,6 @@ describe('BattleTerminationUseCase', () => {
           battleId: 'battle-1',
         }),
       )
-    })
-
-    it('참가자가 있으면 레이팅 업데이트를 수행한다', async () => {
-      const mockState = createMockState()
-      repo.findManyUsers.mockResolvedValue([
-        { id: 'user-1', rating: 1000, tier: 'SILVER' },
-        { id: 'user-2', rating: 1000, tier: 'SILVER' },
-      ])
-      tierService.buildRatingUpdates.mockReturnValue([
-        { userId: 'user-1', currentRating: 1000, currentTier: 'SILVER', nextRating: 1050, nextTier: 'SILVER', delta: 50, mvpBonus: 0 },
-        { userId: 'user-2', currentRating: 1000, currentTier: 'SILVER', nextRating: 950, nextTier: 'SILVER', delta: -50, mvpBonus: 0 },
-      ])
-
-      await useCase.finish(mockState)
-
-      expect(repo.findManyUsers).toHaveBeenCalledWith({
-        where: { id: { in: ['user-1', 'user-2'] } },
-        select: { id: true, rating: true, tier: true },
-      })
-      expect(tierService.buildRatingUpdates).toHaveBeenCalled()
-      expect(repo.transaction).toHaveBeenCalled()
-    })
-
-    it('참가자가 없으면 레이팅 업데이트를 건너뛴다', async () => {
-      const mockState = createMockState({ participants: new Map() })
-
-      await useCase.finish(mockState)
-
-      expect(repo.findManyUsers).not.toHaveBeenCalled()
-      expect(tierService.buildRatingUpdates).not.toHaveBeenCalled()
-    })
-
-    it('등록된 사용자가 없으면 레이팅 업데이트를 건너뛴다', async () => {
-      const mockState = createMockState()
-      repo.findManyUsers.mockResolvedValue([])
-
-      await useCase.finish(mockState)
-
-      expect(tierService.buildRatingUpdates).not.toHaveBeenCalled()
-      expect(repo.transaction).not.toHaveBeenCalled()
     })
 
     it('상태 필드를 null로 초기화한다', async () => {

@@ -7,6 +7,7 @@ import { DevController } from './adapters/in/dev.controller'
 import { OauthModule } from '../oauth/oauth.module'
 import { MetricsModule } from '../metrics/metrics.module'
 import { InviteAccessGuard } from './guards/inviteAccess.guard'
+import { KafkaModule } from '../kafka/kafka.module'
 
 // Domain Services
 import { BattleResultService } from './domains/services/battleResult/battleResult.service'
@@ -41,6 +42,7 @@ import { BattleReferenceGeneratorAdapter } from './adapters/out/reference/battle
 import { BattleIdentifierAdapter } from './adapters/out/battleIdentifier/battleIdentifier.adapter'
 import { GuestCheckAdapter } from './adapters/out/guestCheck/guestCheck.adapter'
 import { BattlePrivacyCheckAdapter } from './adapters/out/battlePrivacyCheck/battlePrivacyCheck.adapter'
+import { KafkaAdapter } from './adapters/out/kafka/kafkaAdapter'
 
 // Port Tokens
 import {
@@ -52,13 +54,14 @@ import {
   BATTLE_IDENTIFIER_PORT,
   GUEST_CHECK_PORT,
   BATTLE_PRIVACY_CHECK_PORT,
+  KAFKA_PUB_PORT,
 } from './application/ports/tokens'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const controllers = isProduction ? [BattlesController, GuestController] : [BattlesController, GuestController, DevController]
 
 @Module({
-  imports: [OauthModule, MetricsModule, ConfigModule],
+  imports: [OauthModule, MetricsModule, ConfigModule, KafkaModule],
   controllers,
   providers: [
     BattlesGateway,
@@ -96,8 +99,8 @@ const controllers = isProduction ? [BattlesController, GuestController] : [Battl
     BattleIdentifierAdapter,
     GuestCheckAdapter,
     BattlePrivacyCheckAdapter,
-
     BattleBroadcasterAdapter,
+    KafkaAdapter,
 
     { provide: BATTLE_REPO_PORT, useClass: BattleRepositoryAdapter },
     { provide: BATTLE_STATE_PORT, useClass: BattleStateRepositoryAdapter },
@@ -107,6 +110,7 @@ const controllers = isProduction ? [BattlesController, GuestController] : [Battl
     { provide: BATTLE_IDENTIFIER_PORT, useClass: BattleIdentifierAdapter },
     { provide: GUEST_CHECK_PORT, useClass: GuestCheckAdapter },
     { provide: BATTLE_PRIVACY_CHECK_PORT, useClass: BattlePrivacyCheckAdapter },
+    { provide: KAFKA_PUB_PORT, useClass: KafkaAdapter },
   ],
 })
 export class BattlesModule {}
