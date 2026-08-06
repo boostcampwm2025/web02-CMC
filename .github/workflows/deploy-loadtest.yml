@@ -24,7 +24,7 @@ jobs:
       GCP_BACKEND_MIG: ${{ vars.GCP_BACKEND_MIG }}
       GCP_DEPLOY_PATH: ${{ vars.GCP_DEPLOY_PATH }}
       BACKEND_IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPOSITORY }}/backend
-      VERSION_TAG: loadtest-${{ github.sha }}
+      VERSION_TAG: loadtest-${{ github.sha }}-r${{ github.run_id }}-a${{ github.run_attempt }}
 
     steps:
       - uses: actions/checkout@v4
