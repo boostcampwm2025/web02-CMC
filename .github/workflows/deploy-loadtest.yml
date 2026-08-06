@@ -60,9 +60,7 @@ jobs:
           file: backend/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: |
-            ${{ env.BACKEND_IMAGE }}:loadtest-latest
-            ${{ env.BACKEND_IMAGE }}:${{ env.VERSION_TAG }}
+          tags: ${{ env.BACKEND_IMAGE }}:${{ env.VERSION_TAG }}
           labels: |
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
